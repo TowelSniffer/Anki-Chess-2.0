@@ -1673,12 +1673,9 @@ button, .night_mode .myButton {
 	-webkit-border-radius: 2px;
 	border-radius: 2px;
 	cursor: default;
-	font-size: 11px;
+	font-size: 18px;
 	font-weight: bold;
 	text-align: center;
-	line-height: 20px;
-
-
 	text-decoration: none;
 }
 
@@ -1717,21 +1714,10 @@ button:focus {outline:0;}
   padding: 8px 0;
   position: absolute;
   z-index: 1;
-  bottom: -80px;
-  margin-left: -140px;
+  bottom: -84px;
+  margin-left: -120px;
 }
 
-/* Popup arrow */
-.popup .popuptext::after {
-  content: "";
-  position: absolute;
-  top: -5%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #555 transparent transparent transparent;
-}
 
 /* Toggle this class - hide and show the popup */
 .popup .show {
@@ -1760,6 +1746,22 @@ button:focus {outline:0;}
 
 margin-left:auto;
 margin-right:auto;
+
+}
+
+body {
+  margin:0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: -webkit-box;
+	-webkit-box-align: stretch;
+	-webkit-box-pack: center;
+	-webkit-box-orient: vertical;
+	font-size:22px;
+    text-align: center; /* ALIGN TEXT */
 
 }
 </style>
@@ -1797,25 +1799,21 @@ margin-right:auto;
   }
 
   </script>
-
+        <div id='board' style='width: 90vmin; max-width:600px'></div><br>
   <div class="center">
 
-    <div class="popup" onclick="myFunction()"><img src="_wQ.png" id=promotButton height="40px" style="	border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-9px">
-      <span class="popuptext" id="myPopup">
-        <img src="_wQ.png" width="50px" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.png'">
-        <img src="_wB.png" width="50px" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.png'">
-        <img src="_wN.png" width="50px" onclick="promoteChoice='n';document.getElementById('promotButton').src='_wN.png'">
-        <img src="_wR.png" width="50px" onclick="promoteChoice='r';document.getElementById('promotButton').src='_wR.png'">
-      </span>
-    </div>
-<br><br>
-
-  </div>
 
 
-          <div id='board' style='width: 95vmin; max-width:600px'></div>
-  <div class=center>
 <button class="reveal" onclick="myStartFunction();setTimeout(myStartFunction1,300);document.getElementById('isSolved').style.visibility = 'hidden';">Reset</button>
+<div class="popup" onclick="myFunction()"><img src="_wQ.png" id=promotButton height="40px" style="	border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-12px">
+  <span class="popuptext" id="myPopup">
+    <img src="_wQ.png" width="50px" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.png'">
+    <img src="_wB.png" width="50px" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.png'">
+    <img src="_wN.png" width="50px" onclick="promoteChoice='n';document.getElementById('promotButton').src='_wN.png'">
+    <img src="_wR.png" width="50px" onclick="promoteChoice='r';document.getElementById('promotButton').src='_wR.png'">
+  </span>
+</div>
+
   <button onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fen_position;copyFen(); document.getElementById('fenReveal').style.display = 'none'">Copy FEN</button>
   </div>
 
