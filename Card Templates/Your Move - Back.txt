@@ -1,0 +1,52 @@
+<script>
+
+
+
+
+var FEN = `{{text:FEN}}`;
+
+
+</script>
+
+{{#Title}}{{Title}}<br>{{/Title}}
+
+
+  <iframe id="analysisBoard"></iframe>
+
+
+{{#Comments}}<div class="reveal center" style="display:none">{{Comments}}</div>{{/Comments}}
+
+
+
+<input type="text" id=fenReveal style="display:none">
+<script>
+// When the user clicks on div, open the popup
+function myFunction() {
+  var popup = document.getElementById("myPopup");
+  popup.classList.toggle("show");
+}
+</script>
+
+<script type="text/javascript">
+
+  function copyFen() {
+    /* Get the text field */
+    var copyText = document.getElementById("fenReveal");
+
+    /* Select the text field */
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+    /* Copy the text inside the text field */
+    document.execCommand("copy");
+
+  }
+
+</script>
+<script>
+var PGN = `{{PGN}}`.replace(/<br>/g, ' ').replace(/&nbsp;/g, ' ');
+var FEN = `{{text:FEN}}`;
+
+document.getElementById("analysisBoard").src =`_ChessTempoViewerB.html?PGN=`+PGN+`&FEN=`+FEN+``;
+
+</script>
