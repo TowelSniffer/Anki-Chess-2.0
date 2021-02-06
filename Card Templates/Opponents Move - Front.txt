@@ -17,7 +17,7 @@ boardRotation = "white";
 {{#Title}}{{Title}}<br>{{/Title}}
 
 
-  <iframe id="analysisBoard"></iframe>
+  <iframe id="Board"></iframe>
 
 
 {{#Comments}}<div class="reveal center" style="display:none">{{Comments}}</div>{{/Comments}}
@@ -53,6 +53,6 @@ function myFunction() {
 var PGN = `{{PGN}}`.replace(/<br>/g, ' ').replace(/&nbsp;/g, ' ');
 var FEN = `{{text:FEN}}`;
 
-document.getElementById("analysisBoard").src =`_board2.html?PGN=`+PGN+`&FEN=`+FEN+``;
+document.getElementById("Board").src =`_board2.html?PGN=`+PGN+`&FEN=`+FEN+``;
 
 </script>
