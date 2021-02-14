@@ -13,3 +13,6 @@ https://chesstempo.com/pgn-viewer/
 
 Auerswald Collection, 3500 tactics (PGN format)
 http://gorgonian.weebly.com/pgn.html
+
+chess.js
+https://github.com/jhlywa/chess.js/blob/master/README.md
