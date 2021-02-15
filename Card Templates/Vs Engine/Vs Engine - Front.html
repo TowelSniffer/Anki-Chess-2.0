@@ -1,0 +1,73 @@
+<script>
+
+
+var FEN = `{{text:FEN}}`;
+
+
+  var patt = /(( b | w ))(?!.*\1)/g;
+  var result = FEN.match(patt);
+  if (result == " w "){
+
+boardRotation = "white";
+
+}
+
+</script>
+{{#Title}}{{Title}}<br>{{/Title}}
+
+  <iframe id="Board"></iframe>
+
+{{#Comments}}<div class="reveal center" style="display:none">{{Comments}}</div>{{/Comments}}
+
+
+
+
+<input type="text" id=fenReveal style="display:none">
+<script>
+// When the user clicks on div, open the popup
+function myFunction() {
+  var popup = document.getElementById("myPopup");
+  popup.classList.toggle("show");
+}
+</script>
+
+<script type="text/javascript">
+
+  function copyFen() {
+    /* Get the text field */
+    var copyText = document.getElementById("fenReveal");
+
+    /* Select the text field */
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+    /* Copy the text inside the text field */
+    document.execCommand("copy");
+
+  }
+
+</script>
+<script>
+
+
+    /* time spent calculating -- value is randomized to result in varying moves */
+var thinkTime = 0.5;
+
+document.getElementById("Board").src =`_BoardVsEngine.html?FEN=`+FEN+`&thinkTime=`+thinkTime+``;
+
+</script>
+
+
+
+
+
+<div id="anki-am" data-name="Assets by ASSET MANAGER" data-version="2.1">
+    <script data-name="Prevent reinclusion" data-version="v0.1">
+        var ankiAms = document.querySelectorAll('#anki-am')
+          if (ankiAms.length > 1) {
+            for (const am of Array.from(ankiAms).slice(0, -1)) {
+              am.outerHTML = ''
+          }
+        }
+    </script>
+</div>
