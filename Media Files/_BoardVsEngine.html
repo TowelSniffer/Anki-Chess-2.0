@@ -2052,7 +2052,7 @@ uciCmd('position fen ' + fenString);
         return {
             reset: function() {
                 game.reset();
-                var skill = Math.floor(Math.random() * (21 - 18) + 18);
+                var skill = 20;
                 this.setSkillLevel(skill);
             },
             loadPgn: function(pgn) { game.load_pgn(pgn); },
@@ -2114,7 +2114,7 @@ uciCmd('position fen ' + fenString);
 
         newGame = function newGame() {
           var game = engineGame();
-            var skill = Math.floor(Math.random() * (21 - 18) + 18);
+            var skill = 20;
             game.reset();
             game.setSkillLevel(skill);
             game.setPlayerColor(boardRotation);
