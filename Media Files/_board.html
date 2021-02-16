@@ -1824,12 +1824,12 @@ fixed.addEventListener('touchmove', function(e) {
 
   <button onclick="myStartFunction();document.getElementById('isSolved').style.visibility = 'hidden';">Reset</button>
 
-  <div class="popup" onclick="myFunction()"><img src="_wQ.png" id=promotButton height="40px" style="	border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-12px">
+  <div class="popup" onclick="myFunction()"><img src="_wQ.svg" id=promotButton height="40px" style="	border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-12px">
     <span class="popuptext" id="myPopup">
-      <img src="_wQ.png" width="50px" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.png'">
-      <img src="_wB.png" width="50px" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.png'">
-      <img src="_wN.png" width="50px" onclick="promoteChoice='n';document.getElementById('promotButton').src='_wN.png'">
-      <img src="_wR.png" width="50px" onclick="promoteChoice='r';document.getElementById('promotButton').src='_wR.png'">
+      <img src="_wQ.svg" width="50px" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.svg'">
+      <img src="_wB.svg" width="50px" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.svg'">
+      <img src="_wN.svg" width="50px" onclick="promoteChoice='n';document.getElementById('promotButton').src='_wN.svg'">
+      <img src="_wR.svg" width="50px" onclick="promoteChoice='r';document.getElementById('promotButton').src='_wR.svg'">
     </span>
   </div>
 
@@ -1939,10 +1939,10 @@ fixed.addEventListener('touchmove', function(e) {
     function pieceTheme(piece) {
     // wikipedia theme for white pieces
     if (piece.search(/w/) !== -1) {
-      return '_' + piece + '.png';
+      return '_' + piece + '.svg';
       }
 
-        return '_' + piece + '.png';
+        return '_' + piece + '.svg';
     }
 
   var board,
