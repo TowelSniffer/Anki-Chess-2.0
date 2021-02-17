@@ -1896,7 +1896,7 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
 
 
 <button id="hintBtn">Hint</button>
-<button id="backBtn">&#9100;</button>
+<button id="backBtn">&#8617;</button>
 
         <button onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fenString;copyFen(); document.getElementById('fenReveal').style.display = 'none'">FEN</button>
 
@@ -2236,9 +2236,11 @@ evaluatePosition(positionColor);
 
 
                     thinkTime2 = thinkTime*Math.floor(Math.random() * (4000 - 500) + 500);
-
+document.querySelector('#backBtn').disabled = true;
                         uciCmd("go movetime "+thinkTime2+"");
-
+                        setTimeout(function() {
+    document.querySelector('#backBtn').disabled = false;
+                        }, thinkTime2);
                     isEngineRunning = true;
                 }
             }
@@ -2329,8 +2331,11 @@ var engineRunning = true;
 uciCmd('ucinewgame');
 uciCmd('position fen ' + fenString);
 uciCmd('setoption name Skill Level value 20');
+document.querySelector('#backBtn').disabled = true;
 uciCmd("go movetime "+thinkTime2+"");
-
+setTimeout(function() {
+document.querySelector('#backBtn').disabled = false;
+}, thinkTime2);
         };
 
         // update the board position after the piece snap
