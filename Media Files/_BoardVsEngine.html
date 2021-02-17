@@ -2094,21 +2094,10 @@ var engineStatus = {};
                     console.log("here");
                       engineStatus.score = 'Mate in ' + Math.abs(score);
 
-                      if (engineStatus.score && game.turn() === 'b' && positionColor === 'b') {
-                        document.getElementById('evalBtn').value = score*-100;
-                        document.getElementById('scoreText').innerHTML = engineStatus.score;
-                      } else if (engineStatus.score && game.turn() === 'w' && positionColor === 'w') {
-                        document.getElementById('evalBtn').value = score*100;
-                        document.getElementById('scoreText').innerHTML = engineStatus.score;
-                      } else if (engineStatus.score && game.turn() === 'w' && positionColor === 'b') {
-                        document.getElementById('evalBtn').value = score*-100;
-                        document.getElementById('scoreText').innerHTML = engineStatus.score;
-                        modifyInputs();
-                      } else if (engineStatus.score && game.turn() === 'b' && positionColor === 'w') {
                         document.getElementById('evalBtn').value = score*100;
                         document.getElementById('scoreText').innerHTML = engineStatus.score;
                         modifyInputs();
-                      }
+
                   }
 
               }
@@ -2289,15 +2278,11 @@ document.querySelector('#backBtn').disabled = true;
                     /// Did it find a mate?
                     } else if(match[1] == 'mate') {
                         engineStatus.score = 'Mate in ' + Math.abs(score);
-                        if (engineStatus.score && game.turn() === 'w' && positionColor === 'b') {
+
                           document.getElementById('evalBtn').value = score*100;
                           document.getElementById('scoreText').innerHTML = engineStatus.score;
                           modifyInputs();
-                        } else if (engineStatus.score && game.turn() === 'b' && positionColor === 'w') {
-                          document.getElementById('evalBtn').value = score*100;
-                          document.getElementById('scoreText').innerHTML = engineStatus.score;
-                          modifyInputs();
-                        }
+
                     }
 
                     /// Is the score bounded?
