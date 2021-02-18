@@ -2224,7 +2224,7 @@ evaluatePosition(positionColor);
                     uciCmd('position '+fenString+' moves' + get_moves());
 
 
-                    thinkTime2 = thinkTime*Math.floor(Math.random() * (4000 - 500) + 500);
+                    thinkTime2 = thinkTime*Math.floor(Math.random() * (4000 - 1500) + 1500);
 document.querySelector('#backBtn').disabled = true;
                         uciCmd("go movetime "+thinkTime2+"");
                         setTimeout(function() {
@@ -2309,7 +2309,7 @@ document.querySelector('#backBtn').disabled = true;
             if (move === null) return 'snapback';
 
 
-            thinkTime2 = thinkTime*Math.floor(Math.random() * (4000 - 500) + 500);
+            thinkTime2 = thinkTime*Math.floor(Math.random() * (4000 - 1500) + 1500);
 
 fenString = game.fen()
 var engineRunning = true;
