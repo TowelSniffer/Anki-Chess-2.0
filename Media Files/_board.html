@@ -1665,10 +1665,16 @@ if (typeof define !== 'undefined') define( function () { return Chess;  });
 body {
   margin:0;
   text-align: center;
-  	font-size: 18px;
+  	font-size: 16px;
 }
-button, .night_mode .myButton {
-  font-size: 1em;
+
+@media only screen and (orientation: landscape) {
+  body {
+    	font-size: 2vmin;
+  }
+}
+button {
+  font-size: 1.2em;
 	margin:5px;
 	margin-top:10px;
 	margin-bottom:10px;
@@ -1686,7 +1692,7 @@ button, .night_mode .myButton {
 
 .center{	text-align: center}
 
-button:hover, .night_mode .myButton:hover {
+button:hover {
 	background-color: #F8F8F8!important;
 	background-image: -webkit-linear-gradient(top,#f8f8f8,#f1f1f1);
 	border: 1px solid #C6C6C6;
@@ -1748,10 +1754,17 @@ button:focus {outline:0;}
 }
 
 #board{
-width: 98vmin;
-max-width:600px;
+width: 97vmin;
+
 margin: 0 auto;
 }
+
+@media only screen and (orientation: landscape) {
+  #board{
+  max-width:80vmin;
+  }
+}
+
 
 
 a:link, a:visited {
@@ -1788,7 +1801,7 @@ a:link, a:visited {
 
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = FEN.match(patt);
-    if (result == " b "){
+    if (result == " w "){
 
   boardRotation = "white";
 
@@ -1799,7 +1812,7 @@ a:link, a:visited {
   <div id=isSolved style="text-align: center; visibility:hidden;"><img style= "width: 2em; height: 2em;" src="_tick.png" alt="correct!"></div>
 
 
-  <div id='board'></div><br>
+  <div id='board'></div>
 
 <script>
 
@@ -1819,7 +1832,7 @@ document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
 
 
 <button class="reveal" title="reset" onclick="myStartFunction();setTimeout(myStartFunction1,300);document.getElementById('isSolved').style.visibility = 'hidden';">&#128260;</button>
-<div  title="Choose Default Promotion" class="popup" onclick="myFunction()"><img src="_wQ.svg" id=promotButton  style="width: 2em; height: 2em; border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-12px">
+<div  title="Choose Default Promotion" class="popup" onclick="myFunction()"><img src="_wQ.svg" id=promotButton  style="width: 2em; height: 2em; border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-0.6em">
   <span class="popuptext" id="myPopup">
     <img src="_wQ.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.svg'">
     <img src="_wB.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.svg'">

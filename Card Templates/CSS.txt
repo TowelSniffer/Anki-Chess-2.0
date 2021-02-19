@@ -40,18 +40,3 @@ border:0;
 height:96vh;
 width:96vw;
 }
-
-
-
-#analysisBoard {
-
-width:1200px;
-max-width:100vw;
-height:100vh;
-}
-
-.mobile #analysisBoard {
-width:600px;
-max-width:96vw;
-height:96vh;
-}
