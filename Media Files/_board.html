@@ -1662,8 +1662,13 @@ if (typeof define !== 'undefined') define( function () { return Chess;  });
 
 /*! chessboard.js v1.0.0 | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
 .clearfix-7da63{clear:both}.board-b72b1{border:1vmin solid #670A0A; box-sizing:content-box}.square-55d63{float:left;position:relative;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.white-1e1d7{background-color:#f0d9b5;color:#b58863}.black-3c85d{background-color:#b58863;color:#f0d9b5}.highlight1-32417,.highlight2-9c5d2{box-shadow:inset 0 0 3px 3px #ff0}.notation-322f9{cursor:default;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;position:absolute}.alpha-d2270{bottom:1px;right:3px}.numeric-fc462{top:2px;left:2px}
-
+body {
+  margin:0;
+  text-align: center;
+  	font-size: 18px;
+}
 button, .night_mode .myButton {
+  font-size: 1em;
 	margin:5px;
 	margin-top:10px;
 	margin-bottom:10px;
@@ -1674,7 +1679,6 @@ button, .night_mode .myButton {
 	-webkit-border-radius: 2px;
 	border-radius: 2px;
 	cursor: default;
-	font-size: 18px;
 	font-weight: bold;
 	text-align: center;
 	text-decoration: none;
@@ -1707,7 +1711,7 @@ button:focus {outline:0;}
 /* The actual popup */
 .popup .popuptext {
   visibility: hidden;
-  width: 240px;
+  width: 10em;
   background-color: #555;
   color: #fff;
   text-align: center;
@@ -1715,8 +1719,8 @@ button:focus {outline:0;}
   padding: 8px 0;
   position: absolute;
   z-index: 1;
-  bottom: -84px;
-  margin-left: -120px;
+  bottom: 2em;
+  margin-left: -6em;
 }
 
 
@@ -1749,10 +1753,7 @@ max-width:600px;
 margin: 0 auto;
 }
 
-body {
-  margin:0;
-  text-align: center;
-}
+
 a:link, a:visited {
   color: inherit;
 
@@ -1787,15 +1788,15 @@ a:link, a:visited {
 
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = FEN.match(patt);
-    if (result == " w "){
+    if (result == " b "){
 
   boardRotation = "white";
 
   }
 
   </script>
-<button><a id="lichess">Lichess</button>
-    <div id=isSolved style="	text-align: center; font-size:3em; visibility:hidden;"><img src="_tick.png" alt="correct!" height=30 Width=30></div>
+  <button title="open in Lichess Analysis Board"><a id="lichess">Lichess</button>
+  <div id=isSolved style="text-align: center; visibility:hidden;"><img style= "width: 2em; height: 2em;" src="_tick.png" alt="correct!"></div>
 
 
   <div id='board'></div><br>
@@ -1804,34 +1805,32 @@ a:link, a:visited {
 
 document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
 
-//prevent scroling on toutch screen when dragging pieces
-var fixed = document.getElementById('board');
+        //prevent scroling on toutch screen when dragging pieces
+        var fixed = document.getElementById('board');
 
-fixed.addEventListener('touchmove', function(e) {
+        fixed.addEventListener('touchmove', function(e) {
 
-      e.preventDefault();
+              e.preventDefault();
 
-}, false);
+        }, false);
 </script>
-
   <div class="center">
 
 
 
+<button class="reveal" title="reset" onclick="myStartFunction();setTimeout(myStartFunction1,300);document.getElementById('isSolved').style.visibility = 'hidden';">&#128260;</button>
+<div  title="Choose Default Promotion" class="popup" onclick="myFunction()"><img src="_wQ.svg" id=promotButton  style="width: 2em; height: 2em; border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-12px">
+  <span class="popuptext" id="myPopup">
+    <img src="_wQ.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.svg'">
+    <img src="_wB.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.svg'">
+    <img src="_wN.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='n';document.getElementById('promotButton').src='_wN.svg'">
+    <img src="_wR.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='r';document.getElementById('promotButton').src='_wR.svg'">
+  </span>
+</div>
 
-  <button onclick="myStartFunction();document.getElementById('isSolved').style.visibility = 'hidden';">Reset</button>
-
-  <div class="popup" onclick="myFunction()"><img src="_wQ.svg" id=promotButton height="40px" style="	border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-12px">
-    <span class="popuptext" id="myPopup">
-      <img src="_wQ.svg" width="50px" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.svg'">
-      <img src="_wB.svg" width="50px" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.svg'">
-      <img src="_wN.svg" width="50px" onclick="promoteChoice='n';document.getElementById('promotButton').src='_wN.svg'">
-      <img src="_wR.svg" width="50px" onclick="promoteChoice='r';document.getElementById('promotButton').src='_wR.svg'">
-    </span>
+  <button title="copy current FEN position" onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fen_position;copyFen(); document.getElementById('fenReveal').style.display = 'none'">FEN</button>
   </div>
 
-  <button onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fen_position;copyFen(); document.getElementById('fenReveal').style.display = 'none'">Copy FEN</button>
-  </div>
 
 
 
