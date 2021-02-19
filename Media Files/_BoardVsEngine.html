@@ -30,14 +30,7 @@ boardRotation = "white";
 
 </script>
     <style>
-    output {
-      position: absolute;
-      color: White;
-      border-radius: 10px;
-      font: 25px;
-      top:76%;
-      right:64%;
-    }
+
 
 
     input[type=range]{
@@ -63,7 +56,6 @@ boardRotation = "white";
       width: 3px;
       border-radius: 3px;
       background: indianred;
-      margin-top: -1px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
       box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; /* Add cool effects to your sliders! */
     }
 
@@ -72,17 +64,9 @@ boardRotation = "white";
     }
 
 
-    #board {
-
-
-
-      text-align: center;
-    }
-
     #container {
       width: 98vmin; max-width:600px;
       margin: auto;
-
     }
 
     #board {
@@ -94,7 +78,7 @@ boardRotation = "white";
     #evalSlider {
       float: left;
 position: absolute;
-      top:48%;
+      top:47%;
             right:50%;
     }
 
@@ -158,7 +142,6 @@ body {
 	-webkit-box-orient: vertical;
 	font-size:22px;
     text-align: center; /* ALIGN TEXT */
-
 }
 </style>
     <script>
@@ -1895,12 +1878,6 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
 </div>
 
 
-<button id="hintBtn">Hint</button>
-<button id="backBtn">&#8617;</button>
-
-        <button onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fenString;copyFen(); document.getElementById('fenReveal').style.display = 'none'">FEN</button>
-
-
 
    <script type="text/javascript">
 
@@ -1923,8 +1900,10 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
 </script>
 
 
-
-              <button type="button" class="btn btn-primary" onclick="newGame()">Reset</button>
+<button id="hintBtn">Hint</button>
+<button id="backBtn">&#8617;</button>
+<button onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fenString;copyFen(); document.getElementById('fenReveal').style.display = 'none'">FEN</button>
+<button class="btn btn-primary" onclick="newGame()">Reset</button>
 
 
 
