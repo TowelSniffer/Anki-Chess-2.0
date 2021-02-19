@@ -16,9 +16,6 @@ body {
 font-size:20px;
 }
 
-::-webkit-scrollbar {
-    display: none;
-}
 
 #board{
 
@@ -32,8 +29,6 @@ display:block;
 margin-left:auto;margin-right:auto;
 height:100vh;
 width:100vw;
-max-height:850px;
-max-width:650px;
 border:0;
 }
 
@@ -52,10 +47,11 @@ width:96vw;
 
 width:1200px;
 max-width:100vw;
-max-height:100vh;
+height:100vh;
 }
 
 .mobile #analysisBoard {
 width:600px;
 max-width:96vw;
+height:96vh;
 }
