@@ -1,62 +1,17 @@
-<button class ="lichess"><a href="https://lichess.org/analysis/{{FEN}}" >Open in lichess</a><style>a:link, a:visited {
-  color: black;
+<iframe id="Board"></iframe>
 
-  text-decoration: none;
-  display: inline-block;
-} </style></button>
+
+
 <script>
-
 var FEN = `{{text:FEN}}`;
+    var patt = /(( b | w ))(?!.*\1)/g;
+    var result = FEN.match(patt);
+    if (result == " w "){
 
-
-  var patt = /(( b | w ))(?!.*\1)/g;
-  var result = FEN.match(patt);
-  if (result == " w "){
-
-boardRotation = "white";
-
-}
-
-</script>
-
-{{#Title}}{{Title}}<br>{{/Title}}
-
-
-  <iframe id="Board"></iframe>
-
-
-{{#Comments}}<div class="reveal center" style="display:none">{{Comments}}</div>{{/Comments}}
-
-
-
-<input type="text" id=fenReveal style="display:none">
-<script>
-// When the user clicks on div, open the popup
-function myFunction() {
-  var popup = document.getElementById("myPopup");
-  popup.classList.toggle("show");
-}
-</script>
-
-<script type="text/javascript">
-
-  function copyFen() {
-    /* Get the text field */
-    var copyText = document.getElementById("fenReveal");
-
-    /* Select the text field */
-    copyText.select();
-    copyText.setSelectionRange(0, 99999); /* For mobile devices */
-
-    /* Copy the text inside the text field */
-    document.execCommand("copy");
+  boardRotation = "white";
 
   }
-
-</script>
-<script>
 var PGN = `{{PGN}}`.replace(/<br>/g, ' ').replace(/&nbsp;/g, ' ');
-var FEN = `{{text:FEN}}`;
 
 document.getElementById("Board").src =`_board2.html?PGN=`+PGN+`&FEN=`+FEN+``;
 

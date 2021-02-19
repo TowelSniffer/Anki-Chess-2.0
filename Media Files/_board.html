@@ -1660,7 +1660,7 @@ if (typeof define !== 'undefined') define( function () { return Chess;  });
 <style>
 
 /*! chessboard.js v1.0.0 | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
-.clearfix-7da63{clear:both}.board-b72b1{border:8px solid #670A0A;box-sizing:content-box}.square-55d63{float:left;position:relative;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.white-1e1d7{background-color:#f0d9b5;color:#b58863}.black-3c85d{background-color:#b58863;color:#f0d9b5}.highlight1-32417,.highlight2-9c5d2{box-shadow:inset 0 0 3px 3px #ff0}.notation-322f9{cursor:default;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;position:absolute}.alpha-d2270{bottom:1px;right:3px}.numeric-fc462{top:2px;left:2px}
+.clearfix-7da63{clear:both}.board-b72b1{border:1vmin solid #670A0A; box-sizing:content-box}.square-55d63{float:left;position:relative;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.white-1e1d7{background-color:#f0d9b5;color:#b58863}.black-3c85d{background-color:#b58863;color:#f0d9b5}.highlight1-32417,.highlight2-9c5d2{box-shadow:inset 0 0 3px 3px #ff0}.notation-322f9{cursor:default;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;position:absolute}.alpha-d2270{bottom:1px;right:3px}.numeric-fc462{top:2px;left:2px}
 
 button, .night_mode .myButton {
 	margin:5px;
@@ -1719,7 +1719,6 @@ button:focus {outline:0;}
 }
 
 
-
 /* Toggle this class - hide and show the popup */
 .popup .show {
   visibility: visible;
@@ -1744,26 +1743,20 @@ button:focus {outline:0;}
 }
 
 #board{
-
-margin-left:auto;
-margin-right:auto;
-
+width: 98vmin;
+max-width:600px;
+margin: 0 auto;
 }
 
 body {
   margin:0;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	display: -webkit-box;
-	-webkit-box-align: stretch;
-	-webkit-box-pack: center;
-	-webkit-box-orient: vertical;
-	font-size:22px;
-    text-align: center; /* ALIGN TEXT */
+  text-align: center;
+}
+a:link, a:visited {
+  color: inherit;
 
+  text-decoration: none;
+  display: inline-block;
 }
 </style>
 
@@ -1800,13 +1793,16 @@ body {
   }
 
   </script>
+<button><a id="lichess">Lichess</button>
+    <div id=isSolved style="	text-align: center; font-size:3em; visibility:hidden;"><img src="_tick.png" alt="correct!" height=30 Width=30></div>
 
-  <div id=isSolved style="	text-align: center; font-size:3em; visibility:hidden;"><img src="_tick.png" alt="correct!" height=30 Width=30></div>
 
-
-<div id='board' style='width: 100vmin; max-width:600px'></div><br>
+  <div id='board'></div><br>
 
 <script>
+
+document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
+
 //prevent scroling on toutch screen when dragging pieces
 var fixed = document.getElementById('board');
 
