@@ -2049,6 +2049,7 @@ var engineStatus = {};
               line = event;
           }
           console.log("Reply: " + line)
+
           if(line == 'uciok') {
               engineStatus.engineLoaded = true;
           } else if(line == 'readyok') {
@@ -2272,7 +2273,7 @@ document.querySelector('#backBtn').disabled = true;
             }
             displayStatus();
             fenString = game.fen()
-
+window.parent.postMessage([game.pgn()], '*');
 
         };
 
