@@ -8279,7 +8279,6 @@ document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
       game.load(fen_position);
 
           game.move(expectedLine[0].notation.notation);
-          var fen_position1 = game.fen(); // Store the current position.
 
 
 
@@ -8343,19 +8342,14 @@ for (var i = 0; i < expectedMove.variations.length; i++) {
   if (move.san === expectedMove.variations[i][0].notation.notation) {
 
       count=0;
-      console.log(expectedMove.variations);
-      console.log("ddddd");
       expectedLine = expectedMove.variations[i];
       expectedMove = expectedMove.variations[i][count];
-      console.log(expectedMove);
-      console.log("d");
       count++;
       expectedMove = expectedLine[count];
       if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
           game.move(expectedMove.notation.notation);
           count++;
           expectedMove = expectedLine[count];
-      console.log("expectedLine");
         }
       fen_position = game.fen(); // Store the current position.
       foundVariation=true;
@@ -8381,7 +8375,6 @@ if (foundVariation===false) { //check to see if there is a valid next move other
 
 } else if (move.san === expectedMove.notation.notation)
       {
-           game.move(expectedMove.notation.notation);
           count++;
           expectedMove = expectedLine[count];
             if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
@@ -8394,6 +8387,7 @@ if (foundVariation===false) { //check to see if there is a valid next move other
 
 
       }
+
 
     };
 
