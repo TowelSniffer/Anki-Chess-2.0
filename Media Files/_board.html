@@ -8347,7 +8347,6 @@ for (var i = 0; i < expectedMove.variations.length; i++) {
       count++;
       expectedMove = expectedLine[count];
       if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
-          game.load(fen_position);
           game.move(expectedMove.notation.notation);
           count++;
           expectedMove = expectedLine[count];
@@ -8380,7 +8379,6 @@ if (foundVariation===false) { //check to see if there is a valid next move other
           expectedMove = expectedLine[count];
           fen_position = game.fen(); // Store the current position.
             if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
-              game.load(fen_position);
                 game.move(expectedMove.notation.notation);
                 count++;
                 expectedMove = expectedLine[count];
