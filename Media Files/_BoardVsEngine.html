@@ -2040,7 +2040,7 @@ var positionColor = game.turn();
 var engineStatus = {};
       var msg = "position fen " + game.fen();
       engineHint.postMessage(msg);
-      msg = 'go movetime 1000';
+      msg = 'go movetime '+thinkTime;
       engineHint.postMessage(msg);
       engineHint.onmessage = function(event) {
           var line;
@@ -2210,7 +2210,7 @@ evaluatePosition(positionColor);
 
 
 document.querySelector('#backBtn').disabled = true;
-                        uciCmd("go movetime "+thinkTime+"");
+                        uciCmd("go movetime "+thinkTime);
                         setTimeout(function() {
     document.querySelector('#backBtn').disabled = false;
                         }, thinkTime);
@@ -2306,7 +2306,7 @@ uciCmd('position fen ' + fenString);
 uciCmd('setoption name Skill Level value '+skillLevel);
 uciCmd('setoption name Skill Level Maximum Error value '+cuttoff);
 document.querySelector('#backBtn').disabled = true;
-uciCmd("go movetime "+thinkTime+"");
+uciCmd("go movetime "+thinkTime);
 setTimeout(function() {
 document.querySelector('#backBtn').disabled = false;
 }, thinkTime);
@@ -2320,14 +2320,26 @@ document.querySelector('#backBtn').disabled = false;
 
         var cfg = {
             showErrors: true,
-            draggable: true,
-            position: 'start',
+            draggable: false,
+            position: fenString,
             onDragStart: onDragStart,
             onDrop: onDrop,
-            onSnapEnd: onSnapEnd
+            onSnapEnd: onSnapEnd,
+            orientation: boardRotation
+        };
+        var cfg2 = {
+            showErrors: true,
+            draggable: true,
+            position: fenString,
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            orientation: boardRotation
         };
 
         board = new ChessBoard('board', cfg);
+
+        setTimeout(function(){ board = new ChessBoard('board', cfg2);}, thinkTime+0.5);
 
         return {
             reset: function() {
