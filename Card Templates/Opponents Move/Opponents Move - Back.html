@@ -2,7 +2,7 @@
 
 
 <script>
-var PGN = `{{PGN}}`.replace(/<br>/g, ' ').replace(/&nbsp;/g, ' ');
+var PGN = `{{text:PGN}}`;
 var FEN = `{{text:FEN}}`;
 
 document.getElementById("analysisBoard").src =`_ChessTempoViewer.html?PGN=`+PGN+`&FEN=`+FEN+``;
