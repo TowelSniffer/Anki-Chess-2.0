@@ -8227,6 +8227,10 @@ a:link, a:visited {
 
 <script>
 
+if (!pgn.includes("{")) {
+  document.getElementById("commentContainer").style.display = "none";
+}
+
 if (boardRotation === "white") {
 document.getElementById("commentSection").style.backgroundColor = "white";
 document.getElementById("commentSection2").style.backgroundColor = "black";

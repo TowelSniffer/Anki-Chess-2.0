@@ -8226,6 +8226,9 @@ a:link, a:visited {
   <div id='board'></div>
 
 <script>
+if (!pgn.includes("{")) {
+  document.getElementById("commentContainer").style.display = "none";
+}
 
 if (boardRotation === "white") {
 document.getElementById("commentSection").style.backgroundColor = "white";
@@ -8533,8 +8536,8 @@ if (foundVariation===false) { //check to see if there is a valid next move other
     expectedMove = parsedPGN.moves[count];
     document.getElementById('commentSection').innerHTML ='Player Comments';
     document.getElementById('commentSection2').innerHTML ='Opponent Comments'
-    if (expectedMove.commentAfter) {
-      document.getElementById("commentSection2").innerHTML = expectedMove.commentAfter;
+    if (parsedPGN.moves[0].commentAfter) {
+      document.getElementById("commentSection2").innerHTML = parsedPGN.moves[0].commentAfter;
     }
     }
 
