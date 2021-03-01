@@ -8197,8 +8197,16 @@ a:link, a:visited {
   }
 
   var pgn = getUrlVars()["PGN"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
-  var fen = getUrlVars()["FEN"].replace(/%20/g,' ');
+  let parsedPGN = parsePgn(pgn, {startRule: "game"});
+  console.log(parsedPGN);
 
+  var fen;
+
+  if (getUrlVars()["FEN"]) {
+    fen = getUrlVars()["FEN"].replace(/%20/g,' ');
+  } else {
+    fen = parsedPGN.tags.FEN
+  }
 
 
   var boardRotation = "black";
@@ -8241,11 +8249,6 @@ document.getElementById("commentSection2").style.color = "White";
   document.getElementById("commentSection").style.backgroundColor = "black";
   document.getElementById("commentSection").style.color = "White";
 }
-
-
-
-let parsedPGN = parsePgn(pgn, {startRule: "game"});
-console.log(parsedPGN);
 
 
 
