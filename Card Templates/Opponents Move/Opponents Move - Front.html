@@ -11,7 +11,7 @@ var FEN = `{{text:FEN}}`;
   boardRotation = "white";
 
   }
-var PGN = `{{PGN}}`.replace(/<br>/g, ' ').replace(/&nbsp;/g, ' ');
+var PGN = `{{text:PGN}}`;
 
 document.getElementById("Board").src =`_board2.html?PGN=`+PGN+`&FEN=`+FEN+``;
 

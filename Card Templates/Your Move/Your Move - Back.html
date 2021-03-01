@@ -1,7 +1,7 @@
 <iframe id="analysisBoard"></iframe>
 
 <script>
-var PGN = `{{PGN}}`.replace(/<br>/g, ' ').replace(/&nbsp;/g, ' ');
+var PGN = `{{text:PGN}}`;
 var FEN = `{{text:FEN}}`;
 
 document.getElementById("analysisBoard").src =`_ChessTempoViewerB.html?PGN=`+PGN+`&FEN=`+FEN+``;
