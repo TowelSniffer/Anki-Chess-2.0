@@ -19,7 +19,11 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
 
 
     /* time spent calculating -- value is randomized to result in varying moves */
-var thinkTime = 0.5;
+var thinkTime = 1;
+
+if( /Android|webOS|iPhone|iPad|Mac|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+thinkTime = 2;
+}
 
 document.getElementById("Board").src =`_BoardVsEngine.html?FEN=`+FEN+`&thinkTime=`+thinkTime+``;
 
