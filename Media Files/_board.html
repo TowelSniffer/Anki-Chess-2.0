@@ -8022,12 +8022,24 @@ if (typeof define !== 'undefined') define( function () { return Chess;  });
 <style>
 
 /*! chessboard.js v1.0.0 | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
-.clearfix-7da63{clear:both}.board-b72b1{border:1vmin solid #670A0A; box-sizing:content-box}.square-55d63{float:left;position:relative;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.white-1e1d7{background-color:#f0d9b5;color:#b58863}.black-3c85d{background-color:#b58863;color:#f0d9b5}.highlight1-32417,.highlight2-9c5d2{box-shadow:inset 0 0 3px 3px #ff0}.notation-322f9{cursor:default;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;position:absolute}.alpha-d2270{bottom:1px;right:3px}.numeric-fc462{top:2px;left:2px}
+.clearfix-7da63{clear:both}.board-b72b1{ box-sizing:content-box}.square-55d63{float:left;position:relative;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.white-1e1d7{background-color:#f0d9b5;color:#b58863}.black-3c85d{background-color:#b58863;color:#f0d9b5}.highlight1-32417,.highlight2-9c5d2{box-shadow:inset 0 0 3px 3px #ff0}.notation-322f9{cursor:default;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;position:absolute}.alpha-d2270{bottom:1px;right:3px}.numeric-fc462{top:2px;left:2px}
 
 body {
   margin:0;
   text-align: center;
-  	font-size: 16px;
+  	font-size: 3vmin;
+
+    position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+display: -webkit-box;
+-webkit-box-align: stretch;
+-webkit-box-pack: center;
+-webkit-box-orient: vertical;
+  text-align: center; /* ALIGN TEXT */
+
 }
 
 @media only screen and (orientation: landscape) {
@@ -8040,8 +8052,8 @@ body {
 button {
   font-size: 1.2em;
 	margin:5px;
-	margin-top:10px;
-	margin-bottom:10px;
+	margin-top:0.4em;
+	margin-bottom:0.4em;
 	background-color: #f5f5f5!important;
 	background-image: -webkit-linear-gradient(top,#f5f5f5,#f1f1f1)!important;
 	color: #333B45!important;
@@ -8054,7 +8066,9 @@ button {
 	text-decoration: none;
 }
 
-.center{	text-align: center}
+#center{	text-align: center;
+
+}
 
 button:hover {
 	background-color: #F8F8F8!important;
@@ -8118,14 +8132,42 @@ button:focus {outline:0;}
 }
 
 #board{
+  border:0.7vmin solid #670A0A;
+  background-color: #670A0A;
+  border-right: 0.1vmin solid #670A0A;
+  border-radius: 4px;
 width: 97vmin;
-
+display: inline-block;
+vertical-align: middle;
 margin: 0 auto;
+}
+#commentSection2 {
+  padding: 0.5em;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+}
+#commentSection {
+
+  padding: 0.5em;
+border-bottom-right-radius: 4px;
+border-bottom-left-radius: 4px;
+}
+
+#commentContainer {
+  border:3px solid LightGray;
+  border-radius: 7px;
+  width: 98vmin;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0.4em;
 }
 
 @media only screen and (orientation: landscape) {
   #board{
   max-width:80vmin;
+  }
+  #commentContainer{
+  max-width:81vmin;
   }
 }
 
@@ -8153,7 +8195,7 @@ a:link, a:visited {
       return vars;
   }
 
-  var pgn = getUrlVars()["PGN"].replace(/%20/g,' ').replace(/%22/g, '"');
+  var pgn = getUrlVars()["PGN"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
   var fen = getUrlVars()["FEN"].replace(/%20/g,' ');
 
 
@@ -8172,20 +8214,37 @@ a:link, a:visited {
   }
 
   </script>
-  <button title="open in Lichess Analysis Board"><a id="lichess">Lichess</button>
-  <div id=isSolved style="text-align: center; visibility:hidden;"><img style= "width: 2em; height: 2em;" src="_tick.png" alt="correct!"></div>
+
+<div id="commentContainer">
+
+
+<div id='commentSection2'>Opponent Comments</div>
+<div id='commentSection'>Player Comments</div>
+</div>
 
 
   <div id='board'></div>
 
 <script>
-const [parsedPGN] = parsePgn(pgn);
+
+if (boardRotation === "white") {
+document.getElementById("commentSection").style.backgroundColor = "white";
+document.getElementById("commentSection2").style.backgroundColor = "black";
+document.getElementById("commentSection2").style.color = "White";
+} else {
+  document.getElementById("commentSection2").style.backgroundColor = "white";
+  document.getElementById("commentSection").style.backgroundColor = "black";
+  document.getElementById("commentSection").style.color = "White";
+}
+
+
+
+let parsedPGN = parsePgn(pgn, {startRule: "game"});
+console.log(parsedPGN);
 
 
 
 
-
-document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
 
         //prevent scroling on toutch screen when dragging pieces
         var fixed = document.getElementById('board');
@@ -8196,11 +8255,11 @@ document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
 
         }, false);
 </script>
-  <div class="center">
+  <div id="center">
 
+<button title="open in Lichess Analysis Board"><a id="lichess">Lichess</button>
+<button class="reveal" title="reset" onclick="loadBoard();document.getElementById('board').style.backgroundColor = '#670A0A';document.getElementById('board').style.borderColor = '#670A0A';">&#128260;</button>
 
-
-<button class="reveal" title="reset" onclick="loadBoard();document.getElementById('isSolved').style.visibility = 'hidden';">&#128260;</button>
 <div  title="Choose Default Promotion" class="popup" onclick="myFunction()"><img src="_wQ.svg" id=promotButton  style="width: 2em; height: 2em; border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-0.6em">
   <span class="popuptext" id="myPopup">
     <img src="_wQ.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.svg'">
@@ -8223,6 +8282,9 @@ document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
 
   <input type="text" id=fenReveal style="display:none">
   <script>
+  document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
+
+
   // When the user clicks on div, open the popup
   function myFunction() {
     var popup = document.getElementById("myPopup");
@@ -8254,11 +8316,12 @@ document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
     var count = 0; // Int so we can track on which move we are.
     var fen_position = FEN; //setup inital fen
     var fen_position0 = FEN; //save start Fen value
-    var expectedLine = parsedPGN; // Set initially to the mainline of pgn but can change path with variations
-    var expectedMove = parsedPGN[count]; // Set the expected move according to PGN
+    var expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
+    var expectedMove = parsedPGN.moves[count]; // Set the expected move according to PGN
     var promoteChoice = 'q'; //default promotion to queen, can be changed with button withing template however it must be specified before move is made.
     var foundVariation; // a bullion to check if there are multiple lines
     var responseVar; // used to randomly sellect an appropriate response
+console.log(expectedMove);
     </script>
 
     <script>
@@ -8344,6 +8407,10 @@ for (var i = 0; i < expectedMove.variations.length; i++) {
 
       count=0;
       expectedLine = expectedMove.variations[i];
+      expectedMove = expectedLine[count];
+      if (expectedMove.commentAfter) {
+        document.getElementById("commentSection").innerHTML = expectedMove.commentAfter;
+      }
       count++;
       expectedMove = expectedLine[count];
       if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
@@ -8356,6 +8423,12 @@ for (var i = 0; i < expectedMove.variations.length; i++) {
           }
         }
           game.move(expectedMove.notation.notation);
+          if (expectedMove.commentAfter) {
+            if (expectedMove.commentAfter) {
+              document.getElementById("commentSection2").innerHTML = expectedMove.commentAfter;
+            }
+            }
+
           count++;
           expectedMove = expectedLine[count];
         }
@@ -8383,7 +8456,12 @@ if (foundVariation===false) { //check to see if there is a valid next move other
 
 } else if (move.san === expectedMove.notation.notation)
       {
-          count++;
+        if (expectedMove.commentAfter) {
+          if (expectedMove.commentAfter) {
+            document.getElementById("commentSection").innerHTML = expectedMove.commentAfter;
+          }
+        }
+        count++;
           expectedMove = expectedLine[count];
             if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
 
@@ -8396,7 +8474,10 @@ if (foundVariation===false) { //check to see if there is a valid next move other
                 }
               }
                 game.move(expectedMove.notation.notation);
-                count++;
+                if (expectedMove.commentAfter) {
+                  document.getElementById("commentSection2").innerHTML = expectedMove.commentAfter;
+                }
+                  count++;
                 expectedMove = expectedLine[count];
               }
 
@@ -8416,7 +8497,7 @@ if (foundVariation===false) { //check to see if there is a valid next move other
             position: fen_position,
             orientation: boardRotation
               }
-            document.getElementById('isSolved').style.visibility = 'visible'; //show tick
+            document.getElementById('board').style.backgroundColor = 'limegreen';document.getElementById('board').style.borderColor = 'limegreen'
 
             setTimeout(function(){
               board = Chessboard('board', configEnd)
@@ -8445,15 +8526,12 @@ if (foundVariation===false) { //check to see if there is a valid next move other
       game.load(fen_position0);
       fen_position=game.fen();
     count = 0;
-    expectedLine = parsedPGN;
-    expectedMove = parsedPGN[count];
+    expectedLine = parsedPGN.moves;
+    expectedMove = parsedPGN.moves[count];
     }
-
     loadBoard();
-
-
-
-
+    document.getElementById('commentSection').innerHTML ='Player Comments';
+    document.getElementById('commentSection2').innerHTML ='Opponent Comments'
     </script>
 
 
