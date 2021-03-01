@@ -13,8 +13,8 @@ function getUrlVars() {
 
 var myFen = getUrlVars()["FEN"].replace(/%20/g,' ');
 var fenString = myFen;
-var thinkTime = getUrlVars()["thinkTime"];
-var thinkTime2;
+var thinkTime = getUrlVars()["thinkTime"]*1000;
+
 
 var boardRotation = "black";
 
@@ -1980,6 +1980,8 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
         var engine = typeof STOCKFISH === "function" ? STOCKFISH() : new Worker(options.stockfishjs || URL.createObjectURL(new Blob([document.querySelector('#worker2').textContent], {type:'text/javascript'} )));
         var engineHint = typeof STOCKFISH === "function" ? STOCKFISH() : new Worker(options.stockfishjs || URL.createObjectURL(new Blob([document.querySelector('#worker2').textContent], {type:'text/javascript'} )));
 var eval22;
+var cuttoff;
+var skillLevel = skillLevel= Math.floor(Math.random() * (21 - 19) ) + 19;
         $('#backBtn').on('click', function() {
 
                 var fenChange = game.fen();
@@ -2067,13 +2069,15 @@ var engineStatus = {};
                       if (engineStatus.score) {
                         document.getElementById('evalBtn').value = engineStatus.score;
                         document.getElementById('scoreText').innerHTML = engineStatus.score;
+                        cuttoff = 20+Math.abs(Math.round(score/10));
+                        console.log(cuttoff);
                         modifyInputs();
                       }
                   /// Did it find a mate?
                   } else if(match[1] == 'mate') {
-                    console.log("here");
+                    cuttoff = 0;
+                    skillLevel = 20;
                       engineStatus.score = 'Mate in ' + Math.abs(score);
-
                         document.getElementById('evalBtn').value = score*100;
                         document.getElementById('scoreText').innerHTML = engineStatus.score;
                         modifyInputs();
@@ -2204,12 +2208,12 @@ evaluatePosition(positionColor);
                     uciCmd('position '+fenString+' moves' + get_moves());
 
 
-                    thinkTime2 = thinkTime*Math.floor(Math.random() * (4000 - 1500) + 1500);
+
 document.querySelector('#backBtn').disabled = true;
-                        uciCmd("go movetime "+thinkTime2+"");
+                        uciCmd("go movetime "+thinkTime+"");
                         setTimeout(function() {
     document.querySelector('#backBtn').disabled = false;
-                        }, thinkTime2);
+                        }, thinkTime);
                     isEngineRunning = true;
                 }
             }
@@ -2253,12 +2257,15 @@ document.querySelector('#backBtn').disabled = true;
                         if (engineStatus.score) {
                           document.getElementById('evalBtn').value = engineStatus.score;
                           document.getElementById('scoreText').innerHTML = engineStatus.score;
+                          cuttoff = 20+Math.abs(Math.round(score/10));
+                          console.log(cuttoff);
                           modifyInputs();
                         }
                     /// Did it find a mate?
                     } else if(match[1] == 'mate') {
                         engineStatus.score = 'Mate in ' + Math.abs(score);
-
+                          cuttoff = 0;
+                          skillLevel = 20;
                           document.getElementById('evalBtn').value = score*100;
                           document.getElementById('scoreText').innerHTML = engineStatus.score;
                           modifyInputs();
@@ -2289,18 +2296,20 @@ window.parent.postMessage([game.pgn()], '*');
             if (move === null) return 'snapback';
 
 
-            thinkTime2 = thinkTime*Math.floor(Math.random() * (4000 - 1500) + 1500);
+
 
 fenString = game.fen()
 var engineRunning = true;
+skillLevel= Math.floor(Math.random() * (21 - 19) ) + 19;
 uciCmd('ucinewgame');
 uciCmd('position fen ' + fenString);
-uciCmd('setoption name Skill Level value 20');
+uciCmd('setoption name Skill Level value '+skillLevel);
+uciCmd('setoption name Skill Level Maximum Error value '+cuttoff);
 document.querySelector('#backBtn').disabled = true;
-uciCmd("go movetime "+thinkTime2+"");
+uciCmd("go movetime "+thinkTime+"");
 setTimeout(function() {
 document.querySelector('#backBtn').disabled = false;
-}, thinkTime2);
+}, thinkTime);
         };
 
         // update the board position after the piece snap
