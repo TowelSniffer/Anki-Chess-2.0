@@ -68,6 +68,7 @@ boardRotation = "white";
     #container {
       width: 98vmin; max-width:600px;
       margin: auto;
+
     }
 
     #board {
@@ -79,14 +80,14 @@ boardRotation = "white";
     #evalSlider {
       float: left;
 position: absolute;
-      top:48%;
+      top:35%;
             right:50%;
     }
 
     #commentSection {
-      position: absolute;
-            top:88%;
-                  right:20%;
+      font-size: 16px;
+      width: 98vmin; max-width:600px;
+      margin: auto;
       padding: 0.5em;
     border-bottom-right-radius: 4px;
     border-bottom-left-radius: 4px;
@@ -113,7 +114,8 @@ button, .night_mode .myButton {
 	text-decoration: none;
 }
 
-.center{	text-align: center}
+.center{	text-align: center;
+margin: 0 auto;}
 
 button:hover, .night_mode .myButton:hover {
 	background-color: #F8F8F8!important;
@@ -142,17 +144,6 @@ margin-right:auto;
 
 body {
   margin:0;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	display: -webkit-box;
-	-webkit-box-align: stretch;
-	-webkit-box-pack: center;
-	-webkit-box-orient: vertical;
-	font-size:22px;
-    text-align: center; /* ALIGN TEXT */
 }
 </style>
     <script>
@@ -1867,9 +1858,12 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
   </head>
   <body>
 
-      <button id=scoreText>Score</button>
+
 
 <div id="container">
+<div class=center>
+<button id=scoreText>Score</button>
+</div>
     <form method="post" id=evalSlider>
 
       <input
@@ -1885,8 +1879,8 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
     </form>
 
         <div id="board"></div>
-<div id='commentSection'>Player Comments</div>
-</div>
+
+
 
 
 
@@ -1910,7 +1904,7 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
 
 </script>
 
-
+<div class=center>
 <button id="hintBtn">Hint</button>
 <button id="backBtn">&#8617;</button>
 <button onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fenString;copyFen(); document.getElementById('fenReveal').style.display = 'none'">FEN</button>
@@ -1924,8 +1918,8 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
                 <option value=b>Bishop</option>
                 <option value=n>Knight</option>
               </select>
-
-
+<div id='commentSection'>Player Comments</div>
+</div></div>
 <input type="text" id=fenReveal style="display:none">
 
               <script>
