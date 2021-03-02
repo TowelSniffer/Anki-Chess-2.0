@@ -12,6 +12,7 @@ function getUrlVars() {
 }
 
 var myFen = getUrlVars()["FEN"].replace(/%20/g,' ');
+var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
 var fenString = myFen;
 var thinkTime = getUrlVars()["thinkTime"]*1000;
 
@@ -80,6 +81,14 @@ boardRotation = "white";
 position: absolute;
       top:48%;
             right:50%;
+    }
+
+    #commentSection {
+
+      padding: 0.5em;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    background-color: white;
     }
 
 /*! chessboard.js v1.0.0 | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
@@ -1877,7 +1886,7 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
 
 </div>
 
-
+<div id='commentSection'>Player Comments</div>
 
    <script type="text/javascript">
 
@@ -1918,6 +1927,12 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
 <input type="text" id=fenReveal style="display:none">
 
               <script>
+              if (!getUrlVars()["Comments"]) {
+                document.getElementById("commentSection").style.display = "none";
+              } else {
+                document.getElementById("commentSection").innerHTML = CommentsField;
+              }
+
               //prevent scroling on toutch screen when dragging pieces
               var fixed = document.getElementById('board');
 

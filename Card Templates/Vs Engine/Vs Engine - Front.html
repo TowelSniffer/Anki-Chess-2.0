@@ -9,6 +9,7 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
 <script>
 
   var FEN = `{{text:FEN}}`;
+  var Comments = `{{text:Comments}}`;
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = FEN.match(patt);
     if (result == " w "){
@@ -25,7 +26,7 @@ if( /Android|webOS|iPhone|iPad|Mac|Macintosh|iPod|BlackBerry|IEMobile|Opera Mini
 thinkTime = 2;
 }
 
-document.getElementById("Board").src =`_BoardVsEngine.html?FEN=`+FEN+`&thinkTime=`+thinkTime+``;
+document.getElementById("Board").src =`_BoardVsEngine.html?FEN=`+FEN+`&thinkTime=`+thinkTime+`&Comments=`+Comments+``;
 
 
 
