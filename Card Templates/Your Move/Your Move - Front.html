@@ -5,13 +5,7 @@
   var FEN = `{{text:FEN}}`;
 var Title = `{{text:Title}}`;
 var Comments = `{{text:Comments}}`;
-    var patt = /(( b | w ))(?!.*\1)/g;
-    var result = FEN.match(patt);
-    if (result == " w "){
 
-  boardRotation = "white";
-
-  }
 var PGN = `{{text:PGN}}`;
 
 ocument.getElementById("Board").src =`_board.html?PGN=`+PGN+`&FEN=`+FEN+`&Comments=`+Comments+`&Title=`+Title+``;
