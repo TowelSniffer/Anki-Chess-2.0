@@ -8,11 +8,14 @@ resources used For this were:
 ChessBoard js
 https://chessboardjs.com/index.html
 
-and chess tempo's PGN viewer
-https://chesstempo.com/pgn-viewer/
+and the PGN viewer
+https://github.com/mliebelt/PgnViewerJS
 
 Auerswald Collection, 3500 tactics (PGN format)
 http://gorgonian.weebly.com/pgn.html
 
 chess.js
 https://github.com/jhlywa/chess.js/blob/master/README.md
+
+pgn-parser (much better than what I tried to write haha)
+https://github.com/mliebelt/pgn-parser
