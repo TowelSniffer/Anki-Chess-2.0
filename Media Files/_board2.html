@@ -8186,6 +8186,8 @@ a:link, a:visited {
   }
 
   var pgn = getUrlVars()["PGN"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
+  var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
+  var TitleField = getUrlVars()["Title"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
   let parsedPGN = parsePgn(pgn, {startRule: "game"});
   console.log(parsedPGN);
 
@@ -8242,7 +8244,7 @@ a:link, a:visited {
 
 
 <script>
-if (!pgn.includes("{")) {
+if (!pgn.includes("{")&& !getUrlVars()["Comments"] && !getUrlVars()["Title"]) {
   document.getElementById("commentContainer").style.display = "none";
 }
 
@@ -8533,7 +8535,13 @@ if (foundVariation===false) { //check to see if there is a valid next move other
     expectedLine = parsedPGN.moves;
     expectedMove = parsedPGN.moves[count];
     document.getElementById('commentSection').innerHTML ='Player Comments';
-    document.getElementById('commentSection2').innerHTML ='Opponent Comments'
+    document.getElementById('commentSection2').innerHTML ='Opponent Comments';
+    if (getUrlVars()["Comments"]) {
+      document.getElementById('commentSection').innerHTML = CommentsField;
+    }
+    if (getUrlVars()["Title"]) {
+      document.getElementById('commentSection2').innerHTML = TitleField;
+    }
     if (parsedPGN.moves[0].commentAfter) {
       document.getElementById("commentSection2").innerHTML = parsedPGN.moves[0].commentAfter;
     }
