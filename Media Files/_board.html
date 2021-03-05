@@ -8028,6 +8028,7 @@ body {
   margin:0;
   text-align: center;
   	font-size: 3vmin;
+
 }
 
 @media only screen and (orientation: landscape) {
@@ -8144,6 +8145,7 @@ border-bottom-left-radius: 4px;
 }
 
 #commentContainer {
+  display: inline-block;
   font-size: 15px;
   border:3px solid LightGray;
   border-radius: 7px;
@@ -8164,6 +8166,7 @@ border-bottom-left-radius: 4px;
   width:60vw;
   display: inline-block;
   max-width: 94vh;
+vertical-align:top
 
   }
   #board{
@@ -8175,6 +8178,7 @@ border-bottom-left-radius: 4px;
   width:30vw;
   max-width:300px;
 display: inline-block;
+vertical-align:top;
 float: none;
 
   }
@@ -8187,6 +8191,13 @@ a:link, a:visited {
 
   text-decoration: none;
   display: inline-block;
+}
+#commentSection > img, #commentSection2 > img{
+border-radius:10px;
+border: 4px solid;
+background-color: white;
+max-height:95%;
+max-width:90%;
 }
 </style>
 
@@ -8205,8 +8216,8 @@ a:link, a:visited {
   }
 
   var pgn = getUrlVars()["PGN"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
-  var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
-  var TitleField = getUrlVars()["Title"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
+  var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`).replace(/%3E/g, `>`).replace(/%3C/g, `<`);
+  var TitleField = getUrlVars()["Title"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`).replace(/%3E/g, `>`).replace(/%3C/g, `<`);
   let parsedPGN = parsePgn(pgn, {startRule: "game"});
   console.log(parsedPGN);
 
@@ -8252,7 +8263,7 @@ a:link, a:visited {
     <button title="copy current FEN position" onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fen_position;copyFen(); document.getElementById('fenReveal').style.display = 'none'">FEN</button>
 
   <div id='board'></div>
-    </div>
+</div>
 
 
   <div id="commentContainer">
@@ -8266,7 +8277,7 @@ a:link, a:visited {
 
 <script>
 // dymically prevent board from going above 600px
-if(screen.availHeight < screen.availWidth){
+if(window.innerHeight > window.innerWidth){
   if (document.getElementById("board").offsetWidth > 600) {
     document.getElementById("board").style.width = "600px";
     document.getElementById("center").style.width = "600px";

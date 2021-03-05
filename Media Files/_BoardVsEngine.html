@@ -16,7 +16,7 @@ function getUrlVars() {
 }
 
 var myFen = getUrlVars()["FEN"].replace(/%20/g,' ');
-var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
+var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`).replace(/%3E/g, `>`).replace(/%3C/g, `<`);
 var fenString = myFen;
 var thinkTime = getUrlVars()["thinkTime"]*1000;
 
@@ -390,7 +390,13 @@ button:focus {outline:0;}
 }
 
 
-
+#commentSection > img, #commentSection2 > img{
+border-radius:10px;
+border: 4px solid;
+background-color: white;
+max-height:95%;
+max-width:90%;
+}
 
 </style>
     <script>

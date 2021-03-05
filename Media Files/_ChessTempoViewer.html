@@ -6445,13 +6445,13 @@ let parsedPGN = parsePgn(pgn, {startRule: "game"});
 
 
 
-var orientation = 'black';
+let orientation = 'white';
 
 
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = fen.match(patt);
-    if (result == " b "){
-orientation = 'white';
+    if (result[0] === " w "){
+orientation = 'black';
 
   }
   </script>
