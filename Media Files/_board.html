@@ -8120,6 +8120,10 @@ button:focus {outline:0;}
     display: none;
 }
 
+#boardCommentsContainer{
+  width:100vw;
+}
+
 #board{
   border:0.7vmin solid #670A0A;
   background-color: #670A0A;
@@ -8151,17 +8155,11 @@ border-bottom-left-radius: 4px;
   border-radius: 7px;
   width: 92vw;
   max-width: 600px;
-  float: left;
-  margin-left: 1em;
-  margin-bottom: 0.4em;
+  margin:0 auto;
 }
 
 @media only screen and (orientation: landscape) {
-  #boardCommentsContainer{
-    width:100vw;
-    margin-left: auto;
-    margin-right: auto;
-  }
+
   #center{
   width:60vw;
   display: inline-block;
@@ -8172,13 +8170,14 @@ vertical-align:top
   #board{
 
   width:60vw;
-  max-width: 92vh;
+  max-width: 91vh;
   }
   #commentContainer{
   width:30vw;
   max-width:300px;
 display: inline-block;
 vertical-align:top;
+margin-top: 3.9em;
 float: none;
 
   }
@@ -8276,8 +8275,11 @@ max-width:90%;
 
 
 <script>
+const matchesMediaQuery = window.matchMedia('(orientation:landscape)').matches;
+
+
 // dymically prevent board from going above 600px
-if(window.innerHeight > window.innerWidth){
+if(matchesMediaQuery){
   if (document.getElementById("board").offsetWidth > 600) {
     document.getElementById("board").style.width = "600px";
     document.getElementById("center").style.width = "600px";
