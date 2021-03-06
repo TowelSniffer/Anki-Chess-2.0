@@ -2,8 +2,8 @@
 
 
 <script>
-var PGN = `{{text:PGN}}`;
-var FEN = `{{text:FEN}}`;
+var PGN = encodeURI(`{{text:PGN}}`);
+var FEN = encodeURI(`{{text:FEN}}`);
 
 document.getElementById("analysisBoard").src =`_ChessTempoViewer.html?PGN=`+PGN+`&FEN=`+FEN+``;
 

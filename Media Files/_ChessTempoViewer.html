@@ -6428,16 +6428,16 @@ font-size:15px;
     function getUrlVars() {
         var vars = {};
         var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-            vars[key] = value;
+            vars[key] = decodeURI(value);
         });
         return vars;
     }
 
-    var pgn = getUrlVars()["PGN"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
+    var pgn = getUrlVars()["PGN"];
 let parsedPGN = parsePgn(pgn, {startRule: "game"});
 
     if (getUrlVars()["FEN"]) {
-      fen = getUrlVars()["FEN"].replace(/%20/g,' ');
+      fen = getUrlVars()["FEN"];
     } else {
       fen = parsedPGN.tags.FEN;
 

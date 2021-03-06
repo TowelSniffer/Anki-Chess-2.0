@@ -8,12 +8,12 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
 var PGN = ``;
 
 if (Persistence.isAvailable()) {  // Check whether Persistence works on the client.
-  PGN = Persistence.getItem(); // Retrieve the previously stored number and override the default.
+  PGN = encodeURI(Persistence.getItem()); // Retrieve the previously stored number and override the default.
   Persistence.clear();            // Clear the storage, so a new random number will be created on the next card.
 }
 
 
-var FEN = `{{text:FEN}}`;
+var FEN = encodeURI(`{{text:FEN}}`);
 
 document.getElementById("analysisBoard").src =`_ChessTempoViewerB.html?PGN=`+PGN+`&FEN=`+FEN+``;
 

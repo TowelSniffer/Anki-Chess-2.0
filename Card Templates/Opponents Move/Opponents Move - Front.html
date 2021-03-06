@@ -3,11 +3,10 @@
 
 
 <script>
-var FEN = `{{text:FEN}}`;
-var Title = `{{text:Title}}`;
-var Comments = `{{text:Comments}}`;
-
-var PGN = `{{text:PGN}}`;
+var FEN = encodeURI(`{{text:FEN}}`);
+var Title = encodeURI(`{{text:Title}}`);
+var Comments = encodeURI(`{{text:Comments}}`);
+var PGN = encodeURI(`{{text:PGN}}`);
 
 document.getElementById("Board").src =`_board2.html?PGN=`+PGN+`&FEN=`+FEN+`&Comments=`+Comments+`&Title=`+Title+``;
 </script>

@@ -1,12 +1,12 @@
 <iframe id="Board"></iframe>
 
 
+
 <script>
-  var FEN = `{{text:FEN}}`;
-var Title = `{{text:Title}}`;
-var Comments = `{{text:Comments}}`;
+var FEN = encodeURI(`{{text:FEN}}`);
+var Title = encodeURI(`{{text:Title}}`);
+var Comments = encodeURI(`{{text:Comments}}`);
+var PGN = encodeURI(`{{text:PGN}}`);
 
-var PGN = `{{text:PGN}}`;
-
-ocument.getElementById("Board").src =`_board.html?PGN=`+PGN+`&FEN=`+FEN+`&Comments=`+Comments+`&Title=`+Title+``;
+document.getElementById("Board").src =`_board.html?PGN=`+PGN+`&FEN=`+FEN+`&Comments=`+Comments+`&Title=`+Title+``;
 </script>
