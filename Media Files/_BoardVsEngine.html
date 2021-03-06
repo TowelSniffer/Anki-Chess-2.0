@@ -15,8 +15,8 @@ function getUrlVars() {
     return vars;
 }
 
-var myFen = getUrlVars()["FEN"].replace(/%20/g,' ');
-var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`).replace(/%3E/g, `>`).replace(/%3C/g, `<`);
+var myFen = decodeURI(getUrlVars()["FEN"]);
+var CommentsField = decodeURI(getUrlVars()["Comments"]);
 var fenString = myFen;
 var thinkTime = getUrlVars()["thinkTime"]*1000;
 
@@ -37,6 +37,15 @@ boardRotation = "white";
     <style>
     body {
       margin:0;
+      position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+display: -webkit-box;
+-webkit-box-align: stretch;
+-webkit-box-pack: center;
+-webkit-box-orient: vertical;
     font-size: calc(12px + 1vmin);
     }
 
@@ -327,7 +336,7 @@ boardRotation = "white";
       border-radius: 3px;
       min-height: 2.9em;
     }
-    #container {
+    #boardContainer {
       width: 98vmin; max-width:600px;
       margin: 0 auto;
 
@@ -350,6 +359,33 @@ boardRotation = "white";
     background-color: white;
     border:3px solid LightGray;
     }
+    iframe {
+      max-width: 100%;
+    }
+
+    @media only screen and (orientation: landscape) {
+      #container {
+        max-width:1080px;
+        margin: 0 auto;
+
+      }
+      #boardContainer{
+      display: inline-block;
+    vertical-align:top;
+
+      }
+
+      #commentSection{
+      width:30vw;
+      max-width:450px;
+    display: inline-block;
+    vertical-align:top;
+    float: none;
+
+      }
+    }
+
+
 
 /*! chessboard.js v1.0.0 | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
 .clearfix-7da63{clear:both}.board-b72b1{border:2px solid #404040;box-sizing:content-box}.square-55d63{float:left;position:relative;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.white-1e1d7{background-color:#f0d9b5;color:#b58863}.black-3c85d{background-color:#b58863;color:#f0d9b5}.highlight1-32417,.highlight2-9c5d2{box-shadow:inset 0 0 3px 3px #ff0}.notation-322f9{cursor:default;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;position:absolute}.alpha-d2270{bottom:1px;right:3px}.numeric-fc462{top:2px;left:2px}
@@ -2114,10 +2150,9 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
   <body>
 
 
-
 <div id="container">
-<div class=center>
-</div>
+<div id="boardContainer" class=center>
+
 
 
         <div id=evalSlider></div>
@@ -2213,6 +2248,7 @@ var db=[Kw,tp,zp,wq,xq,Hq,Iq,Kw];var eb=[Lw,Dj,Ij,Mj,Wc,Ng,Og,Tg,Vg,zh,Vj,_j,ck,
 
 </div></div>
 <div id='commentSection'>Player Comments</div>
+</div>
 <input type="text" id=fenReveal style="display:none">
 
               <script>
