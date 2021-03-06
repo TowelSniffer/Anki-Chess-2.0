@@ -8127,7 +8127,7 @@ button:focus {outline:0;}
 #board{
   border:0.7vmin solid #670A0A;
   background-color: #670A0A;
-  border-right: 0.1vmin solid #670A0A;
+  border-right: 0;
   border-radius: 4px;
 
 width: 97vw;
@@ -8211,21 +8211,21 @@ max-width:90%;
   function getUrlVars() {
       var vars = {};
       var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-          vars[key] = value;
+          vars[key] = decodeURI(value);
       });
       return vars;
   }
 
-  var pgn = getUrlVars()["PGN"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`);
-  var CommentsField = getUrlVars()["Comments"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`).replace(/%3E/g, `>`).replace(/%3C/g, `<`);
-  var TitleField = getUrlVars()["Title"].replace(/%20/g,' ').replace(/%22/g, '"').replace(/%27/g, `'`).replace(/%3E/g, `>`).replace(/%3C/g, `<`);
+  var pgn = getUrlVars()["PGN"];
+  var CommentsField = getUrlVars()["Comments"];
+  var TitleField = getUrlVars()["Title"];
   let parsedPGN = parsePgn(pgn, {startRule: "game"});
   console.log(parsedPGN);
 
   var fen;
 
   if (getUrlVars()["FEN"]) {
-    fen = getUrlVars()["FEN"].replace(/%20/g,' ');
+    fen = decodeURI(getUrlVars()["FEN"]);
   } else {
     fen = parsedPGN.tags.FEN
   }
