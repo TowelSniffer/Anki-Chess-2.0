@@ -2580,7 +2580,7 @@ document.querySelector('#backBtn').disabled = true;
                         engineStatus.score = 'Mate in ' + Math.abs(score);
                           cuttoff = 0;
                           skillLevel = 20;
-                          range.noUiSlider.set(engineStatus.score);
+                          range.noUiSlider.set(score*10);
                           document.getElementById("evalSpan").innerHTML = engineStatus.score;
 
 
