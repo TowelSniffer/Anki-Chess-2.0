@@ -8465,7 +8465,7 @@ for (var i = 0; i < expectedMove.variations.length; i++) {
         }
       count++;
       expectedMove = expectedLine[count];
-      if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
+      if (expectedMove && expectedMove.notation && getUrlVars()["playAllMoves"] === `false`) { //check to see if there is a valid next move otherwise there will be no response
         if (expectedMove.variations.length > 0) { //check for variations and play a random response
           responseVar = Math.floor(Math.random() * (expectedMove.variations.length+1));
           if (responseVar < (expectedMove.variations.length)) {
@@ -8510,7 +8510,7 @@ if (foundVariation===false) { //check to see if there is a valid next move other
         }
           count++;
           expectedMove = expectedLine[count];
-            if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
+            if (expectedMove && expectedMove.notation && getUrlVars()["playAllMoves"] === `false`) { //check to see if there is a valid next move otherwise there will be no response
 
               if (expectedMove.variations.length > 0) { //check for variations and play a random response
                 responseVar = Math.floor(Math.random() * (expectedMove.variations.length+1));
