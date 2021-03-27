@@ -16,7 +16,7 @@ In order to install and later upgrade, you'll need to first install an Anki add-
 You're now ready to install:
 
 1. Go to the **[_Releases_ page](https://github.com/TowelSniffer/Anki-Chess-2.0/releases)**.
-1. In the latest release's _Downloads_ section, download the ZIP archive of the deck. you can also install one of the premade shared decks within the "shared decks" zip.
+1. In the latest release's _Downloads_ section, download the ZIP archive of the deck, "Chess.rar". you can also install one of the premade shared decks within the "Shared.Decks.rar" zip.
 1. Extract the content of the archive on your computer.
 1. Open Anki and make sure your devices are all synchronised.
 1. In the _File_ menu, select _CrowdAnki: Import from disk_.
