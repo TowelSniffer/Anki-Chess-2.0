@@ -22,6 +22,7 @@ You're now ready to install:
 1. In the _File_ menu, select _CrowdAnki: Import from disk_.
 1. Browse for and select the folder you extracted from the archive, which contains the deck's JSON file -- e.g. `chess`.
 1. Don't change anything in the _CrowdAnki Import Settings_ dialog box that opens -- just press _OK_ to start the import. A dialog box should then confirm that the import was successful.
+1. Download the Media Files.rar folder and extract. Copy the contents of the Media Files folder into you anki collection.media folder
 
 👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository).
 
@@ -29,6 +30,9 @@ You're now ready to install:
 
 The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, some situations require extra care. As a general rule, **always read the release notes carefully**; they will likely tell you what to do or point you to a page that does.
 
+## Sharing your own decks
+
+You are welcome to share your own premade decks for others to use. to do this export your deck as CrownAnki json representaion and uncheck the include media option. media will have to be included in a seperate zip file and imported manually. see the shared lichess study for an example. 
 
 ## resources used For this were:
 
