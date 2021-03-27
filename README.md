@@ -30,7 +30,7 @@ You're now ready to install:
 The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, some situations require extra care. As a general rule, **always read the release notes carefully**; they will likely tell you what to do or point you to a page that does.
 
 
-##resources used For this were:
+## resources used For this were:
 
 #### ChessBoard js
 https://chessboardjs.com/index.html
