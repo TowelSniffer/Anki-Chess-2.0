@@ -15,8 +15,8 @@ function getUrlVars() {
     return vars;
 }
 
-var myFen = decodeURI(getUrlVars()["FEN"]);
-var CommentsField = decodeURI(getUrlVars()["Comments"]);
+var myFen = decodeURIComponent(getUrlVars()["FEN"]);
+var CommentsField = decodeURIComponent(getUrlVars()["Comments"]);
 var fenString = myFen;
 var thinkTime = getUrlVars()["thinkTime"]*1000;
 
