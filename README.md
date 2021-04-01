@@ -50,3 +50,6 @@ https://github.com/jhlywa/chess.js/blob/master/README.md
 
 #### pgn-parser (much better than what I tried to write haha)
 https://github.com/mliebelt/pgn-parser
+
+#### Stockfish.js
+https://github.com/niklasf/stockfish.js
