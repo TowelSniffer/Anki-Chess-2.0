@@ -569,7 +569,9 @@
                 ]
             ],
             "sortf": 0,
-            "tags": [],
+            "tags": [
+                "chess::Positions"
+            ],
             "tmpls": [
                 {
                     "afmt": "<iframe id=\"analysisBoard\"></iframe>\n\n\n<script>\nvar PGN = encodeURIComponent(`{{text:PGN}}`);\nvar FEN = encodeURIComponent(`{{text:FEN}}`);\n\ndocument.getElementById(\"analysisBoard\").src =`_ChessTempoViewer.html?PGN=`+PGN+`&FEN=`+FEN+``;\n\n</script>\n",
@@ -3064,7 +3066,7 @@
         {
             "__type__": "Note",
             "fields": [
-                "[Event \"?\"]<br>[Site \"?\"]<br>[Date \"2021.03.03\"]<br>[Round \"?\"]<br>[White \"White\"]<br>[Black \"Black\"]<br>[Result \"*\"]<br>[FEN \"r3r1k1/1b2qppp/p7/1p1Pb3/1P6/P2B4/1B2Q1PP/3R1RK1 w - - 0 21\"]<br>[SetUp \"1\"]<br><br>21. Bxh7+ {EV: 94.1%} Kxh7 {EV: 4.8%} 22. Qh5+ {EV: 95.9%} Kg8 {EV: 4.1%} 23.<br>Bxe5 {EV: 97.4%} Qxe5 {EV: 2.7%} 24. Qxf7+ {EV: 97.6%} Kh7 {EV: 3.2%} (24... Kh8<br>{EV: 3.7%} 25. Qxb7 {EV: 96.5%} Rad8 26. Qf7 {EV: 97.9%} (26. Qxa6 {EV: 97.3%})<br>) 25. Rf5 {EV: 91.5%} Qe3+ {EV: 4.0%} 26. Kh1 {EV: 96.6%} Re5 {EV: 1.8%} (26...<br>Re7 {EV: 1.3%} 27. Rh5+ {EV: 99.3%} Qh6 {EV: 0.7%} 28. Rxh6+ {EV: 99.6%} (28.<br>Qf5+ {EV: 99.6%})) (26... Bxd5 {EV: 2.4%} 27. Rh5+ {EV: 99.0%} Qh6 {EV: 1.0%}<br>28. Rxh6+ {EV: 99.4%} (28. Qxd5 {EV: 99.3%}) (28. Qf5+ {EV: 99.7%})) 27. Qh5+<br>{EV: 99.3%} Qh6 {EV: 0.4%} 28. Qxh6+ {EV: 99.7%} (28. Rxe5 {EV: 99.7%}) *",
+                "[Event \"?\"]<br>[Site \"?\"]<br>[Date \"2021.04.11\"]<br>[Round \"?\"]<br>[White \"White\"]<br>[Black \"Black\"]<br>[Result \"*\"]<br>[FEN \"r3r1k1/1b2qppp/p7/1p1Pb3/1P6/P2B4/1B2Q1PP/3R1RK1 w - - 0 21\"]<br>[SetUp \"1\"]<br><br>21. Bxh7+ {EV: 94.2%} Kxh7 {EV: 5.5%} 22. Qh5+ {EV: 95.2%} Kg8 {EV: 4.5%} 23.<br>Bxe5 {EV: 96.1%} Qxe5 {EV: 3.4%} 24. Qxf7+ {EV: 97.0%} Kh8 {EV: 3.0%} (24... Kh7<br>{EV: 2.8%}) *",
                 "",
                 "<!--StartFragment-->Greek Gift Challenge #2<!--EndFragment-->",
                 "<!--StartFragment-->Maintain a winning position to complete this exercise. From Carl Schlechter - Geza Maroczy, 1907.&nbsp;lichess.org/JjK94ic7#40<!--EndFragment-->",
