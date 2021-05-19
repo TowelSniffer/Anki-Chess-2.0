@@ -53,3 +53,6 @@ https://github.com/mliebelt/pgn-parser
 
 #### Stockfish.js
 https://github.com/niklasf/stockfish.js
+
+#### ultimate geography for the plagiarized readme
+https://github.com/anki-geo/ultimate-geography
