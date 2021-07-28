@@ -9,9 +9,6 @@ An interactive chess template for anki.
 - create a PGN puzzle using a PGN viewer, for example https://www.chess.com/analysis, and copy the PGN into the PGN field in anki.
 - Done!
 
-## Sharing your own decks
-
-You are welcome to share your own premade decks for others to use. to do this export your deck as CrownAnki json representaion and uncheck the include media option. media will have to be included in a seperate zip file and imported manually. see the shared lichess study for an example. 
 
 ## resources used For this were:
 
