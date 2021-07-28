@@ -1,0 +1,10 @@
+<iframe id="analysisBoard" height=900 width=900></iframe>
+
+<script>
+  var PGN = encodeURIComponent(`{{text:PGN}}`);
+  var FEN = encodeURIComponent(`{{text:FEN}}`);
+  document.getElementById("analysisBoard").src = `_ChessTempoViewer.html?PGN=` + PGN + `&FEN=` + FEN + ``;
+</script>
+
+<div id="anki-am" data-name="Assets by ASSET MANAGER" data-version="2.1">
+</div>

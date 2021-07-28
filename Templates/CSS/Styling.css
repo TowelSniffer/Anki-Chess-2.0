@@ -1,3 +1,7 @@
+::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   margin: 0;
   position: absolute;
@@ -36,8 +40,4 @@ iframe {
 .mobile iframe {
   height: 96vh;
   width: 96vw;
-}
-
-::-webkit-scrollbar {
-  display: none;
 }
