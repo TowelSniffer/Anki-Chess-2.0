@@ -1,19 +1,7 @@
 <iframe id="Board" height=700 width=620></iframe>
 
 <script>
-  var FEN = encodeURIComponent(`{{text:FEN}}`);
   var PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, ''); //compatability with chess.com puzzles
   var PGN = encodeURIComponent(PGN);
-  document.getElementById("Board").src = `_board.html?PGN=` + PGN + `&FEN=` + FEN + ``;
+  document.getElementById("Board").src = `_board.html?PGN=` + PGN + ``;
 </script>
-
-<div id="anki-am" data-name="Assets by ASSET MANAGER" data-version="2.1">
-  <script data-name="Prevent reinclusion" data-version="v0.1">
-    var ankiAms = document.querySelectorAll('#anki-am')
-    if (ankiAms.length > 1) {
-      for (const am of Array.from(ankiAms).slice(0, -1)) {
-        am.outerHTML = ''
-      }
-    }
-  </script>
-</div>
