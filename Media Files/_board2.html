@@ -8247,37 +8247,34 @@ if (typeof define !== 'undefined') define( function () { return Chess;  });
 
 body {
   margin:0;
-  text-align: center;
-  	font-size: 3vmin;
+  position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height:100%;
+	display: -webkit-box;
+	-webkit-box-align: stretch;
+	-webkit-box-pack: center;
+	-webkit-box-orient: vertical;
+    text-align: center; /* ALIGN TEXT */
+  	font-size: 22px;
 
 }
 
-@media only screen and (orientation: landscape) {
-  body {
-    	font-size: 2vmin;
-  }
-}
 
 
 button {
-  font-size: 1.2em;
-	margin:5px;
-	margin-top:0.4em;
-	margin-bottom:0.4em;
+  font-size: 1em;
 	background-color: #f5f5f5!important;
 	background-image: -webkit-linear-gradient(top,#f5f5f5,#f1f1f1)!important;
 	color: #333B45!important;
 	border: 1px solid #dcdcdc;
-	-webkit-border-radius: 2px;
 	border-radius: 2px;
-	cursor: default;
-	font-weight: bold;
-	text-align: center;
-	text-decoration: none;
 }
 
 #center{	text-align: center;
-margin: 0.5em;
+margin: 0 auto;
+max-width: 600px;
 }
 
 button:hover {
@@ -8285,124 +8282,45 @@ button:hover {
 	background-image: -webkit-linear-gradient(top,#f8f8f8,#f1f1f1);
 	border: 1px solid #C6C6C6;
 	color: #333;
-	-webkit-box-shadow: 0px 1px 1px rgba(0,0,0,.1);
-	box-shadow: 0px 1px 1px rgba(0,0,0,.1);
 }
 
 button:focus {outline:0;}
 
-/* Popup container - can be anything you want */
-.popup {
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
 
 /* The actual popup */
-.popup .popuptext {
-  visibility: hidden;
-  width: 10em;
+.popuptext {
+  cursor:default;
+  font-size: 2em;
   background-color: #555;
   color: #fff;
   text-align: center;
-  border-radius: 6px;
-  padding: 8px 0;
-  position: absolute;
-  z-index: 1;
-  bottom: -4em;
-  margin-left: -6.3em;
+  border-radius: 4px;
+  margin-top:4px;
+  padding: 8px;
 }
 
-
-/* Toggle this class - hide and show the popup */
-.popup .show {
-  visibility: visible;
-  -webkit-animation: fadeIn 1s;
-  animation: fadeIn 0.3s;
-}
-
-/* Add animation (fade in the popup) */
-@-webkit-keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity: 1;}
-}
-
-@keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity:1 ;}
-}
 
 
 ::-webkit-scrollbar {
     display: none;
 }
 
-#boardCommentsContainer{
-  width:100vw;
-}
+
 
 #board{
   border:0.7vmin solid #670A0A;
   background-color: #670A0A;
   border-right: 0;
   border-radius: 4px;
-
 width: 97vw;
 max-width: 600px;
-display: inline-block;
-vertical-align: middle;
 margin: 0 auto;
-}
-#commentSection2 {
-  padding: 0.5em;
-  border-top-right-radius: 4px;
-  border-top-left-radius: 4px;
-}
-#commentSection {
-
-  padding: 0.5em;
-border-bottom-right-radius: 4px;
-border-bottom-left-radius: 4px;
+margin-bottom: 8px;
 }
 
-#commentContainer {
-  display: inline-block;
-  font-size: 15px;
-  border:3px solid LightGray;
-  border-radius: 7px;
-  width: 92vw;
-  max-width: 600px;
-  margin:0 auto;
-}
 
-@media only screen and (orientation: landscape) {
 
-  #center{
-  width:60vw;
-  display: inline-block;
-  max-width: 94vh;
-vertical-align:top
 
-  }
-  #board{
-
-  width:60vw;
-  max-width: 91vh;
-  }
-  #commentContainer{
-  width:30vw;
-  max-width:300px;
-display: inline-block;
-vertical-align:top;
-margin-top: 3.9em;
-float: none;
-
-  }
-}
 
 
 
@@ -8412,13 +8330,11 @@ a:link, a:visited {
   text-decoration: none;
   display: inline-block;
 }
-#commentSection > img, #commentSection2 > img{
-border-radius:10px;
-border: 4px solid;
-background-color: white;
-max-height:95%;
-max-width:90%;
+
+select {
+    font-size: 1em;
 }
+
 </style>
 
 </head>
@@ -8426,8 +8342,6 @@ max-width:90%;
 
 
   <script>
-
-
 
   function getUrlVars() {
       var vars = {};
@@ -8438,8 +8352,6 @@ max-width:90%;
   }
 
   var pgn = getUrlVars()["PGN"];
-  var CommentsField = getUrlVars()["Comments"];
-  var TitleField = getUrlVars()["Title"];
   let parsedPGN = parsePgn(pgn, {startRule: "game"});
   console.log(parsedPGN);
 
@@ -8450,7 +8362,6 @@ max-width:90%;
   } else {
     fen = parsedPGN.tags.FEN
   }
-
 
 
   var boardRotation = "black";
@@ -8468,65 +8379,31 @@ max-width:90%;
 
   </script>
 
-  <div id="boardCommentsContainer">
 
     <div id="center">
-
-  <button title="open in Lichess Analysis Board"><a id="lichess">Lichess</button>
-    <button class="reveal" title="reset" onclick="loadBoard();document.getElementById('board').style.backgroundColor = '#670A0A';document.getElementById('board').style.borderColor = '#670A0A';">&#128260;</button>
-
-  <div  title="Choose Default Promotion" class="popup" onclick="myFunction()"><img src="_wQ.svg" id=promotButton  style="width: 2em; height: 2em; border: 1px solid #dcdcdc; border-radius:3px; background-color: #f5f5f5; margin-bottom:-0.6em">
-    <span class="popuptext" id="myPopup">
-      <img src="_wQ.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='q';document.getElementById('promotButton').src='_wQ.svg'">
-      <img src="_wB.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='b';document.getElementById('promotButton').src='_wB.svg'">
-      <img src="_wN.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='n';document.getElementById('promotButton').src='_wN.svg'">
-      <img src="_wR.svg" style= "width: 2em; height: 2em;" onclick="promoteChoice='r';document.getElementById('promotButton').src='_wR.svg'">
-    </span>
-  </div>
-
-    <button title="copy current FEN position" onclick="document.getElementById('fenReveal').style.display = 'block'; document.getElementById('fenReveal').value = fen_position;copyFen(); document.getElementById('fenReveal').style.display = 'none'">FEN</button>
-
-<div id='board'></div>
-    </div>
+  <div id='board'></div>
 
 
-  <div id="commentContainer">
+      <select name="promotionChoice" onchange="promoteChoice=this.value">
+  <option value="q">Queen</option>
+  <option value="b">Bishop</option>
+  <option value="n">Knight</option>
+  <option value="r">Rook</option>
+</select>
 
 
-  <div id='commentSection2'>Opponent Comments</div>
-  <div id='commentSection'>Player Comments</div>
-  </div>
-  <div>
+      <button onclick="loadBoard();document.getElementById('board').style.backgroundColor = '#670A0A';document.getElementById('board').style.borderColor = '#670A0A';">&#10226;</button>
+
+
+
+
+</div>
 
 
 
 
 <script>
-const matchesMediaQuery = window.matchMedia('(orientation:landscape)').matches;
 
-
-// dymically prevent board from going above 600px
-if(matchesMediaQuery){
-  if (document.getElementById("board").offsetWidth > 600) {
-    document.getElementById("board").style.width = "600px";
-    document.getElementById("center").style.width = "600px";
-  }
-}
-
-// hide the comments bar if not needed
-if (!pgn.includes("{")&& !getUrlVars()["Comments"] && !getUrlVars()["Title"]) {
-  document.getElementById("commentContainer").style.display = "none";
-}
-
-if (boardRotation === "white") {
-document.getElementById("commentSection").style.backgroundColor = "white";
-document.getElementById("commentSection2").style.backgroundColor = "black";
-document.getElementById("commentSection2").style.color = "White";
-} else {
-  document.getElementById("commentSection2").style.backgroundColor = "white";
-  document.getElementById("commentSection").style.backgroundColor = "black";
-  document.getElementById("commentSection").style.color = "White";
-}
 
 
 
@@ -8553,34 +8430,7 @@ document.getElementById("commentSection2").style.color = "White";
 
 
 
-  <input type="text" id=fenReveal style="display:none">
-  <script>
-  document.getElementById("lichess").href="https://lichess.org/analysis/"+FEN+"";
 
-
-  // When the user clicks on div, open the popup
-  function myFunction() {
-    var popup = document.getElementById("myPopup");
-    popup.classList.toggle("show");
-  }
-  </script>
-
-  <script type="text/javascript">
-
-    function copyFen() {
-      /* Get the text field */
-      var copyText = document.getElementById("fenReveal");
-
-      /* Select the text field */
-      copyText.select();
-      copyText.setSelectionRange(0, 99999); /* For mobile devices */
-
-      /* Copy the text inside the text field */
-      document.execCommand("copy");
-
-    }
-
-  </script>
 
 
 
@@ -8681,12 +8531,10 @@ for (var i = 0; i < expectedMove.variations.length; i++) {
       count=0;
       expectedLine = expectedMove.variations[i];
       expectedMove = expectedLine[count];
-      if (expectedMove.commentAfter) {
-          document.getElementById("commentSection").innerHTML = expectedMove.commentAfter;
-        }
+
       count++;
       expectedMove = expectedLine[count];
-      if (expectedMove && expectedMove.notation && getUrlVars()["playAllMoves"] === `false`) { //check to see if there is a valid next move otherwise there will be no response
+      if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
         if (expectedMove.variations.length > 0) { //check for variations and play a random response
           responseVar = Math.floor(Math.random() * (expectedMove.variations.length+1));
           if (responseVar < (expectedMove.variations.length)) {
@@ -8696,10 +8544,9 @@ for (var i = 0; i < expectedMove.variations.length; i++) {
           }
         }
           game.move(expectedMove.notation.notation);
-          if (expectedMove.commentAfter) {
-              document.getElementById("commentSection2").innerHTML = expectedMove.commentAfter;
-            }
-            count++;
+
+
+          count++;
           expectedMove = expectedLine[count];
         }
       fen_position = game.fen(); // Store the current position.
@@ -8726,12 +8573,9 @@ if (foundVariation===false) { //check to see if there is a valid next move other
 
 } else if (move.san === expectedMove.notation.notation)
       {
-        if (expectedMove.commentAfter) {
-          document.getElementById("commentSection").innerHTML = expectedMove.commentAfter;
-        }
-          count++;
+        count++;
           expectedMove = expectedLine[count];
-            if (expectedMove && expectedMove.notation && getUrlVars()["playAllMoves"] === `false`) { //check to see if there is a valid next move otherwise there will be no response
+            if (expectedMove && expectedMove.notation) { //check to see if there is a valid next move otherwise there will be no response
 
               if (expectedMove.variations.length > 0) { //check for variations and play a random response
                 responseVar = Math.floor(Math.random() * (expectedMove.variations.length+1));
@@ -8742,10 +8586,7 @@ if (foundVariation===false) { //check to see if there is a valid next move other
                 }
               }
                 game.move(expectedMove.notation.notation);
-                if (expectedMove.commentAfter) {
-                    document.getElementById("commentSection2").innerHTML = expectedMove.commentAfter;
-                  }
-                count++;
+                  count++;
                 expectedMove = expectedLine[count];
               }
 
@@ -8777,7 +8618,6 @@ if (foundVariation===false) { //check to see if there is a valid next move other
     };
 
 
-
     var cfg = {
       orientation: boardRotation,
       draggable: true,
@@ -8804,25 +8644,10 @@ if (foundVariation===false) { //check to see if there is a valid next move other
     count=1;
     expectedLine = parsedPGN.moves;
     expectedMove = parsedPGN.moves[count];
-    document.getElementById('commentSection').innerHTML ='Player Comments';
-    document.getElementById('commentSection2').innerHTML ='Opponent Comments';
-    if (getUrlVars()["Comments"]) {
-      document.getElementById('commentSection').innerHTML = CommentsField;
-    }
-    if (getUrlVars()["Title"]) {
-      document.getElementById('commentSection2').innerHTML = TitleField;
-    }
-    if (parsedPGN.moves[0].commentAfter) {
-      document.getElementById("commentSection2").innerHTML = parsedPGN.moves[0].commentAfter;
-    }
     }
 
     loadBoard();
-
-
-
-
-    </script>
+      </script>
 
 
 
