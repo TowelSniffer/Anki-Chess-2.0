@@ -8,6 +8,7 @@ An interactive chess template for anki.
 
 - Create a new note type and copy the relavent template frome the Templates folder of this repository into each section (Front Side, Backside, Styling). "Opponent Moves First" is for PGN puzzles that begin after the opponents move and "Opponest Moves First" is for PGN puzzles that begin on the first move. Styling is the same for both templtes.
 - This note type should contain a field named PGN. 
+- Add files from "Media Files" folder to anki collection.media folder. (https://github.com/TowelSniffer/Anki-Chess-2.0/raw/main/Media%20Files.zip)
 - create a PGN puzzle using a PGN viewer, for example https://www.chess.com/analysis, and copy the PGN into the PGN field in anki.
 - Done!
 
