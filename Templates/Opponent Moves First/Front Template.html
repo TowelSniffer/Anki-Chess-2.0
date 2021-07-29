@@ -1,7 +1,0 @@
-<iframe id="Board" height=700 width=620></iframe>
-
-<script>
-  var PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, ''); //compatability with chess.com puzzles
-  var PGN = encodeURIComponent(PGN);
-  document.getElementById("Board").src = `_board2.html?PGN=` + PGN + ``;
-</script>
