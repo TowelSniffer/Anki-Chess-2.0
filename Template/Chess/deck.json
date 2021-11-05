@@ -159,7 +159,7 @@
                     "did": null,
                     "name": "Card 1",
                     "ord": 0,
-                    "qfmt": "<iframe id=\"Board\" height=680 width=680></iframe>\n\n<script>\n  var PGN = `{{text:PGN}}`.replace(/\\[Puzzle_Length.*?\\]/, '').replace(/\\[Tactic_line.*?\\]/, ''); //compatability with chess.com puzzles\n  var PGN = encodeURIComponent(PGN);\n  document.getElementById(\"Board\").src = `_chess3.0.html?PGN=` + PGN + `&flip=false`;\n</script>"
+                    "qfmt": "<iframe id=\"Board\" height=730 width=680></iframe>\n\n<script>\n  var PGN = `{{text:PGN}}`.replace(/\\[Puzzle_Length.*?\\]/, '').replace(/\\[Tactic_line.*?\\]/, ''); //compatability with chess.com puzzles\n  var PGN = encodeURIComponent(PGN);\n  document.getElementById(\"Board\").src = `_chess3.0.html?PGN=` + PGN + `&flip=false`;\n</script>"
                 }
             ],
             "type": 0,
