@@ -36,8 +36,11 @@ You are welcome to share your own premade decks for others to use. to do this ex
 
 ## resources used For this were:
 
-#### ChessBoard js
-https://chessboardjs.com/index.html
+#### ~~ChessBoard js~~
+~~https://chessboardjs.com/index.html~~
+
+#### Chessground
+https://github.com/ornicar/chessground
 
 #### and the PGN viewer
 https://github.com/mliebelt/PgnViewerJS
