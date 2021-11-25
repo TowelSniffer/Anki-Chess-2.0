@@ -7795,10 +7795,8 @@ background-image: url('_bK.svg');
     </style>
   </head>
   <body>
-    <div id="center">
-
-
     <div id="chessground-examples"></div>
+    <div id="center">
     <select name="promotionChoice" onchange="promoteChoice=this.value">
       <optgroup>
       <option value="q">Queen</option>
@@ -7807,7 +7805,7 @@ background-image: url('_bK.svg');
       <option value="r">Rook</option>
     </optgroup>
     </select>
-    <button onclick="reload();">&#10226;</button>
+    <button id="focusTarget" onclick="reload();errorCount=0">&#10226;</button>
 
     </div>
     <script>
@@ -7824,9 +7822,9 @@ background-image: url('_bK.svg');
       startRule: "game"
     });
 
-
+    var handicap = getUrlVars()["handicap"];
     var fen;
-
+    var errorCount = 0;
     if (parsedPGN.tags.FEN) {
       fen = parsedPGN.tags.FEN
     } else {
@@ -14524,7 +14522,6 @@ background-image: url('_bK.svg');
                   }
 
                 }
-
                 // wrong move
                 if (foundVariation === false) {
                   cg.set({
@@ -14564,6 +14561,7 @@ background-image: url('_bK.svg');
               });
             if (expectedMove && typeof expectedMove !== 'string') {
               setTimeout(() => {
+                errorCount = 0;
                   if (expectedMove.variations.length > 0) {
                   const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                   if (moveVar == expectedMove.variations.length) {
@@ -14613,7 +14611,83 @@ background-image: url('_bK.svg');
               count--;
               expectedMove = expectedLine[count];
             }
-                        }
+          } else {
+            errorCount++;
+            window.parent.postMessage('*', '*');
+            console.log(errorCount);
+            if (errorCount > handicap) {
+              chess.move(expectedMove.notation.notation);
+              cg.move(expectedMove.notation.notation);
+              cg.set({
+                  fen: chess.fen(),
+                  turnColor: toColor(chess),
+                  movable: {
+                      color: toColor(chess),
+                      dests: toDests(chess)
+                  }
+              });
+              cg.set({
+                  check: chess.in_check()
+              });
+              count++;
+              expectedMove = expectedLine[count];
+              setTimeout(() => {
+                if (expectedMove && typeof expectedMove !== 'string') {
+                  setTimeout(() => {
+                    errorCount = 0;
+                      if (expectedMove.variations.length > 0) {
+                      const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                      if (moveVar == expectedMove.variations.length) {
+                      } else {
+                        count = 0;
+                        expectedLine = expectedMove.variations[moveVar];
+                        expectedMove = expectedLine[0];
+                      }
+                    }
+
+                      chess.move(expectedMove.notation.notation);
+                      cg.move(expectedMove.notation.notation);
+                      cg.set({
+                          fen: chess.fen(),
+                          turnColor: toColor(chess),
+                          movable: {
+                              color: toColor(chess),
+                              dests: toDests(chess)
+                          }
+                      });
+                      cg.set({
+                          check: chess.in_check()
+                      });
+                      count++;
+                      expectedMove = expectedLine[count];
+                      cg.playPremove();
+
+                      if (!expectedMove || typeof expectedMove === 'string') {
+                        const el = document.querySelector('.cg-wrap');
+                        el.style.border = "0.7vmin solid limegreen";
+                        cg.set({
+              viewOnly: true,
+              });
+                      }
+
+                  }, delay);
+                } else {
+                  count++;
+                  expectedMove = expectedLine[count];
+                  if (!expectedMove || typeof expectedMove === 'string') {
+                    const el = document.querySelector('.cg-wrap');
+                    el.style.border = "0.7vmin solid limegreen";
+                    cg.set({
+          viewOnly: true,
+          });
+                  }
+                  count--;
+                  expectedMove = expectedLine[count];
+                }
+              }, 300);
+              errorCount = 0;
+            }
+          }
 
         };
 
@@ -14640,6 +14714,13 @@ background-image: url('_bK.svg');
       el.style.border = "0.7vmin solid #670A0A";
     }
     reload();
+    var handler = function(e) {
+if (e.keyCode == 81) {
+  document.getElementById("focusTarget").click();
+}
+}
+    window.addEventListener('keydown', handler);
+    document.getElementById("focusTarget").focus();
     </script>
   </body>
 </html>
