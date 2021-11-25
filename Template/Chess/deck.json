@@ -1,7 +1,7 @@
 {
     "__type__": "Deck",
     "children": [],
-    "crowdanki_uuid": "1b58065a-3dd8-11ec-9678-d45d6450590b",
+    "crowdanki_uuid": "0687e926-4e0d-11ec-899d-d45d6450590b",
     "deck_config_uuid": "6b7a6e06-8f2e-11eb-9b16-d45d6450590b",
     "deck_configurations": [
         {
@@ -25,7 +25,7 @@
             "maxTaken": 60,
             "name": "Default",
             "new": {
-                "bury": true,
+                "bury": false,
                 "delays": [
                     1.0,
                     10.0,
@@ -119,7 +119,7 @@
                 "minify": false
             },
             "crowdanki_uuid": "52ca70c5-8f2f-11eb-94da-d45d6450590b",
-            "css": "::-webkit-scrollbar {\n  display: none;\n}\n\nbody {\n  margin: 0;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  display: -webkit-box;\n  -webkit-box-align: stretch;\n  -webkit-box-pack: center;\n  -webkit-box-orient: vertical;\n  font-size: 22px;\n  text-align: center;\n  /* ALIGN TEXT */\n}\n\n.card {\n  text-align: center;\n  font-size: 20px;\n}\n\n#board {\n  margin-left: auto;\n  margin-right: auto;\n}\n\niframe {\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n  max-height: 100vh;\n  max-width: 100vw;\n  border: 0;\n}\n\n.mobile iframe {\n  height: 96vh;\n  width: 96vw;\n}\n",
+            "css": "body {\n  margin: 0;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  display: -webkit-box;\n  -webkit-box-align: stretch;\n  -webkit-box-pack: center;\n  -webkit-box-orient: vertical;\n  font-size: 22px;\n  text-align: center;\n}\n\n.card {\n  text-align: center;\n  font-size: 20px;\n}\n\n#board {\n  margin-left: auto;\n  margin-right: auto;\n}\n\niframe {\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n  max-height: 100vh;\n  max-width: 100vw;\n  border: 0;\n}\n\n.mobile iframe {\n  height: 96vh;\n  width: 96vw;\n}\n\n::-webkit-scrollbar {\n  display: none;\n}",
             "flds": [
                 {
                     "font": "DejaVu Sans",
@@ -151,7 +151,7 @@
             ],
             "tmpls": [
                 {
-                    "afmt": "<iframe id=\"analysisBoard\" height=900 width=900></iframe>\n\n<script>\n  var PGN = encodeURIComponent(`{{text:PGN}}`);\n  document.getElementById(\"analysisBoard\").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=false`;\n</script>\n",
+                    "afmt": "<script>\n// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/cd2ca88e019dc3b8f32dad623932c1eabdba7e21/script.js\nif(void 0===window.Persistence){var _persistenceKey=\"github.com/SimonLammer/anki-persistence/\",_defaultKey=\"_default\";if(window.Persistence_sessionStorage=function(){var e=!1;try{\"object\"==typeof window.sessionStorage&&(e=!0,this.clear=function(){for(var e=0;e<sessionStorage.length;e++){var t=sessionStorage.key(e);0==t.indexOf(_persistenceKey)&&(sessionStorage.removeItem(t),e--)}},this.setItem=function(e,t){null==t&&(t=e,e=_defaultKey),sessionStorage.setItem(_persistenceKey+e,JSON.stringify(t))},this.getItem=function(e){return null==e&&(e=_defaultKey),JSON.parse(sessionStorage.getItem(_persistenceKey+e))},this.removeItem=function(e){null==e&&(e=_defaultKey),sessionStorage.removeItem(_persistenceKey+e)})}catch(e){}this.isAvailable=function(){return e}},window.Persistence_windowKey=function(e){var t=window[e],n=!1;\"object\"==typeof t&&(n=!0,this.clear=function(){t[_persistenceKey]={}},this.setItem=function(e,n){null==n&&(n=e,e=_defaultKey),t[_persistenceKey][e]=n},this.getItem=function(e){return null==e&&(e=_defaultKey),null==t[_persistenceKey][e]?null:t[_persistenceKey][e]},this.removeItem=function(e){null==e&&(e=_defaultKey),delete t[_persistenceKey][e]},null==t[_persistenceKey]&&this.clear()),this.isAvailable=function(){return n}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey(\"py\")),!Persistence.isAvailable()){var titleStartIndex=window.location.toString().indexOf(\"title\"),titleContentIndex=window.location.toString().indexOf(\"main\",titleStartIndex);titleStartIndex>0&&titleContentIndex>0&&titleContentIndex-titleStartIndex<10&&(window.Persistence=new Persistence_windowKey(\"qt\"))}}\n</script>\n\n<iframe id=\"analysisBoard\" height=900 width=900></iframe>\n\n<script data-name=\"injectScript\" data-version=\"v0.1\">\n\tvar injectScript = (src) => {\n\t\treturn new Promise((resolve, reject) => {\n\t\t\tconst script = document.createElement('script');\n\t\t\tscript.src = src;\n\t\t\tscript.async = true;\n\t\t\tscript.onload = resolve;\n\t\t\tscript.onerror = reject;\n\t\t\tdocument.head.appendChild(script);\n\t\t});\n\t};\n\n\tvar errorCheck;\n\n\n\tif (Persistence.isAvailable()) {\n\t\terrorCheck = Persistence.getItem(\"errorCheck\");\n\t\tPersistence.clear();\n\t}\n</script>\n\n<script>\n\tvar PGN = encodeURIComponent(`{{text:PGN}}`);\n\tdocument.getElementById(\"analysisBoard\").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=false&errorCheck=` + errorCheck + ``;\n</script>",
                     "bafmt": "",
                     "bfont": "",
                     "bqfmt": "",
@@ -159,7 +159,7 @@
                     "did": null,
                     "name": "Card 1",
                     "ord": 0,
-                    "qfmt": "<iframe id=\"Board\" height=730 width=680></iframe>\n\n<script>\n  var PGN = `{{text:PGN}}`.replace(/\\[Puzzle_Length.*?\\]/, '').replace(/\\[Tactic_line.*?\\]/, ''); //compatability with chess.com puzzles\n  var PGN = encodeURIComponent(PGN);\n  document.getElementById(\"Board\").src = `_chess3.0.html?PGN=` + PGN + `&flip=false`;\n</script>"
+                    "qfmt": "<script>\n// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/cd2ca88e019dc3b8f32dad623932c1eabdba7e21/script.js\nif(void 0===window.Persistence){var _persistenceKey=\"github.com/SimonLammer/anki-persistence/\",_defaultKey=\"_default\";if(window.Persistence_sessionStorage=function(){var e=!1;try{\"object\"==typeof window.sessionStorage&&(e=!0,this.clear=function(){for(var e=0;e<sessionStorage.length;e++){var t=sessionStorage.key(e);0==t.indexOf(_persistenceKey)&&(sessionStorage.removeItem(t),e--)}},this.setItem=function(e,t){null==t&&(t=e,e=_defaultKey),sessionStorage.setItem(_persistenceKey+e,JSON.stringify(t))},this.getItem=function(e){return null==e&&(e=_defaultKey),JSON.parse(sessionStorage.getItem(_persistenceKey+e))},this.removeItem=function(e){null==e&&(e=_defaultKey),sessionStorage.removeItem(_persistenceKey+e)})}catch(e){}this.isAvailable=function(){return e}},window.Persistence_windowKey=function(e){var t=window[e],n=!1;\"object\"==typeof t&&(n=!0,this.clear=function(){t[_persistenceKey]={}},this.setItem=function(e,n){null==n&&(n=e,e=_defaultKey),t[_persistenceKey][e]=n},this.getItem=function(e){return null==e&&(e=_defaultKey),null==t[_persistenceKey][e]?null:t[_persistenceKey][e]},this.removeItem=function(e){null==e&&(e=_defaultKey),delete t[_persistenceKey][e]},null==t[_persistenceKey]&&this.clear()),this.isAvailable=function(){return n}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey(\"py\")),!Persistence.isAvailable()){var titleStartIndex=window.location.toString().indexOf(\"title\"),titleContentIndex=window.location.toString().indexOf(\"main\",titleStartIndex);titleStartIndex>0&&titleContentIndex>0&&titleContentIndex-titleStartIndex<10&&(window.Persistence=new Persistence_windowKey(\"qt\"))}}\n</script>\n\n<iframe id=\"Board\" height=730 width=680></iframe>\n\n<script>\n\tvar handicap = 2;\n\tvar PGN = `{{text:PGN}}`.replace(/\\[Puzzle_Length.*?\\]/, '').replace(/\\[Tactic_line.*?\\]/, ''); //compatability with chess.com puzzles\n\tvar PGN = encodeURIComponent(PGN);\n\tdocument.getElementById(\"Board\").src = `_chess3.0.html?PGN=` + PGN + `&flip=false&handicap=` + handicap + ``;\n\tvar errorCheck = false;\n\n\tif (Persistence.isAvailable()) {\n\t\tif (typeof window.addEventListener != 'undefined') {\n\t\t\twindow.addEventListener('message', function(e) {\n\t\t\t\terrorCheck = true;\n\t\t\t\tPersistence.setItem(\"errorCheck\", errorCheck);\n\t\t\t}, false);\n\t\t}\n\t}\n</script>"
                 }
             ],
             "type": 0,
@@ -198,7 +198,7 @@
                 "minify": false
             },
             "crowdanki_uuid": "52ca2293-8f2f-11eb-86eb-d45d6450590b",
-            "css": "body {\n  margin: 0;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  display: -webkit-box;\n  -webkit-box-align: stretch;\n  -webkit-box-pack: center;\n  -webkit-box-orient: vertical;\n  font-size: 22px;\n  text-align: center;\n  /* ALIGN TEXT */\n}\n\n.card {\n  text-align: center;\n  font-size: 20px;\n}\n\n#board {\n  margin-left: auto;\n  margin-right: auto;\n}\n\niframe {\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n  max-height: 100vh;\n  max-width: 100vw;\n  border: 0;\n}\n\n.mobile iframe {\n  height: 96vh;\n  width: 96vw;\n}\n\n::-webkit-scrollbar {\n  display: none;\n}",
+            "css": "body {\n  margin: 0;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  display: -webkit-box;\n  -webkit-box-align: stretch;\n  -webkit-box-pack: center;\n  -webkit-box-orient: vertical;\n  font-size: 22px;\n  text-align: center;\n}\n\n.card {\n  text-align: center;\n  font-size: 20px;\n}\n\n#board {\n  margin-left: auto;\n  margin-right: auto;\n}\n\niframe {\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n  max-height: 100vh;\n  max-width: 100vw;\n  border: 0;\n}\n\n.mobile iframe {\n  height: 96vh;\n  width: 96vw;\n}\n\n::-webkit-scrollbar {\n  display: none;\n}",
             "flds": [
                 {
                     "font": "DejaVu Sans",
@@ -230,7 +230,7 @@
             ],
             "tmpls": [
                 {
-                    "afmt": "<iframe id=\"analysisBoard\" height=900 width=900></iframe>\n\n<script>\n  var PGN = encodeURIComponent(`{{text:PGN}}`);\n  document.getElementById(\"analysisBoard\").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=true`;\n</script>\n",
+                    "afmt": "<script>\n// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/cd2ca88e019dc3b8f32dad623932c1eabdba7e21/script.js\nif(void 0===window.Persistence){var _persistenceKey=\"github.com/SimonLammer/anki-persistence/\",_defaultKey=\"_default\";if(window.Persistence_sessionStorage=function(){var e=!1;try{\"object\"==typeof window.sessionStorage&&(e=!0,this.clear=function(){for(var e=0;e<sessionStorage.length;e++){var t=sessionStorage.key(e);0==t.indexOf(_persistenceKey)&&(sessionStorage.removeItem(t),e--)}},this.setItem=function(e,t){null==t&&(t=e,e=_defaultKey),sessionStorage.setItem(_persistenceKey+e,JSON.stringify(t))},this.getItem=function(e){return null==e&&(e=_defaultKey),JSON.parse(sessionStorage.getItem(_persistenceKey+e))},this.removeItem=function(e){null==e&&(e=_defaultKey),sessionStorage.removeItem(_persistenceKey+e)})}catch(e){}this.isAvailable=function(){return e}},window.Persistence_windowKey=function(e){var t=window[e],n=!1;\"object\"==typeof t&&(n=!0,this.clear=function(){t[_persistenceKey]={}},this.setItem=function(e,n){null==n&&(n=e,e=_defaultKey),t[_persistenceKey][e]=n},this.getItem=function(e){return null==e&&(e=_defaultKey),null==t[_persistenceKey][e]?null:t[_persistenceKey][e]},this.removeItem=function(e){null==e&&(e=_defaultKey),delete t[_persistenceKey][e]},null==t[_persistenceKey]&&this.clear()),this.isAvailable=function(){return n}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey(\"py\")),!Persistence.isAvailable()){var titleStartIndex=window.location.toString().indexOf(\"title\"),titleContentIndex=window.location.toString().indexOf(\"main\",titleStartIndex);titleStartIndex>0&&titleContentIndex>0&&titleContentIndex-titleStartIndex<10&&(window.Persistence=new Persistence_windowKey(\"qt\"))}}\n</script>\n\n<iframe id=\"analysisBoard\" height=900 width=900></iframe>\n\n<script data-name=\"injectScript\" data-version=\"v0.1\">\n\tvar injectScript = (src) => {\n\t\treturn new Promise((resolve, reject) => {\n\t\t\tconst script = document.createElement('script');\n\t\t\tscript.src = src;\n\t\t\tscript.async = true;\n\t\t\tscript.onload = resolve;\n\t\t\tscript.onerror = reject;\n\t\t\tdocument.head.appendChild(script);\n\t\t});\n\t};\n\n\tvar errorCheck;\n\n\n\tif (Persistence.isAvailable()) {\n\t\terrorCheck = Persistence.getItem(\"errorCheck\");\n\t\tPersistence.clear();\n\t}\n</script>\n\n<script>\n\tvar PGN = encodeURIComponent(`{{text:PGN}}`);\n\tdocument.getElementById(\"analysisBoard\").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=true&errorCheck=` + errorCheck + ``;\n</script>",
                     "bafmt": "",
                     "bfont": "",
                     "bqfmt": "",
@@ -238,7 +238,7 @@
                     "did": null,
                     "name": "Card 1",
                     "ord": 0,
-                    "qfmt": "<iframe id=\"Board\" height=730 width=680></iframe>\n\n<script>\n  var PGN = `{{text:PGN}}`.replace(/\\[Puzzle_Length.*?\\]/, '').replace(/\\[Tactic_line.*?\\]/, ''); //compatability with chess.com puzzles\n  var PGN = encodeURIComponent(PGN);\n  document.getElementById(\"Board\").src = `_chess3.0.html?PGN=` + PGN + `&flip=true`;\n</script>"
+                    "qfmt": "<script>\n// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/cd2ca88e019dc3b8f32dad623932c1eabdba7e21/script.js\nif(void 0===window.Persistence){var _persistenceKey=\"github.com/SimonLammer/anki-persistence/\",_defaultKey=\"_default\";if(window.Persistence_sessionStorage=function(){var e=!1;try{\"object\"==typeof window.sessionStorage&&(e=!0,this.clear=function(){for(var e=0;e<sessionStorage.length;e++){var t=sessionStorage.key(e);0==t.indexOf(_persistenceKey)&&(sessionStorage.removeItem(t),e--)}},this.setItem=function(e,t){null==t&&(t=e,e=_defaultKey),sessionStorage.setItem(_persistenceKey+e,JSON.stringify(t))},this.getItem=function(e){return null==e&&(e=_defaultKey),JSON.parse(sessionStorage.getItem(_persistenceKey+e))},this.removeItem=function(e){null==e&&(e=_defaultKey),sessionStorage.removeItem(_persistenceKey+e)})}catch(e){}this.isAvailable=function(){return e}},window.Persistence_windowKey=function(e){var t=window[e],n=!1;\"object\"==typeof t&&(n=!0,this.clear=function(){t[_persistenceKey]={}},this.setItem=function(e,n){null==n&&(n=e,e=_defaultKey),t[_persistenceKey][e]=n},this.getItem=function(e){return null==e&&(e=_defaultKey),null==t[_persistenceKey][e]?null:t[_persistenceKey][e]},this.removeItem=function(e){null==e&&(e=_defaultKey),delete t[_persistenceKey][e]},null==t[_persistenceKey]&&this.clear()),this.isAvailable=function(){return n}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey(\"py\")),!Persistence.isAvailable()){var titleStartIndex=window.location.toString().indexOf(\"title\"),titleContentIndex=window.location.toString().indexOf(\"main\",titleStartIndex);titleStartIndex>0&&titleContentIndex>0&&titleContentIndex-titleStartIndex<10&&(window.Persistence=new Persistence_windowKey(\"qt\"))}}\n</script>\n\n<iframe id=\"Board\" height=730 width=680></iframe>\n\n<script>\n\tvar handicap = 2;\n\tvar PGN = `{{text:PGN}}`.replace(/\\[Puzzle_Length.*?\\]/, '').replace(/\\[Tactic_line.*?\\]/, ''); //compatability with chess.com puzzles\n\tvar PGN = encodeURIComponent(PGN);\n\tdocument.getElementById(\"Board\").src = `_chess3.0.html?PGN=` + PGN + `&flip=true&handicap=` + handicap + ``;\n\tvar errorCheck = false;\n\n\tif (Persistence.isAvailable()) {\n\t\tif (typeof window.addEventListener != 'undefined') {\n\t\t\twindow.addEventListener('message', function(e) {\n\t\t\t\terrorCheck = true;\n\t\t\t\tPersistence.setItem(\"errorCheck\", errorCheck);\n\t\t\t}, false);\n\t\t}\n\t}\n</script>"
                 }
             ],
             "type": 0,
@@ -249,23 +249,23 @@
         {
             "__type__": "Note",
             "fields": [
-                "[Event \"?\"]<br>[Site \"?\"]<br>[Date \"2021.03.03\"]<br>[Round \"?\"]<br>[White \"White\"]<br>[Black \"Black\"]<br>[Result \"1-0\"]<br>[FEN \"r1bq2rk/1p1p4/p1n1pPQp/3n4/4N3/1N1Bb3/PPP3PP/R4R1K w - - 0 1\"]<br>[SetUp \"1\"]<br><br>1. Qh7+ {EV: 100.0%} Kxh7 {EV: 0.0%} 2. Ng5+ {EV: 100.0%} Kh8 {EV: 0.0%} 3. Nf7#<br>{EV: 100.0%} 1-0"
+                "[Event \"?\"]<br>[Site \"?\"]<br>[Date \"????.??.??\"]<br>[Round \"?\"]<br>[White \"?\"]<br>[Black \"?\"]<br>[Result \"*\"]<br>[FEN \"2r1r1k1/5ppp/8/8/Q7/8/5PPP/4R1K1 w - - 0 1\"]<br><br>{ Deep analysis start after that node } 1. Rxe8+ { +M2 } ( 1. Qxe8+ { +M2 } 1... Rxe8 { +M1 } 2. Rxe8# { +M1 } ) 1... Rxe8 { +M1 } 2. Qxe8# { +M1 } *<br>"
             ],
-            "guid": "JT|iyiaE@L",
+            "guid": "i}r/m:E%tB",
             "note_model_uuid": "52ca70c5-8f2f-11eb-94da-d45d6450590b",
             "tags": [
-                "Board_Games::chess::Lichess::Basic_Tactics::Discovered_Attack"
+                "Board_Games::chess::Lichess::Checkmates::Checkmate_Patterns_I"
             ]
         },
         {
             "__type__": "Note",
             "fields": [
-                "[Event \"?\"]<br>[Site \"?\"]<br>[Date \"2021.10.03\"]<br>[Round \"?\"]<br>[White \"White\"]<br>[Black \"Black\"]<br>[Result \"1-0\"]<br>[FEN \"r1b5/pp1nqB1Q/3bp3/2pp2k1/3P4/2P1P3/PP1N1PP1/R3K3 b Q - 0 19\"]<br>[SetUp \"1\"]<br><br>19... Nf6 20. Qg7+ (20. Nf3+ Kg4 21. Qg6# {EV: 100.0%} (21. Qh3# {EV: 100.0%}))<br>(20. Qg6+ Kh4 21. Nf3# {EV: 100.0%}) Kf5 21. Qg6# 1-0"
+                "[Event \"?\"]<br>[Site \"?\"]<br>[Date \"2021.11.18\"]<br>[Round \"?\"]<br>[White \"White\"]<br>[Black \"Black\"]<br>[Result \"*\"]<br>[FEN \"8/5pk1/2R4p/3p4/5p2/6r1/7p/5n1K w - - 0 51\"]<br>[SetUp \"1\"]<br><br>51. Rg6+ Kf8 {EV: 96.2%} 52. Rxg3 {EV: 0.9%} fxg3 {EV: 100.0%} 53. Kg2 {EV:<br>0.0%} h1=Q+ {EV: 100.0%} 54. Kxh1 {EV: 0.0%} Ne3 {EV: 100.0%} 55. Kg1 {EV: 0.0%}<br>d4 {EV: 100.0%} 56. Kh1 {EV: 0.0%} d3 {EV: 100.0%} 57. Kg1 {EV: 0.0%} d2 {EV:<br>100.0%} *"
             ],
-            "guid": "j:pK:9Zv`)",
+            "guid": "4d(syPe3i",
             "note_model_uuid": "52ca2293-8f2f-11eb-86eb-d45d6450590b",
             "tags": [
-                "Board_Games::chess::Positions"
+                "Board_Games::chess::Book::dont_give_up_advantage"
             ]
         }
     ]

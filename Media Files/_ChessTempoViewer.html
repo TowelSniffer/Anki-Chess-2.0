@@ -19712,9 +19712,6 @@
     } else {
       fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     }
-
-
-
     let orientation = "white";
 
 
@@ -19734,12 +19731,18 @@
 
     <div id="board"></div>
     <script>
+    var boardTheme = 'brown';
+    var errorCheck = getUrlVars()["errorCheck"];
+    if (errorCheck === "true") {
+      boardTheme = 'blue';
+    }
+
       if (window.innerHeight > window.innerWidth) {
         PGNV.pgnEdit('board', {
           position: fen,
           pgn: pgn,
           orientation: orientation,
-          theme: 'brown',
+          theme: boardTheme,
           boardSize: '350px'
         });
       } else {
@@ -19748,7 +19751,7 @@
           pgn: pgn,
           orientation: orientation,
           layout: 'left',
-          theme: 'brown',
+          theme: boardTheme,
           boardSize: '450px'
         });
         document.getElementById("boardMoves").style.height = "490px";
