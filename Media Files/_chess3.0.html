@@ -10990,7 +10990,7 @@ background-image: url('_bK.svg');
             addPieceZIndex: false,
             pieceKey: false,
             highlight: {
-                lastMove: false,
+                lastMove: true,
                 check: true,
             },
             animation: {
@@ -14036,7 +14036,9 @@ background-image: url('_bK.svg');
                   }
 
                     chess.move(expectedMove.notation.notation);
-                    cg.move(expectedMove.notation.notation);
+                    const lastMoveAi = chess.undo();
+                    chess.move(expectedMove.notation.notation);
+                    cg.move(expectedMove.notation.notation);;
                     cg.set({
                         fen: chess.fen(),
                         movable: {
@@ -14048,7 +14050,7 @@ background-image: url('_bK.svg');
                         turnColor: boardRotation,
                           check: chess.in_check()
                       });
-
+                      cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
                     count++;
                     expectedMove = expectedLine[count];
                     cg.playPremove();
@@ -14573,6 +14575,8 @@ background-image: url('_bK.svg');
                 }
 
                   chess.move(expectedMove.notation.notation);
+                  const lastMoveAi = chess.undo();
+                  chess.move(expectedMove.notation.notation);
                   cg.move(expectedMove.notation.notation);
                   cg.set({
                       fen: chess.fen(),
@@ -14585,6 +14589,7 @@ background-image: url('_bK.svg');
                   cg.set({
                       check: chess.in_check()
                   });
+                  cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
                   count++;
                   expectedMove = expectedLine[count];
                   cg.playPremove();
@@ -14617,6 +14622,8 @@ background-image: url('_bK.svg');
             console.log(errorCount);
             if (errorCount > handicap) {
               chess.move(expectedMove.notation.notation);
+              const lastMoveAi = chess.undo();
+              chess.move(expectedMove.notation.notation);
               cg.move(expectedMove.notation.notation);
               cg.set({
                   fen: chess.fen(),
@@ -14629,6 +14636,7 @@ background-image: url('_bK.svg');
               cg.set({
                   check: chess.in_check()
               });
+              cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
               count++;
               expectedMove = expectedLine[count];
               setTimeout(() => {
@@ -14646,6 +14654,8 @@ background-image: url('_bK.svg');
                     }
 
                       chess.move(expectedMove.notation.notation);
+                      const lastMoveAi = chess.undo();
+                      chess.move(expectedMove.notation.notation);
                       cg.move(expectedMove.notation.notation);
                       cg.set({
                           fen: chess.fen(),
@@ -14658,6 +14668,7 @@ background-image: url('_bK.svg');
                       cg.set({
                           check: chess.in_check()
                       });
+                      cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
                       count++;
                       expectedMove = expectedLine[count];
                       cg.playPremove();
