@@ -7574,28 +7574,56 @@
  ::-webkit-scrollbar {
   display: none;
 }
+
+html {
+}
+
+body {
+  margin:0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 select { font-size:1.2em; }
 
 button {
+  position: relative;
+  top: 0.07em;
   font-size: 1.4em;
-  background-color: #f5f5f5 !important;
-  background-image: -webkit-linear-gradient(top, #f5f5f5, #f1f1f1) !important;
+  background-color: #f5f5f5;
   color: #333B45 !important;
   border: 1px solid #dcdcdc;
   border-radius: 2px;
+  box-shadow: 0px 0px 3px 1px black;
+  cursor: pointer;
 }
 
 #center {
-  overflow: hidden;
+  display:none;
   text-align: center;
-  margin: 0 auto;
+  background-color: rgba(255,255,255,.2);
+  border-radius: 5px;
+  box-shadow: 0px 0px 6px 2px black;
+  padding: .4em;
+  z-index: 100;
+  white-space: nowrap;
+  backdrop-filter: blur(5px);
+  position:absolute;
+  top: 3.5vmin;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 button:hover {
-  background-color: #F8F8F8 !important;
-  background-image: -webkit-linear-gradient(top, #f8f8f8, #f1f1f1);
+  background-color: #F8F8F8;
   border: 1px solid #C6C6C6;
+  box-shadow: 0px 0px 6px 0px grey;
   color: #333;
+}
+button:active {
+  background-color: #d6d6d6;
 }
 
 button:focus {
@@ -7795,24 +7823,20 @@ background-image: url('_bK.svg');
     </style>
   </head>
   <body>
+    <div style="text-align: center">
     <div id="chessground-examples"></div>
     <div id="center">
-    <select name="promotionChoice" onchange="promoteChoice=this.value">
-      <optgroup>
-      <option value="q">Queen</option>
-      <option value="b">Bishop</option>
-      <option value="n">Knight</option>
-      <option value="r">Rook</option>
-    </optgroup>
-    </select>
-    <button id="focusTarget" onclick="reload();errorCount=0">&#10226;</button>
-
+    <button value="q"><img id="promoteQ" style="width:min(75px, 12.5vmin);"></button>
+    <button value="b"><img id="promoteB" style="width:min(75px, 12.5vmin);"></button>
+    <button value="n"><img id="promoteN" style="width:min(75px, 12.5vmin);"></button>
+    <button value="r"><img id="promoteR" style="width:min(75px, 12.5vmin);"></button>
+    </div>
     </div>
     <script>
     function getUrlVars() {
       var vars = {};
       var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-        vars[key] = decodeURIComponent(value);
+        vars[key] = decodeURIComponent(value).replace("#!/0", "");
       });
       return vars;
     }
@@ -7850,14 +7874,16 @@ background-image: url('_bK.svg');
     } else if (flipBoard == 'true' && boardRotation == "black") {
       boardRotation = "white";
     }
-
     var opponentColour = 'black';
 
     if (boardRotation == 'black') {
       opponentColour = 'white';
     }
 
-
+    document.querySelector('#promoteQ').src = "_"+boardRotation[0]+"Q.svg";
+    document.querySelector('#promoteB').src = "_"+boardRotation[0]+"B.svg";
+    document.querySelector('#promoteN').src = "_"+boardRotation[0]+"N.svg";
+    document.querySelector('#promoteR').src = "_"+boardRotation[0]+"R.svg";
     var count; // Int so we can track on which move we are.
     var expectedLine; // Set initially to the mainline of pgn but can change path with variations
     var expectedMove; // Set the expected move according to PGN
@@ -7865,7 +7891,7 @@ background-image: url('_bK.svg');
     var foundVariation; // a bullion to check if there are multiple lines
     var responseVar; // used to randomly sellect an appropriate response
 
-
+    ;
     (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ChessgroundExamples = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
     /*
      * Copyright (c) 2016, Jeff Hlywa (jhlywa@gmail.com)
@@ -14503,42 +14529,39 @@ background-image: url('_bK.svg');
         return (orig, dest) => {
           foundVariation = false;
             chess.move({ from: orig, to: dest, promotion: promoteChoice});
+            const moveCheck = chess.undo().san;
+          function moveChecker(moveCheck) {
+            if (moveCheck.includes("=")) {
             cg.set({
                 fen: chess.fen(),
                 }
             );
-            const moveCheck = chess.undo().san;
-            if (expectedMove && typeof expectedMove !== 'string') {
-              if (expectedMove.notation.notation == moveCheck) {
-                foundVariation = true;
-              } else if (expectedMove.notation.notation !== moveCheck) {
-              if (expectedMove.variations.length > 0) {
-                for (var i = 0; i < expectedMove.variations.length; i++) {
-                  if (moveCheck === expectedMove.variations[i][0].notation.notation) {
-
-                    count = 0;
-                    expectedLine = expectedMove.variations[i];
-                    expectedMove = expectedLine[count];
-                    foundVariation = true;
-                    break
-                  }
-
+            chess.move({ from: orig, to: dest, promotion: promoteChoice});
+            cg.set({
+                fen: chess.fen(),
                 }
-                // wrong move
-                if (foundVariation === false) {
-                  cg.set({
-                    check: chess.in_check(),
-                      fen: chess.fen(),
-                      turnColor: toColor(chess),
-                      movable: {
-                          color: toColor(chess),
-                          dests: toDests(chess)
-                      }
-                      }
-                  );
+            );
+            moveCheck = chess.undo().san;
+          }
+
+          if (expectedMove && typeof expectedMove !== 'string') {
+            if (expectedMove.notation.notation == moveCheck) {
+              foundVariation = true;
+            } else if (expectedMove.notation.notation !== moveCheck) {
+            if (expectedMove.variations.length > 0) {
+              for (var i = 0; i < expectedMove.variations.length; i++) {
+                if (moveCheck === expectedMove.variations[i][0].notation.notation) {
+
+                  count = 0;
+                  expectedLine = expectedMove.variations[i];
+                  expectedMove = expectedLine[count];
+                  foundVariation = true;
+                  break
                 }
 
-              } else {
+              }
+              // wrong move
+              if (foundVariation === false) {
                 cg.set({
                   check: chess.in_check(),
                     fen: chess.fen(),
@@ -14551,156 +14574,191 @@ background-image: url('_bK.svg');
                 );
               }
 
-            }
-          }
-
-            if (foundVariation == true) {
-              count++;
-              expectedMove = expectedLine[count];
-              chess.move({ from: orig, to: dest, promotion: promoteChoice});
-              cg.set({
-                  check: chess.in_check()
-              });
-            if (expectedMove && typeof expectedMove !== 'string') {
-              setTimeout(() => {
-                errorCount = 0;
-                  if (expectedMove.variations.length > 0) {
-                  const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                  if (moveVar == expectedMove.variations.length) {
-                  } else {
-                    count = 0;
-                    expectedLine = expectedMove.variations[moveVar];
-                    expectedMove = expectedLine[0];
-                  }
-                }
-
-                  chess.move(expectedMove.notation.notation);
-                  const lastMoveAi = chess.undo();
-                  chess.move(expectedMove.notation.notation);
-                  cg.move(expectedMove.notation.notation);
-                  cg.set({
-                      fen: chess.fen(),
-                      turnColor: toColor(chess),
-                      movable: {
-                          color: toColor(chess),
-                          dests: toDests(chess)
-                      }
-                  });
-                  cg.set({
-                      check: chess.in_check()
-                  });
-                  cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-                  count++;
-                  expectedMove = expectedLine[count];
-                  cg.playPremove();
-
-                  if (!expectedMove || typeof expectedMove === 'string') {
-                    const el = document.querySelector('.cg-wrap');
-                    el.style.border = "0.7vmin solid limegreen";
-                    cg.set({
-          viewOnly: true,
-          });
-                  }
-
-              }, delay);
             } else {
-              count++;
-              expectedMove = expectedLine[count];
-              if (!expectedMove || typeof expectedMove === 'string') {
-                const el = document.querySelector('.cg-wrap');
-                el.style.border = "0.7vmin solid limegreen";
-                cg.set({
-      viewOnly: true,
-      });
-              }
-              count--;
-              expectedMove = expectedLine[count];
-            }
-          } else {
-            errorCount++;
-            window.parent.postMessage('*', '*');
-            console.log(errorCount);
-            if (errorCount > handicap) {
-              chess.move(expectedMove.notation.notation);
-              const lastMoveAi = chess.undo();
-              chess.move(expectedMove.notation.notation);
-              cg.move(expectedMove.notation.notation);
               cg.set({
+                check: chess.in_check(),
                   fen: chess.fen(),
                   turnColor: toColor(chess),
                   movable: {
                       color: toColor(chess),
                       dests: toDests(chess)
                   }
-              });
+                  }
+              );
+            }
+
+          }
+        }
+
+          if (foundVariation == true) {
+            count++;
+            expectedMove = expectedLine[count];
+            chess.move({ from: orig, to: dest, promotion: promoteChoice});
+            cg.set({
+                check: chess.in_check()
+            });
+          if (expectedMove && typeof expectedMove !== 'string') {
+            setTimeout(() => {
+              errorCount = 0;
+                if (expectedMove.variations.length > 0) {
+                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                if (moveVar == expectedMove.variations.length) {
+                } else {
+                  count = 0;
+                  expectedLine = expectedMove.variations[moveVar];
+                  expectedMove = expectedLine[0];
+                }
+              }
+
+                chess.move(expectedMove.notation.notation);
+                const lastMoveAi = chess.undo();
+                chess.move(expectedMove.notation.notation);
+                cg.move(expectedMove.notation.notation);
+                cg.set({
+                    fen: chess.fen(),
+                    turnColor: toColor(chess),
+                    movable: {
+                        color: toColor(chess),
+                        dests: toDests(chess)
+                    }
+                });
+                cg.set({
+                    check: chess.in_check()
+                });
+                cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+                count++;
+                expectedMove = expectedLine[count];
+                cg.playPremove();
+
+                if (!expectedMove || typeof expectedMove === 'string') {
+                  const el = document.querySelector('.cg-wrap');
+                  el.style.border = "0.7vmin solid limegreen";
+                  el.style.boxShadow ="0px 0px 6px 0px limegreen"
+                  cg.set({
+        viewOnly: true,
+        });
+                }
+
+            }, delay);
+          } else {
+            count++;
+            expectedMove = expectedLine[count];
+            if (!expectedMove || typeof expectedMove === 'string') {
+              const el = document.querySelector('.cg-wrap');
+              el.style.border = "0.7vmin solid limegreen";
+              el.style.boxShadow ="0px 0px 6px 0px limegreen"
               cg.set({
-                  check: chess.in_check()
-              });
-              cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-              count++;
-              expectedMove = expectedLine[count];
-              setTimeout(() => {
-                if (expectedMove && typeof expectedMove !== 'string') {
-                  setTimeout(() => {
-                    errorCount = 0;
-                      if (expectedMove.variations.length > 0) {
-                      const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                      if (moveVar == expectedMove.variations.length) {
-                      } else {
-                        count = 0;
-                        expectedLine = expectedMove.variations[moveVar];
-                        expectedMove = expectedLine[0];
-                      }
+              fen: chess.fen(),
+    viewOnly: true
+    });
+            }
+            count--;
+            expectedMove = expectedLine[count];
+          }
+        } else {
+          errorCount++;
+          window.parent.postMessage('*', '*');
+          console.log(errorCount);
+          if (errorCount > handicap) {
+            chess.move(expectedMove.notation.notation);
+            const lastMoveAi = chess.undo();
+            chess.move(expectedMove.notation.notation);
+            cg.move(expectedMove.notation.notation);
+            cg.set({
+                fen: chess.fen(),
+                turnColor: toColor(chess),
+                movable: {
+                    color: toColor(chess),
+                    dests: toDests(chess)
+                }
+            });
+            cg.set({
+                check: chess.in_check()
+            });
+            cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+            count++;
+            expectedMove = expectedLine[count];
+            setTimeout(() => {
+              if (expectedMove && typeof expectedMove !== 'string') {
+                setTimeout(() => {
+                  errorCount = 0;
+                    if (expectedMove.variations.length > 0) {
+                    const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                    if (moveVar == expectedMove.variations.length) {
+                    } else {
+                      count = 0;
+                      expectedLine = expectedMove.variations[moveVar];
+                      expectedMove = expectedLine[0];
+                    }
+                  }
+
+                    chess.move(expectedMove.notation.notation);
+                    const lastMoveAi = chess.undo();
+                    chess.move(expectedMove.notation.notation);
+                    cg.move(expectedMove.notation.notation);
+                    cg.set({
+                        fen: chess.fen(),
+                        turnColor: toColor(chess),
+                        movable: {
+                            color: toColor(chess),
+                            dests: toDests(chess)
+                        }
+                    });
+                    cg.set({
+                        check: chess.in_check()
+                    });
+                    cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+                    count++;
+                    expectedMove = expectedLine[count];
+                    cg.playPremove();
+
+                    if (!expectedMove || typeof expectedMove === 'string') {
+                      const el = document.querySelector('.cg-wrap');
+                      el.style.border = "0.7vmin solid limegreen";
+                      el.style.boxShadow ="0px 0px 6px 0px limegreen"
+                      cg.set({
+            viewOnly: true,
+            });
                     }
 
-                      chess.move(expectedMove.notation.notation);
-                      const lastMoveAi = chess.undo();
-                      chess.move(expectedMove.notation.notation);
-                      cg.move(expectedMove.notation.notation);
-                      cg.set({
-                          fen: chess.fen(),
-                          turnColor: toColor(chess),
-                          movable: {
-                              color: toColor(chess),
-                              dests: toDests(chess)
-                          }
-                      });
-                      cg.set({
-                          check: chess.in_check()
-                      });
-                      cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-                      count++;
-                      expectedMove = expectedLine[count];
-                      cg.playPremove();
-
-                      if (!expectedMove || typeof expectedMove === 'string') {
-                        const el = document.querySelector('.cg-wrap');
-                        el.style.border = "0.7vmin solid limegreen";
-                        cg.set({
-              viewOnly: true,
-              });
-                      }
-
-                  }, delay);
-                } else {
-                  count++;
-                  expectedMove = expectedLine[count];
-                  if (!expectedMove || typeof expectedMove === 'string') {
-                    const el = document.querySelector('.cg-wrap');
-                    el.style.border = "0.7vmin solid limegreen";
-                    cg.set({
-          viewOnly: true,
-          });
-                  }
-                  count--;
-                  expectedMove = expectedLine[count];
+                }, delay);
+              } else {
+                count++;
+                expectedMove = expectedLine[count];
+                if (!expectedMove || typeof expectedMove === 'string') {
+                  const el = document.querySelector('.cg-wrap');
+                  el.style.border = "0.7vmin solid limegreen";
+                  el.style.boxShadow ="0px 0px 6px 0px limegreen"
+                  cg.set({
+        viewOnly: true,
+        });
                 }
-              }, 300);
-              errorCount = 0;
-            }
+                count--;
+                expectedMove = expectedLine[count];
+              }
+            }, 300);
+            errorCount = 0;
           }
+        }
+        }
 
-        };
+            if (moveCheck.includes("=")) {
+              const promoteButtons = document.querySelectorAll("#center > button");
+              for (var i=0; i<promoteButtons.length; i++){
+              	promoteButtons[i].onclick = function(){
+              		promoteChoice=this.value;document.querySelector("#center").style.display = "none";
+                  moveChecker(moveCheck);
+                  document.querySelector(".cg-wrap").style.filter = 'none';
+                  document.querySelector("cg-board").style.cursor = 'pointer';
+              	}
+              }
+              document.querySelector("#center").style.display = 'block';
+              document.querySelector(".cg-wrap").style.filter = 'brightness(50%)';
+              document.querySelector("cg-board").style.cursor = 'default';
+            } else {
+              moveChecker(moveCheck)
+            }
+          };
 
     }
     exports.aiPlay = aiPlay;
@@ -14717,7 +14775,7 @@ background-image: url('_bK.svg');
       ChessgroundExamples.run(document.getElementById('chessground-examples'));
       const el = document.querySelector('.cg-wrap');
       if (el) {
-          const px = `95vmin`;
+          const px = Math.min(600, document.documentElement.clientWidth * 0.97);;
           el.style.width = px;
           el.style.height = px;
           document.body.dispatchEvent(new Event('chessground.resize'));
@@ -14725,13 +14783,9 @@ background-image: url('_bK.svg');
       el.style.border = "0.7vmin solid #670A0A";
     }
     reload();
-    var handler = function(e) {
-if (e.keyCode == 81) {
-  document.getElementById("focusTarget").click();
-}
-}
-    window.addEventListener('keydown', handler);
-    document.getElementById("focusTarget").focus();
+    if (getUrlVars()["backgroundColor"]) {
+      document.body.style.backgroundColor = getUrlVars()["backgroundColor"];
+    }
     </script>
   </body>
 </html>

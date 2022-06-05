@@ -2978,7 +2978,8 @@
               }
             }(v, s, T, i), i ? (v.ifModified && ((u = T.getResponseHeader("Last-Modified")) && (S.lastModified[f] = u), (u = T.getResponseHeader("etag")) && (S.etag[f] = u)), 204 === e || "HEAD" === v.type ? l = "nocontent" : 304 === e ?
               l = "notmodified" : (l = s.state, o = s.data, i = !(a = s.error))) : (a = l, !e && l || (l = "error", e < 0 && (e = 0))), T.status = e, T.statusText = (t || l) + "", i ? x.resolveWith(y, [o, l, T]) : x.rejectWith(y, [T, l,
-              a]), T.statusCode(w), w = void 0, g && m.trigger(i ? "ajaxSuccess" : "ajaxError", [T, v, i ? o : a]), b.fireWith(y, [T, l]), g && (m.trigger("ajaxComplete", [T, v]), --S.active || S.event.trigger("ajaxStop")))
+              a
+            ]), T.statusCode(w), w = void 0, g && m.trigger(i ? "ajaxSuccess" : "ajaxError", [T, v, i ? o : a]), b.fireWith(y, [T, l]), g && (m.trigger("ajaxComplete", [T, v]), --S.active || S.event.trigger("ajaxStop")))
           }
           return T
         },
@@ -11486,7 +11487,7 @@
             j = A.media,
             g = A.sourceMap;
           if (j ? M.setAttribute("media", j) : M.removeAttribute("media"), g && "undefined" != typeof btoa && (I += "\n/*# sourceMappingURL=data:application/json;base64,".concat(btoa(unescape(encodeURIComponent(JSON.stringify(g)))),
-            " */")), M.styleSheet) M.styleSheet.cssText = I;
+              " */")), M.styleSheet) M.styleSheet.cssText = I;
           else {
             for (; M.firstChild;) M.removeChild(M.firstChild);
             M.appendChild(document.createTextNode(I))
@@ -12294,9 +12295,10 @@
                           }(I), N = A) : (FA = N, N = j), N === j && (N = FA, (A = function() {
                             var N;
                             return "UTCTime" === M.substr(FA, 7) ? (N = "UTCTime", FA += 7) : (N = j, 0 === $A && gI(dM)), N === j && ("UTCtime" === M.substr(FA,
-                              7) ? (N = "UTCtime", FA += 7) : (N = j, 0 === $A && gI(QM)), N === j && ("UtcTime" === M.substr(FA, 7) ? (N = "UtcTime", FA += 7) :
-                                (N = j, 0 === $A && gI(kM)), N === j && ("Utctime" === M.substr(FA, 7) ? (N = "Utctime", FA += 7) : (N = j, 0 === $A && gI(bM)),
-                                  N === j && ("utctime" === M.substr(FA, 7) ? (N = "utctime", FA += 7) : (N = j, 0 === $A && gI(UM)))))), N
+                              7) ? (N = "UTCtime", FA += 7) : (N = j, 0 === $A && gI(QM)), N === j && ("UtcTime" === M.substr(FA, 7) ? (N = "UtcTime", FA +=
+                              7) :
+                              (N = j, 0 === $A && gI(kM)), N === j && ("Utctime" === M.substr(FA, 7) ? (N = "Utctime", FA += 7) : (N = j, 0 === $A && gI(bM)),
+                                N === j && ("utctime" === M.substr(FA, 7) ? (N = "utctime", FA += 7) : (N = j, 0 === $A && gI(UM)))))), N
                           }()) !== j && uI() !== j && (I = iI()) !== j ? (A = function(M) {
                             return {
                               name: "UTCTime",
@@ -12326,8 +12328,9 @@
                           }(I), N = A) : (FA = N, N = j), N === j && (N = FA, (A = function() {
                             var N;
                             return "SetUp" === M.substr(FA, 5) ? (N = "SetUp", FA += 5) : (N = j, 0 === $A && gI(RM)), N === j && ("Setup" === M.substr(FA,
-                              5) ? (N = "Setup", FA += 5) : (N = j, 0 === $A && gI(XM)), N === j && ("setup" === M.substr(FA, 5) ? (N = "setup", FA += 5) :
-                                (N = j, 0 === $A && gI(PM)))), N
+                              5) ? (N = "Setup", FA += 5) : (N = j, 0 === $A && gI(XM)), N === j && ("setup" === M.substr(FA, 5) ? (N = "setup", FA +=
+                              5) :
+                              (N = j, 0 === $A && gI(PM)))), N
                           }()) !== j && uI() !== j && (I = iI()) !== j ? (A = function(M) {
                             return {
                               name: "SetUp",
@@ -12504,8 +12507,8 @@
                         return N = FA, "1:0" === M.substr(FA, 3) ? (A = "1:0", FA += 3) : (A = j, 0 === $A && gI(oN)), A !== j && (A = ["1:0"]), (N = A) === j && (N = FA, "0:1" === M.substr(FA, 3) ? (A = "0:1", FA += 3) : (A =
                           j, 0 === $A && gI(xN)), A !== j && (A = ["0:1"]), (N = A) === j && (N = FA, "1-0" === M.substr(FA, 3) ? (A = "1-0", FA += 3) : (A = j, 0 === $A && gI(ON)), A !== j && (A = ["1-0"]), (N = A) === j &&
                           (N = FA, "0-1" === M.substr(FA, 3) ? (A = "0-1", FA += 3) : (A = j, 0 === $A && gI(aN)), A !== j && (A = ["0-1"]), (N = A) === j && (N = FA, "1/2-1/2" === M.substr(FA, 7) ? (A = "1/2-1/2", FA +=
-                              7) : (A = j, 0 === $A && gI(EN)), A !== j && (A = ["1/2-1/2"]), (N = A) === j && (N = FA, 42 === M.charCodeAt(FA) ? (A = "*", FA++) : (A = j, 0 === $A && gI(sN)), A !== j && (A = ["*"]), N = A)
-                              )))), N
+                            7) : (A = j, 0 === $A && gI(EN)), A !== j && (A = ["1/2-1/2"]), (N = A) === j && (N = FA, 42 === M.charCodeAt(FA) ? (A = "*", FA++) : (A = j, 0 === $A && gI(sN)), A !== j && (A = ["*"]), N =
+                            A))))), N
                       }
 
                       function EI() {
@@ -12533,8 +12536,9 @@
                                       if (N = FA, (A = lI()) !== j)
                                         if (uI() !== j) {
                                           for (I = [], g = FA, 44 === M.charCodeAt(FA) ? (D = ",", FA++) : (D = j, 0 === $A && gI(BN)), D !== j && (t = uI()) !== j && (T = lI()) !== j ? g = D = [D, t, T] : (FA = g, g =
-                                            j); g !== j;) I.push(g), g = FA, 44 === M.charCodeAt(FA) ? (D = ",", FA++) : (D = j, 0 === $A && gI(BN)), D !== j && (t = uI()) !== j && (T = lI()) !== j ? g = D = [D, t, T] : (
-                                            FA = g, g = j);
+                                              j); g !== j;) I.push(g), g = FA, 44 === M.charCodeAt(FA) ? (D = ",", FA++) : (D = j, 0 === $A && gI(BN)), D !== j && (t = uI()) !== j && (T = lI()) !== j ? g = D = [D, t, T] :
+                                            (
+                                              FA = g, g = j);
                                           I !== j ? (A = RN(A, I), N = A) : (FA = N, N = j)
                                         } else FA = N, N = j;
                                       else FA = N, N = j;
@@ -12564,7 +12568,8 @@
                                           if (uI() !== j) {
                                             for (I = [], g = FA, 44 === M.charCodeAt(FA) ? (D = ",", FA++) : (D = j, 0 === $A && gI(BN)), D !== j && (t = uI()) !== j && (T = SI()) !== j ? g = D = [D, t, T] : (FA = g, g =
                                                 j); g !== j;) I.push(g), g = FA, 44 === M.charCodeAt(FA) ? (D = ",", FA++) : (D = j, 0 === $A && gI(BN)), D !== j && (t = uI()) !== j && (T = SI()) !== j ? g = D = [D, t,
-                                              T] : (FA = g, g = j);
+                                              T
+                                            ] : (FA = g, g = j);
                                             I !== j ? (A = RN(A, I), N = A) : (FA = N, N = j)
                                           } else FA = N, N = j;
                                         else FA = N, N = j;
@@ -12802,25 +12807,28 @@
                         return N = FA, (A = function() {
                           var N, A, I;
                           return N = FA, 36 === M.charCodeAt(FA) ? (A = "$", FA++) : (A = j, 0 === $A && gI(yA)), A !== j && (I = vI()) !== j ? N = A = "$" + I : (FA = N, N = j), N === j && (N = FA, "!!" === M.substr(FA,
-                            2) ? (A = "!!", FA += 2) : (A = j, 0 === $A && gI(nA)), A !== j && (A = "$3"), (N = A) === j && (N = FA, "??" === M.substr(FA, 2) ? (A = "??", FA += 2) : (A = j, 0 === $A && gI(wA)), A !== j &&
-                              (A = "$4"), (N = A) === j && (N = FA, "!?" === M.substr(FA, 2) ? (A = "!?", FA += 2) : (A = j, 0 === $A && gI(OA)), A !== j && (A = "$5"), (N = A) === j && (N = FA, "?!" === M.substr(FA, 2) ?
-                                (A = "?!", FA += 2) : (A = j, 0 === $A && gI(oA)), A !== j && (A = "$6"), (N = A) === j && (N = FA, 33 === M.charCodeAt(FA) ? (A = "!", FA++) : (A = j, 0 === $A && gI(aA)), A !== j && (A =
-                                  "$1"), (N = A) === j && (N = FA, 63 === M.charCodeAt(FA) ? (A = "?", FA++) : (A = j, 0 === $A && gI(xA)), A !== j && (A = "$2"), (N = A) === j && (N = FA, 8252 === M.charCodeAt(FA) ? (
-                                  A = "‼", FA++) : (A = j, 0 === $A && gI(EA)), A !== j && (A = "$3"), (N = A) === j && (N = FA, 8263 === M.charCodeAt(FA) ? (A = "⁇", FA++) : (A = j, 0 === $A && gI(sA)), A !== j &&
-                                  (A = "$4"), (N = A) === j && (N = FA, 8265 === M.charCodeAt(FA) ? (A = "⁉", FA++) : (A = j, 0 === $A && gI(rA)), A !== j && (A = "$5"), (N = A) === j && (N = FA, 8264 === M
-                                    .charCodeAt(FA) ? (A = "⁈", FA++) : (A = j, 0 === $A && gI(lA)), A !== j && (A = "$6"), (N = A) === j && (N = FA, 9633 === M.charCodeAt(FA) ? (A = "□", FA++) : (A = j, 0 ===
-                                      $A && gI(SA)), A !== j && (A = "$7"), (N = A) === j && (N = FA, 61 === M.charCodeAt(FA) ? (A = "=", FA++) : (A = j, 0 === $A && gI(eA)), A !== j && (A = "$10"), (N = A) ===
-                                      j && (N = FA, 8734 === M.charCodeAt(FA) ? (A = "∞", FA++) : (A = j, 0 === $A && gI(YA)), A !== j && (A = "$13"), (N = A) === j && (N = FA, 10866 === M.charCodeAt(FA) ? (A =
-                                        "⩲", FA++) : (A = j, 0 === $A && gI(mA)), A !== j && (A = "$14"), (N = A) === j && (N = FA, 10865 === M.charCodeAt(FA) ? (A = "⩱", FA++) : (A = j, 0 === $A && gI(
-                                        dA)), A !== j && (A = "$15"), (N = A) === j && (N = FA, 177 === M.charCodeAt(FA) ? (A = "±", FA++) : (A = j, 0 === $A && gI(QA)), A !== j && (A = "$16"), (N = A) ===
-                                          j && (N = FA, 8723 === M.charCodeAt(FA) ? (A = "∓", FA++) : (A = j, 0 === $A && gI(kA)), A !== j && (A = "$17"), (N = A) === j && (N = FA, "+-" === M.substr(FA,
-                                            2) ? (A = "+-", FA += 2) : (A = j, 0 === $A && gI(uA)), A !== j && (A = "$18"), (N = A) === j && (N = FA, "-+" === M.substr(FA, 2) ? (A = "-+", FA += 2) : (A =
-                                              j, 0 === $A && gI(bA)), A !== j && (A = "$19"), (N = A) === j && (N = FA, 10752 === M.charCodeAt(FA) ? (A = "⨀", FA++) : (A = j, 0 === $A && gI(UA)), A !==
-                                              j && (A = "$22"), (N = A) === j && (N = FA, 10227 === M.charCodeAt(FA) ? (A = "⟳", FA++) : (A = j, 0 === $A && gI(pA)), A !== j && (A = "$32"), (N = A) ===
-                                                j && (N = FA, 8594 === M.charCodeAt(FA) ? (A = "→", FA++) : (A = j, 0 === $A && gI(ZA)), A !== j && (A = "$36"), (N = A) === j && (N = FA, 8593 === M
-                                                  .charCodeAt(FA) ? (A = "↑", FA++) : (A = j, 0 === $A && gI(vA)), A !== j && (A = "$40"), (N = A) === j && (N = FA, 8646 === M.charCodeAt(FA) ? (A =
-                                                    "⇆", FA++) : (A = j, 0 === $A && gI(hA)), A !== j && (A = "$132"), (N = A) === j && (N = FA, 68 === M.charCodeAt(FA) ? (A = "D", FA++) : (A = j,
-                                                    0 === $A && gI(fA)), A !== j && (A = "$220"), N = A))))))))))))))))))))))))), N
+                            2) ? (A = "!!", FA += 2) : (A = j, 0 === $A && gI(nA)), A !== j && (A = "$3"), (N = A) === j && (N = FA, "??" === M.substr(FA, 2) ? (A = "??", FA += 2) : (A = j, 0 === $A && gI(wA)), A !==
+                            j &&
+                            (A = "$4"), (N = A) === j && (N = FA, "!?" === M.substr(FA, 2) ? (A = "!?", FA += 2) : (A = j, 0 === $A && gI(OA)), A !== j && (A = "$5"), (N = A) === j && (N = FA, "?!" === M.substr(FA, 2) ?
+                              (A = "?!", FA += 2) : (A = j, 0 === $A && gI(oA)), A !== j && (A = "$6"), (N = A) === j && (N = FA, 33 === M.charCodeAt(FA) ? (A = "!", FA++) : (A = j, 0 === $A && gI(aA)), A !== j && (A =
+                                "$1"), (N = A) === j && (N = FA, 63 === M.charCodeAt(FA) ? (A = "?", FA++) : (A = j, 0 === $A && gI(xA)), A !== j && (A = "$2"), (N = A) === j && (N = FA, 8252 === M.charCodeAt(FA) ? (
+                                A = "‼", FA++) : (A = j, 0 === $A && gI(EA)), A !== j && (A = "$3"), (N = A) === j && (N = FA, 8263 === M.charCodeAt(FA) ? (A = "⁇", FA++) : (A = j, 0 === $A && gI(sA)), A !== j &&
+                                (A = "$4"), (N = A) === j && (N = FA, 8265 === M.charCodeAt(FA) ? (A = "⁉", FA++) : (A = j, 0 === $A && gI(rA)), A !== j && (A = "$5"), (N = A) === j && (N = FA, 8264 === M
+                                  .charCodeAt(FA) ? (A = "⁈", FA++) : (A = j, 0 === $A && gI(lA)), A !== j && (A = "$6"), (N = A) === j && (N = FA, 9633 === M.charCodeAt(FA) ? (A = "□", FA++) : (A = j, 0 ===
+                                    $A && gI(SA)), A !== j && (A = "$7"), (N = A) === j && (N = FA, 61 === M.charCodeAt(FA) ? (A = "=", FA++) : (A = j, 0 === $A && gI(eA)), A !== j && (A = "$10"), (N = A) ===
+                                    j && (N = FA, 8734 === M.charCodeAt(FA) ? (A = "∞", FA++) : (A = j, 0 === $A && gI(YA)), A !== j && (A = "$13"), (N = A) === j && (N = FA, 10866 === M.charCodeAt(FA) ? (A =
+                                      "⩲", FA++) : (A = j, 0 === $A && gI(mA)), A !== j && (A = "$14"), (N = A) === j && (N = FA, 10865 === M.charCodeAt(FA) ? (A = "⩱", FA++) : (A = j, 0 === $A && gI(
+                                      dA)), A !== j && (A = "$15"), (N = A) === j && (N = FA, 177 === M.charCodeAt(FA) ? (A = "±", FA++) : (A = j, 0 === $A && gI(QA)), A !== j && (A = "$16"), (N =
+                                      A) ===
+                                      j && (N = FA, 8723 === M.charCodeAt(FA) ? (A = "∓", FA++) : (A = j, 0 === $A && gI(kA)), A !== j && (A = "$17"), (N = A) === j && (N = FA, "+-" === M.substr(FA,
+                                        2) ? (A = "+-", FA += 2) : (A = j, 0 === $A && gI(uA)), A !== j && (A = "$18"), (N = A) === j && (N = FA, "-+" === M.substr(FA, 2) ? (A = "-+", FA += 2) : (
+                                        A =
+                                        j, 0 === $A && gI(bA)), A !== j && (A = "$19"), (N = A) === j && (N = FA, 10752 === M.charCodeAt(FA) ? (A = "⨀", FA++) : (A = j, 0 === $A && gI(UA)), A !==
+                                        j && (A = "$22"), (N = A) === j && (N = FA, 10227 === M.charCodeAt(FA) ? (A = "⟳", FA++) : (A = j, 0 === $A && gI(pA)), A !== j && (A = "$32"), (N = A) ===
+                                          j && (N = FA, 8594 === M.charCodeAt(FA) ? (A = "→", FA++) : (A = j, 0 === $A && gI(ZA)), A !== j && (A = "$36"), (N = A) === j && (N = FA, 8593 === M
+                                            .charCodeAt(FA) ? (A = "↑", FA++) : (A = j, 0 === $A && gI(vA)), A !== j && (A = "$40"), (N = A) === j && (N = FA, 8646 === M.charCodeAt(FA) ? (A =
+                                              "⇆", FA++) : (A = j, 0 === $A && gI(hA)), A !== j && (A = "$132"), (N = A) === j && (N = FA, 68 === M.charCodeAt(FA) ? (A = "D", FA++) : (A = j,
+                                              0 === $A && gI(fA)), A !== j && (A = "$220"), N = A))))))))))))))))))))))))), N
                         }()) !== j && uI() !== j ? ((I = BI()) === j && (I = null), I !== j ? (g = A, (D = I || []).unshift(g), N = A = D) : (FA = N, N = j)) : (FA = N, N = j), N
                       }
 
@@ -15120,7 +15128,7 @@
               t = g.default.MODAL_TEXT,
               T = g.default.ICON,
               L = g.default.FOOTER;
-            N.iconMarkup = '\n  <div class="' + T + '"></div>', N.titleMarkup = '\n  <div class="' + D + '"></div>\n', N.textMarkup = '\n  <div class="' + t + '"></div>', N.footerMarkup = '\n  <div class="' + L + '"></div>\n'
+            N.iconMarkup = '\n <div class="' + T + '"></div>', N.titleMarkup = '\n  <div class="' + D + '"></div>\n', N.textMarkup = '\n  <div class="' + t + '"></div>', N.footerMarkup = '\n  <div class="' + L + '"></div>\n'
           }, function(M, N, A) {
             "use strict";
             Object.defineProperty(N, "__esModule", {
@@ -18003,7 +18011,7 @@
         var I = A(2),
           j = A(152);
         (N = I(!1)).i(j), N.push([M.i,
-          ":root {\n    --space-xss: 0.25rem;\n    --space-xs: 0.5rem;\n    --space-sm: 0.75rem;\n    --space-md: 1.25rem;\n    --space-lg: 2rem;\n    --space-xl: 3.25rem;\n    --space-xxl: 5.25rem;\n}\n\n:root {\n    --gray-100: #F7FAFC;\n    --gray-200: #EDF2F7;\n    --gray-300: #E2E8F0;\n    --gray-400: #CBD5E0;\n    --gray-500: #A0AEC0;\n    --gray-600: #718096;\n    --gray-700: #4A5568;\n    --gray-800: #2D3748;\n    --gray-900: #1A202C;\n    --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);\n    --highlight: rgba(255, 255, 153, 1.0);\n}\n\n/** Reset / Set defaults */\n.whole {\n    font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Ubuntu, \"Helvetica Neue\", Oxygen, Cantarell, sans-serif;\n    margin: 0;\n}\n.whole ul, .whole ol {\n    list-style: none;\n    margin: 0;\n    padding: 0;\n}\n/*.whole > * {*/\n/*    padding: var(--space-xs);*/\n/*}*/\n.whole:focus {\n    /* The following suppresses the outline of the element that has the focus. Only when\n       that focus is set, the keyboard mappings work. You may of course enable the outline\n       for debugging purposes. */\n    outline: 0;\n}\n/*.whole {*/\n/*    margin: var(--space-xs);*/\n/*}*/\n\n.whole .moves {\n    overflow: auto;\n}\n\n.whole .buttons {\n    display: flex;\n}\n\n/** Layout styles: View */\n.whole.layout-left .games, .whole.layout-right .games {\n    grid-column: 1 / 3;\n}\n\n.whole.layout-left, .whole.layout-right {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto auto;\n    grid-template-rows: 40px auto minmax(auto,1fr) 50px;\n}\n\n.whole.layout-left .error, .whole.layout-right .error {\n    grid-column: 1 / 3;\n    grid-row: 2 / 3;\n}\n\n.whole.layout-left .outerBoard, .whole.layout-left .outerBoard {\n    grid-row: 3 / 4;\n}\n\n.whole.layout-left .outerBoard {\n    grid-column: 1 / 2;\n}\n\n.whole.layout-right .outerBoard {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-left .buttons, .whole.layout-right .buttons {\n    place-self: center;\n    grid-row: 4 / 5;\n}\n\n.whole.viewMode.layout-left .buttons, .whole.editMode.layout-right .buttons {\n    grid-column: 1 / 2;\n}\n\n.whole.viewMode.layout-right .buttons, .whole.editMode.layout-left .buttons {\n    grid-column: 2 / 3;\n}\n\n.whole.viewMode.layout-left .moves, .whole.viewMode.layout-right .moves {\n    grid-row: 3 / 5;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .moves, .whole.editMode.layout-right .moves {\n    grid-row: 3/4;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .edit {\n    grid-column: 1 / 2;\n    grid-row: 4 / 5;\n}\n\n.whole.editMode.layout-top .edit {\n    grid-column: 1 / 2;\n    grid-row: 6 / 7;\n}\n\n.whole.layout-left .moves {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-right .moves {\n    grid-column: 1 / 2;\n}\n\n/* layout top / bottom */\n.whole.layout-top {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto minmax(auto,1fr) 50px auto;\n}\n\n.whole.layout-bottom {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto auto minmax(auto,400px) 50px;\n}\n\n.whole.layout-top .error, .whole.layout-bottom .error {\n    grid-row: 2/3;\n}\n\n.whole.layout-top .outerBoard {\n    grid-row: 3/4;\n}\n\n.whole.layout-bottom .outerBoard {\n    grid-row: 4/5;\n}\n\n.whole.layout-top .buttons {\n    place-self: center;\n    grid-row: 4/5;\n}\n\n.whole.layout-bottom .buttons {\n    place-self: center;\n    grid-row: 5/6;\n}\n\n.whole.layout-top .moves, .whole.layout-bottom .moves {\n    overflow: auto;\n}\n\n.whole.layout-top .moves {\n    grid-row: 5/6;\n}\n\n.whole.layout-bottom .moves {\n    grid-row: 3/4;\n}\n\n/** Print mode */\n.whole.layout-top.printMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n.whole.layout-top.printMode .moves {\n    width: 110%;\n}\n\n.whole.printMode > .outerBoard {\n    display: none;\n}\n\n/** Board mode */\n.whole.layout-top.boardMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n/** Other styling ... */\n\n.fen {\n    width: calc(100% - 8px);\n    height: 35px;\n    margin: 0;\n    padding: var(--space-xss);\n    font-family: monospace;\n}\n\ndiv.error {\n    color: red;\n}\n\ndiv.buttons > i.button, div.edit > i.button {\n    color: var(--gray-600);\n    background-color: var(--gray-100);\n    margin: 0.24rem;\n    padding: 4px;\n    border: solid var(--gray-300) 1px;\n    border-radius: 4px;\n}\n\ndiv.buttons > i.button.selected, div.edit > i.button.selected, .nagMenu.selected {\n    color: var(--gray-100);\n    background-color: var(--gray-700);\n}\n\ndiv.buttons > i.button:hover,div.edit > i.button:hover  {\n    cursor: pointer;\n    border: solid dimgrey 1px;\n}\n\ndiv.nagMenu {\n    border: 1px grey dotted;\n    display: none;\n    width: 500px;\n}\n\ndiv.nagMenu a {\n    text-decoration: none;\n    /*text-align: center;*/\n}\n\ndiv.nagMove, div.nagObservation, div.nagPosition {\n    display: flex;\n    flex-direction: column;\n    flex-basis: 33.3%;\n    /*text-align: left;*/\n    flex-wrap: wrap;\n}\n.nagMove i, .nagPosition i, .nagObservation i {\n    display: flex;\n    cursor: pointer;\n    align-items: center;\n    justify-content: left;\n    margin: var(--space-xss);\n}\n\n.nagMove i::before, .nagPosition i::before, .nagObservation i::before {\n    content: attr(data-symbol);\n    font-style: normal;\n    width: var(--space-md);\n    justify-content: center;\n    align-items: center;\n    /*width: 30px;*/\n}\n\n\na.active i::before {\n    background: var(--gray-700) !important;\n    color: var(--gray-100)!important;\n}\n\na.active i::before i:hover {\n    background: var(--gray-100) !important;\n    color: var(--gray-700)!important;\n}\n\n.nagMove i:hover, .nagPosition i:hover, .nagObservation i:hover {\n    background: var(--gray-700);\n    color: var(--gray-100);\n}\n\n/*Necessary fixes for examples*/\nbutton.ui-multiselect {\n    background-image: none;\n    background-color: white;\n}\n\nul.ui-multiselect-checkboxes > li {\n    margin-bottom: 0;\n}\n\nselect.nag {\n    width: 40px;\n}\n\ntextarea.pgn {\n    padding: 2px;\n    border: 1px solid grey;\n    width: 96%;\n    height: 100px;\n    font-family: monospace;\n}\n\n/* Green buttons. */\n/*div.buttons.green > .button, div.edit.green > .button {*/\n/*    color: green;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n/* Blue buttons. */\n/*div.buttons.blue > .button, div.edit.blue > .button {*/\n/*    color: blue;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n\n.ui-widget {\n    font-size: 1em;\n}\n\ndiv.commentRadio label {\n    display: inline;\n}\ndiv.comment > textarea.comment {\n    font-family: monospace;\n    width: 96%;\n    height: 50px;\n    padding: 2px;\n}\n\n.moves.inline .filler {\n    display: none;\n}\n\n.moves.list {\n    display: flex;\n    flex-flow: row wrap;\n    align-content: flex-start;\n}\n\n.moves.list > .move.result {\n    justify-content: center;\n    flex: 0 0 100%;\n}\n\n.moves.list > .move {\n    flex: 0 0 35%;\n    display: flex;\n    /*padding: 0 0.3em;*/\n    white-space: nowrap;\n}\n\n.variation, .variation > .moveNumber, .variation > .move.var {\n    white-space: normal;\n}\n\n.moves.list > .moveNumber {\n    flex: 0 0 15%;\n    justify-content: center;\n    display: flex;\n    border-right: 1px solid var(--gray-300);\n    background: var(--gray-100);\n}\n\n.moves a {\n    text-decoration: underline;\n}\n\n.moves .move a.yellow {\n    /*background-color: rgba(255, 255, 153, 1.0);*/\n    color: var(--gray-800);\n    background-color: var(--highlight);\n}\n\n.moves .move a {\n    text-decoration: none;\n    padding: 0 0.2rem;\n}\n\n.moves .move a:hover {\n    /*border: 1px yellow dotted;*/\n    background-color: var(--highlight);\n    cursor: crosshair;\n}\n\n.moves, select.games {\n    /* font-size: 16px; */\n    /*font-family: Georgia, \"Bitstream Charter\", serif;;*/\n    color: black;\n    font-weight: 700;\n    /* line-height: 24px; */\n    line-height: normal;\n}\n\n.moves .variation .move.var, .moves .variation .moveNumber {\n    font-size: 97%;\n    font-weight: 500;\n}\n\n.moves .variation .variation .move.var, .moves .variation .variation .moveNumber {\n    font-size: 95%;\n    font-weight: 300;\n}\n\n.moves .variation, .moves.list .variation {\n    display: inline-block;\n    margin: 0 6px;\n}\n\n.moves.list .variations {\n    flex: 0 0 100%;\n    display: flex;\n    margin: 0;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n}\n\n.moves .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation {\n    margin: 0 6px;\n}\n\n.moves .variation .variation:after {\n    content: ' ) ';\n}\n\n.moves .variation:after {\n    content: ' ) ';\n}\n\n.moves > .varblock .white:before {\n    display: inline;\n}\n\n.moves .comment, .moves.list > .variation > .comment {\n    color: var(--gray-800);\n    font-weight: 500;\n    display: inline;\n}\n\n.moves.list > .comment {\n    flex: 0 0 100%;\n    display: flex;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n    /* padding: 5px; */\n}\n\n/*.moves .move .comment.timeTiny {*/\n/*    font-weight: 300;*/\n/*    font-size: 60%;*/\n/*}*/\n\n/*.moves .move .comment.timeLarge {*/\n/*}*/\n\n/*.moves .move .timeNormal {*/\n/*    font-weight: 400;*/\n/*    font-size: 80%;*/\n/*}*/\n\n/**\n  CHESSGROUND changes.\n  */\n \n.cg-wrap.coords-inner {\n    margin-bottom: 0;\n    margin-right: 0;\n}\n.cg-wrap {\n    margin-bottom: 15px;\n    margin-right: 15px;\n}\n.cg-wrap.coords-inner coords.ranks {\n    right: -2px;\n}\n.cg-wrap.coords-inner coords.files {\n    bottom: 2px;\n    left: 2px;\n    text-align: left;\n}\n.cg-wrap coords.files {\n    text-transform: none;\n}\n\n/* board and colorMarker */\n\n.colorMarker {\n    width: 20px; height: 20px;\n    border-color: black;\n    border-width: 2px;\n    border-style: double;\n    margin-left: 50px;\n    align-self: center;\n}\n\n.colorMarker.circle {\n    border-radius: 10px;\n}\n\n.colorMarker.circle-big {\n    border-radius: 20px;\n    width: 40px; height: 40px;\n}\n\n.colorMarker.circle-small {\n    border-radius: 5px;\n    width: 10px; height: 10px;\n}\n\n.cm-black {\n    background-color: black;\n}\n\n.cm-white {\n    background-color: white;\n}\n\n.cm-big {\n    width: 40px; height: 40px;   \n}\n\n.cm-small {\n    width: 10px; height: 10px;\n}",
+          ":root {\n    --space-xss: 0.25rem;\n    --space-xs: 0.5rem;\n    --space-sm: 0.75rem;\n    --space-md: 1.25rem;\n    --space-lg: 2rem;\n    --space-xl: 3.25rem;\n    --space-xxl: 5.25rem;\n}\n\n:root {\n    --gray-100: #F7FAFC;\n    --gray-200: #EDF2F7;\n    --gray-300: #E2E8F0;\n    --gray-400: #CBD5E0;\n    --gray-500: #A0AEC0;\n    --gray-600: #718096;\n    --gray-700: #4A5568;\n    --gray-800: #2D3748;\n    --gray-900: #1A202C;\n    --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);\n    --highlight: rgba(255, 255, 153, 1.0);\n}\n\n/** Reset / Set defaults */\n.whole {\n    font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Ubuntu, \"Helvetica Neue\", Oxygen, Cantarell, sans-serif;\n    margin: 0;\n}\n.whole ul, .whole ol {\n    list-style: none;\n    margin: 0;\n    padding: 0;\n}\n/*.whole > * {*/\n/*    padding: var(--space-xs);*/\n/*}*/\n.whole:focus {\n    /* The following suppresses the outline of the element that has the focus. Only when\n       that focus is set, the keyboard mappings work. You may of course enable the outline\n       for debugging purposes. */\n    outline: 0;\n}\n/*.whole {*/\n/*    margin: var(--space-xs);*/\n/*}*/\n\n.whole .moves {\n    overflow: auto;\n}\n\n.whole .buttons {\n    display: flex;\n}\n\n/** Layout styles: View */\n.whole.layout-left .games, .whole.layout-right .games {\n    grid-column: 1 / 3;\n}\n\n.whole.layout-left, .whole.layout-right {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto auto;\n    grid-template-rows: 40px auto minmax(auto,1fr) 50px;\n}\n\n.whole.layout-left .error, .whole.layout-right .error {\n    grid-column: 1 / 3;\n    grid-row: 2 / 3;\n}\n\n.whole.layout-left .outerBoard, .whole.layout-left .outerBoard {\n    grid-row: 3 / 4;\n}\n\n.whole.layout-left .outerBoard {\n    grid-column: 1 / 2;\n}\n\n.whole.layout-right .outerBoard {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-left .buttons, .whole.layout-right .buttons {\n place-self: center;\n    grid-row: 4 / 5;\n}\n\n.whole.viewMode.layout-left .buttons, .whole.editMode.layout-right .buttons {\n    grid-column: 1 / 2;\n}\n\n.whole.viewMode.layout-right .buttons, .whole.editMode.layout-left .buttons {\n    grid-column: 2 / 3;\n}\n\n.whole.viewMode.layout-left .moves, .whole.viewMode.layout-right .moves {\n    grid-row: 3 / 5;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .moves, .whole.editMode.layout-right .moves {\n    grid-row: 3/4;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .edit {\n    grid-column: 1 / 2;\n    grid-row: 4 / 5;\n}\n\n.whole.editMode.layout-top .edit {\n    grid-column: 1 / 2;\n    grid-row: 6 / 7;\n}\n\n.whole.layout-left .moves {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-right .moves {\n    grid-column: 1 / 2;\n}\n\n/* layout top / bottom */\n.whole.layout-top {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto minmax(auto,1fr) 50px auto;\n}\n\n.whole.layout-bottom {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto auto minmax(auto,400px) 50px;\n}\n\n.whole.layout-top .error, .whole.layout-bottom .error {\n    grid-row: 2/3;\n}\n\n.whole.layout-top .outerBoard {\n    grid-row: 3/4;\n}\n\n.whole.layout-bottom .outerBoard {\n    grid-row: 4/5;\n}\n\n.whole.layout-top .buttons {\n    place-self: center;\n    grid-row: 4/5;\n}\n\n.whole.layout-bottom .buttons {\n    place-self: center;\n    grid-row: 5/6;\n}\n\n.whole.layout-top .moves, .whole.layout-bottom .moves {\n    overflow: auto;\n}\n\n.whole.layout-top .moves {\n    grid-row: 5/6;\n}\n\n.whole.layout-bottom .moves {\n    grid-row: 3/4;\n}\n\n/** Print mode */\n.whole.layout-top.printMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n.whole.layout-top.printMode .moves {\n    width: 110%;\n}\n\n.whole.printMode > .outerBoard {\n    display: none;\n}\n\n/** Board mode */\n.whole.layout-top.boardMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n/** Other styling ... */\n\n.fen {\n    width: calc(100% - 8px);\n    height: 35px;\n    margin: 0;\n    padding: var(--space-xss);\n    font-family: monospace;\n}\n\ndiv.error {\n    color: red;\n}\n\ndiv.buttons > i.button, div.edit > i.button {\n    color: var(--gray-600);\n    background-color: var(--gray-100);\n    margin: 0.24rem;\n    padding: 4px;\n    border: solid var(--gray-300) 1px;\n    border-radius: 4px;\n}\n\ndiv.buttons > i.button.selected, div.edit > i.button.selected, .nagMenu.selected {\n    color: var(--gray-100);\n    background-color: var(--gray-700);\n}\n\ndiv.buttons > i.button:hover,div.edit > i.button:hover  {\n    cursor: pointer;\n    border: solid dimgrey 1px;\n}\n\ndiv.nagMenu {\n    border: 1px grey dotted;\n    display: none;\n    width: 500px;\n}\n\ndiv.nagMenu a {\n    text-decoration: none;\n    /*text-align: center;*/\n}\n\ndiv.nagMove, div.nagObservation, div.nagPosition {\n    display: flex;\n    flex-direction: column;\n    flex-basis: 33.3%;\n    /*text-align: left;*/\n    flex-wrap: wrap;\n}\n.nagMove i, .nagPosition i, .nagObservation i {\n    display: flex;\n    cursor: pointer;\n    align-items: center;\n    justify-content: left;\n    margin: var(--space-xss);\n}\n\n.nagMove i::before, .nagPosition i::before, .nagObservation i::before {\n    content: attr(data-symbol);\n    font-style: normal;\n    width: var(--space-md);\n    justify-content: center;\n    align-items: center;\n    /*width: 30px;*/\n}\n\n\na.active i::before {\n    background: var(--gray-700) !important;\n    color: var(--gray-100)!important;\n}\n\na.active i::before i:hover {\n    background: var(--gray-100) !important;\n    color: var(--gray-700)!important;\n}\n\n.nagMove i:hover, .nagPosition i:hover, .nagObservation i:hover {\n    background: var(--gray-700);\n    color: var(--gray-100);\n}\n\n/*Necessary fixes for examples*/\nbutton.ui-multiselect {\n    background-image: none;\n    background-color: white;\n}\n\nul.ui-multiselect-checkboxes > li {\n    margin-bottom: 0;\n}\n\nselect.nag {\n    width: 40px;\n}\n\ntextarea.pgn {\n    padding: 2px;\n    border: 1px solid grey;\n    width: 96%;\n    height: 100px;\n    font-family: monospace;\n}\n\n/* Green buttons. */\n/*div.buttons.green > .button, div.edit.green > .button {*/\n/*    color: green;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n/* Blue buttons. */\n/*div.buttons.blue > .button, div.edit.blue > .button {*/\n/*    color: blue;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n\n.ui-widget {\n    font-size: 1em;\n}\n\ndiv.commentRadio label {\n    display: inline;\n}\ndiv.comment > textarea.comment {\n    font-family: monospace;\n    width: 96%;\n    height: 50px;\n    padding: 2px;\n}\n\n.moves.inline .filler {\n    display: none;\n}\n\n.moves.list {\n    display: flex;\n    flex-flow: row wrap;\n    align-content: flex-start;\n}\n\n.moves.list > .move.result {\n    justify-content: center;\n    flex: 0 0 100%;\n}\n\n.moves.list > .move {\n    flex: 0 0 35%;\n    display: flex;\n    /*padding: 0 0.3em;*/\n    white-space: nowrap;\n}\n\n.variation, .variation > .moveNumber, .variation > .move.var {\n    white-space: normal;\n}\n\n.moves.list > .moveNumber {\n    flex: 0 0 15%;\n    justify-content: center;\n    display: flex;\n    border-right: 1px solid var(--gray-300);\n    background: var(--gray-100);\n}\n\n.moves a {\n    text-decoration: underline;\n}\n\n.moves .move a.yellow {\n    /*background-color: rgba(255, 255, 153, 1.0);*/\n    color: var(--gray-800);\n    background-color: var(--highlight);\n}\n\n.moves .move a {\n    text-decoration: none;\n    padding: 0 0.2rem;\n}\n\n.moves .move a:hover {\n    /*border: 1px yellow dotted;*/\n    background-color: var(--highlight);\n    cursor: crosshair;\n}\n\n.moves, select.games {\n    /* font-size: 16px; */\n    /*font-family: Georgia, \"Bitstream Charter\", serif;;*/\n    color: black;\n    font-weight: 700;\n    /* line-height: 24px; */\n    line-height: normal;\n}\n\n.moves .variation .move.var, .moves .variation .moveNumber {\n    font-size: 97%;\n    font-weight: 500;\n}\n\n.moves .variation .variation .move.var, .moves .variation .variation .moveNumber {\n    font-size: 95%;\n    font-weight: 300;\n}\n\n.moves .variation, .moves.list .variation {\n    display: inline-block;\n    margin: 0 6px;\n}\n\n.moves.list .variations {\n    flex: 0 0 100%;\n    display: flex;\n    margin: 0;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n}\n\n.moves .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation {\n    margin: 0 6px;\n}\n\n.moves .variation .variation:after {\n    content: ' ) ';\n}\n\n.moves .variation:after {\n    content: ' ) ';\n}\n\n.moves > .varblock .white:before {\n    display: inline;\n}\n\n.moves .comment, .moves.list > .variation > .comment {\n    color: var(--gray-800);\n    font-weight: 500;\n    display: inline;\n}\n\n.moves.list > .comment {\n    flex: 0 0 100%;\n    display: flex;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n    /* padding: 5px; */\n}\n\n/*.moves .move .comment.timeTiny {*/\n/*    font-weight: 300;*/\n/*    font-size: 60%;*/\n/*}*/\n\n/*.moves .move .comment.timeLarge {*/\n/*}*/\n\n/*.moves .move .timeNormal {*/\n/*    font-weight: 400;*/\n/*    font-size: 80%;*/\n/*}*/\n\n/**\n  CHESSGROUND changes.\n  */\n \n.cg-wrap.coords-inner {\n    margin-bottom: 20px;\n    margin-right: 0;\n}\n.cg-wrap {\n    margin-bottom: 15px;\n    margin-right: 15px;\n}\n.cg-wrap.coords-inner coords.ranks {\n    right: -2px;\n}\n.cg-wrap.coords-inner coords.files {\n    bottom: 2px;\n    left: 2px;\n    text-align: left;\n}\n.cg-wrap coords.files {\n    text-transform: none;\n}\n\n/* board and colorMarker */\n\n.colorMarker {\n    width: 20px; height: 20px;\n    border-color: black;\n    border-width: 2px;\n    border-style: double;\n    margin-left: 50px;\n    align-self: center;\n}\n\n.colorMarker.circle {\n    border-radius: 10px;\n}\n\n.colorMarker.circle-big {\n    border-radius: 20px;\n    width: 40px; height: 40px;\n}\n\n.colorMarker.circle-small {\n    border-radius: 5px;\n    width: 10px; height: 10px;\n}\n\n.cm-black {\n    background-color: black;\n}\n\n.cm-white {\n    background-color: white;\n}\n\n.cm-big {\n    width: 40px; height: 40px;   \n}\n\n.cm-small {\n    width: 10px; height: 10px;\n}",
           ""
         ]), M.exports = N
       }, function(M, N, A) {
@@ -19640,35 +19648,45 @@
     ::-webkit-scrollbar {
       display: none;
     }
+    :root {
+      --shadowColor: limegreen;
+    }
 
-    body {
+    html {
+      background-color: transparent !important;
+    }
+
+    body{
       margin: 0;
-
     }
-
-    @media only screen and (orientation: landscape) {
-      body {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: -webkit-box;
-        -webkit-box-align: stretch;
-        -webkit-box-pack: center;
-        -webkit-box-orient: vertical;
-        font-size: 15px;
-        text-align: center;
-        /* ALIGN TEXT */
-      }
-    }
-
     .container {
-      margin: 0 auto;
+      max-height:100%;
+      max-width:100%;
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 5px;
     }
 
-    #board {
-      margin: 0 auto;
+
+    #boardInner {
+      box-shadow: 0px 0px 6px 0px var(--shadowColor);
+      border: 0.7vmin solid var(--shadowColor);
+    }
+
+
+    #boardFen {
+      box-shadow: 0px 0px 6px 0px brown;
+      background-color: #D7DEE9;
+      height: 1em;
+    }
+
+    .buttons {
+      border-radius: 5px;
+      padding:3px;
+      margin-bottom: 25px;
     }
 
     #boardError,
@@ -19677,15 +19695,15 @@
     #boardTopHeader,
     #boardBottomHeader,
     #boardButtonplay {
-
       display: none;
     }
 
-    #boardMoves {
 
-      background-color: white;
+    #boardMoves {
+      margin-top:-15px;
+      box-shadow: 0px 0px 6px 0px brown;
+      background-color: #D7DEE9;
       border-radius: 4px;
-      height: 350px;
     }
   </style>
 
@@ -19696,7 +19714,7 @@
     function getUrlVars() {
       var vars = {};
       var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-        vars[key] = decodeURIComponent(value);
+        vars[key] = decodeURIComponent(value).replace("#!/0", "");
       });
       return vars;
     }
@@ -19731,35 +19749,31 @@
 
     <div id="board"></div>
     <script>
-    var boardTheme = 'brown';
-    var errorCheck = getUrlVars()["errorCheck"];
-    if (errorCheck === "true") {
-      boardTheme = 'blue';
-    }
-
-      if (window.innerHeight > window.innerWidth) {
-        PGNV.pgnEdit('board', {
-          position: fen,
-          pgn: pgn,
-          orientation: orientation,
-          theme: boardTheme,
-          boardSize: '350px'
-        });
-      } else {
-        PGNV.pgnEdit('board', {
-          position: fen,
-          pgn: pgn,
-          orientation: orientation,
-          layout: 'left',
-          theme: boardTheme,
-          boardSize: '450px'
-        });
-        document.getElementById("boardMoves").style.height = "490px";
+      var boardTheme = 'blue';
+      var errorCheck = getUrlVars()["errorCheck"];
+      var boardWidth = document.documentElement.clientWidth
+      if (boardWidth > 600) {
+        boardWidth = 600
       }
+
+          PGNV.pgnEdit('board', {
+            position: fen,
+            pgn: pgn,
+            orientation: orientation,
+            theme: boardTheme,
+            boardSize: boardWidth * 0.95
+          });
       if (flipBoard == 'true') {
         document.getElementById("boardButtonnext").click()
       }
+      if (errorCheck === "true") {
+        document.documentElement.style.setProperty('--shadowColor', "#670A0A");
+        document.querySelector("#boardInner").style.boxShadow = "0px 0px 0px 0px";
+      }
       document.getElementById("board").focus();
+      if (getUrlVars()["backgroundColor"]) {
+        document.body.style.backgroundColor = getUrlVars()["backgroundColor"];
+      }
     </script>
 
   </div>
