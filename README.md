@@ -25,6 +25,28 @@ You're now ready to install:
 
 👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository).
 
+## Customization
+
+For both of the following lines changing `flip=true` to `flip=false`. should result in the first move of the PGN being the first move in the puzzle, as oppose to the default behaviour which is that the first moves plays automatically and you must then respond.
+
+On the front side:
+
+```
+	document.getElementById("Board").src = `_chess3.0.html?PGN=` + PGN + `&flip=true&backgroundColor=` + backgroundColor + `&handicap=` + handicap + ``;
+```
+
+and on the backside ate the bottom: 
+
+```
+	document.getElementById("analysisBoard").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=true&errorCheck=` + errorCheck + `&backgroundColor=` + backgroundColor + ``;
+```
+
+Changing the value of handicap in the following line will decide in the number of wrong moves you can make befor the answerm is shown. Note: add one to number for desired value. 
+
+```
+	var handicap = 2;
+```
+
 ## Upgrading
 
 The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, some situations require extra care. As a general rule, **always read the release notes carefully**; they will likely tell you what to do or point you to a page that does.
