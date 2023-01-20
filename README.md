@@ -1,7 +1,7 @@
 # Anki-Chess-2.0
 An interactive chess template for anki. 
 
-![chess GIF](Gifs/Chess.gif)
+![chess GIF](examples/chess.webm)
 
 
 ## Getting started
