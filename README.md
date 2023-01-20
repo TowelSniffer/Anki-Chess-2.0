@@ -37,7 +37,7 @@ and on the backside ate the bottom:
 
 ### Handicap
 
-Changing the value of handicap in the following line will decide in the number of wrong moves you can make befor the answerm is shown. Note: Amound of wrong move is equal to the value of handicap + 1.
+Changing the value of handicap in the following line will decide in the number of wrong moves you can make before the answer is shown. Note: Amount of wrong moves is equal to the value of handicap + 1.
 
 ```
 	var handicap = 0;
@@ -45,7 +45,7 @@ Changing the value of handicap in the following line will decide in the number o
 
 ## Cross Compatability
 
-I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This it a note template however, and does not rely on addons, so it should be compatable. 
+I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable. 
 
 ## Upgrading
 
