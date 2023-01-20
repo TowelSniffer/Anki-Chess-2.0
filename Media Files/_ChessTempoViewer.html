@@ -19652,12 +19652,13 @@
       --shadowColor: limegreen;
     }
 
-    html {
-      background-color: transparent !important;
+    #board {
+    margin-left: -1.5vw;
     }
-
     body{
       margin: 0;
+      height:100vh!important;
+      background-color: #1e1e2e;
     }
     .container {
       max-height:100%;
@@ -19771,9 +19772,6 @@
         document.querySelector("#boardInner").style.boxShadow = "0px 0px 0px 0px";
       }
       document.getElementById("board").focus();
-      if (getUrlVars()["backgroundColor"]) {
-        document.body.style.backgroundColor = getUrlVars()["backgroundColor"];
-      }
     </script>
 
   </div>
