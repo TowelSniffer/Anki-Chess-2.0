@@ -33,10 +33,10 @@ and on the backside ate the bottom:
 	document.getElementById("analysisBoard").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=true&errorCheck=` + errorCheck + `&backgroundColor=` + backgroundColor + ``;
 ```
 
-Changing the value of handicap in the following line will decide in the number of wrong moves you can make befor the answerm is shown. Note: add one to number for desired value. 
+Changing the value of handicap in the following line will decide in the number of wrong moves you can make befor the answerm is shown. Note: Amound of wrong move is equal to the value of handicap + 1.
 
 ```
-	var handicap = 2;
+	var handicap = 0;
 ```
 
 ## Upgrading
