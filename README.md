@@ -19,6 +19,8 @@ How to install:
 
 ## Customization
 
+### First Move Orientation
+
 For both of the following lines changing `flip=true` to `flip=false`. should result in the first move of the PGN being the first move in the puzzle, as oppose to the default behaviour which is that the first moves plays automatically and you must then respond.
 
 On the front side:
@@ -33,11 +35,17 @@ and on the backside ate the bottom:
 	document.getElementById("analysisBoard").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=true&errorCheck=` + errorCheck + `&backgroundColor=` + backgroundColor + ``;
 ```
 
+### Handicap
+
 Changing the value of handicap in the following line will decide in the number of wrong moves you can make befor the answerm is shown. Note: Amound of wrong move is equal to the value of handicap + 1.
 
 ```
 	var handicap = 0;
 ```
+
+## Cross Compatability
+
+I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This it a note template however, and does not rely on addons, so it should be compatable. 
 
 ## Upgrading
 
