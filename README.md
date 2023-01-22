@@ -3,12 +3,16 @@ An interactive chess template for anki.
 
 ![chess GIF](examples/chess.webp)
 
+## ! Help wanted 
+
+IOS has rendering Issues with this tempalte, will need someone with an IOS device to help me fix
+
 ## Features
 
 - Works with PGN format
 - Support for piece promotions
 - Board auto orientates dpending on first move of given puzzle
-- Works offline and on mobile (Ankidroid verified, IOS assumed)
+- Works offline and on Ankidroid (Ankidroid verified, IOS)
 - No addons required
 - Analysis board on the backside
 
