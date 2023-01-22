@@ -9,7 +9,8 @@ An interactive chess template for anki.
 - Support for piece promotions
 - Board auto orientates dpending on first move of given puzzle
 - Works offline and on mobile (Ankidroid verified, IOS assumed)
-- No addons requireed
+- No addons required
+- Analysis board on the backside
 
 
 ## Getting started
