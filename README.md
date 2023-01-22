@@ -3,6 +3,14 @@ An interactive chess template for anki.
 
 ![chess GIF](examples/chess.webp)
 
+## Features
+
+- Works with PGN format
+- Support for piece promotions
+- Board auto orientates dpending on first move of given puzzle
+- Works offline and on mobile (Ankidroid verified, IOS assumed)
+- No addons requireed
+
 
 ## Getting started
 
