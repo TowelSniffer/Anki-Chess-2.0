@@ -80,7 +80,3 @@ https://github.com/jhlywa/chess.js/blob/master/README.md
 
 #### pgn-parser (much better than what I tried to write haha)
 https://github.com/mliebelt/pgn-parser
-
-
-#### ultimate geography for the plagiarized readme
-https://github.com/anki-geo/ultimate-geography
