@@ -3,10 +3,6 @@ An interactive chess template for anki.
 
 ![chess GIF](examples/chess.webp)
 
-## ! Help wanted 
-
-IOS has rendering Issues with this tempalte, will need someone with an IOS device to help me fix
-
 ## Features
 
 - Works with PGN format
@@ -15,6 +11,7 @@ IOS has rendering Issues with this tempalte, will need someone with an IOS devic
 - Works offline and on Ankidroid (Ankidroid verified, IOS)
 - No addons required
 - Analysis board on the backside
+- Backside border colour to indicate mistakes
 
 
 ## Getting started
@@ -63,11 +60,6 @@ I have verified compatability with Windows/Linux and Ankidroid, however cannot v
 ## Upgrading
 
 The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, some situations require extra care. As a general rule, **always read the release notes carefully**; they will likely tell you what to do or point you to a page that does.
-
-## Sharing your own decks
-
-You are welcome to share your own premade decks for others to use. to do this export your deck as CrownAnki json representaion and uncheck the include media option. media will have to be included in a seperate zip file and imported manually. see the shared lichess study for an example. 
-
 
 ## resources used For this were:
 
