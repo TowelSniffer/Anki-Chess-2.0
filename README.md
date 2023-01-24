@@ -12,6 +12,7 @@ An interactive chess template for anki.
 - No addons required
 - Analysis board on the backside
 - Backside border colour to indicate mistakes
+- support for multiple lines. this means you can choose multiple moves to be the correct answer, and the cards will respond with a random move (if multiple lines exist).
 
 
 ## Getting started
