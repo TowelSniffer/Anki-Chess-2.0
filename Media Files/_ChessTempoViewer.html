@@ -19659,7 +19659,6 @@
     body{
       margin: 0;
       height:100vh!important;
-      background-color: #1e1e2e;
     }
     .container {
       max-height:100%;
@@ -19722,6 +19721,8 @@
     }
 
     var pgn = getUrlVars()["PGN"];
+    var background = getUrlVars()["background"];
+    document.body.style.backgroundColor = background;
     var flipBoard = getUrlVars()["flip"];
     let parsedPGN = parsePgn(pgn, {
       startRule: "game"
