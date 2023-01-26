@@ -60,7 +60,7 @@ I have verified compatability with Windows/Linux and Ankidroid, however cannot v
 
 ## Upgrading
 
-The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, some situations require extra care. As a general rule, **always read the release notes carefully**; they will likely tell you what to do or point you to a page that does.
+The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, when upgrading media files, it is important to fist delete them from your media folder and then sync. this will remove the old files from the anki servers and will allow each device to sync without issues.
 
 ## resources used For this were:
 
