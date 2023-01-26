@@ -7578,10 +7578,6 @@
   display: none;
 }
 
-html {
-  background-color: #1e1e2e;
-}
-
 body {
   margin:0 auto;
   position: absolute;
@@ -7846,6 +7842,8 @@ background-image: url('_bK.svg');
     }
 
     var pgn = getUrlVars()["PGN"];
+    var background = getUrlVars()["background"];
+    document.body.style.backgroundColor = background;
     let parsedPGN = parsePgn(pgn, {
       startRule: "game"
     });
