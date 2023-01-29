@@ -3,6 +3,8 @@ An interactive chess template for anki.
 
 ![chess GIF](examples/chess.webp)
 
+Tutorial: https://youtu.be/NZOK1dZAvpI
+
 ## Features
 
 - Works with PGN format
