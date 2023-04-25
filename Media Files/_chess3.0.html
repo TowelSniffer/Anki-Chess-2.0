@@ -7880,6 +7880,11 @@ background-image: url('_bK.svg');
 
     if (boardRotation == 'black') {
       opponentColour = 'white';
+      const el = document.querySelector('body');
+      el.style.border = "10px solid black";
+    } else {
+      const el = document.querySelector('body');
+      el.style.border = "10px solid white";
     }
 
     document.querySelector('#promoteQ').src = "_"+boardRotation[0]+"Q.svg";
