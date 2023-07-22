@@ -1,5 +1,5 @@
 # Anki-Chess-2.0
-An interactive chess template for anki. 
+An interactive chess template for anki.
 
 ![chess GIF](examples/chess.webp)
 
@@ -42,7 +42,7 @@ On the front side:
 	document.getElementById("Board").src = `_chess3.0.html?PGN=` + PGN + `&flip=true&backgroundColor=` + backgroundColor + `&handicap=` + handicap + ``;
 ```
 
-and on the backside ate the bottom: 
+and on the backside ate the bottom:
 
 ```
 	document.getElementById("analysisBoard").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=true&errorCheck=` + errorCheck + `&backgroundColor=` + backgroundColor + ``;
@@ -56,9 +56,17 @@ Changing the value of handicap in the following line will decide in the number o
 	var handicap = 0;
 ```
 
+### Variation Randomization
+
+Changing the value of `randomLines` will decide if variations in the PGN should be presented to you randomly or not. Note: If set to `false`, it will always show the first variation.
+
+```
+	var randomLines = true;
+```
+
 ## Cross Compatability
 
-I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable. 
+I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable.
 
 ## Upgrading
 
