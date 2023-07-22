@@ -64,6 +64,14 @@ Changing the value of `randomLines` will decide if variations in the PGN should 
 	var randomLines = true;
 ```
 
+### Accept Variations as Correct
+
+Changing the value of `acceptVariations` will decide if side variations considered as correct or not. If those variations are accepted as correct, they will be played instead of the main variation. Note: Computer will still be able to play possible variations given in PGN file, `randomLines` should be changed to stop this.
+
+```
+	var acceptVariations = true;
+```
+
 ## Cross Compatability
 
 I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable.

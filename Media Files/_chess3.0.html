@@ -7850,6 +7850,7 @@ background-image: url('_bK.svg');
 
     var handicap = getUrlVars()["handicap"];
     var randomLines = getUrlVars()["randomLines"];
+    var acceptVariations = getUrlVars()["acceptVariations"];
     var fen;
     var errorCount = 0;
     if (parsedPGN.tags.FEN) {
@@ -14551,7 +14552,7 @@ background-image: url('_bK.svg');
             if (expectedMove.notation.notation == moveCheck) {
               foundVariation = true;
             } else if (expectedMove.notation.notation !== moveCheck) {
-            if (expectedMove.variations.length > 0) {
+            if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
               for (var i = 0; i < expectedMove.variations.length; i++) {
                 if (moveCheck === expectedMove.variations[i][0].notation.notation) {
 
