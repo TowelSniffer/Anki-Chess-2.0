@@ -7849,6 +7849,7 @@ background-image: url('_bK.svg');
     });
 
     var handicap = getUrlVars()["handicap"];
+    var randomLines = getUrlVars()["randomLines"];
     var fen;
     var errorCount = 0;
     if (parsedPGN.tags.FEN) {
@@ -14053,7 +14054,7 @@ background-image: url('_bK.svg');
             if (chess.game_over() == false && flipBoard == 'true') {
               setTimeout(() => {
 
-                    if (expectedMove.variations.length > 0) {
+                    if (expectedMove.variations.length > 0 && randomLines == 'true') {
                     const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                     if (moveVar == expectedMove.variations.length) {
                     } else {
@@ -14602,7 +14603,7 @@ background-image: url('_bK.svg');
           if (expectedMove && typeof expectedMove !== 'string') {
             setTimeout(() => {
               errorCount = 0;
-                if (expectedMove.variations.length > 0) {
+                if (expectedMove.variations.length > 0 && randomLines == 'true') {
                 const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                 if (moveVar == expectedMove.variations.length) {
                 } else {
@@ -14684,7 +14685,7 @@ background-image: url('_bK.svg');
               if (expectedMove && typeof expectedMove !== 'string') {
                 setTimeout(() => {
                   errorCount = 0;
-                    if (expectedMove.variations.length > 0) {
+                    if (expectedMove.variations.length > 0 && randomLines == 'true') {
                     const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                     if (moveVar == expectedMove.variations.length) {
                     } else {
