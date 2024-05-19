@@ -7743,11 +7743,12 @@ cg-board piece.fading {
   position: absolute;
   display: flex;
   pointer-events: none;
-  opacity: 0.8;
-  font-size: 9px;
+  opacity: 1;
+  font-size: 12px;
+  color: black;
 }
 .cg-wrap coords.ranks {
-  right: -15px;
+  right: -26px;
   top: 0;
   flex-flow: column-reverse;
   height: 100%;
@@ -7757,7 +7758,7 @@ cg-board piece.fading {
   flex-flow: column;
 }
 .cg-wrap coords.files {
-  bottom: -16px;
+  bottom: -32px;
   left: 0;
   flex-flow: row;
   width: 100%;
@@ -7849,7 +7850,6 @@ background-image: url('_bK.svg');
     });
 
     var handicap = getUrlVars()["handicap"];
-    var randomLines = getUrlVars()["randomLines"];
     var fen;
     var errorCount = 0;
     if (parsedPGN.tags.FEN) {
@@ -11011,7 +11011,7 @@ background-image: url('_bK.svg');
             pieces: fen.read(fen.initial),
             orientation: 'white',
             turnColor: 'white',
-            coordinates: false,
+            coordinates: true,
             autoCastle: true,
             viewOnly: false,
             disableContextMenu: false,
@@ -14054,7 +14054,7 @@ background-image: url('_bK.svg');
             if (chess.game_over() == false && flipBoard == 'true') {
               setTimeout(() => {
 
-                    if (expectedMove.variations.length > 0 && randomLines == 'true') {
+                    if (expectedMove.variations.length > 0) {
                     const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                     if (moveVar == expectedMove.variations.length) {
                     } else {
@@ -14603,7 +14603,7 @@ background-image: url('_bK.svg');
           if (expectedMove && typeof expectedMove !== 'string') {
             setTimeout(() => {
               errorCount = 0;
-                if (expectedMove.variations.length > 0 && randomLines == 'true') {
+                if (expectedMove.variations.length > 0) {
                 const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                 if (moveVar == expectedMove.variations.length) {
                 } else {
@@ -14685,7 +14685,7 @@ background-image: url('_bK.svg');
               if (expectedMove && typeof expectedMove !== 'string') {
                 setTimeout(() => {
                   errorCount = 0;
-                    if (expectedMove.variations.length > 0 && randomLines == 'true') {
+                    if (expectedMove.variations.length > 0) {
                     const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                     if (moveVar == expectedMove.variations.length) {
                     } else {
