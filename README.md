@@ -36,16 +36,10 @@ How to install:
 
 For both of the following lines changing `flip=true` to `flip=false`. should result in the first move of the PGN being the first move in the puzzle, as oppose to the default behaviour which is that the first moves plays automatically and you must then respond.
 
-On the front side:
+On BOTH front and back side:
 
 ```
-	document.getElementById("Board").src = `_chess3.0.html?PGN=` + PGN + `&flip=true&backgroundColor=` + backgroundColor + `&handicap=` + handicap + ``;
-```
-
-and on the backside ate the bottom:
-
-```
-	document.getElementById("analysisBoard").src = `_ChessTempoViewer.html?PGN=` + PGN + `&flip=true&errorCheck=` + errorCheck + `&backgroundColor=` + backgroundColor + ``;
+    var flip = true;
 ```
 
 ### Handicap
