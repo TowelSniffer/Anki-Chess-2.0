@@ -7579,6 +7579,7 @@
 }
 
 body {
+  overflow: hidden;
   margin:0 auto;
   position: absolute;
   top: 50%;
@@ -7882,11 +7883,6 @@ background-image: url('_bK.svg');
 
     if (boardRotation == 'black') {
       opponentColour = 'white';
-      const el = document.querySelector('body');
-      el.style.border = "2px solid black";
-    } else {
-      const el = document.querySelector('body');
-      el.style.border = "2px solid white";
     }
 
     document.querySelector('#promoteQ').src = "_"+boardRotation[0]+"Q.svg";
@@ -14789,7 +14785,13 @@ background-image: url('_bK.svg');
           el.style.height = px;
           document.body.dispatchEvent(new Event('chessground.resize'));
       }
-      el.style.border = "0.7vmin solid #670A0A";
+      if (boardRotation == 'black') {
+        opponentColour = 'white';
+        el.style.border = "0.7vmin solid black";
+      } else {
+        el.style.border = "0.7vmin solid white";
+      }
+      el.style.boxShadow ="0px 0px 6px 0px indianred"
     }
     reload();
     </script>
