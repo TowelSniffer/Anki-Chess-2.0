@@ -70,6 +70,46 @@ Changing the value of `acceptVariations` will decide if side variations consider
 
 I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable.
 
+## HELP!!! My wierd screen cant display the entire board!!
+
+Thier are values in the styling section that can modify the board size. If the board is too big for your screen you can try recucing the following values. Start by rdcucince the `height` value for both the body and iframe in the relevant section of your device; Desktop, android or IOS.
+
+```
+/* Styling for desktop devices */
+body {
+  height: 100vh;
+  width: 100vw;
+  /* removes wierd overflow issues on different devices */
+  overflow: hidden
+}
+
+iframe {
+  height: 100vh;
+  width: 100vmin;
+  border: 0
+}
+
+/* Styling for android devices */
+.mobile iframe {
+  height: 93vh;
+  width: min(93vh ,97vmin)
+}
+
+.mobile body {
+  height: 93vh;
+}
+
+/* Styling for iPad and iPhone devices */
+.iphone .iframe, .ipad .iframe {
+  height: 85vh;
+  width: min(85vh ,97vmin)
+}
+
+.iphone .body, .ipad .body {
+  height: 85vh;
+}
+```
+
 ## Upgrading
 
 The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, when upgrading media files, it is important to fist delete them from your media folder and then sync. this will remove the old files from the anki servers and will allow each device to sync without issues.
