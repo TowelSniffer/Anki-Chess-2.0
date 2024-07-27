@@ -70,9 +70,9 @@ Changing the value of `acceptVariations` will decide if side variations consider
 
 I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable.
 
-## HELP!!! My wierd screen cant display the entire board!!
+## HELP!!! My weird screen can't display the entire board!!
 
-Thier are values in the styling section that can modify the board size. If the board is too big for your screen you can try recucing the following values. Start by rdcucince the `height` value for both the body and iframe in the relevant section of your device; Desktop, android or IOS.
+There are values in the styling section that can modify the board size. If the board is too big for your screen, you can try reducing the following values. Start by redcucing the `height` value for both the body and iframe in the relevant section of your device: desktop, android, or iOS.
 
 ```
 /* Styling for desktop devices */
