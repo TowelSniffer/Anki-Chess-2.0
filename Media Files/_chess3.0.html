@@ -7854,6 +7854,7 @@ background-image: url('_bK.svg');
     var acceptVariations = getUrlVars()["acceptVariations"];
     var fen;
     var errorCount = 0;
+    var solvedColour = "limegreen";
     if (parsedPGN.tags.FEN) {
       fen = parsedPGN.tags.FEN
     } else {
@@ -14637,8 +14638,8 @@ background-image: url('_bK.svg');
 
                 if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.border = "0.7vmin solid limegreen";
-                  el.style.boxShadow ="0px 0px 6px 0px limegreen"
+                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
         viewOnly: true,
         });
@@ -14650,8 +14651,8 @@ background-image: url('_bK.svg');
             expectedMove = expectedLine[count];
             if (!expectedMove || typeof expectedMove === 'string') {
               const el = document.querySelector('.cg-wrap');
-              el.style.border = "0.7vmin solid limegreen";
-              el.style.boxShadow ="0px 0px 6px 0px limegreen"
+              el.style.border = "0.7vmin solid "+solvedColour+"";
+              el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
               cg.set({
               fen: chess.fen(),
     viewOnly: true
@@ -14662,6 +14663,7 @@ background-image: url('_bK.svg');
           }
         } else {
           errorCount++;
+          solvedColour = "#670A0A";
           window.parent.postMessage('*', '*');
           console.log(errorCount);
           if (errorCount > handicap) {
@@ -14719,8 +14721,8 @@ background-image: url('_bK.svg');
 
                     if (!expectedMove || typeof expectedMove === 'string') {
                       const el = document.querySelector('.cg-wrap');
-                      el.style.border = "0.7vmin solid limegreen";
-                      el.style.boxShadow ="0px 0px 6px 0px limegreen"
+                      el.style.border = "0.7vmin solid "+solvedColour+"";
+                      el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                       cg.set({
             viewOnly: true,
             });
@@ -14732,8 +14734,8 @@ background-image: url('_bK.svg');
                 expectedMove = expectedLine[count];
                 if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.border = "0.7vmin solid limegreen";
-                  el.style.boxShadow ="0px 0px 6px 0px limegreen"
+                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
         viewOnly: true,
         });
