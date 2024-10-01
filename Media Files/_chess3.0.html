@@ -7896,7 +7896,7 @@ background-image: url('_bK.svg');
       boardRotation = "white";
 
     }
-    if (flipBoard == 'true') {
+    if (flipBoard != 'true' && boardRotation == "white" || flipBoard == 'true' && boardRotation == "black") {
       // Get the root element
       const root = document.documentElement;
 
