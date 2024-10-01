@@ -7574,7 +7574,13 @@
  * You need to include the css files in themes folder in order to have the
  * board and pieces displayed!
  */
- ::-webkit-scrollbar {
+:root {
+  --coord-white: rgba(255, 255, 255, 0.8);
+  --coord-black: rgba(72, 72, 72, 0.8);
+}
+
+
+::-webkit-scrollbar {
   display: none;
 }
 
@@ -7746,10 +7752,11 @@ cg-board piece.fading {
   pointer-events: none;
   opacity: 0.8;
   font-size: 9px;
+  font-weight: bold;
 }
 .cg-wrap coords.ranks {
-  right: -15px;
-  top: 0;
+  right: calc(0.7vmin - 5px);
+  top: -4%;
   flex-flow: column-reverse;
   height: 100%;
   width: 12px;
@@ -7758,13 +7765,13 @@ cg-board piece.fading {
   flex-flow: column;
 }
 .cg-wrap coords.files {
-  bottom: -16px;
-  left: 0;
+  bottom: calc(0.7vmin - 7px);
+  left: 4;
   flex-flow: row;
   width: 100%;
   height: 16px;
   text-transform: uppercase;
-  text-align: center;
+  text-align: left;
 }
 .cg-wrap coords.files.black {
   flex-flow: row-reverse;
@@ -7776,6 +7783,21 @@ cg-board piece.fading {
   transform: translateY(39%);
 }
 
+.cg-wrap coords:nth-child(odd) coord:nth-child(even),
+.cg-wrap coords.squares:nth-child(even) coord:nth-child(odd),
+.cg-wrap.orientation-black coords.files:nth-child(even) coord:nth-child(odd),
+.cg-wrap coords.files:nth-child(even) coord:nth-child(even),
+.cg-wrap coords.ranks:nth-child(even) coord:nth-child(odd) {
+  color: var(--coord-white);;
+}
+
+.cg-wrap coords:nth-child(odd) coord:nth-child(odd),
+.cg-wrap coords.squares:nth-child(even) coord:nth-child(even),
+.cg-wrap.orientation-black coords.files:nth-child(even) coord:nth-child(even),
+.cg-wrap coords.files:nth-child(even) coord:nth-child(odd),
+.cg-wrap coords.ranks:nth-child(even) coord:nth-child(even){
+  color: var(--coord-black);;
+}
     /*
 * Board
 */
@@ -7873,6 +7895,17 @@ background-image: url('_bK.svg');
 
       boardRotation = "white";
 
+    }
+    if (flipBoard == 'true') {
+      // Get the root element
+      const root = document.documentElement;
+
+      // Get the current values of the CSS variables
+      const coordWhite = getComputedStyle(root).getPropertyValue('--coord-white').trim();
+      const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
+      // Swap the values
+      root.style.setProperty('--coord-white', coordBlack);
+      root.style.setProperty('--coord-black', coordWhite);
     }
 
     if (flipBoard == 'true' && boardRotation == "white") {
@@ -11014,7 +11047,8 @@ background-image: url('_bK.svg');
             pieces: fen.read(fen.initial),
             orientation: 'white',
             turnColor: 'white',
-            coordinates: false,
+            coordinates: true,
+            ranksPosition: 'right',
             autoCastle: true,
             viewOnly: false,
             disableContextMenu: false,
@@ -11474,7 +11508,8 @@ background-image: url('_bK.svg');
         }
         if (s.coordinates) {
             const orientClass = s.orientation === 'black' ? ' black' : '';
-            container.appendChild(renderCoords(types_1.ranks, 'ranks' + orientClass));
+            const ranksPositionClass = s.ranksPosition === 'left' ? ' left' : '';
+            container.appendChild(renderCoords(types_1.ranks, 'ranks' + orientClass + ranksPositionClass));
             container.appendChild(renderCoords(types_1.files, 'files' + orientClass));
         }
         let ghost;
