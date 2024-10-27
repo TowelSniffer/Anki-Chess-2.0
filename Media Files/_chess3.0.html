@@ -14673,7 +14673,7 @@ background-image: url('_bK.svg');
 
                 if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.borderColor = solvedColour + "";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
         viewOnly: true,
@@ -14686,7 +14686,7 @@ background-image: url('_bK.svg');
             expectedMove = expectedLine[count];
             if (!expectedMove || typeof expectedMove === 'string') {
               const el = document.querySelector('.cg-wrap');
-              el.style.border = "0.7vmin solid "+solvedColour+"";
+              el.style.borderColor = solvedColour + "";
               el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
               cg.set({
               fen: chess.fen(),
@@ -14756,7 +14756,7 @@ background-image: url('_bK.svg');
 
                     if (!expectedMove || typeof expectedMove === 'string') {
                       const el = document.querySelector('.cg-wrap');
-                      el.style.border = "0.7vmin solid "+solvedColour+"";
+                      el.style.borderColor = solvedColour + "";
                       el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                       cg.set({
             viewOnly: true,
@@ -14769,7 +14769,7 @@ background-image: url('_bK.svg');
                 expectedMove = expectedLine[count];
                 if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.borderColor = solvedColour + "";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
         viewOnly: true,
@@ -14822,13 +14822,16 @@ background-image: url('_bK.svg');
           el.style.height = px;
           document.body.dispatchEvent(new Event('chessground.resize'));
       }
+
+      // Style the border based on the player's color
+      el.style.border = "clamp(3px, 1vmin, 8px) solid white";
       if (boardRotation == 'black') {
         opponentColour = 'white';
-        el.style.border = "0.7vmin solid black";
-      } else {
-        el.style.border = "0.7vmin solid white";
+        el.style.borderColor = "black";
       }
-      el.style.boxShadow ="0px 0px 6px 0px indianred"
+
+      el.style.boxShadow ="0px 0px 8px 0px LightSlateGrey";
+      
     }
     reload();
     </script>

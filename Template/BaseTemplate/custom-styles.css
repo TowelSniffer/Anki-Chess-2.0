@@ -1,0 +1,49 @@
+.card {
+    text-align: center;
+    font-size: 20px;
+    margin: 0 !important
+}
+  
+/* By default, body is sized and formatted differently on every device. This snippet makes it behave the same no matter the device. */
+body {
+    height: 100vh; /* On desktop, body does not fit the whole screen by default. */
+    width: 100vw;
+
+    margin: 0; /* Body has a margin on desktop, but not on mobile */
+
+    overflow: hidden; /* removes weird overflow issues on different devices */
+}
+
+#qa {
+    display: flex;
+    justify-content: center;
+}
+
+iframe {
+    height: 100vh;
+    width: 100vmin;
+
+    /* For some reason, there is a border on android, and not on 
+    desktop. This makes both behave the same */
+    border: none;
+}
+
+/* Styling for android devices */
+.mobile iframe {
+    height: 93vh;
+    width: min(93vh ,97vmin)
+}
+
+.mobile body {
+    height: 93vh;
+}
+
+/* Styling for iPad and iPhone devices */
+.iphone .iframe, .ipad .iframe {
+    height: 85vh;
+    width: min(85vh ,97vmin)
+}
+
+.iphone .body, .ipad .body {
+    height: 85vh;
+}
