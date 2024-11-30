@@ -16382,10 +16382,14 @@
 
 
     #boardFen {
-      box-shadow: 0px 0px 6px 0px brown;
       background-color: #D7DEE9;
-      height: 1em;
+      height: 1.3em;
+      overflow: hidden;
+      outline: none !important;
     }
+
+
+
 
     .buttons {
       border-radius: 5px;
@@ -16404,9 +16408,11 @@
 
     #boardMoves {
       margin-top:-15px;
-      box-shadow: 0px 0px 6px 0px brown;
+      box-shadow: 0px 0px 6px 0px grey;
       background-color: #D7DEE9;
       border-radius: 4px;
+      overflow: auto !important;
+      height: 1em;
     }
   </style>
 
@@ -16480,6 +16486,19 @@
     document.getElementById("board").focus();
     setTimeout(() => {
       document.querySelector("#boardInner").style.border = "0.7vmin solid var(--shadowColor)";
+      function adjustHeightUntilNoScroll() {
+            const boardMoves = document.getElementById('boardMoves');
+            let currentHeight = boardMoves.clientHeight;
+
+            // Increase height until there is no vertical scroll
+            while (boardMoves.scrollHeight > boardMoves.clientHeight) {
+                currentHeight += 10;
+                boardMoves.style.height = currentHeight + 'px';
+            }
+        }
+
+        // Call the function to adjust the height of boardMoves
+        adjustHeightUntilNoScroll();
     }, "50");
 
   </script>

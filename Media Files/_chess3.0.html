@@ -7751,7 +7751,7 @@ cg-board piece.fading {
   display: flex;
   pointer-events: none;
   opacity: 0.8;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: bold;
 }
 .cg-wrap coords.ranks {
@@ -7765,8 +7765,8 @@ cg-board piece.fading {
   flex-flow: column;
 }
 .cg-wrap coords.files {
-  bottom: calc(0.7vmin - 7px);
-  left: 4;
+  bottom: calc(0.7vmin - 5px);
+  left: 6px;
   flex-flow: row;
   width: 100%;
   height: 16px;
@@ -7788,7 +7788,7 @@ cg-board piece.fading {
 .cg-wrap.orientation-black coords.files:nth-child(even) coord:nth-child(odd),
 .cg-wrap coords.files:nth-child(even) coord:nth-child(even),
 .cg-wrap coords.ranks:nth-child(even) coord:nth-child(odd) {
-  color: var(--coord-white);;
+  color: var(--coord-white);
 }
 
 .cg-wrap coords:nth-child(odd) coord:nth-child(odd),
@@ -7796,7 +7796,7 @@ cg-board piece.fading {
 .cg-wrap.orientation-black coords.files:nth-child(even) coord:nth-child(even),
 .cg-wrap coords.files:nth-child(even) coord:nth-child(odd),
 .cg-wrap coords.ranks:nth-child(even) coord:nth-child(even){
-  color: var(--coord-black);;
+  color: var(--coord-black);
 }
     /*
 * Board
@@ -14698,7 +14698,7 @@ background-image: url('_bK.svg');
           }
         } else {
           errorCount++;
-          solvedColour = "#670A0A";
+          solvedColour = "#b31010";
           window.parent.postMessage('*', '*');
           console.log(errorCount);
           if (errorCount > handicap) {
@@ -14828,7 +14828,7 @@ background-image: url('_bK.svg');
       } else {
         el.style.border = "0.7vmin solid white";
       }
-      el.style.boxShadow ="0px 0px 6px 0px indianred"
+      el.style.boxShadow ="0px 0px 6px 0px LightSlateGrey"
     }
     reload();
     </script>
