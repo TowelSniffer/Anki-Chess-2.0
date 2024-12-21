@@ -4,6 +4,53 @@
 <head>
 
   <script>
+  function copyToClipboard() {
+    const textarea = document.getElementById('boardFen');
+    const copyButton = document.getElementById('boardButtoncopy');
+    const tooltip = document.getElementById('tooltip');
+
+    if (textarea.value) {
+      textarea.select();
+      document.execCommand('copy');
+
+      // Show the tooltip
+      tooltip.textContent = "FEN copied!";
+      tooltip.style.display = "block";
+
+      // Position the tooltip (simple example, adjust as needed)
+      const rect = copyButton.getBoundingClientRect();
+      tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+      tooltip.style.top = (rect.bottom - 80) + 'px';
+
+
+      // Hide the tooltip after a short delay
+      setTimeout(() => {
+        tooltip.style.display = "none";
+      }, 1000); // Hide after 1.5 seconds
+    } else if (textarea) {
+      textarea.value = fen;
+      textarea.select();
+      document.execCommand('copy');
+
+      // Show the tooltip
+      tooltip.textContent = "FEN copied!";
+      tooltip.style.display = "block";
+
+      // Position the tooltip (simple example, adjust as needed)
+      const rect = copyButton.getBoundingClientRect();
+      tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+      tooltip.style.top = (rect.bottom - 80) + 'px';
+
+
+      // Hide the tooltip after a short delay
+      setTimeout(() => {
+        tooltip.style.display = "none";
+      }, 1000); // Hide after 1.5 seconds
+
+    } else {
+      console.error("Textarea with ID 'boardFen' not found.");
+    }
+  }
   <!-- mliebelt Copyright (c) GNU GENERAL PUBLIC LICENSE -->
     (function() {
       function r(e, n, t) {
@@ -229,7 +276,7 @@
               return {
                 name: 'Event',
                 value: value
-              };
+              };boardMoves
             },
             peg$c8 = function(value) {
               return {
@@ -14717,7 +14764,7 @@
         var I = A(2),
           j = A(152);
         (N = I(!1)).i(j), N.push([M.i,
-          ":root {\n    --space-xss: 0.25rem;\n    --space-xs: 0.5rem;\n    --space-sm: 0.75rem;\n    --space-md: 1.25rem;\n    --space-lg: 2rem;\n    --space-xl: 3.25rem;\n    --space-xxl: 5.25rem;\n}\n\n:root {\n    --gray-100: #F7FAFC;\n    --gray-200: #EDF2F7;\n    --gray-300: #E2E8F0;\n    --gray-400: #CBD5E0;\n    --gray-500: #A0AEC0;\n    --gray-600: #718096;\n    --gray-700: #4A5568;\n    --gray-800: #2D3748;\n    --gray-900: #1A202C;\n    --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);\n    --highlight: rgba(255, 255, 153, 1.0);\n}\n\n/** Reset / Set defaults */\n.whole {\n    font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Ubuntu, \"Helvetica Neue\", Oxygen, Cantarell, sans-serif;\n    margin: 0;\n}\n.whole ul, .whole ol {\n    list-style: none;\n    margin: 0;\n    padding: 0;\n}\n/*.whole > * {*/\n/*    padding: var(--space-xs);*/\n/*}*/\n.whole:focus {\n    /* The following suppresses the outline of the element that has the focus. Only when\n       that focus is set, the keyboard mappings work. You may of course enable the outline\n       for debugging purposes. */\n    outline: 0;\n}\n/*.whole {*/\n/*    margin: var(--space-xs);*/\n/*}*/\n\n.whole .moves {\n    overflow: auto;\n}\n\n.whole .buttons {\n    display: flex;\n}\n\n/** Layout styles: View */\n.whole.layout-left .games, .whole.layout-right .games {\n    grid-column: 1 / 3;\n}\n\n.whole.layout-left, .whole.layout-right {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto auto;\n    grid-template-rows: 40px auto minmax(auto,1fr) 50px;\n}\n\n.whole.layout-left .error, .whole.layout-right .error {\n    grid-column: 1 / 3;\n    grid-row: 2 / 3;\n}\n\n.whole.layout-left .outerBoard, .whole.layout-left .outerBoard {\n    grid-row: 3 / 4;\n}\n\n.whole.layout-left .outerBoard {\n    grid-column: 1 / 2;\n}\n\n.whole.layout-right .outerBoard {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-left .buttons, .whole.layout-right .buttons {\n place-self: center;\n    grid-row: 4 / 5;\n}\n\n.whole.viewMode.layout-left .buttons, .whole.editMode.layout-right .buttons {\n    grid-column: 1 / 2;\n}\n\n.whole.viewMode.layout-right .buttons, .whole.editMode.layout-left .buttons {\n    grid-column: 2 / 3;\n}\n\n.whole.viewMode.layout-left .moves, .whole.viewMode.layout-right .moves {\n    grid-row: 3 / 5;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .moves, .whole.editMode.layout-right .moves {\n    grid-row: 3/4;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .edit {\n    grid-column: 1 / 2;\n    grid-row: 4 / 5;\n}\n\n.whole.editMode.layout-top .edit {\n    grid-column: 1 / 2;\n    grid-row: 6 / 7;\n}\n\n.whole.layout-left .moves {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-right .moves {\n    grid-column: 1 / 2;\n}\n\n/* layout top / bottom */\n.whole.layout-top {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto minmax(auto,1fr) 50px auto;\n}\n\n.whole.layout-bottom {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto auto minmax(auto,400px) 50px;\n}\n\n.whole.layout-top .error, .whole.layout-bottom .error {\n    grid-row: 2/3;\n}\n\n.whole.layout-top .outerBoard {\n    grid-row: 3/4;\n}\n\n.whole.layout-bottom .outerBoard {\n    grid-row: 4/5;\n}\n\n.whole.layout-top .buttons {\n    place-self: center;\n    grid-row: 4/5;\n}\n\n.whole.layout-bottom .buttons {\n    place-self: center;\n    grid-row: 5/6;\n}\n\n.whole.layout-top .moves, .whole.layout-bottom .moves {\n    overflow: auto;\n}\n\n.whole.layout-top .moves {\n    grid-row: 5/6;\n}\n\n.whole.layout-bottom .moves {\n    grid-row: 3/4;\n}\n\n/** Print mode */\n.whole.layout-top.printMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n.whole.layout-top.printMode .moves {\n    width: 110%;\n}\n\n.whole.printMode > .outerBoard {\n    display: none;\n}\n\n/** Board mode */\n.whole.layout-top.boardMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n/** Other styling ... */\n\n.fen {\n    width: calc(100% - 8px);\n    height: 35px;\n    margin: 0;\n    padding: var(--space-xss);\n    font-family: monospace;\n}\n\ndiv.error {\n    color: red;\n}\n\ndiv.buttons > i.button, div.edit > i.button {\n    color: var(--gray-600);\n    background-color: var(--gray-100);\n    margin: 0.24rem;\n    padding: 4px;\n    border: solid var(--gray-300) 1px;\n    border-radius: 4px;\n}\n\ndiv.buttons > i.button.selected, div.edit > i.button.selected, .nagMenu.selected {\n    color: var(--gray-100);\n    background-color: var(--gray-700);\n}\n\ndiv.buttons > i.button:hover,div.edit > i.button:hover  {\n    cursor: pointer;\n    border: solid dimgrey 1px;\n}\n\ndiv.nagMenu {\n    border: 1px grey dotted;\n    display: none;\n    width: 500px;\n}\n\ndiv.nagMenu a {\n    text-decoration: none;\n    /*text-align: center;*/\n}\n\ndiv.nagMove, div.nagObservation, div.nagPosition {\n    display: flex;\n    flex-direction: column;\n    flex-basis: 33.3%;\n    /*text-align: left;*/\n    flex-wrap: wrap;\n}\n.nagMove i, .nagPosition i, .nagObservation i {\n    display: flex;\n    cursor: pointer;\n    align-items: center;\n    justify-content: left;\n    margin: var(--space-xss);\n}\n\n.nagMove i::before, .nagPosition i::before, .nagObservation i::before {\n    content: attr(data-symbol);\n    font-style: normal;\n    width: var(--space-md);\n    justify-content: center;\n    align-items: center;\n    /*width: 30px;*/\n}\n\n\na.active i::before {\n    background: var(--gray-700) !important;\n    color: var(--gray-100)!important;\n}\n\na.active i::before i:hover {\n    background: var(--gray-100) !important;\n    color: var(--gray-700)!important;\n}\n\n.nagMove i:hover, .nagPosition i:hover, .nagObservation i:hover {\n    background: var(--gray-700);\n    color: var(--gray-100);\n}\n\n/*Necessary fixes for examples*/\nbutton.ui-multiselect {\n    background-image: none;\n    background-color: white;\n}\n\nul.ui-multiselect-checkboxes > li {\n    margin-bottom: 0;\n}\n\nselect.nag {\n    width: 40px;\n}\n\ntextarea.pgn {\n    padding: 2px;\n    border: 1px solid grey;\n    width: 96%;\n    height: 100px;\n    font-family: monospace;\n}\n\n/* Green buttons. */\n/*div.buttons.green > .button, div.edit.green > .button {*/\n/*    color: green;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n/* Blue buttons. */\n/*div.buttons.blue > .button, div.edit.blue > .button {*/\n/*    color: blue;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n\n.ui-widget {\n    font-size: 1em;\n}\n\ndiv.commentRadio label {\n    display: inline;\n}\ndiv.comment > textarea.comment {\n    font-family: monospace;\n    width: 96%;\n    height: 50px;\n    padding: 2px;\n}\n\n.moves.inline .filler {\n    display: none;\n}\n\n.moves.list {\n    display: flex;\n    flex-flow: row wrap;\n    align-content: flex-start;\n}\n\n.moves.list > .move.result {\n    justify-content: center;\n    flex: 0 0 100%;\n}\n\n.moves.list > .move {\n    flex: 0 0 35%;\n    display: flex;\n    /*padding: 0 0.3em;*/\n    white-space: nowrap;\n}\n\n.variation, .variation > .moveNumber, .variation > .move.var {\n    white-space: normal;\n}\n\n.moves.list > .moveNumber {\n    flex: 0 0 15%;\n    justify-content: center;\n    display: flex;\n    border-right: 1px solid var(--gray-300);\n    background: var(--gray-100);\n}\n\n.moves a {\n    text-decoration: underline;\n}\n\n.moves .move a.yellow {\n    /*background-color: rgba(255, 255, 153, 1.0);*/\n    color: var(--gray-800);\n    background-color: var(--highlight);\n}\n\n.moves .move a {\n    text-decoration: none;\n    padding: 0 0.2rem;\n}\n\n.moves .move a:hover {\n    /*border: 1px yellow dotted;*/\n    background-color: var(--highlight);\n    cursor: crosshair;\n}\n\n.moves, select.games {\n    /* font-size: 16px; */\n    /*font-family: Georgia, \"Bitstream Charter\", serif;;*/\n    color: black;\n    font-weight: 700;\n    /* line-height: 24px; */\n    line-height: normal;\n}\n\n.moves .variation .move.var, .moves .variation .moveNumber {\n    font-size: 97%;\n    font-weight: 500;\n}\n\n.moves .variation .variation .move.var, .moves .variation .variation .moveNumber {\n    font-size: 95%;\n    font-weight: 300;\n}\n\n.moves .variation, .moves.list .variation {\n    display: inline-block;\n    margin: 0 6px;\n}\n\n.moves.list .variations {\n    flex: 0 0 100%;\n    display: flex;\n    margin: 0;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n}\n\n.moves .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation {\n    margin: 0 6px;\n}\n\n.moves .variation .variation:after {\n    content: ' ) ';\n}\n\n.moves .variation:after {\n    content: ' ) ';\n}\n\n.moves > .varblock .white:before {\n    display: inline;\n}\n\n.moves .comment, .moves.list > .variation > .comment {\n    color: var(--gray-800);\n    font-weight: 500;\n    display: inline;\n}\n\n.moves.list > .comment {\n    flex: 0 0 100%;\n    display: flex;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n    /* padding: 5px; */\n}\n\n/*.moves .move .comment.timeTiny {*/\n/*    font-weight: 300;*/\n/*    font-size: 60%;*/\n/*}*/\n\n/*.moves .move .comment.timeLarge {*/\n/*}*/\n\n/*.moves .move .timeNormal {*/\n/*    font-weight: 400;*/\n/*    font-size: 80%;*/\n/*}*/\n\n/**\n  CHESSGROUND changes.\n  */\n \n.cg-wrap.coords-inner {\n    margin-bottom: 20px;\n    margin-right: 0;\n}\n.cg-wrap {\n    margin-bottom: 15px;\n    margin-right: 15px;\n}\n.cg-wrap.coords-inner coords.ranks {\n    right: -2px;\n}\n.cg-wrap.coords-inner coords.files {\n    bottom: 2px;\n    left: 2px;\n    text-align: left;\n}\n.cg-wrap coords.files {\n    text-transform: none;\n}\n\n/* board and colorMarker */\n\n.colorMarker {\n    width: 20px; height: 20px;\n    border-color: black;\n    border-width: 2px;\n    border-style: double;\n    margin-left: 50px;\n    align-self: center;\n}\n\n.colorMarker.circle {\n    border-radius: 10px;\n}\n\n.colorMarker.circle-big {\n    border-radius: 20px;\n    width: 40px; height: 40px;\n}\n\n.colorMarker.circle-small {\n    border-radius: 5px;\n    width: 10px; height: 10px;\n}\n\n.cm-black {\n    background-color: black;\n}\n\n.cm-white {\n    background-color: white;\n}\n\n.cm-big {\n    width: 40px; height: 40px;   \n}\n\n.cm-small {\n    width: 10px; height: 10px;\n}",
+          ":root {\n    --space-xss: 0.25rem;\n    --space-xs: 0.5rem;\n    --space-sm: 0.75rem;\n    --space-md: 1.25rem;\n    --space-lg: 2rem;\n    --space-xl: 3.25rem;\n    --space-xxl: 5.25rem;\n}\n\n:root {\n    --gray-100: #F7FAFC;\n    --gray-200: #EDF2F7;\n    --gray-300: #E2E8F0;\n    --gray-400: #CBD5E0;\n    --gray-500: #A0AEC0;\n    --gray-600: #718096;\n    --gray-700: #4A5568;\n    --gray-800: #2D3748;\n    --gray-900: #1A202C;\n    --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);\n    --highlight: rgba(255, 255, 153, 1.0);\n}\n\n/** Reset / Set defaults */\n.whole {\n    font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Ubuntu, \"Helvetica Neue\", Oxygen, Cantarell, sans-serif;\n    margin: 0;\n}\n.whole ul, .whole ol {\n    list-style: none;\n    margin: 0;\n    padding: 0;\n}\n/*.whole > * {*/\n/*    padding: var(--space-xs);*/\n/*}*/\n.whole:focus {\n    /* The following suppresses the outline of the element that has the focus. Only when\n       that focus is set, the keyboard mappings work. You may of course enable the outline\n       for debugging purposes. */\n    outline: 0;\n}\n/*.whole {*/\n/*    margin: var(--space-xs);*/\n/*}*/\n\n.whole .moves {\n    overflow: auto;\n}\n\n.whole .buttons {\n    display: flex;\n}\n\n/** Layout styles: View */\n.whole.layout-left .games, .whole.layout-right .games {\n    grid-column: 1 / 3;\n}\n\n.whole.layout-left, .whole.layout-right {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto auto;\n    grid-template-rows: 40px auto minmax(auto,1fr) 50px;\n}\n\n.whole.layout-left .error, .whole.layout-right .error {\n    grid-column: 1 / 3;\n    grid-row: 2 / 3;\n}\n\n.whole.layout-left .outerBoard, .whole.layout-left .outerBoard {\n    grid-row: 3 / 4;\n}\n\n.whole.layout-left .outerBoard {\n    grid-column: 1 / 2;\n}\n\n.whole.layout-right .outerBoard {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-left .buttons, .whole.layout-right .buttons {\n place-self: center;\n    grid-row: 4 / 5;\n}\n\n.whole.viewMode.layout-left .buttons, .whole.editMode.layout-right .buttons {\n    grid-column: 1 / 2;\n}\n\n.whole.viewMode.layout-right .buttons, .whole.editMode.layout-left .buttons {\n    grid-column: 2 / 3;\n}\n\n.whole.viewMode.layout-left .moves, .whole.viewMode.layout-right .moves {\n    grid-row: 3 / 5;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .moves, .whole.editMode.layout-right .moves {\n    grid-row: 3/4;\n    overflow: auto;\n}\n\n.whole.editMode.layout-left .edit {\n    grid-column: 1 / 2;\n    grid-row: 4 / 5;\n}\n\n.whole.editMode.layout-top .edit {\n    grid-column: 1 / 2;\n    grid-row: 6 / 7;\n}\n\n.whole.layout-left .moves {\n    grid-column: 2 / 3;\n}\n\n.whole.layout-right .moves {\n    grid-column: 1 / 2;\n}\n\n/* layout top / bottom */\n.whole.layout-top {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto minmax(auto,1fr) 50px auto;\n}\n\n.whole.layout-bottom {\n    display: grid;\n    gap: 0.5em;\n    grid-template-columns: auto;\n    grid-template-rows: auto auto minmax(auto,400px) 50px;\n}\n\n.whole.layout-top .error, .whole.layout-bottom .error {\n    grid-row: 2/3;\n}\n\n.whole.layout-top .outerBoard {\n    grid-row: 3/4;\n}\n\n.whole.layout-bottom .outerBoard {\n    grid-row: 4/5;\n}\n\n.whole.layout-top .buttons {\n    place-self: center;\n    grid-row: 4/5;\n}\n\n.whole.layout-bottom .buttons {\n    place-self: center;\n    grid-row: 5/6;\n}\n\n.whole.layout-top .moves, .whole.layout-bottom .moves {\n    overflow: auto;\n}\n\n.whole.layout-top .moves {\n    grid-row: 5/6;\n}\n\n.whole.layout-bottom .moves {\n    grid-row: 3/4;\n}\n\n/** Print mode */\n.whole.layout-top.printMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n.whole.layout-top.printMode .moves {\n    width: 110%;\n}\n\n.whole.printMode > .outerBoard {\n    display: none;\n}\n\n/** Board mode */\n.whole.layout-top.boardMode {\n    gap: 0;\n    grid-template-columns: auto;\n    grid-template-rows: auto;\n}\n\n/** Other styling ... */\n\n.fen {\n    width: calc(100% - 8px);\n    height: 35px;\n    margin: 0;\n    padding: var(--space-xss);\n    font-family: monospace;\n}\n\ndiv.error {\n    color: red;\n}\n\ndiv.buttons > i.button, div.edit > i.button {\n    box-shadow: 0px 0px 3px 0px black;\n    color: #dedede;\n    background-color: #404040;\n    margin: 0.24rem;\n    width: 40px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    height: 40px;\n    border-radius: 4px;\n    outline: solid #404040 0px;\n}\n\ndiv.buttons > i.button:active,div.edit > i.button:active{\n    box-shadow: 0px 0px 1px 0px black;\n}\n\ndiv.buttons > i.button.selected, div.edit > i.button.selected, .nagMenu.selected {\n    color: var(--gray-100);\n    background-color: var(--gray-700);\n}\n\ndiv.buttons > i.button:hover,div.edit > i.button:hover  {\n    cursor: pointer;\n    background-color: #616161\n}\n\ndiv.nagMenu {\n    border: 1px grey dotted;\n    display: none;\n    width: 500px;\n}\n\ndiv.nagMenu a {\n    text-decoration: none;\n    /*text-align: center;*/\n}\n\ndiv.nagMove, div.nagObservation, div.nagPosition {\n    display: flex;\n    flex-direction: column;\n    flex-basis: 33.3%;\n    /*text-align: left;*/\n    flex-wrap: wrap;\n}\n.nagMove i, .nagPosition i, .nagObservation i {\n    display: flex;\n    cursor: pointer;\n    align-items: center;\n    justify-content: left;\n    margin: var(--space-xss);\n}\n\n.nagMove i::before, .nagPosition i::before, .nagObservation i::before {\n    content: attr(data-symbol);\n    font-style: normal;\n    width: var(--space-md);\n    justify-content: center;\n    align-items: center;\n    /*width: 30px;*/\n}\n\n\na.active i::before {\n    background: var(--gray-700) !important;\n    color: var(--gray-100)!important;\n}\n\na.active i::before i:hover {\n    background: var(--gray-100) !important;\n    color: var(--gray-700)!important;\n}\n\n.nagMove i:hover, .nagPosition i:hover, .nagObservation i:hover {\n    background: var(--gray-700);\n    color: var(--gray-100);\n}\n\n/*Necessary fixes for examples*/\nbutton.ui-multiselect {\n    background-image: none;\n    background-color: white;\n}\n\nul.ui-multiselect-checkboxes > li {\n    margin-bottom: 0;\n}\n\nselect.nag {\n    width: 40px;\n}\n\ntextarea.pgn {\n    padding: 2px;\n    border: 1px solid grey;\n    width: 96%;\n    height: 100px;\n    font-family: monospace;\n}\n\n/* Green buttons. */\n/*div.buttons.green > .button, div.edit.green > .button {*/\n/*    color: green;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n/* Blue buttons. */\n/*div.buttons.blue > .button, div.edit.blue > .button {*/\n/*    color: blue;*/\n/*    border: solid lightgrey 1px;*/\n/*    border-radius: 4px;*/\n/*}*/\n\n.ui-widget {\n    font-size: 1em;\n}\n\ndiv.commentRadio label {\n    display: inline;\n}\ndiv.comment > textarea.comment {\n    font-family: monospace;\n    width: 96%;\n    height: 50px;\n    padding: 2px;\n}\n\n.moves.inline .filler {\n    display: none;\n}\n\n.moves.list {\n    display: flex;\n    flex-flow: row wrap;\n    align-content: flex-start;\n}\n\n.moves.list > .move.result {\n    justify-content: center;\n    flex: 0 0 100%;\n}\n\n.moves.list > .move {\n    flex: 0 0 35%;\n    display: flex;\n    /*padding: 0 0.3em;*/\n    white-space: nowrap;\n}\n\n.variation, .variation > .moveNumber, .variation > .move.var {\n    white-space: normal;\n}\n\n.moves.list > .moveNumber {\n    flex: 0 0 15%;\n    justify-content: center;\n    display: flex;\n    border-right: 1px solid var(--gray-300);\n    background: var(--gray-100);\n}\n\n.moves a {\n    text-decoration: underline;\n}\n\n.moves .move a.yellow {\n    /*background-color: rgba(255, 255, 153, 1.0);*/\n    color: var(--gray-800);\n    background-color: var(--highlight);\n}\n\n.moves .move a {\n    text-decoration: none;\n    padding: 0 0.2rem;\n}\n\n.moves .move a:hover {\n    /*border: 1px yellow dotted;*/\n    background-color: var(--highlight);\n    cursor: crosshair;\n}\n\n.moves, select.games {\n    /* font-size: 16px; */\n    /*font-family: Georgia, \"Bitstream Charter\", serif;;*/\n    color: black;\n    font-weight: 700;\n    /* line-height: 24px; */\n    line-height: normal;\n}\n\n.moves .variation .move.var, .moves .variation .moveNumber {\n    font-size: 97%;\n    font-weight: 500;\n}\n\n.moves .variation .variation .move.var, .moves .variation .variation .moveNumber {\n    font-size: 95%;\n    font-weight: 300;\n}\n\n.moves .variation, .moves.list .variation {\n    display: inline-block;\n    margin: 0 6px;\n}\n\n.moves.list .variations {\n    flex: 0 0 100%;\n    display: flex;\n    margin: 0;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n}\n\n.moves .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation:before {\n    content: ' ( ';\n}\n\n.moves .variation .variation {\n    margin: 0 6px;\n}\n\n.moves .variation .variation:after {\n    content: ' ) ';\n}\n\n.moves .variation:after {\n    content: ' ) ';\n}\n\n.moves > .varblock .white:before {\n    display: inline;\n}\n\n.moves .comment, .moves.list > .variation > .comment {\n    color: var(--gray-800);\n    font-weight: 500;\n    display: inline;\n}\n\n.moves.list > .comment {\n    flex: 0 0 100%;\n    display: flex;\n    background: var(--gray-100);\n    border-top: 1px solid var(--gray-300);\n    border-bottom: 1px solid var(--gray-300);\n    /* padding: 5px; */\n}\n\n/*.moves .move .comment.timeTiny {*/\n/*    font-weight: 300;*/\n/*    font-size: 60%;*/\n/*}*/\n\n/*.moves .move .comment.timeLarge {*/\n/*}*/\n\n/*.moves .move .timeNormal {*/\n/*    font-weight: 400;*/\n/*    font-size: 80%;*/\n/*}*/\n\n/**\n  CHESSGROUND changes.\n  */\n \n.cg-wrap.coords-inner {\n    margin-bottom: 20px;\n    margin-right: 0;\n}\n.cg-wrap {\n    margin-bottom: 15px;\n    margin-right: 15px;\n}\n.cg-wrap.coords-inner coords.ranks {\n    right: -2px;\n}\n.cg-wrap.coords-inner coords.files {\n    bottom: 2px;\n    left: 2px;\n    text-align: left;\n}\n.cg-wrap coords.files {\n    text-transform: none;\n}\n\n/* board and colorMarker */\n\n.colorMarker {\n    width: 20px; height: 20px;\n    border-color: black;\n    border-width: 2px;\n    border-style: double;\n    margin-left: 50px;\n    align-self: center;\n}\n\n.colorMarker.circle {\n    border-radius: 10px;\n}\n\n.colorMarker.circle-big {\n    border-radius: 20px;\n    width: 40px; height: 40px;\n}\n\n.colorMarker.circle-small {\n    border-radius: 5px;\n    width: 10px; height: 10px;\n}\n\n.cm-black {\n    background-color: black;\n}\n\n.cm-white {\n    background-color: white;\n}\n\n.cm-big {\n    width: 40px; height: 40px;   \n}\n\n.cm-small {\n    width: 10px; height: 10px;\n}",
           ""
         ]), M.exports = N
       }, function(M, N, A) {
@@ -14791,6 +14838,7 @@
             "chess:R": "R",
             "chess:B": "B",
             "chess:N": "N",
+            "buttons:copy": "Copy FEN postion to clipboard",
             "buttons:flipper": "Flip the sides of the board",
             "buttons:first": "Go to first move",
             "buttons:prev": "Go to previous move",
@@ -15655,6 +15703,7 @@
             function t() {
               A.currentMove = A.mypgn.addMove(D, j);
               const I = A.mypgn.getMove(A.currentMove);
+              changeAudio(I.notation);
               if (D.promotion) {
                 let M = {};
                 M[N] = null, A.board.setPieces(M), M[N] = {
@@ -15960,12 +16009,13 @@
               if (t("view") || t("edit")) {
                 const M = w("div", L("buttonsId"), "buttons", D, j);
                 C = M, [
+                  ["copy", "fa-cut"],
                   ["flipper", "fa-adjust"],
                   ["first", "fa-fast-backward"],
                   ["prev", "fa-step-backward"],
                   ["next", "fa-step-forward"],
-                  ["play", "fa-play-circle"],
-                  ["last", "fa-fast-forward"]
+                  ["last", "fa-fast-forward"],
+                  ["play", "fa-play-circle"]
                 ].forEach((function(M) {
                   N(M, C)
                 })), A.configuration.colorMarker && w("div", L("colorMarkerId"), "colorMarker " + A.configuration.colorMarker, D, M)
@@ -16167,19 +16217,21 @@
                     },
                     I = function() {
                       let M = null;
-                      if (void 0 === A.currentMove || null === A.currentMove) M = A.mypgn.getMove(0).fen, Y(null, 0, M);
+                      if (void 0 === A.currentMove || null === A.currentMove) M = A.mypgn.getMove(0).fen, Y(null, 0, M), changeAudio(A.mypgn.getMove(A.currentMove).notation);
                       else {
                         const N = A.mypgn.getMove(A.currentMove).next;
                         if (void 0 === N) return;
-                        M = A.mypgn.getMove(N).fen, Y(A.currentMove, N, M)
-                      }
+                        M = A.mypgn.getMove(N).fen, Y(A.currentMove, N, M);
+                        changeAudio(A.mypgn.getMove(A.currentMove).notation);
+                      };
                     },
                     j = function() {
                       let M = null;
                       if (void 0 === A.currentMove || null == A.currentMove);
                       else {
                         const N = A.mypgn.getMove(A.currentMove).prev;
-                        void 0 === N || null == N ? g() : (M = A.mypgn.getMove(N).fen, Y(A.currentMove, N, M))
+                        void 0 === N || null == N ? g() : (M = A.mypgn.getMove(N).fen, Y(A.currentMove, N, M));
+                        changeAudio(A.mypgn.getMove(A.currentMove)?.notation || A.mypgn.getMove(0).notation)
                       }
                     },
                     g = function() {
@@ -16188,6 +16240,8 @@
                     D = new S(10);
                   D.bind(A.configuration.timerTime, (function() {
                     I()
+                  })), e(L("buttonsId") + "copy", "click", (function() {
+                    copyToClipboard();
                   })), e(L("buttonsId") + "flipper", "click", (function() {
                     A.board.toggleOrientation(),
                       function() {
@@ -16202,9 +16256,11 @@
                     j()
                   })), e(L("buttonsId") + "first", "click", (function() {
                     g()
+                    changeAudio(A.mypgn.getMove(0).notation)
                   })), e(L("buttonsId") + "last", "click", (function() {
                     const M = A.mypgn.getMove(A.mypgn.getMoves().length - 1).fen;
                     Y(A.currentMove, A.mypgn.getMoves().length - 1, M)
+                    changeAudio(A.mypgn.getMove(A.mypgn.getMoves().length - 1).notation)
                   }));
                   if (t("edit")) {
                     e(L("buttonsId") + "pgn", "click", (function() {
@@ -16325,7 +16381,7 @@
                 free: !1,
                 events: {
                   after: function(M, N, I) {
-                    A.onSnapEnd(M, N, I)
+                    A.onSnapEnd(M, N, I);
                   }
                 }
               },
@@ -16383,13 +16439,19 @@
 
     #boardFen {
       background-color: #D7DEE9;
-      height: 1.3em;
+      height: 0;
+      width: 0;
+      resize: none;
       overflow: hidden;
       outline: none !important;
+      opacity: 0;
+      cursor: default;
     }
 
 
-
+    #boardButton {
+      margin-top: -60px
+    }
 
     .buttons {
       border-radius: 5px;
@@ -16407,19 +16469,40 @@
 
 
     #boardMoves {
-      margin-top:-15px;
-      box-shadow: 0px 0px 6px 0px grey;
+      margin-top:-50px;
+      padding: 7px;
+      box-shadow: 0px 0px 3px 0px black;
       background-color: #D7DEE9;
       border-radius: 4px;
       overflow: auto !important;
-      height: 1em;
+      height: fit-content;
     }
   </style>
 
 </head>
 
 <body>
+<audio id="myAudio"></audio>
+<div id="tooltip" style="display: none; position: absolute; z-index: 99 !important; box-shadow: 0px 0px 3px 0px black; background-color: #4d4d4d; color: white; padding: 5px; border-radius: 5px;"></div>
   <script>
+    function changeAudio(gameState) {
+      const audio = document.getElementById("myAudio");
+      console.log(gameState)
+      if (gameState.mate === "#" || gameState.check === "#") {
+      audio.src = "_checkmate.mp3"
+      } else if (gameState.check === "+") {
+      audio.src = "_move-check.mp3"
+      } else if (gameState.strike === "x") {
+      audio.src = "_Capture.mp3"
+      } else if (gameState.notation.includes("O-O")) {
+      audio.src = "_castle.mp3"
+      } else if (gameState.promotion) {
+      audio.src = "_promote.mp3"
+      } else {
+      audio.src = "_Move.mp3"
+      }
+      audio.play();
+    };
     function getUrlVars() {
       var vars = {};
       var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
@@ -16462,7 +16545,7 @@
 
   </div>
   <script>
-    var boardTheme = 'blue';
+    var boardTheme = 'brown';
     var errorCheck = getUrlVars()["errorCheck"];
     var boardWidth = document.documentElement.clientWidth
     if (boardWidth > 600) {
@@ -16472,6 +16555,7 @@
     PGNV.pgnEdit('board', {
       position: fen,
       pgn: pgn,
+      showFen: true,
       orientation: orientation,
       theme: boardTheme,
       boardSize: boardWidth * 0.95
@@ -16486,19 +16570,6 @@
     document.getElementById("board").focus();
     setTimeout(() => {
       document.querySelector("#boardInner").style.border = "0.7vmin solid var(--shadowColor)";
-      function adjustHeightUntilNoScroll() {
-            const boardMoves = document.getElementById('boardMoves');
-            let currentHeight = boardMoves.clientHeight;
-
-            // Increase height until there is no vertical scroll
-            while (boardMoves.scrollHeight > boardMoves.clientHeight) {
-                currentHeight += 10;
-                boardMoves.style.height = currentHeight + 'px';
-            }
-        }
-
-        // Call the function to adjust the height of boardMoves
-        adjustHeightUntilNoScroll();
     }, "50");
 
   </script>
