@@ -16231,7 +16231,7 @@
                       else {
                         const N = A.mypgn.getMove(A.currentMove).prev;
                         void 0 === N || null == N ? g() : (M = A.mypgn.getMove(N).fen, Y(A.currentMove, N, M));
-                        changeAudio(A.mypgn.getMove(A.currentMove)?.notation || A.mypgn.getMove(0).notation)
+                        changeAudio(A.mypgn.getMove(A.currentMove) && A.mypgn.getMove(A.currentMove).notation || A.mypgn.getMove(0).notation)
                       }
                     },
                     g = function() {
