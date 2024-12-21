@@ -114,6 +114,10 @@ iframe {
 
 The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, when upgrading media files, it is important to fist delete them from your media folder and then sync. this will remove the old files from the anki servers and will allow each device to sync without issues.
 
+## Third party apps
+
+- [AnkifyPGN](https://github.com/ThoughtfulSenpai/AnkifyPGN): A GUI to batch create flashcards
+
 ## resources used For this were:
 
 #### ~~ChessBoard js~~
