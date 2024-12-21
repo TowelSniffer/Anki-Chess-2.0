@@ -16255,12 +16255,16 @@
                   })), e(L("buttonsId") + "prev", "click", (function() {
                     j()
                   })), e(L("buttonsId") + "first", "click", (function() {
-                    g()
-                    changeAudio(A.mypgn.getMove(0).notation)
+                    if (A.currentMove !== null) {
+                      changeAudio(A.mypgn.getMove(0).notation)
+                    }
+                    g();
                   })), e(L("buttonsId") + "last", "click", (function() {
+                    if (A.currentMove !== A.mypgn.getMoves().length - 1) {
+                        changeAudio(A.mypgn.getMove(A.mypgn.getMoves().length - 1).notation)
+                    }
                     const M = A.mypgn.getMove(A.mypgn.getMoves().length - 1).fen;
                     Y(A.currentMove, A.mypgn.getMoves().length - 1, M)
-                    changeAudio(A.mypgn.getMove(A.mypgn.getMoves().length - 1).notation)
                   }));
                   if (t("edit")) {
                     e(L("buttonsId") + "pgn", "click", (function() {
@@ -16487,7 +16491,6 @@
   <script>
     function changeAudio(gameState) {
       const audio = document.getElementById("myAudio");
-      console.log(gameState)
       if (gameState.mate === "#" || gameState.check === "#") {
       audio.src = "_checkmate.mp3"
       } else if (gameState.check === "+") {

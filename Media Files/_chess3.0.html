@@ -14816,7 +14816,6 @@ background-image: url('_bK.svg');
     <script>
     function changeAudio(gameState) {
       const audio = document.getElementById("myAudio");
-      console.log(gameState)
       if (gameState.mate === "#" || gameState.check === "#") {
       audio.src = "_checkmate.mp3"
       } else if (gameState.check === "+") {
