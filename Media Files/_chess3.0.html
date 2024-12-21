@@ -14073,7 +14073,7 @@ background-image: url('_bK.svg');
             cg.set({
                 movable: {
                     events: {
-                        after: util_1.aiPlay(cg, chess, 200, false)
+                        after: util_1.aiPlay(cg, chess, 300, false)
                     },
                     color: boardRotation,
                 }
@@ -14092,7 +14092,8 @@ background-image: url('_bK.svg');
             if (chess.game_over() == false && flipBoard == 'true') {
               setTimeout(() => {
 
-                    if (expectedMove.variations.length > 0 && randomLines == 'true') {
+
+                  if (expectedMove.variations.length > 0 && randomLines == 'true') {
                     const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                     if (moveVar == expectedMove.variations.length) {
                     } else {
@@ -14101,26 +14102,26 @@ background-image: url('_bK.svg');
                       expectedMove = expectedLine[0];
                     }
                   }
+                  changeAudio(expectedMove.notation);
+                  chess.move(expectedMove.notation.notation);
+                  const lastMoveAi = chess.undo();
+                  chess.move(expectedMove.notation.notation);
+                  cg.move(expectedMove.notation.notation);;
+                  cg.set({
+                      fen: chess.fen(),
+                      movable: {
+                          dests: util_1.toDests(chess),
+                      }
+                  });
 
-                    chess.move(expectedMove.notation.notation);
-                    const lastMoveAi = chess.undo();
-                    chess.move(expectedMove.notation.notation);
-                    cg.move(expectedMove.notation.notation);;
                     cg.set({
-                        fen: chess.fen(),
-                        movable: {
-                            dests: util_1.toDests(chess),
-                        }
+                      turnColor: boardRotation,
+                        check: chess.in_check()
                     });
-
-                      cg.set({
-                        turnColor: boardRotation,
-                          check: chess.in_check()
-                      });
-                      cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-                    count++;
-                    expectedMove = expectedLine[count];
-                    cg.playPremove();
+                    cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+                  count++;
+                  expectedMove = expectedLine[count];
+                  cg.playPremove();
               }, 100);
             }
             return cg;
@@ -14632,6 +14633,7 @@ background-image: url('_bK.svg');
         }
 
           if (foundVariation == true) {
+            changeAudio(expectedLine[count].notation);
             count++;
             expectedMove = expectedLine[count];
             chess.move({ from: orig, to: dest, promotion: promoteChoice});
@@ -14650,34 +14652,34 @@ background-image: url('_bK.svg');
                   expectedMove = expectedLine[0];
                 }
               }
+              changeAudio(expectedMove.notation);
+              chess.move(expectedMove.notation.notation);
+              const lastMoveAi = chess.undo();
+              chess.move(expectedMove.notation.notation);
+              cg.move(expectedMove.notation.notation);
+              cg.set({
+                  fen: chess.fen(),
+                  turnColor: toColor(chess),
+                  movable: {
+                      color: toColor(chess),
+                      dests: toDests(chess)
+                  }
+              });
+              cg.set({
+                  check: chess.in_check()
+              });
+              cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+              count++;
+              expectedMove = expectedLine[count];
+              cg.playPremove();
 
-                chess.move(expectedMove.notation.notation);
-                const lastMoveAi = chess.undo();
-                chess.move(expectedMove.notation.notation);
-                cg.move(expectedMove.notation.notation);
-                cg.set({
-                    fen: chess.fen(),
-                    turnColor: toColor(chess),
-                    movable: {
-                        color: toColor(chess),
-                        dests: toDests(chess)
-                    }
-                });
-                cg.set({
-                    check: chess.in_check()
-                });
-                cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-                count++;
-                expectedMove = expectedLine[count];
-                cg.playPremove();
-
-                if (!expectedMove || typeof expectedMove === 'string') {
+              if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
                   el.style.border = "0.7vmin solid "+solvedColour+"";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
-        viewOnly: true,
-        });
+                    viewOnly: true,
+                  });
                 }
 
             }, delay);
@@ -14690,8 +14692,8 @@ background-image: url('_bK.svg');
               el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
               cg.set({
               fen: chess.fen(),
-    viewOnly: true
-    });
+              viewOnly: true
+              });
             }
             count--;
             expectedMove = expectedLine[count];
@@ -14700,8 +14702,9 @@ background-image: url('_bK.svg');
           errorCount++;
           solvedColour = "#b31010";
           window.parent.postMessage('*', '*');
-          console.log(errorCount);
+          const audio = document.getElementById("myAudio");
           if (errorCount > handicap) {
+            changeAudio(expectedMove.notation);
             chess.move(expectedMove.notation.notation);
             const lastMoveAi = chess.undo();
             chess.move(expectedMove.notation.notation);
@@ -14720,7 +14723,6 @@ background-image: url('_bK.svg');
             cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
             count++;
             expectedMove = expectedLine[count];
-            setTimeout(() => {
               if (expectedMove && typeof expectedMove !== 'string') {
                 setTimeout(() => {
                   errorCount = 0;
@@ -14733,35 +14735,35 @@ background-image: url('_bK.svg');
                       expectedMove = expectedLine[0];
                     }
                   }
+                  changeAudio(expectedMove.notation);
+                  chess.move(expectedMove.notation.notation);
+                  const lastMoveAi = chess.undo();
+                  chess.move(expectedMove.notation.notation);
+                  cg.move(expectedMove.notation.notation);
+                  cg.set({
+                      fen: chess.fen(),
+                      turnColor: toColor(chess),
+                      movable: {
+                          color: toColor(chess),
+                          dests: toDests(chess)
+                      }
+                  });
+                  cg.set({
+                      check: chess.in_check()
+                  });
+                  cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+                  count++;
+                  expectedMove = expectedLine[count];
+                  cg.playPremove();
 
-                    chess.move(expectedMove.notation.notation);
-                    const lastMoveAi = chess.undo();
-                    chess.move(expectedMove.notation.notation);
-                    cg.move(expectedMove.notation.notation);
+                  if (!expectedMove || typeof expectedMove === 'string') {
+                    const el = document.querySelector('.cg-wrap');
+                    el.style.border = "0.7vmin solid "+solvedColour+"";
+                    el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                     cg.set({
-                        fen: chess.fen(),
-                        turnColor: toColor(chess),
-                        movable: {
-                            color: toColor(chess),
-                            dests: toDests(chess)
-                        }
+                    viewOnly: true,
                     });
-                    cg.set({
-                        check: chess.in_check()
-                    });
-                    cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-                    count++;
-                    expectedMove = expectedLine[count];
-                    cg.playPremove();
-
-                    if (!expectedMove || typeof expectedMove === 'string') {
-                      const el = document.querySelector('.cg-wrap');
-                      el.style.border = "0.7vmin solid "+solvedColour+"";
-                      el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
-                      cg.set({
-            viewOnly: true,
-            });
-                    }
+                  }
 
                 }, delay);
               } else {
@@ -14772,14 +14774,16 @@ background-image: url('_bK.svg');
                   el.style.border = "0.7vmin solid "+solvedColour+"";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
-        viewOnly: true,
-        });
+                  viewOnly: true,
+                  });
                 }
                 count--;
                 expectedMove = expectedLine[count];
               }
-            }, 300);
             errorCount = 0;
+          } else {
+            audio.src = "_Error.mp3"
+            audio.play();
           }
         }
         }
@@ -14810,6 +14814,24 @@ background-image: url('_bK.svg');
     });
     </script>
     <script>
+    function changeAudio(gameState) {
+      const audio = document.getElementById("myAudio");
+      console.log(gameState)
+      if (gameState.mate === "#" || gameState.check === "#") {
+      audio.src = "_checkmate.mp3"
+      } else if (gameState.check === "+") {
+      audio.src = "_move-check.mp3"
+      } else if (gameState.strike === "x") {
+      audio.src = "_Capture.mp3"
+      } else if (gameState.notation.includes("O-O")) {
+      audio.src = "_castle.mp3"
+      } else if (gameState.promotion) {
+      audio.src = "_promote.mp3"
+      } else {
+      audio.src = "_Move.mp3"
+      }
+      audio.play();
+    };
     function reload() {
       count = 0; // Int so we can track on which move we are.
       expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
@@ -14832,5 +14854,6 @@ background-image: url('_bK.svg');
     }
     reload();
     </script>
+    <audio id="myAudio"></audio>
   </body>
 </html>
