@@ -116,7 +116,8 @@ The upgrade process is typically the same as the installation process explained 
 
 ## Third party apps
 
-- [AnkifyPGN](https://github.com/ThoughtfulSenpai/AnkifyPGN): A GUI to batch create flashcards
+- [AnkifyPGN](https://github.com/ThoughtfulSenpai/AnkifyPGN): A GUI to batch create flashcards. Now also an anki addon: [
+addon](https://ankiweb.net/shared/info/569467423)
 
 ## resources used For this were:
 
