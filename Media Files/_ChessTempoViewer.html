@@ -16415,31 +16415,45 @@
       display: none;
     }
     :root {
+      --board-size: 600px;
       --shadowColor: limegreen;
+      --background-color: grey;
     }
 
 
     body{
+      background: var(--background-color);
       margin: 0;
-      height:100vh!important;
+      height:100vh;
+      width:100vw;
+      display: grid;
+      place-items: center;
     }
     .container {
-      max-height:100%;
-      max-width:100%;
-      margin: 0;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      border-radius: 5px;
+      height:auto;
+      width:var(--board-size);
+      margin: 0 auto;
+      display:block;
+      border: 0.7vmin solid var(--background-color);
     }
-
 
     #boardInner {
-    width:50%;
-    box-shadow: 0px 0px 6px 0px var(--shadowColor);
+      margin-left: -0.7vmin;
+      box-shadow: 0px 0px 6px 0px var(--shadowColor);
     }
 
+
+    div.outerBoard{
+      height: var(--board-size);
+      margin-bottom: 2vmin;
+    }
+
+
+    #board {
+      display:block;
+      box-sizing: border-box;
+
+    }
 
     #boardFen {
       background-color: #D7DEE9;
@@ -16454,7 +16468,8 @@
 
 
     #boardButton {
-      margin-top: -60px
+      display:flex;
+      justify-content: center;
     }
 
     .buttons {
@@ -16473,7 +16488,7 @@
 
 
     #boardMoves {
-      margin-top:-50px;
+      margin-top:-20px;
       padding: 7px;
       box-shadow: 0px 0px 3px 0px black;
       background-color: #D7DEE9;
@@ -16515,15 +16530,15 @@
     }
 
     var pgn = getUrlVars()["PGN"];
-    var background = getUrlVars()["background"];
-    document.body.style.backgroundColor = background;
-    var flipBoard = getUrlVars()["flip"];
+    var background = getUrlVars()["background"] ? getUrlVars()["background"] : "grey";
+    document.documentElement.style.setProperty('--background-color', background);
+    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'false';
     let parsedPGN = parsePgn(pgn, {
       startRule: "game"
     });
 
     if (parsedPGN.tags.FEN) {
-      fen = parsedPGN.tags.FEN
+      fen = parsedPGN.tags.FEN;
     } else {
       fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     }
@@ -16549,10 +16564,26 @@
   </div>
   <script>
     var boardTheme = 'brown';
-    var errorCheck = getUrlVars()["errorCheck"];
-    var boardWidth = document.documentElement.clientWidth
-    if (boardWidth > 600) {
-      boardWidth = 600
+    var errorCheck = getUrlVars()["errorCheck"] ? getUrlVars()["errorCheck"] : 'false';
+    var boardWidth = Math.min(600, document.documentElement.clientWidth * 0.98, document.documentElement.clientHeight * 0.98);
+    console.log(boardWidth);
+    // first set border of empty div to calculate width inside border
+    document.documentElement.style.setProperty('--board-size', boardWidth + 'px');
+    const bodyBorderBoxWidth = getContentWidth(document.querySelector(".container"));
+    console.log(bodyBorderBoxWidth);
+    // set board size to inner border width
+    document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
+
+    function getContentWidth(element) {
+      // my attempt a keeping consistent sizing with different screens. having a dynamic widt and border makes for issues centering on narrow screens so this calculates the width inside of a border
+      const computedStyle = window.getComputedStyle(element);
+      const width = parseFloat(computedStyle.width);
+      const paddingLeft = parseFloat(computedStyle.paddingLeft);
+      const paddingRight = parseFloat(computedStyle.paddingRight);
+      const borderLeft = parseFloat(computedStyle.borderLeftWidth);
+      const borderRight = parseFloat(computedStyle.borderRightWidth);
+
+      return width - paddingLeft - paddingRight - borderLeft - borderRight;
     }
 
     PGNV.pgnEdit('board', {
@@ -16561,17 +16592,18 @@
       showFen: true,
       orientation: orientation,
       theme: boardTheme,
-      boardSize: boardWidth * 0.95
+      boardSize: bodyBorderBoxWidth
     });
     if (flipBoard == 'true') {
       document.getElementById("boardButtonnext").click()
     }
 
     if (errorCheck === "true") {
-      document.documentElement.style.setProperty('--shadowColor', "#670A0A");
+      document.documentElement.style.setProperty('--shadowColor', "#b31010");
     }
     document.getElementById("board").focus();
     setTimeout(() => {
+
       document.querySelector("#boardInner").style.border = "0.7vmin solid var(--shadowColor)";
     }, "50");
 
