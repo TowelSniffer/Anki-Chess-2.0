@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
   <head>
     <script>
@@ -7577,6 +7578,8 @@
 :root {
   --coord-white: rgba(255, 255, 255, 0.8);
   --coord-black: rgba(72, 72, 72, 0.8);
+  --background-color: grey;
+  --board-size: 600px;
 }
 
 
@@ -7584,13 +7587,19 @@
   display: none;
 }
 
+html {
+  height:100vh;
+  width:100vw;
+}
+
 body {
-  overflow: hidden;
-  margin:0 auto;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  background: var(--background-color);
+  margin:0;
+  height:100%;
+  width:100%;
+  display: grid;
+  place-items: center;
+
 }
 
 select { font-size:1.2em; }
@@ -7604,36 +7613,70 @@ button {
   border: 1px solid #dcdcdc;
   border-radius: 2px;
   box-shadow: 0px 0px 3px 1px black;
+  z-index: 100;
   cursor: pointer;
 }
 
-#center {
-  display:none;
-  text-align: center;
-  background-color: rgba(255,255,255,.2);
-  border-radius: 5px;
-  box-shadow: 0px 0px 6px 2px black;
-  padding: .4em;
-  z-index: 100;
-  white-space: nowrap;
-  backdrop-filter: blur(5px);
+#overlay {
+  height:100vh;
+  width:100vw;
   position:absolute;
-  top: 3.5vmin;
-  left: 50%;
-  transform: translateX(-50%);
+  z-index: 99;
+  background: rgba(0,0,0,0.5);
 }
 
-button:hover {
-  background-color: #F8F8F8;
-  border: 1px solid #C6C6C6;
+#center {
+  height: calc(var(--board-size)*0.25);
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  box-shadow: 0px 0px 3px 0px black;
+  width: var(--board-size);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position:absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(var(--board-size)*-0.5));
+
+}
+.hidden {
+  display: none !important;
+}
+
+p {
+  display:none; /*dirty approach to get rid of randome p element under board*/
+}
+
+button.promoteBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #737373;
+  box-shadow: 0px 0px 3px 0px black;
+  height: calc(var(--board-size)*0.125);
+  width: calc(var(--board-size)*0.125);
+  border: 0px;
+  margin:10px;
+}
+
+.promotePiece {
+  margin: 0;
+  height: calc(var(--board-size)*0.125);
+  width: calc(var(--board-size)*0.125)
+}
+
+button.promoteBtn:hover {
+  background-color: #557D38;
   box-shadow: 0px 0px 6px 0px grey;
   color: #333;
 }
-button:active {
+button.promoteBtn:active {
   background-color: #d6d6d6;
 }
 
-button:focus {
+button.promoteBtn:focus {
   outline: 0;
 }
  html, img {
@@ -7641,9 +7684,18 @@ button:focus {
    color: white;
 
  }
+
+ #chessground-examples {
+  width: 100%;
+ }
+
 .cg-wrap {
+  width: var(--board-size);
+  height: var(--board-size);
   position: relative;
+  margin:0 auto;
   display: block;
+  border: 0.7vmin solid var(--background-color);
 }
 
 cg-board {
@@ -7846,16 +7898,23 @@ background-image: url('_bK.svg');
     </style>
   </head>
   <body>
-    <div style="text-align: center">
+    <div id="overlay" class="hidden showHide"></div>
     <div id="chessground-examples"></div>
-    <div id="center">
-    <button value="q"><img id="promoteQ" style="width:min(75px, 12.5vmin);"></button>
-    <button value="b"><img id="promoteB" style="width:min(75px, 12.5vmin);"></button>
-    <button value="n"><img id="promoteN" style="width:min(75px, 12.5vmin);"></button>
-    <button value="r"><img id="promoteR" style="width:min(75px, 12.5vmin);"></button>
-    </div>
+    <div class="hidden showHide" id="center">
+    <button class="promoteBtn" value="q"><img class="promotePiece" id="promoteQ"></button>
+    <button class="promoteBtn" value="b"><img class="promotePiece" id="promoteB"></button>
+    <button class="promoteBtn" value="n"><img class="promotePiece" id="promoteN"></button>
+    <button class="promoteBtn" value="r"><img class="promotePiece" id="promoteR"></button>
     </div>
     <script>
+    function toggleDisplay(className) {
+    // toggle hidden class for promote elements
+      const elements = document.querySelectorAll('.' + className);
+      elements.forEach(element => {
+        element.classList.toggle('hidden');
+      });
+    }
+
     function getUrlVars() {
       var vars = {};
       var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
@@ -7863,34 +7922,32 @@ background-image: url('_bK.svg');
       });
       return vars;
     }
-
-    var pgn = getUrlVars()["PGN"];
-    var background = getUrlVars()["background"];
-    document.body.style.backgroundColor = background;
-    let parsedPGN = parsePgn(pgn, {
+    let ankiFen = getUrlVars()["PGN"];
+    var background = getUrlVars()["background"] ? getUrlVars()["background"] : "grey";
+    document.documentElement.style.setProperty('--background-color', background);
+    let parsedPGN = parsePgn(ankiFen, {
       startRule: "game"
     });
-
-    var handicap = getUrlVars()["handicap"];
-    var randomLines = getUrlVars()["randomLines"];
-    var acceptVariations = getUrlVars()["acceptVariations"];
-    var fen;
-    var errorCount = 0;
-    var solvedColour = "limegreen";
     if (parsedPGN.tags.FEN) {
-      fen = parsedPGN.tags.FEN
+      ankiFen = parsedPGN.tags.FEN
     } else {
-      fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+      ankiFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     }
 
+    var handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 2;
+    var randomLines = getUrlVars()["randomLines"] ? getUrlVars()["randomLines"] : 'true';
+    var acceptVariations = getUrlVars()["acceptVariations"] ? getUrlVars()["acceptVariations"] : 'true';
 
-    var boardRotation = "black";
-    var flipBoard = getUrlVars()["flip"];
-    var FEN = fen;
+    var errorCount = 0;
+    var solvedColour = "limegreen";
 
+
+
+    let boardRotation = "black";
+    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'false';
 
     var patt = /(( b | w ))(?!.*\1)/g;
-    var result = FEN.match(patt);
+    var result = ankiFen.match(patt);
     if (result == " w ") {
 
       boardRotation = "white";
@@ -7912,11 +7969,6 @@ background-image: url('_bK.svg');
       boardRotation = "black"
     } else if (flipBoard == 'true' && boardRotation == "black") {
       boardRotation = "white";
-    }
-    var opponentColour = 'black';
-
-    if (boardRotation == 'black') {
-      opponentColour = 'white';
     }
 
     document.querySelector('#promoteQ').src = "_"+boardRotation[0]+"Q.svg";
@@ -14055,10 +14107,10 @@ background-image: url('_bK.svg');
     exports.vsRandom = {
         name: '',
         run(el) {
-          const fen = FEN;
+          const fen = ankiFen;
           const chess = new chess_js_1.Chess(fen);
             const cg = chessground_1.Chessground(el, {
-              fen: FEN,
+              fen: fen,
               turnColor: boardRotation,
               orientation: boardRotation,
                 movable: {
@@ -14079,12 +14131,6 @@ background-image: url('_bK.svg');
                 }
             });
             if (chess.in_check() == true) {
-              if (flipBoard == 'true') {
-                cg.set({
-                  turnColor: opponentColour,
-                });
-              }
-
               cg.set({
                   check: true,
               });
@@ -14572,6 +14618,9 @@ background-image: url('_bK.svg');
           foundVariation = false;
             chess.move({ from: orig, to: dest, promotion: promoteChoice});
             const moveCheck = chess.undo().san;
+          function undoMove() {
+            chess.undo().san;
+          };
           function moveChecker(moveCheck) {
             if (moveCheck.includes("=")) {
             cg.set({
@@ -14758,7 +14807,7 @@ background-image: url('_bK.svg');
 
                   if (!expectedMove || typeof expectedMove === 'string') {
                     const el = document.querySelector('.cg-wrap');
-                    el.style.border = "0.7vmin solid "+solvedColour+"";
+                    el.style.outline = "0.7vmin solid "+solvedColour+"";
                     el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                     cg.set({
                     viewOnly: true,
@@ -14771,7 +14820,7 @@ background-image: url('_bK.svg');
                 expectedMove = expectedLine[count];
                 if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.outline = "0.7vmin solid "+solvedColour+"";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
                   viewOnly: true,
@@ -14790,16 +14839,41 @@ background-image: url('_bK.svg');
 
             if (moveCheck.includes("=")) {
               const promoteButtons = document.querySelectorAll("#center > button");
+              const center = document.querySelector("#center");
+              const overlay = document.querySelector("#overlay");
               for (var i=0; i<promoteButtons.length; i++){
               	promoteButtons[i].onclick = function(){
-              		promoteChoice=this.value;document.querySelector("#center").style.display = "none";
+                  event.stopPropagation();
+                  promoteChoice=this.value;
+                  toggleDisplay('showHide');
                   moveChecker(moveCheck);
                   document.querySelector(".cg-wrap").style.filter = 'none';
                   document.querySelector("cg-board").style.cursor = 'pointer';
               	}
+              	overlay.onclick = function(){
+                  cg.set({
+                      fen: chess.fen(),
+                      turnColor: toColor(chess),
+                      movable: {
+                          color: toColor(chess),
+                          dests: toDests(chess)
+                      }
+                  });
+                  toggleDisplay('showHide');
+              	}
+              	center.onclick = function(){
+                  cg.set({
+                      fen: chess.fen(),
+                      turnColor: toColor(chess),
+                      movable: {
+                          color: toColor(chess),
+                          dests: toDests(chess)
+                      }
+                  });
+                  toggleDisplay('showHide');
+              	}
               }
-              document.querySelector("#center").style.display = 'block';
-              document.querySelector(".cg-wrap").style.filter = 'brightness(50%)';
+              toggleDisplay('showHide');
               document.querySelector("cg-board").style.cursor = 'default';
             } else {
               moveChecker(moveCheck)
@@ -14831,6 +14905,20 @@ background-image: url('_bK.svg');
       }
       audio.play();
     };
+
+
+    function getContentWidth(element) {
+      // my attempt a keeping consistent sizing with different screens. having a dynamic widt and border makes for issues centering on narrow screens so this calculates the width inside of a border
+      const computedStyle = window.getComputedStyle(element);
+      const width = parseFloat(computedStyle.width);
+      const paddingLeft = parseFloat(computedStyle.paddingLeft);
+      const paddingRight = parseFloat(computedStyle.paddingRight);
+      const borderLeft = parseFloat(computedStyle.borderLeftWidth);
+      const borderRight = parseFloat(computedStyle.borderRightWidth);
+
+      return width - paddingLeft - paddingRight - borderLeft - borderRight;
+    }
+
     function reload() {
       count = 0; // Int so we can track on which move we are.
       expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
@@ -14838,18 +14926,19 @@ background-image: url('_bK.svg');
       ChessgroundExamples.run(document.getElementById('chessground-examples'));
       const el = document.querySelector('.cg-wrap');
       if (el) {
-          const px = Math.min(600, document.documentElement.clientWidth * 0.97);;
-          el.style.width = px;
-          el.style.height = px;
-          document.body.dispatchEvent(new Event('chessground.resize'));
+          if (boardRotation == 'black') {
+            el.style.border = "0.7vmin solid black";
+          } else {
+            el.style.border = "0.7vmin solid white";
+          }
+          el.style.boxShadow ="0px 0px 6px 0px LightSlateGrey"
+          const px = Math.min(600, document.documentElement.clientWidth * 0.98, document.documentElement.clientHeight * 0.98);
+          // first set border of empty div to calculate width inside border
+          document.documentElement.style.setProperty('--board-size', px + 'px');
+          const bodyBorderBoxWidth = getContentWidth(el);
+          // set board size to inner border width
+          document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
       }
-      if (boardRotation == 'black') {
-        opponentColour = 'white';
-        el.style.border = "0.7vmin solid black";
-      } else {
-        el.style.border = "0.7vmin solid white";
-      }
-      el.style.boxShadow ="0px 0px 6px 0px LightSlateGrey"
     }
     reload();
     </script>
