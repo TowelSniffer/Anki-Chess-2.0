@@ -7629,6 +7629,7 @@ button {
 }
 
 #center {
+  position:absolute;
   height: calc(var(--board-size)*0.25);
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(10px);
@@ -14970,19 +14971,25 @@ background-image: url('_bK.svg');
           // set board size to inner border width
           document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
 
-          // Get of board to position promote element
-          const promoteOverlay = document.getElementById('center');
-
-          // Get the position of the reference element
-          const rect = el.getBoundingClientRect();
-
-          // Set the position of the positioned element
-          promoteOverlay.style.position = 'absolute'; // or 'fixed' if needed
-          promoteOverlay.style.left = (rect.left) + 'px'; // Adjust 10px as needed for offset
-          promoteOverlay.style.top = (rect.top) + 'px'; // Adjust 10px as needed for offset
       }
     }
-    reload();
+    async function loadElements() {
+      await reload();
+
+      // Get of board to position promote element
+      const promoteOverlay = document.getElementById('center');
+
+      // Get the position of the reference element
+      const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
+
+      // Set the position of the positioned element
+      promoteOverlay.style.left = (rect.left) + 'px';
+      promoteOverlay.style.top = (rect.top) + 'px';
+    }
+
+    loadElements();
+
+
     </script>
     <audio id="myAudio"></audio>
   </body>
