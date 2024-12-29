@@ -110,6 +110,10 @@ iframe {
 }
 ```
 
+## PGN tips:
+
+this template requires standared format with PGN and can [run into errors if not correct](https://github.com/TowelSniffer/Anki-Chess-2.0/issues/50). If you find you are getting wrrors with a particular PGN, try pasting it into a parser like nibbler or Lichess'/chess.com's analysis tool to correct the format.
+
 ## Upgrading
 
 The upgrade process is typically the same as the installation process explained in the [previous section](#getting-started). However, when upgrading media files, it is important to fist delete them from your media folder and then sync. this will remove the old files from the anki servers and will allow each device to sync without issues.
