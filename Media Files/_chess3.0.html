@@ -7580,6 +7580,7 @@
   --coord-black: rgba(72, 72, 72, 0.8);
   --background-color: grey;
   --board-size: 600px;
+  --border-color: #808080;
 }
 
 
@@ -7597,8 +7598,10 @@ body {
   margin:0;
   height:100%;
   width:100%;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content:center;
 
 }
 
@@ -7629,18 +7632,28 @@ button {
   height: calc(var(--board-size)*0.25);
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(10px);
-  box-shadow: 0px 0px 3px 0px black;
+  box-shadow: 0px 0px 3px 0px black, 0 -1px 0 var(--border-color), -1px 0 0 var(--border-color), -1px -1px 0 var(--border-color);
   width: var(--board-size);
+  margin:0.7vmin;
   z-index: 100;
   display: flex;
   justify-content: center;
   align-items: center;
-  position:absolute;
-  top: 50%;
-  left: 50%;
-  transform: translateX(-50%) translateY(calc(var(--board-size)*-0.5));
 
 }
+
+#textField {
+  padding: 7px;
+  font-family: serif;
+  margin-bottom: 5px;
+  font-size: 1.5em;
+  font-weight: bold;
+  box-shadow: 0px 0px 3px 0px black;
+  color: black;
+  background-color: #D7DEE9;
+  border-radius: 4px;
+}
+
 .hidden {
   display: none !important;
 }
@@ -7687,6 +7700,7 @@ button.promoteBtn:focus {
 
  #chessground-examples {
   width: 100%;
+  max-width: 600px;
  }
 
 .cg-wrap {
@@ -7799,6 +7813,7 @@ cg-board piece.fading {
   z-index: 9;
 }
 .cg-wrap coords {
+  font-family: serif;
   position: absolute;
   display: flex;
   pointer-events: none;
@@ -7807,21 +7822,21 @@ cg-board piece.fading {
   font-weight: bold;
 }
 .cg-wrap coords.ranks {
-  right: calc(0.7vmin - 5px);
-  top: -4%;
+  right: 0.1%;
+  top: -4.5%;
   flex-flow: column-reverse;
   height: 100%;
-  width: 12px;
+  width: 10px;
 }
 .cg-wrap coords.ranks.black {
   flex-flow: column;
 }
 .cg-wrap coords.files {
-  bottom: calc(0.7vmin - 5px);
-  left: 6px;
+  bottom: 1%;
+  left: 1%;
   flex-flow: row;
   width: 100%;
-  height: 16px;
+  height: 10px;
   text-transform: uppercase;
   text-align: left;
 }
@@ -7899,6 +7914,7 @@ background-image: url('_bK.svg');
   </head>
   <body>
     <div id="overlay" class="hidden showHide"></div>
+    <div id="textField" class="hidden"></div>
     <div id="chessground-examples"></div>
     <div class="hidden showHide" id="center">
     <button class="promoteBtn" value="q"><img class="promotePiece" id="promoteQ"></button>
@@ -7923,6 +7939,17 @@ background-image: url('_bK.svg');
       return vars;
     }
     let ankiFen = getUrlVars()["PGN"];
+
+    // load user text
+    const ankiText = getUrlVars()["userText"];
+    if (ankiText) {
+      const textField = document.querySelector("#textField")
+      textField.classList.toggle('hidden');
+      textField.innerText = ankiText;
+    }
+
+
+
     var background = getUrlVars()["background"] ? getUrlVars()["background"] : "grey";
     document.documentElement.style.setProperty('--background-color', background);
     let parsedPGN = parsePgn(ankiFen, {
@@ -7969,6 +7996,10 @@ background-image: url('_bK.svg');
       boardRotation = "black"
     } else if (flipBoard == 'true' && boardRotation == "black") {
       boardRotation = "white";
+
+    }
+    if (boardRotation == "black") {
+      document.documentElement.style.setProperty('--border-color', boardRotation);
     }
 
     document.querySelector('#promoteQ').src = "_"+boardRotation[0]+"Q.svg";
@@ -14807,7 +14838,7 @@ background-image: url('_bK.svg');
 
                   if (!expectedMove || typeof expectedMove === 'string') {
                     const el = document.querySelector('.cg-wrap');
-                    el.style.outline = "0.7vmin solid "+solvedColour+"";
+                    el.style.border = "0.7vmin solid "+solvedColour+"";
                     el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                     cg.set({
                     viewOnly: true,
@@ -14820,7 +14851,7 @@ background-image: url('_bK.svg');
                 expectedMove = expectedLine[count];
                 if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.outline = "0.7vmin solid "+solvedColour+"";
+                  el.style.border = "0.7vmin solid "+solvedColour+"";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
                   viewOnly: true,
@@ -14938,6 +14969,17 @@ background-image: url('_bK.svg');
           const bodyBorderBoxWidth = getContentWidth(el);
           // set board size to inner border width
           document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
+
+          // Get of board to position promote element
+          const promoteOverlay = document.getElementById('center');
+
+          // Get the position of the reference element
+          const rect = el.getBoundingClientRect();
+
+          // Set the position of the positioned element
+          promoteOverlay.style.position = 'absolute'; // or 'fixed' if needed
+          promoteOverlay.style.left = (rect.left) + 'px'; // Adjust 10px as needed for offset
+          promoteOverlay.style.top = (rect.top) + 'px'; // Adjust 10px as needed for offset
       }
     }
     reload();
