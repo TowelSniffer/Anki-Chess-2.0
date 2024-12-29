@@ -7818,7 +7818,10 @@
         function n(M) {
           D(M), t(M), c(M)
         }
-        N.callUserFunction = g, N.toggleOrientation = function(M) {
+        N.callUserFunction = g, N.rePosition = function(M) {
+          M.orientation = M.orientation, M.animation.current = M.draggable.current = M.selected = void 0
+        },g, N.toggleOrientation = function(M) {
+          flipBoard = flipBoard == true ? true : false;
           M.orientation = I.opposite(M.orientation), M.animation.current = M.draggable.current = M.selected = void 0
         }, N.reset = function(M) {
           M.lastMove = void 0, c(M), D(M), t(M)
@@ -13311,7 +13314,10 @@
         N.start = function(M, N) {
           function A() {
             I.toggleOrientation(M), N()
-          }
+          };
+          function B() {
+            I.rePosition(M), N()
+          };
           return {
             set(N) {
               N.orientation && N.orientation !== M.orientation && A(), (N.fen ? D.anim : D.render)(M => g.configure(M, N), M)
@@ -13319,6 +13325,7 @@
             state: M,
             getFen: () => j.write(M.pieces),
             toggleOrientation: A,
+            rePosition: B,
             setPieces(N) {
               D.anim(M => I.setPieces(M, N), M)
             },
@@ -16266,6 +16273,19 @@
                     const M = A.mypgn.getMove(A.mypgn.getMoves().length - 1).fen;
                     Y(A.currentMove, A.mypgn.getMoves().length - 1, M)
                   }));
+                  let resizeTimer;
+                  const targetDiv = document.getElementById('boardMoves'); // Replace 'myDiv' with your div's ID
+                  const resizeObserver = new ResizeObserver(entries => {
+                    clearTimeout(resizeTimer); // Clear any existing timer
+                    resizeTimer = setTimeout(() => {
+                      // Your function here, executed after 50ms of no resize events
+                      console.log("Resize finished (probably)");
+                      A.board.rePosition();
+                    }, 200);
+                  });
+                  // Start observing the div.  We need to set a initial height to compare against.
+                  targetDiv.previousHeight = targetDiv.clientHeight; //or offsetHeight
+                  resizeObserver.observe(targetDiv);
                   if (t("edit")) {
                     e(L("buttonsId") + "pgn", "click", (function() {
                       ! function() {
@@ -16414,10 +16434,13 @@
     ::-webkit-scrollbar {
       display: none;
     }
+
     :root {
       --board-size: 600px;
       --shadowColor: limegreen;
-      --background-color: grey;
+      --background-color: pink;
+      --coord-white: rgba(255, 255, 255, 0.8);
+      --coord-black: rgba(72, 72, 72, 0.8);
     }
 
 
@@ -16426,15 +16449,77 @@
       margin: 0;
       height:100vh;
       width:100vw;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items:center;
+      justify-content: center;
     }
     .container {
-      height:auto;
       width:var(--board-size);
-      margin: 0 auto;
-      display:block;
       border: 0.7vmin solid var(--background-color);
+      /* Use flexbox */
+      display: flex;
+      align-items:center;
+      justify-content: center;
+      flex-direction:column;
+    }
+
+    .slider-container {
+        width: 100%;
+        height: 0px;
+        background-color: rgb(204, 204, 204);
+    }
+
+    .slider-div {
+        box-shadow: 0px 0px 3px 0px black;
+        width: 30px;
+        height: 15px;
+        left: 50%;
+        top: -7px;
+        background-color: #ccc;
+        margin-bottom: -8px;
+        margin-left: -15px;
+        border-radius: 10px;
+        padding-top: 3px;
+        bottom: 0;
+        position: relative; /* Added for absolute positioning of children */
+    }
+
+    span.slider.s1,
+    span.slider.s2,
+    span.slider.s3,
+    span.slider.s4 {
+        border-bottom: 2px solid #ddd;
+        height: 0px;
+        float: left;
+        width: 20px;
+        margin-left: 5px;
+        border-top: 1px solid #999;
+    }
+
+    .slider-thumb {
+        border: 0;
+        background-color: transparent;
+        width: 50px;
+        height: 50px;
+        position: absolute;
+        left: 50%;
+        margin-left: -25px;
+        border-radius: 50%;
+        bottom: 0;
+        user-select: none;
+        cursor: pointer;
+    }
+    #textField {
+      padding: 7px;
+      font-family: serif;
+      margin-bottom: 5px;
+      font-size: 1.5em;
+      font-weight: bold;
+      box-shadow: 0px 0px 3px 0px black;
+      color: black;
+      background-color: #D7DEE9;
+      border-radius: 4px;
+      width: fit-content;
     }
 
     #boardInner {
@@ -16482,11 +16567,10 @@
     #editboardButton,
     #commentboardButton,
     #boardTopHeader,
-    #boardBottomHeader {
+    #boardBottomHeader,
+    .hidden {
       display: none;
     }
-
-
     #boardMoves {
       margin-top:-20px;
       padding: 7px;
@@ -16495,6 +16579,60 @@
       border-radius: 4px;
       overflow: auto !important;
       height: fit-content;
+      user-select: none;
+    }
+
+    .cg-wrap coords {
+      font-family: serif;
+      position: absolute;
+      display: flex;
+      pointer-events: none;
+      opacity: 0.8;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .cg-wrap coords.ranks {
+      right: 0.5% !important;
+      top: -4.5% !important;
+      flex-flow: column-reverse;
+      height: 100%;
+      width: 8px;
+    }
+    .cg-wrap coords.ranks.black {
+      flex-flow: column;
+    }
+    .cg-wrap coords.files {
+      bottom: 1.5% !important;
+      left: 1% !important;
+      flex-flow: row;
+      width: 100%;
+      height: 8px;
+      text-transform: uppercase;
+      text-align: left;
+    }
+    .cg-wrap coords.files.black {
+      flex-flow: row-reverse;
+    }
+    .cg-wrap coords coord {
+      flex: 1 1 auto;
+    }
+
+    .cg-wrap coords:nth-child(odd) coord:nth-child(even),
+    .cg-wrap coords.squares:nth-child(even) coord:nth-child(odd),
+    .cg-wrap.orientation-black coords.files:nth-child(even) coord:nth-child(even),
+    .cg-wrap.orientation-black coords.ranks:nth-child(odd) coord:nth-child(odd),
+    .cg-wrap coords.files:nth-child(even) coord:nth-child(odd),
+    .cg-wrap coords.ranks:nth-child(even) coord:nth-child(odd) {
+      color: var(--coord-white);
+    }
+
+    .cg-wrap coords:nth-child(odd) coord:nth-child(odd),
+    .cg-wrap coords.squares:nth-child(even) coord:nth-child(even),
+    .cg-wrap.orientation-black coords.files:nth-child(even) coord:nth-child(odd),
+    .cg-wrap.orientation-black coords.ranks:nth-child(odd) coord:nth-child(even),
+    .cg-wrap coords.files:nth-child(even) coord:nth-child(even),
+    .cg-wrap coords.ranks:nth-child(even) coord:nth-child(even){
+      color: var(--coord-black);
     }
   </style>
 
@@ -16530,9 +16668,9 @@
     }
 
     var pgn = getUrlVars()["PGN"];
-    var background = getUrlVars()["background"] ? getUrlVars()["background"] : "grey";
+    var background = getUrlVars()["background"] ? getUrlVars()["background"] : "pink";
     document.documentElement.style.setProperty('--background-color', background);
-    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'false';
+    var flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'false';
     let parsedPGN = parsePgn(pgn, {
       startRule: "game"
     });
@@ -16556,21 +16694,42 @@
     } else if (flipBoard == 'true' && orientation == "black") {
       orientation = "white";
     }
-  </script>
-  <div class="container">
 
+  </script>
+  <div class="container box">
+  <div id="textField" class="hidden"></div>
     <div id="board"></div>
 
+
+  <div class="slider-container" id="slider-container">
+      <div class="slider-div" id="slider-div" style="background-color: rgb(204, 204, 204);">
+          <span class="slider s1"></span>
+          <span class="slider s2"></span>
+          <span class="slider s3"></span>
+          <span class="slider s4"></span>
+          <div class="slider-thumb" id="slider-thumb"></div>
+      </div>
+  </div>
   </div>
   <script>
+    // load user text
+    const ankiText = getUrlVars()["userText"];
+    if (ankiText) {
+      const textField = document.querySelector("#textField")
+      textField.classList.toggle('hidden');
+      textField.innerText = ankiText;
+    }
+
+  document.addEventListener('mouseup', function(e) {
+    // Turn off dragging flag when user mouse is up
+    isHandlerDragging = false;
+  });
     var boardTheme = 'brown';
     var errorCheck = getUrlVars()["errorCheck"] ? getUrlVars()["errorCheck"] : 'false';
     var boardWidth = Math.min(600, document.documentElement.clientWidth * 0.98, document.documentElement.clientHeight * 0.98);
-    console.log(boardWidth);
     // first set border of empty div to calculate width inside border
     document.documentElement.style.setProperty('--board-size', boardWidth + 'px');
     const bodyBorderBoxWidth = getContentWidth(document.querySelector(".container"));
-    console.log(bodyBorderBoxWidth);
     // set board size to inner border width
     document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
 
@@ -16602,8 +16761,60 @@
       document.documentElement.style.setProperty('--shadowColor', "#b31010");
     }
     document.getElementById("board").focus();
-    setTimeout(() => {
 
+    var handler = document.querySelector('.slider-thumb');
+    var wrapper = handler.closest('.container');
+    var boxA = wrapper.querySelector('#boardMoves');
+    var isHandlerDragging = false;
+    let boxAminHeight
+    let currentHeight;
+    document.addEventListener('touchstart', function(e) {
+      // If mousedown event is fired from .handler, toggle flag to true
+      if (e.target === handler) {
+        isHandlerDragging = true;
+      }
+    });
+    document.addEventListener('touchend', function(e) {
+      // If mousedown event is fired from .handler, toggle flag to true
+      isHandlerDragging = false;
+    });
+    document.addEventListener('touchmove', function(e) {
+      // Don't do anything if dragging flag is false
+      if (!isHandlerDragging) {
+        return false;
+      }
+      e.preventDefault(); // Prevent default scrolling behavior
+      var containerOffsetTop = wrapper.offsetTop;
+      var touch = e.touches[0]; // Get the first touch point
+      var pointerRelativeYpos = touch.clientY - containerOffsetTop;
+      boxA.style.height = (currentHeight + pointerRelativeYpos - boxAminHeight) + 'px';
+      boxA.style.flexGrow = 0;
+    });
+    document.addEventListener('mousedown', function(e) {
+      // If mousedown event is fired from .handler, toggle flag to true
+      if (e.target === handler) {
+        isHandlerDragging = true;
+      }
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      // Don't do anything if dragging flag is false
+      if (!isHandlerDragging) {
+        return false;
+      }
+      var containerOffsetTop = wrapper.offsetTop;
+      var pointerRelativeYpos = e.clientY - containerOffsetTop;
+      boxA.style.height = (currentHeight + pointerRelativeYpos - boxAminHeight) + 'px';
+      boxA.style.flexGrow = 0;
+    });
+
+
+    setTimeout(() => {
+      const element = document.getElementById("boardMoves");
+      currentHeight = element.clientHeight; //Get the element's height including padding, border, and horizontal scrollbar (if present)
+      element.style.minHeight = currentHeight + "px";
+      element.style.height = currentHeight + "px";
+      boxAminHeight = document.querySelector(".container").clientHeight + 8;
       document.querySelector("#boardInner").style.border = "0.7vmin solid var(--shadowColor)";
     }, "50");
 
