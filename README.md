@@ -32,6 +32,10 @@ How to install:
 
 ## Customization
 
+### Text Field
+
+Currently doesn't support any formatting or line breaks etc. So inteded to just be a line of text (opening, brief description etc.)
+
 ### First Move Orientation
 
 For both of the following lines changing `flip=true` to `flip=false`. should result in the first move of the PGN being the first move in the puzzle, as oppose to the default behaviour which is that the first moves plays automatically and you must then respond.
