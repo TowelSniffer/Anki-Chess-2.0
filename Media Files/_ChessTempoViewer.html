@@ -16842,7 +16842,7 @@
           var containerOffsetTop = wrapper.offsetTop;
           var touch = e.touches[0]; // Get the first touch point
           var pointerRelativeYpos = touch.clientY - containerOffsetTop;
-          boxA.style.height = (currentHeight + pointerRelativeYpos - boxAminHeight) + 'px';
+          boxA.style.height = (currentHeight + pointerRelativeYpos - currentHeight - 14) + 'px';
           // boxA.style.flexGrow = 0;
         });
         document.addEventListener('mousedown', function(e) {
