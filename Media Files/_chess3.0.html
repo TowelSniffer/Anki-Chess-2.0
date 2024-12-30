@@ -7579,7 +7579,7 @@
   --coord-white: rgba(255, 255, 255, 0.8);
   --coord-black: rgba(72, 72, 72, 0.8);
   --background-color: grey;
-  --board-size: 600px;
+  --board-size: min(max(calc(98vh - 12px), 300px), max(calc(98vw - 12px), 300px), 600px); /*have to account for 6px border*/
   --border-color: #808080;
 }
 
@@ -7596,7 +7596,7 @@ html {
 body {
   background: var(--background-color);
   margin:0;
-  height:100%;
+  height:100vh;
   width:100%;
   display: flex;
   flex-direction: column;
@@ -7629,13 +7629,16 @@ button {
 }
 
 #center {
+/*  margin:6px;*/
   position:absolute;
+/*  left: 50%;
+  transform: translateX(-50%);*/
   height: calc(var(--board-size)*0.25);
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(10px);
-  box-shadow: 0px 0px 3px 0px black, 0 -1px 0 var(--border-color), -1px 0 0 var(--border-color), -1px -1px 0 var(--border-color);
+/*   box-shadow: 0px 0px 3px 0px black, 0 -1px 0 var(--border-color), -1px 0 0 var(--border-color), -1px -1px 0 var(--border-color); */
   width: var(--board-size);
-  margin:0.7vmin;
+
   z-index: 100;
   display: flex;
   justify-content: center;
@@ -7644,7 +7647,7 @@ button {
 }
 
 #textField {
-  padding: 7px;
+  padding: 6px;
   font-family: serif;
   margin-bottom: 5px;
   font-size: 1.5em;
@@ -7710,7 +7713,7 @@ button.promoteBtn:focus {
   position: relative;
   margin:0 auto;
   display: block;
-  border: 0.7vmin solid var(--background-color);
+  border: 6px solid var(--background-color);
 }
 
 cg-board {
@@ -14756,7 +14759,7 @@ background-image: url('_bK.svg');
 
               if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.border = "6px solid "+solvedColour+"";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
                     viewOnly: true,
@@ -14769,7 +14772,7 @@ background-image: url('_bK.svg');
             expectedMove = expectedLine[count];
             if (!expectedMove || typeof expectedMove === 'string') {
               const el = document.querySelector('.cg-wrap');
-              el.style.border = "0.7vmin solid "+solvedColour+"";
+              el.style.border = "6px solid "+solvedColour+"";
               el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
               cg.set({
               fen: chess.fen(),
@@ -14839,7 +14842,7 @@ background-image: url('_bK.svg');
 
                   if (!expectedMove || typeof expectedMove === 'string') {
                     const el = document.querySelector('.cg-wrap');
-                    el.style.border = "0.7vmin solid "+solvedColour+"";
+                    el.style.border = "6px solid "+solvedColour+"";
                     el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                     cg.set({
                     viewOnly: true,
@@ -14852,7 +14855,7 @@ background-image: url('_bK.svg');
                 expectedMove = expectedLine[count];
                 if (!expectedMove || typeof expectedMove === 'string') {
                   const el = document.querySelector('.cg-wrap');
-                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.border = "6px solid "+solvedColour+"";
                   el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                   cg.set({
                   viewOnly: true,
@@ -14959,33 +14962,46 @@ background-image: url('_bK.svg');
       const el = document.querySelector('.cg-wrap');
       if (el) {
           if (boardRotation == 'black') {
-            el.style.border = "0.7vmin solid black";
+            el.style.border = "6px solid black";
           } else {
-            el.style.border = "0.7vmin solid white";
+            el.style.border = "6px solid white";
           }
           el.style.boxShadow ="0px 0px 6px 0px LightSlateGrey"
-          const px = Math.min(600, document.documentElement.clientWidth * 0.98, document.documentElement.clientHeight * 0.98);
-          // first set border of empty div to calculate width inside border
-          document.documentElement.style.setProperty('--board-size', px + 'px');
-          const bodyBorderBoxWidth = getContentWidth(el);
+          // const bodyBorderBoxWidth = getContentWidth(el);
           // set board size to inner border width
-          document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
+          // document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
 
       }
     }
-    async function loadElements() {
-      await reload();
-
-      // Get of board to position promote element
+    let vh = 12;
+    function resizeBoard() {
       const promoteOverlay = document.getElementById('center');
-
-      // Get the position of the reference element
       const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
 
-      // Set the position of the positioned element
-      promoteOverlay.style.left = (rect.left) + 'px';
-      promoteOverlay.style.top = (rect.top) + 'px';
+      // Set the position of the promote element
+      promoteOverlay.style.top = (rect.top + 6) + 'px';
+      promoteOverlay.style.left = (rect.left + 6) + 'px';
+      if (document.body.scrollHeight > window.innerHeight) {
+        while (document.body.scrollHeight > window.innerHeight && vh < 300) {
+          vh++;
+          document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 300px), max(calc(98vw - 12px), 300px), 600px)');
+        }
+      } else {
+        while (!(document.body.scrollHeight > window.innerHeight) && vh > 13 ) {
+          vh--;
+          document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 300px), max(calc(98vw - 12px), 300px), 600px)');
+        }
+      };
     }
+
+
+    async function loadElements() {
+      await reload();
+      resizeBoard();
+      window.addEventListener('resize', resizeBoard);
+    }
+
+
 
     loadElements();
 
