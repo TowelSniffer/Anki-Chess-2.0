@@ -16540,9 +16540,8 @@
     #board {
       display:grid;
       gap: 10px;
-      margin-left:-14px;
       width: fit-content !important;
-      max-width: min(1200px, calc(100% - 28px));
+      max-width: min(1200px, 100%);
       box-sizing: border-box;
       grid-template-columns: auto auto !important;
       grid-template-rows: auto auto !important;
@@ -16550,9 +16549,31 @@
         "outerBoard boardMoves"
         "boardButton sliderContainer";
     }
+    #wrapper {
+      max-width: var(--board-size);
+      grid-area: boardMoves;
+      height: fit-content;
+      max-height: var(--board-size);
+      display:flex;
+      flex-direction: column;
+    }
+
+    #boardMoves {
+      max-width: 360px;
+      width: 360px;
+      border: 7px solid #D7DEE9; /*border seems to handle grid sizing better than padding*/
+      box-shadow: 0px 0px 3px 0px black;
+      background-color: #D7DEE9;
+      border-radius: 4px;
+      overflow: auto !important;
+      height: fit-content;
+      user-select: none;
+    }
 
     @media (max-width: 1000px) {
       #board {
+        padding-right: 0;
+        margin-left:-14px;
         grid-template-columns: repeat(3, auto) !important;
         grid-template-rows: auto !important;
         gap: 0px;
@@ -16561,8 +16582,11 @@
           "boardButton"
           "sliderContainer"
           "boardMoves";
-        max-width: min(1200px, 100%);
-      };
+      }
+      #boardMoves {
+        max-width: var(--board-size);
+        width: var(--board-size);
+      }
     }
 
     .outerBoard {
@@ -16605,26 +16629,7 @@
     .hidden {
       display: none;
     }
-    #wrapper {
-      max-width: var(--board-size);
-      grid-area: boardMoves;
-      height: fit-content;
-      max-height: var(--board-size);
-      display:flex;
-      flex-direction: column;
-    }
 
-    #boardMoves {
-      max-width: var(--board-size);
-      width: 100%;
-      border: 7px solid #D7DEE9; /*border seems to handle grid sizing better than padding*/
-      box-shadow: 0px 0px 3px 0px black;
-      background-color: #D7DEE9;
-      border-radius: 4px;
-      overflow: auto !important;
-      height: fit-content;
-      user-select: none;
-    }
 
     .cg-wrap coords {
       font-family: serif;
