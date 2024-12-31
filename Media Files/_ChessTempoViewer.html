@@ -16275,6 +16275,7 @@
                       changeAudio(A.mypgn.getMove(0).notation)
                     }
                     g();
+
                   })), e(L("buttonsId") + "last", "click", (function() {
                     if (A.currentMove !== A.mypgn.getMoves().length - 1) {
                         changeAudio(A.mypgn.getMove(A.mypgn.getMoves().length - 1).notation)
@@ -16284,6 +16285,15 @@
                   }));
                   let resizeTimer;
                   const targetDiv = document.getElementById('boardMoves'); // Replace 'myDiv' with your div's ID
+                  document.querySelector("#boardInner").addEventListener('wheel', (event) => {
+                    event.preventDefault();
+                    const delta = Math.sign(event.deltaY);
+                    if (delta == 1) {
+                      I()
+                    } else if (delta == -1) {
+                      j()
+                    }
+                  });
                   const resizeObserver = new ResizeObserver(entries => {
                     clearTimeout(resizeTimer); // Clear any existing timer
                     resizeTimer = setTimeout(() => {
