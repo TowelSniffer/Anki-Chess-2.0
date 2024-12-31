@@ -16136,6 +16136,15 @@
                 u.style.width = M.width, u.style.height = M.width;
                 let N = null;
                 N = M.rankFontSize ? M.rankFontSize : Math.max(8, Math.round(parseInt(M.width.slice(0, -2)) / 28 * M.coordsFactor)), u.style.fontSize = N + "px", document.body.dispatchEvent(new Event("chessground.resize"))
+                window.addEventListener('resize', function(e) {
+                  bodyBorderBoxWidth = Math.floor(getContentWidth(document.querySelector(".innerBoardCalc")));
+                  // set board size to inner border width
+                  document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
+                  M.width = bodyBorderBoxWidth + "px";
+                  u.style.width = bodyBorderBoxWidth + "px", u.style.height = bodyBorderBoxWidth + "px";
+                let N = null;
+                N = M.rankFontSize ? M.rankFontSize : Math.max(8, Math.round(parseInt(M.width.slice(0, -2)) / 28 * M.coordsFactor)), u.style.fontSize = N + "px", document.body.dispatchEvent(new Event("chessground.resize"))
+                });
               }
               if (M.coordsInner && u.classList.add("coords-inner"), t("edit")) {
                 g.load(M.position);
@@ -16279,7 +16288,6 @@
                     clearTimeout(resizeTimer); // Clear any existing timer
                     resizeTimer = setTimeout(() => {
                       // Your function here, executed after 50ms of no resize events
-                      console.log("Resize finished (probably)");
                       A.board.rePosition();
                     }, 200);
                   });
@@ -16463,8 +16471,8 @@
     .innerBoardCalc {
       display:none;
       position: absolute;
-      width:var(--board-size);
-      height:var(--board-size);
+      width:max(400px, min(calc(100vh - 120px), 98vw, 600px));
+      height:max(400px, min(calc(100vh - 120px), 98vw, 600px));
       border: 6px solid red;
       /* Use mainly used to get inner div calculations with border */
     }
@@ -16570,7 +16578,6 @@
       background-color: #D7DEE9;
       height: 0;
       width: 0;
-      resize: none;
       overflow: hidden;
       outline: none !important;
       opacity: 0;
@@ -16751,7 +16758,7 @@
     var isHandlerDragging = false;
     var boardTheme = 'brown';
     var errorCheck = getUrlVars()["errorCheck"] ? getUrlVars()["errorCheck"] : 'false';
-    const bodyBorderBoxWidth = Math.floor(getContentWidth(document.querySelector(".innerBoardCalc")));
+    var bodyBorderBoxWidth = Math.floor(getContentWidth(document.querySelector(".innerBoardCalc")));
     // set board size to inner border width
     document.documentElement.style.setProperty('--board-size', bodyBorderBoxWidth + 'px');
 
@@ -16871,7 +16878,6 @@
     }
 
     function resizeBoard() {
-
       if (document.body.scrollHeight > (window.innerHeight+2)) {
         document.body.style.alignItems = "start"
       } else {
