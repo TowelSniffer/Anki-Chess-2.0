@@ -72,13 +72,16 @@ Changing the value of `acceptVariations` will decide if side variations consider
 
 ## Cross Compatability
 
-I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable.
+I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable. 
 
 ## HELP!!! My weird screen can't display the entire board!!
 
 There are values in the styling section that can modify the board size. If the board is too big for your screen, you can try reducing the following values. Start by redcucing the `height` value for both the body and iframe in the relevant section of your device: desktop, android, or iOS.
 
 ```
+html, body, #qa, #content {
+  margin:0 !important;
+}
 /* Styling for desktop devices */
 body {
   height: 100vh;
@@ -87,30 +90,28 @@ body {
   overflow: hidden
 }
 
+
+#qa, #content {
+  height:100%;
+  width: 100%;
+}
+
 iframe {
-  height: 100vh;
-  width: 100vmin;
-  border: 0
+  height: 100%;
+  width: 100%;
+  border: 0;
 }
 
 /* Styling for android devices */
 .mobile iframe {
-  height: 93vh;
-  width: min(93vh ,97vmin)
+  height: 99vh;
 }
 
-.mobile body {
-  height: 93vh;
-}
+
 
 /* Styling for iPad and iPhone devices */
-.iphone .iframe, .ipad .iframe {
-  height: 85vh;
-  width: min(85vh ,97vmin)
-}
-
-.iphone .body, .ipad .body {
-  height: 85vh;
+.iphone iframe, .ipad iframe {
+  height: 77vh;
 }
 ```
 
