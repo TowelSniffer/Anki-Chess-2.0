@@ -7578,8 +7578,8 @@
 :root {
   --coord-white: rgba(255, 255, 255, 0.8);
   --coord-black: rgba(72, 72, 72, 0.8);
-  --background-color: grey;
-  --board-size: min(max(calc(98vh - 12px), 300px), max(calc(98vw - 12px), 300px), 600px); /*have to account for 6px border*/
+  --background-color: transparent;
+  --board-size: min(max(calc(98vh - 12px), 200px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
   --border-color: #808080;
 }
 
@@ -7599,10 +7599,8 @@ body {
   height:100vh;
   width:100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content:center;
-
 }
 
 select { font-size:1.2em; }
@@ -7618,6 +7616,14 @@ button {
   box-shadow: 0px 0px 3px 1px black;
   z-index: 100;
   cursor: pointer;
+}
+
+#container {
+  padding-top: 5px; /*min top margin when client height is low*/
+  padding-bottom: 5px; /*min bottom margin when client height is low*/
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #overlay {
@@ -7914,8 +7920,10 @@ background-image: url('_bK.svg');
   </head>
   <body>
     <div id="overlay" class="hidden showHide"></div>
-    <div id="textField" class="hidden"></div>
-    <div id="chessground-examples"></div>
+    <div id="container">
+      <div id="textField" class="hidden"></div>
+      <div id="chessground-examples"></div>
+    </div>
     <div class="hidden showHide" id="center">
     <button class="promoteBtn" value="q"><img class="promotePiece" id="promoteQ"></button>
     <button class="promoteBtn" value="b"><img class="promotePiece" id="promoteB"></button>
@@ -14970,31 +14978,48 @@ background-image: url('_bK.svg');
       }
     }
     let vh = 12;
-    function resizeBoard() {
+
+    function positionPromoteOverlay() {
       const promoteOverlay = document.getElementById('center');
       const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
 
       // Set the position of the promote element
       promoteOverlay.style.top = (rect.top + 6) + 'px';
       promoteOverlay.style.left = (rect.left + 6) + 'px';
-      if (document.body.scrollHeight > window.innerHeight) {
-        while (document.body.scrollHeight > window.innerHeight && vh < 300) {
-          vh++;
-          document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 300px), max(calc(98vw - 12px), 300px), 600px)');
-        }
+      window.addEventListener('resize', resizeBoard);
+    }
+
+    async function resizeBoard() {
+      if (document.querySelector("#container").scrollHeight > document.body.clientHeight) {
+        document.body.style.alignItems = "start"
       } else {
-        while (!(document.body.scrollHeight > window.innerHeight) && vh > 13 ) {
-          vh--;
-          document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 300px), max(calc(98vw - 12px), 300px), 600px)');
-        }
-      };
+        document.body.style.alignItems = "center"
+      }
+      let resizeTimer;
+      resizeTimer = await setTimeout(() => {
+      if (document.querySelector("#container").scrollHeight > document.body.clientHeight) {
+        clearTimeout(resizeTimer);
+          while (document.querySelector("#container").scrollHeight > document.body.clientHeight && vh < 1000) {
+            vh++;
+            document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 200px), max(calc(98vw - 12px), 200px), 600px)');
+          }
+        } else {
+          while (!(document.querySelector("#container").scrollHeight > document.body.clientHeight) && vh > -1 ) {
+            vh--;
+            document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 200px), max(calc(98vw - 12px), 200px), 600px)');
+          }
+        };
+      }, 200);
+      positionPromoteOverlay();
     }
 
 
     async function loadElements() {
       await reload();
-      resizeBoard();
-      window.addEventListener('resize', resizeBoard);
+      await resizeBoard();
+      setTimeout(() => {
+        positionPromoteOverlay();
+      }, 200);
     }
 
 
