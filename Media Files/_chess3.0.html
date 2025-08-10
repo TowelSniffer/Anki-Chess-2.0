@@ -8058,7 +8058,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
 
     let boardRotation = "black";
     const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer';
+    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Puzzle';
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = ankiFen.match(patt);
     if (result == " w ") {
@@ -14264,13 +14264,12 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
                   selectState = false;
                   return
                 } else if (selectState !== key && key == cg.state.selected) {
-                  // when a movable piece
+                  // when another movable piece is clicked
                   selectState = key;
                   return
                 } else if (selectState) {
                   // key is not a movable piece and currently peice selected
                   selectState = false;
-                  return
                 }
                 const targetSquare = key; // finds all legal moves that lead to clicked square
                 const legalMovesToSquare = util_1.getLegalMovesToSquare(chess, targetSquare);
@@ -14369,15 +14368,13 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
                   util_1.drawArrows(cg, chess);
                   return
                 } else if (selectState !== key && key == cg.state.selected) {
-                  // when a movable piece
+                  // when another movable piece is clicked
                   selectState = key;
                   util_1.drawArrows(cg, chess);
                   return
                 } else if (selectState) {
                   // key is not a movable piece and currently peice selected
                   selectState = false;
-                  util_1.drawArrows(cg, chess);
-                  return
                 }
 
                 const targetSquare = key; // finds all legal moves that lead to clicked square
