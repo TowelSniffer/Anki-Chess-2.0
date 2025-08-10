@@ -8014,19 +8014,19 @@ background-image: url('_bK.svg');
     let ankiFen;
     let urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "?"]
 [Site "?"]
-[Date "2025.02.21"]
+[Date "2023.02.13"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
-[Result "*"]
-[FEN "r4rk1/5pp1/3R3p/8/1R6/P4N2/2P2PPP/6K1 b - - 0 26"]
+[Result "1-0"]
+[FEN "6k1/1b1p4/6Q1/p1qP4/1p6/8/PPP4P/3R3K b - - 0 29"]
 [SetUp "1"]
 
-26... Rxa3 27. Rb1 {EV: 99.8%, N: 25.41% of 105k} (27. Rbd4 {EV: 99.7%, N: 1.39%
-of 105k}) (27. Re4 {EV: 99.8%, N: 2.19% of 105k}) (27. Rd1 {EV: 99.8%, N: 24.29%
-of 105k}) (27. h3 {EV: 99.8%, N: 13.03% of 105k}) (27. h4 {EV: 99.8%, N: 16.66%
-of 105k}) (27. Kf1 {EV: 99.6%, N: 14.42% of 105k}) (27. Ne1 {EV: 99.5%, N: 1.24%
-of 105k}) *
+29... Kf8 30. Rf1+ {EV: 100.0%, N: 50.97% of 131k} Ke7 {EV: 0.0%, N: 99.99% of
+10.4M} 31. Qf6+ {EV: 100.0%, N: 84.74% of 217k} Ke8 {EV: 0.0%, N: 100.00% of
+1.1M} 32. Re1+ {EV: 100.0%, N: 33.78% of 506k} (32. Qh8+ {EV: 100.0%, N: 57.98%
+of 506k} Ke7 33. Qf8# {EV: 100.0%, N: 86.90% of 284k}) Qe7 {EV: 0.0%, N: 99.98%
+of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
 `;
 
     // load user text
@@ -8057,7 +8057,7 @@ of 105k}) *
     var errorCheck = getUrlVars()["errorCheck"] ? getUrlVars()["errorCheck"] : '';
 
     let boardRotation = "black";
-    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'false';
+    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
     var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer';
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = ankiFen.match(patt);
@@ -14257,7 +14257,18 @@ of 105k}) *
             },
             events: {
               select: (key) => { // 'key' is the clicked square string (e.g., "e2")
-                if (selectState) {
+
+                // this logic checks for senarios when not to run onclick event to avoid double execution with click to move or drag and drop
+                if (cg.state.selected == selectState && selectState == key) {
+                  // clicking on same piece again to unselect
+                  selectState = false;
+                  return
+                } else if (selectState !== key && key == cg.state.selected) {
+                  // when a movable piece
+                  selectState = key;
+                  return
+                } else if (selectState) {
+                  // key is not a movable piece and currently peice selected
                   selectState = false;
                   return
                 }
@@ -14270,13 +14281,15 @@ of 105k}) *
                   const lastMove = chess.getLastMove();
                   cg.set({
                       fen: chess.fen(),
+                      turnColor: util_1.toColor(chess),
+                      movable: {
+                        color: util_1.toColor(chess),
+                        dests: util_1.toDests(chess)
+                      },
                       check: chess.in_check(),
                       lastMove: [lastMove.from, lastMove.to]
                   });
                   util_1.aiPlay(cg, chess, 300, legalMovesToSquare[0].from, legalMovesToSquare[0].to)();
-                }
-                if (cg.state.selected) {
-                  selectState = true;
                 }
               }
             }
@@ -15445,6 +15458,7 @@ of 105k}) *
     exports.getLegalMovesToSquare = getLegalMovesToSquare;
     function aiPlay(cg, chess, delay, from, to) {
         return (orig, dest) => {
+          selectState = false; // disables select state indication for dropped piece
           if (from) {
             orig = from;
             dest = to;
