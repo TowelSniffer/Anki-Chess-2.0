@@ -8014,20 +8014,23 @@ background-image: url('_bK.svg');
     let ankiFen;
     let urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "?"]
 [Site "?"]
-[Date "2025.08.08"]
+[Date "2025.02.21"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
+[FEN "r4rk1/5pp1/3R3p/8/1R6/P4N2/2P2PPP/6K1 b - - 0 26"]
+[SetUp "1"]
 
-1. Nf3 e6 (1... d5 2. d4 Nf6 (2... e6 3. Ne5)) (1... Nf6 2. e4 Nxe4) (1... f6 2.
-Ne5 (2. Ng5 fxg5) fxe5 3. f4 exf4 4. g3 fxg3 5. Rg1 gxh2 6. Bg2 hxg1=Q+ (6...
-hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
+26... Rxa3 27. Rb1 {EV: 99.8%, N: 25.41% of 105k} (27. Rbd4 {EV: 99.7%, N: 1.39%
+of 105k}) (27. Re4 {EV: 99.8%, N: 2.19% of 105k}) (27. Rd1 {EV: 99.8%, N: 24.29%
+of 105k}) (27. h3 {EV: 99.8%, N: 13.03% of 105k}) (27. h4 {EV: 99.8%, N: 16.66%
+of 105k}) (27. Kf1 {EV: 99.6%, N: 14.42% of 105k}) (27. Ne1 {EV: 99.5%, N: 1.24%
+of 105k}) *
 `;
 
     // load user text
     const ankiText = getUrlVars()["userText"] // ? getUrlVars()["userText"] : `Black to <b>promote<br><ul><li>testing <i>html</i></li></ul></b>`;
-    console.log(ankiText)
     if (ankiText) {
       const textField = document.querySelector("#textField")
       textField.classList.toggle('hidden');
@@ -14388,7 +14391,7 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
                   let moveTracker = false; //will be refrenced to see if valid move is played
                   if (expectedMove && typeof expectedMove !== 'string') {
                     for (var i = 0; i < legalMovesToSquare.length; i++) {
-                      if (expectedMove.notation.notation === legalMovesToSquare[i].san) {
+                      if (expectedMove?.notation?.notation === legalMovesToSquare[i].san) {
                         chess.move(legalMovesToSquare[i].san);
                         const lastMove = chess.getLastMove();
                         changeAudio(lastMove);
@@ -14408,11 +14411,11 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
                         break
                       }
                       const legalMovesToSquareAlt = legalMovesToSquare[i].san;
-                      for (var j = 0; j < expectedMove.variations.length; j++) {
+                      for (var j = 0; j < expectedMove?.variations.length; j++) {
                         chess.move(legalMovesToSquareAlt);
-                        const lastMove = chess.getLastMove();
-                        chess.move(expectedMove.variations[j][0].notation.notation);
+                        const lastMove = chess.undo();
                         if (expectedMove.variations[j][0].notation.notation === legalMovesToSquareAlt) {
+                          chess.move(expectedMove.variations[j][0].notation.notation);
                           changeAudio(lastMove);
                           cg.move(legalMovesToSquareAlt);
                           cg.set({
