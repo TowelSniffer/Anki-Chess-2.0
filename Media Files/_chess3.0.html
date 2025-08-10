@@ -7581,6 +7581,7 @@
   --background-color: transparent;
   --board-size: min(max(calc(98vh - 12px), 200px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
   --border-color: #808080;
+  --border-shadow: LightSlateGrey;
 }
 
 
@@ -8049,10 +8050,11 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
     var handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 2;
     var strictScoring = getUrlVars()["strictScoring"] ? getUrlVars()["strictScoring"] : 'false';
     var acceptVariations = getUrlVars()["acceptVariations"] ? getUrlVars()["acceptVariations"] : 'true';
-    var solvedColour = "limegreen";
+    var solvedColour = "limegreen"; // sets border colour on puzzle completion
+    var errorCheck = getUrlVars()["errorCheck"] ? getUrlVars()["errorCheck"] : '';
 
     let boardRotation = "black";
-    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
+    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'false';
     var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer';
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = ankiFen.match(patt);
@@ -8075,12 +8077,19 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
       boardRotation = "black"
     } else if (flipBoard == 'true' && boardRotation == "black") {
       boardRotation = "white";
-
-    }
-    if (boardRotation == "black") {
-      document.documentElement.style.setProperty('--border-color', boardRotation);
     }
 
+    document.documentElement.style.setProperty('--border-color', boardRotation);
+
+    if (errorCheck == "true" && boardMode == 'Viewer') {
+      document.documentElement.style.setProperty('--border-color', "#b31010");
+      document.documentElement.style.setProperty('--border-shadow', "#b31010");
+    } else if(errorCheck == "false" && boardMode == 'Viewer') {
+      document.documentElement.style.setProperty('--border-color', "limegreen");
+      document.documentElement.style.setProperty('--border-shadow', "limegreen");
+    }
+    window.parent.postMessage(errorCheck, '*'); // communicates with anki connect that puzzle should be marked incomplete (black/white border)
+    errorCheck = 'false'; // default to marking correct
     document.querySelector('#promoteQ').src = "_"+boardRotation[0]+"Q.svg";
     document.querySelector('#promoteB').src = "_"+boardRotation[0]+"B.svg";
     document.querySelector('#promoteN').src = "_"+boardRotation[0]+"N.svg";
@@ -15187,6 +15196,7 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
 
           if (!expectedMove || typeof expectedMove === 'string') {
               const el = document.querySelector('.cg-wrap');
+              window.parent.postMessage(errorCheck, '*'); // communicates with anki connect how puzzle should be marked
               el.style.border = "6px solid "+solvedColour+"";
               el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
               cg.set({
@@ -15208,6 +15218,7 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
         expectedMove = expectedLine[count];
         if (!expectedMove || typeof expectedMove === 'string') {
           const el = document.querySelector('.cg-wrap');
+          window.parent.postMessage(errorCheck, '*'); // communicates with anki connect how puzzle should be marked
           el.style.border = "6px solid "+solvedColour+"";
           el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
           cg.set({
@@ -15231,12 +15242,14 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
       errorCount++;
       const audio = document.getElementById("myAudio");
       if (errorCount > 0 && strictScoring == 'true') { // marks puzzle incorrect with one wrong move
-        window.parent.postMessage('*', '*'); // communicates with anki connect that puzzle should be marked incorrect (red border)
+        errorCheck = 'true';
+        window.parent.postMessage(errorCheck, '*'); // communicates with anki connect that puzzle should be marked incorrect (red border)
         solvedColour = "#b31010";
       };
       if (errorCount > handicap) {
         // mistake limit met so puzzle auto advances
-        window.parent.postMessage('*', '*'); // communicates with anki connect that puzzle should be marked incorrect (red border)
+        errorCheck = 'true';
+        window.parent.postMessage(errorCheck, '*'); // communicates with anki connect that puzzle should be marked incorrect (red border)
         solvedColour = "#b31010";
         if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
           // looked for variations and randomly choses one
@@ -15300,6 +15313,7 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
 
               if (!expectedMove || typeof expectedMove === 'string') {
                 const el = document.querySelector('.cg-wrap');
+                window.parent.postMessage(errorCheck, '*'); // communicates with anki connect that puzzle should be marked correct (green border)
                 el.style.border = "6px solid "+solvedColour+"";
                 el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
                 cg.set({
@@ -15317,6 +15331,7 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
             expectedMove = expectedLine[count];
             if (!expectedMove || typeof expectedMove === 'string') {
               const el = document.querySelector('.cg-wrap');
+              window.parent.postMessage(errorCheck, '*'); // communicates with anki connect that puzzle should be marked correct (green border)
               el.style.border = "6px solid "+solvedColour+"";
               el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
               cg.set({
@@ -15536,12 +15551,8 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
       ChessgroundExamples.run(document.getElementById('chessground-examples'));
       const el = document.querySelector('.cg-wrap');
       if (el) {
-          if (boardRotation == 'black') {
-            el.style.border = "6px solid black";
-          } else {
-            el.style.border = "6px solid white";
-          }
-          el.style.boxShadow ="0px 0px 6px 0px LightSlateGrey"
+          el.style.border = "6px solid var(--border-color)";
+          el.style.boxShadow ="0px 0px 6px 0px var(--border-shadow)";
       }
     }
     let vh = 12;
