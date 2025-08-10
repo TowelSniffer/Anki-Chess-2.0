@@ -7615,7 +7615,7 @@ body {
   font-family: 'Material Icons';
   font-weight: normal;
   font-style: normal;
-  font-size: calc(var(--board-size)*0.15);
+  font-size: min(75px, calc(var(--board-size)*0.15));
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -7628,7 +7628,7 @@ body {
 }
 
 .md-small {
-  font-size: calc(var(--board-size)*0.09);
+  font-size: min(45px, calc(var(--board-size)*0.09));;
 }
 
 select { font-size:1.2em; }
@@ -7680,7 +7680,9 @@ button {
   padding: 6px;
   font-family: serif;
   margin-bottom: 5px;
+  text-align: center;
   font-size: 1.5em;
+  width: var(--board-size);
   font-weight: bold;
   box-shadow: 0px 0px 3px 0px black;
   color: black;
@@ -7710,6 +7712,8 @@ button.navBtn {
   box-shadow: 0px 0px 3px 0px black;
   height: calc(var(--board-size)*0.125);
   width: calc(var(--board-size)*0.125);
+  max-width: 60px;
+  max-height: 60px;
   margin:5px;
   margin-top: 10px;
 }
@@ -7764,6 +7768,9 @@ button.promoteBtn:focus {
  }
 
  #chessground-examples {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   max-width: 600px;
  }
@@ -8030,7 +8037,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
 `;
 
     // load user text
-    const ankiText = getUrlVars()["userText"] // ? getUrlVars()["userText"] : `Black to <b>promote<br><ul><li>testing <i>html</i></li></ul></b>`;
+    const ankiText = getUrlVars()["userText"] ? getUrlVars()["userText"] : `Black to <b>promote<br><ul><li>testing <i>html</i></li></ul></b>`;
     if (ankiText) {
       const textField = document.querySelector("#textField")
       textField.classList.toggle('hidden');
@@ -8058,7 +8065,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
 
     let boardRotation = "black";
     const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer';
+    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Puzzle';
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = ankiFen.match(patt);
     if (result == " w ") {
@@ -15393,7 +15400,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
           for (var i = 0; i < expectedMove.variations.length; i++) {
               chess.move(expectedMove.variations[i][0].notation.notation);
               alternateMove = chess.undo();
-              alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
+              alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'blue' });
           };
         }
         cg.set({
@@ -15486,7 +15493,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
               } else {
                 chess.move(expectedMove.notation.notation);
                 alternateMove = chess.undo();
-                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
+                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'blue' });
               }
             };
           }
