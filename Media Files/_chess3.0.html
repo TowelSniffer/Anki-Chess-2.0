@@ -15501,11 +15501,11 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
               if (moveCheck != expectedMove.variations[i][0].notation.notation) {
                 chess.move(expectedMove.variations[i][0].notation.notation);
                 alternateMove = chess.undo();
-                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
+                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'blue' });
               } else {
                 chess.move(expectedMove.notation.notation);
                 alternateMove = chess.undo();
-                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'blue' });
+                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
               }
             };
           }
