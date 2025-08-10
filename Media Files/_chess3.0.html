@@ -8037,7 +8037,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
 `;
 
     // load user text
-    const ankiText = getUrlVars()["userText"] ? getUrlVars()["userText"] : `Black to <b>promote<br><ul><li>testing <i>html</i></li></ul></b>`;
+    const ankiText = getUrlVars()["userText"] //? getUrlVars()["userText"] : `Black to <b>promote<br><ul><li>testing <i>html</i></li></ul></b>`;
     if (ankiText) {
       const textField = document.querySelector("#textField")
       textField.classList.toggle('hidden');
