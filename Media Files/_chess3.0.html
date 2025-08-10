@@ -8065,7 +8065,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
 
     let boardRotation = "black";
     const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Puzzle';
+    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer';
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = ankiFen.match(patt);
     if (result == " w ") {
@@ -8114,6 +8114,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
     var alternateMove; // used as bullion to show other correct moves with arrows
     var alternateMoves = []; // used to store alternate correct moves in an array
     var promoteChoice = 'q'; //default promotion to queen, can be changed with button withing template however it must be specified before move is made.
+    var debounceTimeout;
     var foundVariation; // a bullion to check if there are multiple lines
     var responseVar; // used to randomly sellect an appropriate response
 
@@ -14245,6 +14246,14 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
             return cg;
         }
     };
+    function debounce(func, delay) { // used to prevent rapid re-execution on touch screen
+
+      return function(...args) {
+        const context = this;
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => func.apply(context, args), delay);
+      };
+    }
     exports.Puzzle = {
         name: 'ankiTemplateFront',
         run(el) {
@@ -14263,7 +14272,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
               check: true,
             },
             events: {
-              select: (key) => { // 'key' is the clicked square string (e.g., "e2")
+              select: debounce((key) => { // 'key' is the clicked square string (e.g., "e2")
 
                 // this logic checks for senarios when not to run onclick event to avoid double execution with click to move or drag and drop
                 if (cg.state.selected == selectState && selectState == key) {
@@ -14302,7 +14311,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
                   });
                   util_1.aiPlay(cg, chess, 300, legalMovesToSquare[0].from, legalMovesToSquare[0].to)();
                 }
-              }
+              }, 100) // debounce time
             }
           });
           cg.set({
@@ -14319,7 +14328,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
           }
           if (chess.game_over() == false && flipBoard == 'true') {
             setTimeout(() => {
-                if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
+                if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
                   const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                   if (moveVar == expectedMove.variations.length) {
                   } else {
@@ -14371,7 +14380,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
               check: true,
             },
             events: {
-              select: (key) => { // onclick handler: 'key' is the clicked square string (e.g., "e2")
+              select: debounce((key) => { // onclick handler: 'key' is the clicked square string (e.g., "e2")
 
                 // this logic checks for senarios when not to run onclick event to avoid double execution with click to move or drag and drop
                 if (cg.state.selected == selectState && selectState == key) {
@@ -14468,9 +14477,11 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
                 } else { // no legal moves to clicked square
                   util_1.drawArrows(cg, chess);
                 }
-              }
+              }, 100) // debounce time
             }
           });
+
+
           function findParent(obj, targetChild) {
             for (const key in obj) {
               // Ensure we're only looking at own properties to avoid prototype chain issues
@@ -14610,7 +14621,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
           }
           if (chess.game_over() == false && flipBoard == 'true') {
             setTimeout(() => {
-                if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
+                if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
                   const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                   if (moveVar == expectedMove.variations.length) {
                   } else {
@@ -15052,7 +15063,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
         return (orig, dest) => {
             selectState = false; // piece has been dropped when this is run so assume no select
             const promoteCheck = chess.move({ from: orig, to: dest});
-            console.log(promoteCheck)
+            clearTimeout(debounceTimeout);
             if (!promoteCheck) { // chess.move returns null without promoteChoice if required
               const promoteButtons = document.querySelectorAll("#center > button");
               const center = document.querySelector("#center");
@@ -15197,7 +15208,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
       if (expectedMove && typeof expectedMove !== 'string') {
         setTimeout(() => {
           errorCount = 0;
-            if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
+            if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
             const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
             if (moveVar == expectedMove.variations.length) {
             } else {
@@ -15314,7 +15325,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
           if (expectedMove && typeof expectedMove !== 'string') {
             setTimeout(() => {
               errorCount = 0;
-                if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
+                if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
                 const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                 if (moveVar == expectedMove.variations.length) {
                 } else {
@@ -15474,6 +15485,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
     exports.getLegalMovesToSquare = getLegalMovesToSquare;
     function aiPlay(cg, chess, delay, from, to) {
         return (orig, dest) => {
+          clearTimeout(debounceTimeout);
           selectState = false; // disables select state indication for dropped piece
           if (from) {
             orig = from;
