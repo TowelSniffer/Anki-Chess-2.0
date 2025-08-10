@@ -8058,7 +8058,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
 
     let boardRotation = "black";
     const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Puzzle';
+    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer';
     var patt = /(( b | w ))(?!.*\1)/g;
     var result = ankiFen.match(patt);
     if (result == " w ") {
@@ -14269,6 +14269,11 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
                   return
                 } else if (selectState) {
                   // key is not a movable piece and currently peice selected
+                  const moveCheck = chess.move({ from: selectState, to: key });
+                  if (moveCheck) {// needed to handle when peice selected and moving to movabale square
+                    chess.undo();
+                    return
+                  };
                   selectState = false;
                 }
                 const targetSquare = key; // finds all legal moves that lead to clicked square
@@ -14374,6 +14379,11 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
                   return
                 } else if (selectState) {
                   // key is not a movable piece and currently peice selected
+                  const moveCheck = chess.move({ from: selectState, to: key });
+                  if (moveCheck) {// needed to handle when peice selected and moving to movabale square
+                    chess.undo();
+                    return
+                  };
                   selectState = false;
                 }
 
@@ -14587,6 +14597,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
           });
           if (chess.in_check() == true) {
             cg.set({
+                turnColor: util_1.toColor(chess),
                 check: true,
             });
           }
@@ -14614,8 +14625,8 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
                 });
 
                   cg.set({
-                    turnColor: boardRotation,
-                      check: chess.in_check()
+                    turnColor: util_1.toColor(chess),
+                    check: chess.in_check()
                   });
                   cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
                 count++;
@@ -15034,6 +15045,7 @@ of 3.2M} 33. Qxe7# {EV: 100.0%, N: 61.25% of 167k} 1-0
         return (orig, dest) => {
             selectState = false; // piece has been dropped when this is run so assume no select
             const promoteCheck = chess.move({ from: orig, to: dest});
+            console.log(promoteCheck)
             if (!promoteCheck) { // chess.move returns null without promoteChoice if required
               const promoteButtons = document.querySelectorAll("#center > button");
               const center = document.querySelector("#center");
