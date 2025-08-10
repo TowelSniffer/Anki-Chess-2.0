@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
   <head>
     <script>
@@ -7578,9 +7577,6 @@
 :root {
   --coord-white: rgba(255, 255, 255, 0.8);
   --coord-black: rgba(72, 72, 72, 0.8);
-  --background-color: transparent;
-  --board-size: min(max(calc(98vh - 12px), 200px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
-  --border-color: #808080;
 }
 
 
@@ -7588,46 +7584,13 @@
   display: none;
 }
 
-html {
-  height:100vh;
-  width:100vw;
-}
-
 body {
-  background: var(--background-color);
-  margin:0;
-  height:100vh;
-  width:100%;
-  display: flex;
-  align-items: center;
-  justify-content:center;
-}
-
-@font-face {
-  font-family: 'Material Icons';
-  font-style: normal;
-  font-weight: 400;
-  src: url("_materialicons.woff2") format('woff2');
-}
-
-.material-icons {
-  font-family: 'Material Icons';
-  font-weight: normal;
-  font-style: normal;
-  font-size: calc(var(--board-size)*0.15);
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -moz-font-feature-settings: 'liga';
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.md-small {
-  font-size: calc(var(--board-size)*0.09);
+  overflow: hidden;
+  margin:0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 select { font-size:1.2em; }
@@ -7641,119 +7604,36 @@ button {
   border: 1px solid #dcdcdc;
   border-radius: 2px;
   box-shadow: 0px 0px 3px 1px black;
-  z-index: 100;
   cursor: pointer;
 }
 
-#container {
-  padding-top: 5px; /*min top margin when client height is low*/
-  padding-bottom: 5px; /*min bottom margin when client height is low*/
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#overlay {
-  height:100vh;
-  width:100vw;
-  position:absolute;
-  z-index: 99;
-  background: rgba(0,0,0,0.5);
-}
-
 #center {
-  position:absolute;
-  height: calc(var(--board-size)*0.25);
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(10px);
-  width: var(--board-size);
-  box-shadow: 0px 0px 3px 1px black;
+  display:none;
+  text-align: center;
+  background-color: rgba(255,255,255,.2);
+  border-radius: 5px;
+  box-shadow: 0px 0px 6px 2px black;
+  padding: .4em;
   z-index: 100;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
+  white-space: nowrap;
+  backdrop-filter: blur(5px);
+  position:absolute;
+  top: 3.5vmin;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
-#textField {
-  padding: 6px;
-  font-family: serif;
-  margin-bottom: 5px;
-  font-size: 1.5em;
-  font-weight: bold;
-  box-shadow: 0px 0px 3px 0px black;
-  color: black;
-  background-color: #D7DEE9;
-  border-radius: 4px;
-}
-
-.hidden {
-  display: none !important;
-}
-
-p {
-  display:none; /*dirty approach to get rid of randome p element under board*/
-}
-
-#buttons-container {
-  display:flex;
-}
-
-button.navBtn {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  border-radius: 4px;
-  border: 1px solid #333B45;
-  box-shadow: 0px 0px 3px 0px black;
-  height: calc(var(--board-size)*0.125);
-  width: calc(var(--board-size)*0.125);
-  margin:5px;
-  margin-top: 10px;
-}
-
-button.navBtn:hover {
-  background-color: #d6d6d6;
+button:hover {
+  background-color: #F8F8F8;
+  border: 1px solid #C6C6C6;
   box-shadow: 0px 0px 6px 0px grey;
   color: #333;
 }
-button.navBtn:active {
-  background-color: #557D38;
-}
-
-button.navBtn:focus {
-  outline: 0;
-}
-
-button.promoteBtn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #737373;
-  box-shadow: 0px 0px 3px 0px black;
-  height: calc(var(--board-size)*0.125);
-  width: calc(var(--board-size)*0.125);
-  border: 0px;
-  margin:10px;
-}
-
-.promotePiece {
-  margin: 0;
-  height: calc(var(--board-size)*0.125);
-  width: calc(var(--board-size)*0.125)
-}
-
-button.promoteBtn:hover {
+button:active {
   background-color: #d6d6d6;
-  box-shadow: 0px 0px 6px 0px grey;
-  color: #333;
-}
-button.promoteBtn:active {
-  background-color: #557D38;
 }
 
-button.promoteBtn:focus {
+button:focus {
   outline: 0;
 }
  html, img {
@@ -7761,19 +7641,9 @@ button.promoteBtn:focus {
    color: white;
 
  }
-
- #chessground-examples {
-  width: 100%;
-  max-width: 600px;
- }
-
 .cg-wrap {
-  width: var(--board-size);
-  height: var(--board-size);
   position: relative;
-  margin:0 auto;
   display: block;
-  border: 6px solid var(--background-color);
 }
 
 cg-board {
@@ -7877,7 +7747,6 @@ cg-board piece.fading {
   z-index: 9;
 }
 .cg-wrap coords {
-  font-family: serif;
   position: absolute;
   display: flex;
   pointer-events: none;
@@ -7886,21 +7755,21 @@ cg-board piece.fading {
   font-weight: bold;
 }
 .cg-wrap coords.ranks {
-  right: 0.1%;
-  top: -4.5%;
+  right: calc(0.7vmin - 5px);
+  top: -4%;
   flex-flow: column-reverse;
   height: 100%;
-  width: 10px;
+  width: 12px;
 }
 .cg-wrap coords.ranks.black {
   flex-flow: column;
 }
 .cg-wrap coords.files {
-  bottom: 1%;
-  left: 1%;
+  bottom: calc(0.7vmin - 5px);
+  left: 6px;
   flex-flow: row;
   width: 100%;
-  height: 10px;
+  height: 16px;
   text-transform: uppercase;
   text-align: left;
 }
@@ -7977,31 +7846,16 @@ background-image: url('_bK.svg');
     </style>
   </head>
   <body>
-    <div id="overlay" class="hidden showHide"></div>
-    <div id="container">
-      <div id="textField" class="hidden"></div>
-      <div id="chessground-examples"></div>
-      <div id="buttons-container">
-        <button class="navBtn" id="navBackward"><span class="material-icons">keyboard_arrow_left</span></button>
-        <button class="navBtn" id="navFoward"><span class="material-icons">keyboard_arrow_right</span></button>
-        <button class="navBtn" title="Copy FEN to clipboard" id="copyFen"><span class="material-icons md-small">content_copy</span></button>
-      </div>
+    <div style="text-align: center">
+    <div id="chessground-examples"></div>
+    <div id="center">
+    <button value="q"><img id="promoteQ" style="width:min(75px, 12.5vmin);"></button>
+    <button value="b"><img id="promoteB" style="width:min(75px, 12.5vmin);"></button>
+    <button value="n"><img id="promoteN" style="width:min(75px, 12.5vmin);"></button>
+    <button value="r"><img id="promoteR" style="width:min(75px, 12.5vmin);"></button>
     </div>
-    <div class="hidden showHide" id="center">
-    <button class="promoteBtn" value="q"><img class="promotePiece" id="promoteQ"></button>
-    <button class="promoteBtn" value="b"><img class="promotePiece" id="promoteB"></button>
-    <button class="promoteBtn" value="n"><img class="promotePiece" id="promoteN"></button>
-    <button class="promoteBtn" value="r"><img class="promotePiece" id="promoteR"></button>
     </div>
     <script>
-    function toggleDisplay(className) {
-    // toggle hidden class for promote elements
-      const elements = document.querySelectorAll('.' + className);
-      elements.forEach(element => {
-        element.classList.toggle('hidden');
-      });
-    }
-
     function getUrlVars() {
       var vars = {};
       var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
@@ -8010,54 +7864,37 @@ background-image: url('_bK.svg');
       return vars;
     }
 
-    let ankiFen;
-    let urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "?"]
-[Site "?"]
-[Date "2025.08.08"]
-[Round "?"]
-[White "White"]
-[Black "Black"]
-[Result "*"]
-
-1. Nf3 e6 (1... d5 2. d4 Nf6 (2... e6 3. Ne5)) (1... Nf6 2. e4 Nxe4) (1... f6 2.
-Ne5 (2. Ng5 fxg5) fxe5 3. f4 exf4 4. g3 fxg3 5. Rg1 gxh2 6. Bg2 hxg1=Q+ (6...
-hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
-`;
-
-    // load user text
-    const ankiText = getUrlVars()["userText"] // ? getUrlVars()["userText"] : `Black to <b>promote<br><ul><li>testing <i>html</i></li></ul></b>`;
-    console.log(ankiText)
-    if (ankiText) {
-      const textField = document.querySelector("#textField")
-      textField.classList.toggle('hidden');
-      textField.innerHTML = ankiText;
-    }
-
-
-
-    var background = getUrlVars()["background"] ? getUrlVars()["background"] : "grey";
-    document.documentElement.style.setProperty('--background-color', background);
-    let parsedPGN = parsePgn(urlPGN, {
+    var pgn = getUrlVars()["PGN"];
+    var background = getUrlVars()["background"];
+    document.body.style.backgroundColor = background;
+    let parsedPGN = parsePgn(pgn, {
       startRule: "game"
     });
+
+    var handicap = getUrlVars()["handicap"];
+    var randomLines = getUrlVars()["randomLines"];
+    var acceptVariations = getUrlVars()["acceptVariations"];
+    var fen;
+    var errorCount = 0;
+    var solvedColour = "limegreen";
     if (parsedPGN.tags.FEN) {
-      ankiFen = parsedPGN.tags.FEN
+      fen = parsedPGN.tags.FEN
     } else {
-      ankiFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+      fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     }
 
-    var handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 2;
-    var strictScoring = getUrlVars()["strictScoring"] ? getUrlVars()["strictScoring"] : 'false';
-    var acceptVariations = getUrlVars()["acceptVariations"] ? getUrlVars()["acceptVariations"] : 'true';
-    var solvedColour = "limegreen";
 
-    let boardRotation = "black";
-    const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-    var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer';
+    var boardRotation = "black";
+    var flipBoard = getUrlVars()["flip"];
+    var FEN = fen;
+
+
     var patt = /(( b | w ))(?!.*\1)/g;
-    var result = ankiFen.match(patt);
+    var result = FEN.match(patt);
     if (result == " w ") {
+
       boardRotation = "white";
+
     }
     if (flipBoard != 'true' && boardRotation == "white" || flipBoard == 'true' && boardRotation == "black") {
       // Get the root element
@@ -8075,10 +7912,11 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
       boardRotation = "black"
     } else if (flipBoard == 'true' && boardRotation == "black") {
       boardRotation = "white";
-
     }
-    if (boardRotation == "black") {
-      document.documentElement.style.setProperty('--border-color', boardRotation);
+    var opponentColour = 'black';
+
+    if (boardRotation == 'black') {
+      opponentColour = 'white';
     }
 
     document.querySelector('#promoteQ').src = "_"+boardRotation[0]+"Q.svg";
@@ -8086,14 +7924,8 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
     document.querySelector('#promoteN').src = "_"+boardRotation[0]+"N.svg";
     document.querySelector('#promoteR').src = "_"+boardRotation[0]+"R.svg";
     var count; // Int so we can track on which move we are.
-    var selectState; // used to track if piece is selected
-    var pgnState = true; // boolian to indicate when entering and exiting scope of PGN
     var expectedLine; // Set initially to the mainline of pgn but can change path with variations
-    var chosenMove; // used to seperated played move from variations
     var expectedMove; // Set the expected move according to PGN
-    var errorCount = 0; // tracks mistakes against handicap
-    var alternateMove; // used as bullion to show other correct moves with arrows
-    var alternateMoves = []; // used to store alternate correct moves in an array
     var promoteChoice = 'q'; //default promotion to queen, can be changed with button withing template however it must be specified before move is made.
     var foundVariation; // a bullion to check if there are multiple lines
     var responseVar; // used to randomly sellect an appropriate response
@@ -9670,6 +9502,7 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
            * move is made
            */
           var pretty_move = make_pretty(move_obj);
+
           make_move(move_obj);
 
           return pretty_move;
@@ -9678,13 +9511,6 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
         undo: function() {
           var move = undo_move();
           return (move) ? make_pretty(move) : null;
-        },
-        getLastMove: function() {
-          // custom function to grab the last move of pgn
-          var move = undo_move();
-          var pretty_move = make_pretty(move);
-          make_move(move); // redoes the move after calling undo_move()
-          return (pretty_move) ? pretty_move : null;
         },
 
         clear: function() {
@@ -14226,385 +14052,104 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
             return cg;
         }
     };
-    exports.Puzzle = {
-        name: 'ankiTemplateFront',
+    exports.vsRandom = {
+        name: '',
         run(el) {
-          const fen = ankiFen;
+          const fen = FEN;
           const chess = new chess_js_1.Chess(fen);
-          const cg = chessground_1.Chessground(el, {
-            fen: fen,
-            turnColor: boardRotation,
-            orientation: boardRotation,
-            movable: {
-              color: boardRotation,
-              free: false,
-              dests: util_1.toDests(chess)
-            },
-            highlight: {
-              check: true,
-            },
-            events: {
-              select: (key) => { // 'key' is the clicked square string (e.g., "e2")
-                if (selectState) {
-                  selectState = false;
-                  return
+            const cg = chessground_1.Chessground(el, {
+              fen: FEN,
+              turnColor: boardRotation,
+              orientation: boardRotation,
+                movable: {
+                  color: boardRotation,
+                    free: false,
+                    dests: util_1.toDests(chess),
+                },
+                highlight: {
+                  check: true,
                 }
-                const targetSquare = key; // finds all legal moves that lead to clicked square
-                const legalMovesToSquare = util_1.getLegalMovesToSquare(chess, targetSquare);
-                if (legalMovesToSquare.length == 1) {
-                  // if only one valid move to clicked square, assume you wish to play it
-                  chess.move(legalMovesToSquare[0].san);
-                  cg.move(legalMovesToSquare[0].san);
-                  const lastMove = chess.getLastMove();
+            });
+            cg.set({
+                movable: {
+                    events: {
+                        after: util_1.aiPlay(cg, chess, 300, false)
+                    },
+                    color: boardRotation,
+                }
+            });
+            if (chess.in_check() == true) {
+              if (flipBoard == 'true') {
+                cg.set({
+                  turnColor: opponentColour,
+                });
+              }
+
+              cg.set({
+                  check: true,
+              });
+            }
+            if (chess.game_over() == false && flipBoard == 'true') {
+              setTimeout(() => {
+
+
+                  if (expectedMove.variations.length > 0 && randomLines == 'true') {
+                    const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                    if (moveVar == expectedMove.variations.length) {
+                    } else {
+                      count = 0;
+                      expectedLine = expectedMove.variations[moveVar];
+                      expectedMove = expectedLine[0];
+                    }
+                  }
+                  changeAudio(expectedMove.notation);
+                  chess.move(expectedMove.notation.notation);
+                  const lastMoveAi = chess.undo();
+                  chess.move(expectedMove.notation.notation);
+                  cg.move(expectedMove.notation.notation);;
                   cg.set({
                       fen: chess.fen(),
-                      check: chess.in_check(),
-                      lastMove: [lastMove.from, lastMove.to]
+                      movable: {
+                          dests: util_1.toDests(chess),
+                      }
                   });
-                  util_1.aiPlay(cg, chess, 300, legalMovesToSquare[0].from, legalMovesToSquare[0].to)();
-                }
-                if (cg.state.selected) {
-                  selectState = true;
-                }
-              }
-            }
-          });
-          cg.set({
-              movable: {
-                  events: {
-                      after: util_1.aiPlay(cg, chess, 300)
-                  }
-              }
-          });
-          if (chess.in_check() == true) {
-            cg.set({
-                check: true,
-            });
-          }
-          if (chess.game_over() == false && flipBoard == 'true') {
-            setTimeout(() => {
-                if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
-                  const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                  if (moveVar == expectedMove.variations.length) {
-                  } else {
-                    count = 0;
-                    expectedLine = expectedMove.variations[moveVar];
-                    expectedMove = expectedLine[0];
-                  }
-                }
-                chess.move(expectedMove.notation.notation);
-                const lastMoveAi = chess.getLastMove();
-                changeAudio(lastMoveAi);
-                cg.move(expectedMove.notation.notation);;
-                cg.set({
-                    fen: chess.fen(),
-                    movable: {
-                        dests: util_1.toDests(chess),
-                    }
-                });
 
-                  cg.set({
-                    turnColor: boardRotation,
-                      check: chess.in_check()
-                  });
-                  cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-                count++;
-                expectedMove = expectedLine[count];
-                cg.playPremove();
-            }, 100);
-          }
-          document.querySelector('#buttons-container').style = "display: none"
-          return cg;
+                    cg.set({
+                      turnColor: boardRotation,
+                        check: chess.in_check()
+                    });
+                    cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+                  count++;
+                  expectedMove = expectedLine[count];
+                  cg.playPremove();
+              }, 100);
+            }
+            return cg;
         }
     };
-    exports.Viewer = {
-        name: 'ankiTemplateViewer',
+    exports.fullRandom = {
+        name: 'Watch 2 random AIs',
         run(el) {
-          const fen = ankiFen;
-          const chess = new chess_js_1.Chess(fen);
-          const cg = chessground_1.Chessground(el, {
-            fen: fen,
-            orientation: boardRotation,
-            turnColor: boardRotation,
-            movable: {
-              free: false,
-              color: boardRotation,
-              dests: util_1.toDests(chess)
-            },
-            highlight: {
-              check: true,
-            },
-            events: {
-              select: (key) => { // onclick handler: 'key' is the clicked square string (e.g., "e2")
-
-                // this logic checks for senarios when not to run onclick event to avoid double execution with click to move or drag and drop
-                if (cg.state.selected == selectState && selectState == key) {
-                  // clicking on same piece again to unselect
-                  selectState = false;
-                  util_1.drawArrows(cg, chess);
-                  return
-                } else if (selectState !== key && key == cg.state.selected) {
-                  // when a movable piece
-                  selectState = key;
-                  util_1.drawArrows(cg, chess);
-                  return
-                } else if (selectState) {
-                  // key is not a movable piece and currently peice selected
-                  selectState = false;
-                  util_1.drawArrows(cg, chess);
-                  return
+            const chess = new chess_js_1.Chess();
+            const cg = chessground_1.Chessground(el, {
+                animation: {
+                    duration: 1000
+                },
+                movable: {
+                    free: false
                 }
-
-                const targetSquare = key; // finds all legal moves that lead to clicked square
-                const legalMovesToSquare = util_1.getLegalMovesToSquare(chess, targetSquare);
-                if (legalMovesToSquare.length == 1) {
-                  // if only one valid move to clicked square, assume you wish to play it
-                  chess.move(legalMovesToSquare[0].san);
-                  const lastMove = chess.getLastMove();
-                  changeAudio(lastMove);
-                  cg.move(legalMovesToSquare[0].san);
-                  cg.set({
-                      fen: chess.fen(),
-                      check: chess.in_check(),
-                      turnColor: util_1.toColor(chess),
-                      movable: {
-                        color: util_1.toColor(chess),
-                        dests: util_1.toDests(chess)
-                      },
-                      lastMove: [lastMove.from, lastMove.to]
-                  });
-                  util_1.PGNnavigator(cg, chess, lastMove.san);
-                } else if (legalMovesToSquare.length > 1 && pgnState) {
-                  // checks if clicked square is a correct choice and if so moves to first instance.
-                  let moveTracker = false; //will be refrenced to see if valid move is played
-                  if (expectedMove && typeof expectedMove !== 'string') {
-                    for (var i = 0; i < legalMovesToSquare.length; i++) {
-                      if (expectedMove.notation.notation === legalMovesToSquare[i].san) {
-                        chess.move(legalMovesToSquare[i].san);
-                        const lastMove = chess.getLastMove();
-                        changeAudio(lastMove);
-                        cg.move(legalMovesToSquare[i].san);
-                        cg.set({
-                            fen: chess.fen(),
-                            check: chess.in_check(),
-                            turnColor: util_1.toColor(chess),
-                            movable: {
-                              color: util_1.toColor(chess),
-                              dests: util_1.toDests(chess)
-                            },
-                            lastMove: [lastMove.from, lastMove.to]
-                        });
-                        util_1.PGNnavigator(cg, chess, lastMove.san);
-                        moveTracker = true;
-                        break
-                      }
-                      const legalMovesToSquareAlt = legalMovesToSquare[i].san;
-                      for (var j = 0; j < expectedMove.variations.length; j++) {
-                        chess.move(legalMovesToSquareAlt);
-                        const lastMove = chess.getLastMove();
-                        chess.move(expectedMove.variations[j][0].notation.notation);
-                        if (expectedMove.variations[j][0].notation.notation === legalMovesToSquareAlt) {
-                          changeAudio(lastMove);
-                          cg.move(legalMovesToSquareAlt);
-                          cg.set({
-                              fen: chess.fen(),
-                              check: chess.in_check(),
-                              turnColor: util_1.toColor(chess),
-                              movable: {
-                                color: util_1.toColor(chess),
-                                dests: util_1.toDests(chess)
-                              },
-                              lastMove: [lastMove.from, lastMove.to]
-                          });
-                          util_1.PGNnavigator(cg, chess, legalMovesToSquareAlt);
-                          moveTracker = true;
-                          break;
-                        }
-                      }
-                    }
-                  }
-                  if (!moveTracker) { // ie. no move played but legal moves to clicked square
-                  util_1.drawArrows(cg, chess);
-                  }
-                } else { // no legal moves to clicked square
-                  util_1.drawArrows(cg, chess);
-                }
-              }
-            }
-          });
-          function findParent(obj, targetChild) {
-            for (const key in obj) {
-              // Ensure we're only looking at own properties to avoid prototype chain issues
-              if (obj.hasOwnProperty(key)) {
-                const value = obj[key];
-
-                if (typeof value === 'object' && value !== null) {
-                  // If the current value is the targetChild, then 'obj' is its immediate parent
-                  if (value === targetChild) {
-                    return {
-                      key: key,
-                      parent: obj // This is the direct parent
-                    };
-                  }
-
-                  // If not the child, recurse into the current value (object or array)
-                  const foundParent = findParent(value, targetChild);
-
-                  // If the child was found in a deeper level, propagate that result directly
-                  if (foundParent) {
-                    return foundParent; // Return the actual parent found deeper, not wrapped again
-                  }
-                }
-              }
-            }
-            return null; // Parent not found in this branch
-          };
-          function navBackward() { // Move forward in PGN
-            const lastMove = chess.undo();
-            if (lastMove) {
-              cg.set({
-                  fen: chess.fen(),
-                  check: chess.in_check(),
-                  turnColor: util_1.toColor(chess),
-                  movable: {
-                    color: util_1.toColor(chess),
-                    dests: util_1.toDests(chess)
-                  },
-                  lastMove: [lastMove.from, lastMove.to]
-              });
-
-              if (expectedLine[count-1]?.notation?.notation === lastMove.san) {
-                if (true) {
-                  count--
-                  expectedMove = expectedLine[count];
-                  if (count === 0) {
-                    let parentOfChild = findParent(parsedPGN.moves, expectedLine);
-                    if (parentOfChild) {
-                      for (var i = 0; i < 2; i++) {
-                        parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
-
-                      };
-                      expectedLine = parentOfChild.parent;
-                      count = parentOfChild.key;
-                      expectedMove = expectedLine[count];
-                    }
-                  }
-                }
-              }
-              if (count == 0) {
-                pgnState = true; // needed for returning to first move from variation
-                util_1.drawArrows(cg, chess);
-              } else if (expectedLine[count-1].notation.notation == chess.getLastMove().san) {
-                pgnState = true; // inside PGN
-                util_1.drawArrows(cg, chess);
-              }
-            }
-          };
-          var navFoward = function() { // Move Backwards in PGN
-            if (count == 0) { // handles for when board undone to first move
-              try { // chess.getLastMove() wont work if first move of puzzle
-                const lastMove = chess.getLastMove();
-              } catch (e) { // chess.getLastMove(); failing means this must be the beginning of the PGN and not simply the start of a variation
-                pgnState = true;
-                expectedMove = expectedLine[count];
-                util_1.PGNnavigator(cg, chess);
-              }
-            } else if (expectedLine[count] && typeof expectedLine[count] !== 'string') {
-              const lastMove = chess.getLastMove();
-              if ((expectedLine[count-1]?.notation?.notation == lastMove.san)) {
-                // checks if last move made was part of PGN
-                expectedMove = expectedLine[count];
-                util_1.PGNnavigator(cg, chess);
-              }
-            }
-          }
-          var copyFen = function() { //copy FEN to clipboard
-            let textarea = document.createElement("textarea");
-            textarea.value = chess.fen();
-            // Make the textarea invisible and off-screen
-            textarea.style.position = "absolute";
-            textarea.style.left = "-9999px";
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                const audio = document.getElementById("myAudio");
-                audio.src = "_computer-mouse-click.mp3"
-                audio.play();
-                return true;
-            } catch (err) {
-                const audio = document.getElementById("myAudio");
-                audio.src = "_Error.mp3"
-                audio.play();
-                console.error('Failed to copy text using execCommand:', err);
-                return false;
-            } finally {
-                document.body.removeChild(textarea);
-            }
-          }
-
-          // handle event listeners for buttons
-          document.querySelector("#navBackward").addEventListener('click', navBackward);
-          document.querySelector("#navFoward").addEventListener('click', navFoward);
-          document.querySelector("#copyFen").addEventListener('click', copyFen);
-          el.addEventListener('wheel', (event) => { // scroll Navigation
-              if (event.deltaY < 0) {
-                // Perform actions for scrolling up
-                navBackward()
-              } else if (event.deltaY > 0) {
-                // Perform actions for scrolling down
-                navFoward()
-              }
-          });
-          cg.set({
-              movable: {
-                events: {
-                  after: util_1.playOtherSide(cg, chess)
-                }
-              }
-          });
-          if (chess.in_check() == true) {
-            cg.set({
-                check: true,
             });
-          }
-          if (chess.game_over() == false && flipBoard == 'true') {
-            setTimeout(() => {
-                if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
-                  const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                  if (moveVar == expectedMove.variations.length) {
-                  } else {
-                    count = 0;
-                    expectedLine = expectedMove.variations[moveVar];
-                    expectedMove = expectedLine[0];
-                  }
-                }
-
-                chess.move(expectedMove.notation.notation);
-                const lastMoveAi = chess.getLastMove();
-                changeAudio(lastMoveAi);
-                cg.move(expectedMove.notation.notation);;
-                cg.set({
-                    fen: chess.fen(),
-                    movable: {
-                        dests: util_1.toDests(chess),
-                    }
-                });
-
-                  cg.set({
-                    turnColor: boardRotation,
-                      check: chess.in_check()
-                  });
-                  cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-                count++;
-                expectedMove = expectedLine[count];
-                cg.playPremove();
-                util_1.drawArrows(cg, chess);
-            }, 100);
-          } else {
-            util_1.drawArrows(cg, chess);
-          }
-          return cg;
+            function makeMove() {
+                if (!cg.state.dom.elements.board.offsetParent)
+                    return;
+                const moves = chess.moves({ verbose: true });
+                const move = moves[Math.floor(Math.random() * moves.length)];
+                chess.move(move.san);
+                cg.move(move.from, move.to);
+                setTimeout(makeMove, 700);
+            }
+            setTimeout(makeMove, 700);
+            return cg;
         }
     };
     exports.slowAnim = {
@@ -14912,7 +14457,8 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
     const fen = require("./fen");
     const viewOnly = require("./viewOnly");
     exports.list = [
-        play[boardMode]
+        play.vsRandom,
+
     ];
 
     },{"./anim":32,"./basics":33,"./fen":34,"./in3d":35,"./perf":36,"./play":37,"./svg":38,"./viewOnly":40,"./zh":41}],40:[function(require,module,exports){
@@ -15010,266 +14556,94 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
     exports.toColor = toColor;
     function playOtherSide(cg, chess) {
         return (orig, dest) => {
-            selectState = false; // piece has been dropped when this is run so assume no select
-            const promoteCheck = chess.move({ from: orig, to: dest});
-            if (!promoteCheck) { // chess.move returns null without promoteChoice if required
-              const promoteButtons = document.querySelectorAll("#center > button");
-              const center = document.querySelector("#center");
-              const overlay = document.querySelector("#overlay");
-              for (var i=0; i<promoteButtons.length; i++){
-                promoteButtons[i].onclick = function(){
-                  event.stopPropagation();
-                  promoteChoice=this.value;
-                  toggleDisplay('showHide');
-                  chess.move({ from: orig, to: dest, promotion: promoteChoice});
-                  const lastMove = chess.getLastMove();
-                  changeAudio(lastMove);
-                  cg.set({
-                      fen: chess.fen(),
-                      check: chess.in_check(),
-                      turnColor: toColor(chess),
-                      movable: {
-                          color: toColor(chess),
-                          dests: toDests(chess)
-                      },
-                      lastMove: [lastMove.from, lastMove.to]
-                  });
-                  PGNnavigator(cg, chess, lastMove.san)
-                  document.querySelector(".cg-wrap").style.filter = 'none';
-                  document.querySelector("cg-board").style.cursor = 'pointer';
-                }
-                overlay.onclick = function(){
-                  cg.set({
-                      fen: chess.fen(),
-                      turnColor: toColor(chess),
-                      movable: {
-                          color: toColor(chess),
-                          dests: toDests(chess)
-                      }
-                  });
-                  toggleDisplay('showHide');
-                }
-                center.onclick = function(){
-                  cg.set({
-                      fen: chess.fen(),
-                      turnColor: toColor(chess),
-                      movable: {
-                          color: toColor(chess),
-                          dests: toDests(chess)
-                      }
-                  });
-                  toggleDisplay('showHide');
-                }
-              }
-              toggleDisplay('showHide');
-              document.querySelector("cg-board").style.cursor = 'default';
-            } else {
-              const lastMove = chess.getLastMove();
-              changeAudio(lastMove);
-              cg.set({
-                  fen: chess.fen(),
-                  check: chess.in_check(),
-                  turnColor: toColor(chess),
-                  movable: {
-                      color: toColor(chess),
-                      dests: toDests(chess)
-                  },
-                  lastMove: [lastMove.from, lastMove.to]
-              });
-              PGNnavigator(cg, chess, lastMove.san)
-            }
-
-        };
-    }
-    exports.playOtherSide = playOtherSide;
-    function moveChecker(moveCheck, cg, chess, delay, orig, dest) {
-    // funtion to check if move is correct
-
-      if (moveCheck.includes("=")) {
-        cg.set({
-            fen: chess.fen(),
-            }
-        );
-        chess.move({ from: orig, to: dest, promotion: promoteChoice});
-        cg.set({
-            fen: chess.fen(),
-            }
-        );
-        moveCheck = chess.undo().san;
-      }
-
-      if (expectedMove && typeof expectedMove !== 'string') {
-        if (expectedMove.notation.notation == moveCheck) {
-          foundVariation = true;
-        } else if (expectedMove.notation.notation !== moveCheck) {
-        if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
-          for (var i = 0; i < expectedMove.variations.length; i++) {
-            if (moveCheck === expectedMove.variations[i][0].notation.notation) {
-              count = 0;
-              expectedLine = expectedMove.variations[i];
-              expectedMove = expectedLine[count];
-              foundVariation = true;
-              break
-            }
-
-          }
-          // wrong move
-          if (foundVariation === false) {
+            chess.move({ from: orig, to: dest });
             cg.set({
-              check: chess.in_check(),
-                fen: chess.fen(),
                 turnColor: toColor(chess),
                 movable: {
                     color: toColor(chess),
                     dests: toDests(chess)
                 }
+            });
+        };
+    }
+    exports.playOtherSide = playOtherSide;
+    function aiPlay(cg, chess, delay) {
+        return (orig, dest) => {
+          foundVariation = false;
+            chess.move({ from: orig, to: dest, promotion: promoteChoice});
+            const moveCheck = chess.undo().san;
+          function moveChecker(moveCheck) {
+            if (moveCheck.includes("=")) {
+            cg.set({
+                fen: chess.fen(),
                 }
             );
+            chess.move({ from: orig, to: dest, promotion: promoteChoice});
+            cg.set({
+                fen: chess.fen(),
+                }
+            );
+            moveCheck = chess.undo().san;
           }
 
-        } else {
-          cg.set({
-            check: chess.in_check(),
-              fen: chess.fen(),
-              turnColor: toColor(chess),
-              movable: {
-                  color: toColor(chess),
-                  dests: toDests(chess)
-              }
-              }
-          );
-        }
-
-      }
-    }
-
-      if (foundVariation == true) {
-        count++;
-        expectedMove = expectedLine[count];
-        chess.move({ from: orig, to: dest, promotion: promoteChoice});
-        changeAudio(chess.getLastMove());
-        cg.set({
-            check: chess.in_check()
-        });
-
-
-      if (expectedMove && typeof expectedMove !== 'string') {
-        setTimeout(() => {
-          errorCount = 0;
+          if (expectedMove && typeof expectedMove !== 'string') {
+            if (expectedMove.notation.notation == moveCheck) {
+              foundVariation = true;
+            } else if (expectedMove.notation.notation !== moveCheck) {
             if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
-            const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-            if (moveVar == expectedMove.variations.length) {
-            } else {
-              count = 0;
-              expectedLine = expectedMove.variations[moveVar];
-              expectedMove = expectedLine[0];
-            }
-          }
-          chess.move(expectedMove.notation.notation);
-          const lastMoveAi = chess.getLastMove();
-          changeAudio(lastMoveAi);
-          cg.move(expectedMove.notation.notation);
-          cg.set({
-              fen: chess.fen(),
-              turnColor: toColor(chess),
-              movable: {
-                  color: toColor(chess),
-                  dests: toDests(chess)
+              for (var i = 0; i < expectedMove.variations.length; i++) {
+                if (moveCheck === expectedMove.variations[i][0].notation.notation) {
+
+                  count = 0;
+                  expectedLine = expectedMove.variations[i];
+                  expectedMove = expectedLine[count];
+                  foundVariation = true;
+                  break
+                }
+
               }
-          });
-          cg.set({
-              check: chess.in_check()
-          });
-          cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-          count++;
-          expectedMove = expectedLine[count];
-          cg.playPremove();
+              // wrong move
+              if (foundVariation === false) {
+                cg.set({
+                  check: chess.in_check(),
+                    fen: chess.fen(),
+                    turnColor: toColor(chess),
+                    movable: {
+                        color: toColor(chess),
+                        dests: toDests(chess)
+                    }
+                    }
+                );
+              }
 
-          if (!expectedMove || typeof expectedMove === 'string') {
-              const el = document.querySelector('.cg-wrap');
-              el.style.border = "6px solid "+solvedColour+"";
-              el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
+            } else {
               cg.set({
-                selected: undefined, // Clear any selected square
-                draggable: {
-                  current: undefined // Explicitly clear any currently dragged piece
-                },
-                viewOnly: true
-              });
+                check: chess.in_check(),
+                  fen: chess.fen(),
+                  turnColor: toColor(chess),
+                  movable: {
+                      color: toColor(chess),
+                      dests: toDests(chess)
+                  }
+                  }
+              );
             }
-        cg.set({
-        drawable: {
-            shapes: alternateMoves
-        }
-        });
-        }, delay);
-      } else {
-        count++;
-        expectedMove = expectedLine[count];
-        if (!expectedMove || typeof expectedMove === 'string') {
-          const el = document.querySelector('.cg-wrap');
-          el.style.border = "6px solid "+solvedColour+"";
-          el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
-          cg.set({
-            fen: chess.fen(),
-            selected: undefined, // Clear any selected square
-            draggable: {
-              current: undefined // Explicitly clear any currently dragged piece
-            },
-            viewOnly: true
-          });
-        }
-        count--;
-        expectedMove = expectedLine[count];
-      }
-      cg.set({
-          drawable: {
-              shapes: alternateMoves
-          }
-      });
-    } else {
-      errorCount++;
-      const audio = document.getElementById("myAudio");
-      if (errorCount > 0 && strictScoring == 'true') { // marks puzzle incorrect with one wrong move
-        window.parent.postMessage('*', '*'); // communicates with anki connect that puzzle should be marked incorrect (red border)
-        solvedColour = "#b31010";
-      };
-      if (errorCount > handicap) {
-        // mistake limit met so puzzle auto advances
-        window.parent.postMessage('*', '*'); // communicates with anki connect that puzzle should be marked incorrect (red border)
-        solvedColour = "#b31010";
-        if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
-          // looked for variations and randomly choses one
-          const randomIndex = Math.floor(Math.random() * (expectedMove.variations.length + 1)); // +1 to include mainline
-          if (randomIndex != expectedMove.variations.length) {
-              count = 0;
-              expectedLine = expectedMove.variations[randomIndex]
-              expectedMove = expectedLine[count];
 
           }
         }
-        chess.move(expectedMove.notation.notation);
-        const lastMoveAi = chess.getLastMove();
-        changeAudio(lastMoveAi);
-        cg.move(expectedMove.notation.notation);
-        cg.set({
-            fen: chess.fen(),
-            turnColor: toColor(chess),
-            movable: {
-                color: toColor(chess),
-                dests: toDests(chess)
-            }
-        });
-        cg.set({
-            check: chess.in_check()
-        });
-        cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-        count++;
-        expectedMove = expectedLine[count];
+
+          if (foundVariation == true) {
+            changeAudio(expectedLine[count].notation);
+            count++;
+            expectedMove = expectedLine[count];
+            chess.move({ from: orig, to: dest, promotion: promoteChoice});
+            cg.set({
+                check: chess.in_check()
+            });
           if (expectedMove && typeof expectedMove !== 'string') {
             setTimeout(() => {
               errorCount = 0;
-                if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
+                if (expectedMove.variations.length > 0 && randomLines == 'true') {
                 const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
                 if (moveVar == expectedMove.variations.length) {
                 } else {
@@ -15278,9 +14652,10 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
                   expectedMove = expectedLine[0];
                 }
               }
+              changeAudio(expectedMove.notation);
               chess.move(expectedMove.notation.notation);
-              const lastMoveAi = chess.getLastMove();
-              changeAudio(lastMoveAi);
+              const lastMoveAi = chess.undo();
+              chess.move(expectedMove.notation.notation);
               cg.move(expectedMove.notation.notation);
               cg.set({
                   fen: chess.fen(),
@@ -15299,17 +14674,13 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
               cg.playPremove();
 
               if (!expectedMove || typeof expectedMove === 'string') {
-                const el = document.querySelector('.cg-wrap');
-                el.style.border = "6px solid "+solvedColour+"";
-                el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
-                cg.set({
-                  selected: undefined, // Clear any selected square
-                  draggable: {
-                    current: undefined // Explicitly clear any currently dragged piece
-                  },
-                  viewOnly: true
-                });
-              }
+                  const el = document.querySelector('.cg-wrap');
+                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
+                  cg.set({
+                    viewOnly: true,
+                  });
+                }
 
             }, delay);
           } else {
@@ -15317,182 +14688,127 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
             expectedMove = expectedLine[count];
             if (!expectedMove || typeof expectedMove === 'string') {
               const el = document.querySelector('.cg-wrap');
-              el.style.border = "6px solid "+solvedColour+"";
+              el.style.border = "0.7vmin solid "+solvedColour+"";
               el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
               cg.set({
-                selected: undefined, // Clear any selected square
-                draggable: {
-                  current: undefined // Explicitly clear any currently dragged piece
-                },
-                viewOnly: true
+              fen: chess.fen(),
+              viewOnly: true
               });
             }
             count--;
             expectedMove = expectedLine[count];
           }
-        errorCount = 0;
-      } else {
-        audio.src = "_Error.mp3"
-        audio.play();
-      }
-    }
-    }
-    function drawArrows(cg, chess) {
-      if (!pgnState) {
-        // don't run draw arrows if outside scope of PGN
-        return
-      }
-      if (expectedMove && typeof expectedMove !== 'string') {
-
-        chess.move(expectedMove.notation.notation);
-        alternateMove = chess.undo();
-        if (alternateMove.san === expectedMove.notation.notation) {
-          alternateMoves = [];
-          //handles when later moves outside of PGN move to the same square
-          alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
-          for (var i = 0; i < expectedMove.variations.length; i++) {
-              chess.move(expectedMove.variations[i][0].notation.notation);
-              alternateMove = chess.undo();
-              alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
-          };
-        }
-        cg.set({
-        drawable: {
-            shapes: alternateMoves
-        }
-        });
-      }
-    };
-    exports.drawArrows = drawArrows;
-    function PGNnavigator(cg, chess, moveSan) {
-    // Keeps track of where or if board state is within PGN
-      if (moveSan) {
-        // check if function is provided a move to consider otherwise it will assume next move of PGN
-        if (expectedMove && typeof expectedMove !== 'string') {
-          if (moveSan === expectedMove.notation.notation && pgnState) {
+        } else {
+          errorCount++;
+          solvedColour = "#b31010";
+          window.parent.postMessage('*', '*');
+          const audio = document.getElementById("myAudio");
+          if (errorCount > handicap) {
+            changeAudio(expectedMove.notation);
+            chess.move(expectedMove.notation.notation);
+            const lastMoveAi = chess.undo();
+            chess.move(expectedMove.notation.notation);
+            cg.move(expectedMove.notation.notation);
+            cg.set({
+                fen: chess.fen(),
+                turnColor: toColor(chess),
+                movable: {
+                    color: toColor(chess),
+                    dests: toDests(chess)
+                }
+            });
+            cg.set({
+                check: chess.in_check()
+            });
+            cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
             count++;
             expectedMove = expectedLine[count];
-            drawArrows(cg, chess);
-          } else if (expectedMove.variations.length > 0 && pgnState ) {
-            // looks to match move to an alternate line
-            pgnState = false; // asume no line found
-            for (var i = 0; i < expectedMove.variations.length; i++) {
-                if (moveSan == expectedMove.variations[i][0].notation.notation) {
-                  pgnState = true; // alternate line found
-                  expectedLine = expectedMove.variations[i];
-                  expectedMove = expectedLine[1];
-                  count=1
-                  drawArrows(cg, chess);
-                  break
+              if (expectedMove && typeof expectedMove !== 'string') {
+                setTimeout(() => {
+                  errorCount = 0;
+                    if (expectedMove.variations.length > 0 && randomLines == 'true') {
+                    const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                    if (moveVar == expectedMove.variations.length) {
+                    } else {
+                      count = 0;
+                      expectedLine = expectedMove.variations[moveVar];
+                      expectedMove = expectedLine[0];
+                    }
+                  }
+                  changeAudio(expectedMove.notation);
+                  chess.move(expectedMove.notation.notation);
+                  const lastMoveAi = chess.undo();
+                  chess.move(expectedMove.notation.notation);
+                  cg.move(expectedMove.notation.notation);
+                  cg.set({
+                      fen: chess.fen(),
+                      turnColor: toColor(chess),
+                      movable: {
+                          color: toColor(chess),
+                          dests: toDests(chess)
+                      }
+                  });
+                  cg.set({
+                      check: chess.in_check()
+                  });
+                  cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
+                  count++;
+                  expectedMove = expectedLine[count];
+                  cg.playPremove();
+
+                  if (!expectedMove || typeof expectedMove === 'string') {
+                    const el = document.querySelector('.cg-wrap');
+                    el.style.border = "0.7vmin solid "+solvedColour+"";
+                    el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
+                    cg.set({
+                    viewOnly: true,
+                    });
+                  }
+
+                }, delay);
+              } else {
+                count++;
+                expectedMove = expectedLine[count];
+                if (!expectedMove || typeof expectedMove === 'string') {
+                  const el = document.querySelector('.cg-wrap');
+                  el.style.border = "0.7vmin solid "+solvedColour+"";
+                  el.style.boxShadow ="0px 0px 6px 0px "+solvedColour+""
+                  cg.set({
+                  viewOnly: true,
+                  });
                 }
-            };
-          } else if (pgnState) {
-            pgnState = false; // outside PGN
+                count--;
+                expectedMove = expectedLine[count];
+              }
+            errorCount = 0;
+          } else {
+            audio.src = "_Error.mp3"
+            audio.play();
           }
         }
-      } else {
-        chess.move(expectedMove.notation.notation);
-        const lastMoveAi = chess.getLastMove();
-        changeAudio(lastMoveAi);
-        cg.move(expectedMove.notation.notation);
-        cg.set({
-            fen: chess.fen(),
-            turnColor: toColor(chess),
-            movable: {
-                color: toColor(chess),
-                dests: toDests(chess)
-            }
-        });
-        cg.set({
-            check: chess.in_check()
-        });
-        cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-        count++;
-        expectedMove = expectedLine[count];
-        drawArrows(cg, chess);
-      }
-    }
-    exports.PGNnavigator = PGNnavigator;
-    function getLegalMovesToSquare(chess, targetSquare) {
-      const allLegalMoves = chess.moves({ verbose: true });
-      const movesToTargetSquare = [];
-
-      for (const move of allLegalMoves) {
-        if (move.to === targetSquare) {
-          movesToTargetSquare.push(move);
         }
-      }
-      return movesToTargetSquare;
-    }
-    exports.getLegalMovesToSquare = getLegalMovesToSquare;
-    function aiPlay(cg, chess, delay, from, to) {
-        return (orig, dest) => {
-          if (from) {
-            orig = from;
-            dest = to;
+
+            if (moveCheck.includes("=")) {
+              const promoteButtons = document.querySelectorAll("#center > button");
+              for (var i=0; i<promoteButtons.length; i++){
+              	promoteButtons[i].onclick = function(){
+              		promoteChoice=this.value;document.querySelector("#center").style.display = "none";
+                  moveChecker(moveCheck);
+                  document.querySelector(".cg-wrap").style.filter = 'none';
+                  document.querySelector("cg-board").style.cursor = 'pointer';
+              	}
+              }
+              document.querySelector("#center").style.display = 'block';
+              document.querySelector(".cg-wrap").style.filter = 'brightness(50%)';
+              document.querySelector("cg-board").style.cursor = 'default';
+            } else {
+              moveChecker(moveCheck)
+            }
           };
 
-          foundVariation = false; // defaults to wrong move played
-          alternateMoves = [];
-          chess.move({ from: orig, to: dest, promotion: promoteChoice});
-          const moveCheck = chess.undo().san;
-          if (expectedMove.variations.length > 0 && acceptVariations == 'true') {
-            for (var i = 0; i < expectedMove.variations.length; i++) {
-              if (moveCheck != expectedMove.variations[i][0].notation.notation) {
-                chess.move(expectedMove.variations[i][0].notation.notation);
-                alternateMove = chess.undo();
-                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
-              } else {
-                chess.move(expectedMove.notation.notation);
-                alternateMove = chess.undo();
-                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: 'green' });
-              }
-            };
-          }
-          if (moveCheck.includes("=")) {
-            const promoteButtons = document.querySelectorAll("#center > button");
-            const center = document.querySelector("#center");
-            const overlay = document.querySelector("#overlay");
-            for (var i=0; i<promoteButtons.length; i++){
-              promoteButtons[i].onclick = function(){
-                event.stopPropagation();
-                promoteChoice=this.value;
-                toggleDisplay('showHide');
-                moveChecker(moveCheck, cg, chess, delay, orig, dest);
-                document.querySelector(".cg-wrap").style.filter = 'none';
-                document.querySelector("cg-board").style.cursor = 'pointer';
-              }
-              overlay.onclick = function(){
-                cg.set({
-                    fen: chess.fen(),
-                    turnColor: toColor(chess),
-                    movable: {
-                        color: toColor(chess),
-                        dests: toDests(chess)
-                    }
-                });
-                toggleDisplay('showHide');
-              }
-              center.onclick = function(){
-                cg.set({
-                    fen: chess.fen(),
-                    turnColor: toColor(chess),
-                    movable: {
-                        color: toColor(chess),
-                        dests: toDests(chess)
-                    }
-                });
-                toggleDisplay('showHide');
-              }
-            }
-            toggleDisplay('showHide');
-            document.querySelector("cg-board").style.cursor = 'default';
-          } else {
-            moveChecker(moveCheck, cg, chess, delay, orig, dest);
-          }
-        };
     }
     exports.aiPlay = aiPlay;
+
     },{}]},{},[31])(31)
     cg.playPremove();
     });
@@ -15500,35 +14816,21 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
     <script>
     function changeAudio(gameState) {
       const audio = document.getElementById("myAudio");
-      if (gameState.san.includes("#")) {
+      if (gameState.mate === "#" || gameState.check === "#") {
       audio.src = "_checkmate.mp3"
-      } else if (gameState.san.includes("+")) {
+      } else if (gameState.check === "+") {
       audio.src = "_move-check.mp3"
-      } else if (gameState.flags.includes("c")) {
+      } else if (gameState.strike === "x") {
       audio.src = "_Capture.mp3"
-      } else if (gameState.flags.includes("k") || gameState.flags.includes("q")) {
+      } else if (gameState.notation.includes("O-O")) {
       audio.src = "_castle.mp3"
-      } else if (gameState.flags.includes("p")) {
+      } else if (gameState.promotion) {
       audio.src = "_promote.mp3"
       } else {
       audio.src = "_Move.mp3"
       }
       audio.play();
     };
-
-
-    function getContentWidth(element) {
-      // my attempt a keeping consistent sizing with different screens. having a dynamic widt and border makes for issues centering on narrow screens so this calculates the width inside of a border
-      const computedStyle = window.getComputedStyle(element);
-      const width = parseFloat(computedStyle.width);
-      const paddingLeft = parseFloat(computedStyle.paddingLeft);
-      const paddingRight = parseFloat(computedStyle.paddingRight);
-      const borderLeft = parseFloat(computedStyle.borderLeftWidth);
-      const borderRight = parseFloat(computedStyle.borderRightWidth);
-
-      return width - paddingLeft - paddingRight - borderLeft - borderRight;
-    }
-
     function reload() {
       count = 0; // Int so we can track on which move we are.
       expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
@@ -15536,64 +14838,20 @@ hxg1=R+ 7. Kf2 Rxd1 (7... Rxg2+))) 2. e4 d5 3. e5 *
       ChessgroundExamples.run(document.getElementById('chessground-examples'));
       const el = document.querySelector('.cg-wrap');
       if (el) {
-          if (boardRotation == 'black') {
-            el.style.border = "6px solid black";
-          } else {
-            el.style.border = "6px solid white";
-          }
-          el.style.boxShadow ="0px 0px 6px 0px LightSlateGrey"
+          const px = Math.min(600, document.documentElement.clientWidth * 0.97);;
+          el.style.width = px;
+          el.style.height = px;
+          document.body.dispatchEvent(new Event('chessground.resize'));
       }
-    }
-    let vh = 12;
-
-    function positionPromoteOverlay() {
-      const promoteOverlay = document.getElementById('center');
-      const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
-
-      // Set the position of the promote element
-      promoteOverlay.style.top = (rect.top + 6) + 'px';
-      promoteOverlay.style.left = (rect.left + 6) + 'px';
-      window.addEventListener('resize', resizeBoard);
-    }
-
-    async function resizeBoard() {
-      if (document.querySelector("#container").scrollHeight > document.body.clientHeight) {
-        document.body.style.alignItems = "start"
+      if (boardRotation == 'black') {
+        opponentColour = 'white';
+        el.style.border = "0.7vmin solid black";
       } else {
-        document.body.style.alignItems = "center"
+        el.style.border = "0.7vmin solid white";
       }
-      let resizeTimer;
-      resizeTimer = await setTimeout(() => {
-      if (document.querySelector("#container").scrollHeight > document.body.clientHeight) {
-        clearTimeout(resizeTimer);
-          while (document.querySelector("#container").scrollHeight > document.body.clientHeight && vh < 1000) {
-            vh++;
-            document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 200px), max(calc(98vw - 12px), 200px), 600px)');
-          }
-        } else {
-          while (!(document.querySelector("#container").scrollHeight > document.body.clientHeight) && vh > -1 ) {
-            vh--;
-            document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 200px), max(calc(98vw - 12px), 200px), 600px)');
-          }
-        };
-      }, 200);
-      positionPromoteOverlay();
+      el.style.boxShadow ="0px 0px 6px 0px LightSlateGrey"
     }
-
-
-    async function loadElements() {
-      await reload();
-      await resizeBoard();
-      setTimeout(() => {
-        positionPromoteOverlay();
-      }, 200);
-    }
-
-
-
-    loadElements();
-
-
+    reload();
     </script>
     <audio id="myAudio"></audio>
   </body>
