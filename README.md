@@ -51,20 +51,20 @@ On BOTH front and back side:
 Changing the value of handicap in the following line will decide in the number of wrong moves you can make before the answer is shown. Note: Amount of wrong moves is equal to the value of handicap + 1.
 
 ```
-	var handicap = 0;
+	var handicap = 1;
 ```
 
-### Variation Randomization
+### Strict scoring
 
-Changing the value of `randomLines` will decide if variations in the PGN should be presented to you randomly or not. Note: If set to `false`, it will always show the first variation.
+If set to true, the template will record any missed play as a mistake rather than being determined by your handicap value.
 
 ```
-	var randomLines = true;
+	var strictScoring = false;
 ```
 
 ### Accept Variations as Correct
 
-Changing the value of `acceptVariations` will decide if side variations considered as correct or not. If those variations are accepted as correct, they will be played instead of the main variation. Note: Computer will still be able to play possible variations given in PGN file, `randomLines` should be changed to stop this.
+Changing the value of `acceptVariations` will decide if side variations considered as correct or not. If those variations are accepted as correct, they will be played instead of the main variation. Note: Computer will also be able to play possible variations given in PGN file, so be mindful with alternate lines when making your cards.
 
 ```
 	var acceptVariations = true;
