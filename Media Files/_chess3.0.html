@@ -8004,6 +8004,7 @@ background-image: url('_bK.svg');
     <button class="promoteBtn" value="n"><img class="promotePiece" id="promoteN"></button>
     <button class="promoteBtn" value="r"><img class="promotePiece" id="promoteR"></button>
     </div>
+    <audio id="myAudio"></audio>
     <script>
     function toggleDisplay(className) {
     // toggle hidden class for promote elements
@@ -8029,11 +8030,14 @@ background-image: url('_bK.svg');
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "8/7p/8/8/4B1PP/k1p1P3/1p2K3/8 w - - 0 51"]
+[FEN "r3r1k1/p4pp1/1q1p3p/3Pn3/P1p1n3/N4P2/1PB1R1PP/RQ4K1 w - - 0 26"]
 [SetUp "1"]
 
-51. Kd1 Ka2 (51... c2+ 52. Ke1 c1=R+ (52... c1=Q+) (52... b1=Q+) (52... b1=B))
-52. Bxh7 b1=Q+ 53. Bxb1+ Kxb1 *
+26. Kh1 Nf2+ {EV: 98.3%, N: 99.00% of 16.8k} 27. Kg1 {EV: 1.2%, N: 77.28% of
+61.2k} Nxf3+ {EV: 99.6%, N: 85.99% of 82.7k} 28. gxf3 {EV: 0.5%, N: 82.43% of
+78.4k} Rxe2 {EV: 99.8%, N: 82.41% of 121k} (28... Nd3+ {EV: 99.6%, N: 2.24% of
+121k}) (28... Nh3+ {EV: 99.2%, N: 12.71% of 121k}) (28... Ng4+ {EV: 99.6%, N:
+2.20% of 121k}) *
 `;
 
     // load user text
@@ -8058,6 +8062,7 @@ background-image: url('_bK.svg');
     }
 
     // URL variables
+    var muteAudio = getUrlVars()["muteAudio"] ? getUrlVars()["muteAudio"] : 'false';
     var handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 1;
     var strictScoring = getUrlVars()["strictScoring"] ? getUrlVars()["strictScoring"] : 'false';
     var acceptVariations = getUrlVars()["acceptVariations"] ? getUrlVars()["acceptVariations"] : 'true';
@@ -15746,17 +15751,21 @@ background-image: url('_bK.svg');
     async function loadElements() {
       await reload();
       await resizeBoard();
+
       setTimeout(() => {
         positionPromoteOverlay();
       }, 200);
     }
 
-
+    if (muteAudio == 'true') {
+      const audioElement = document.getElementById("myAudio");
+      audioElement.muted = true;
+    }
 
     loadElements();
 
 
     </script>
-    <audio id="myAudio"></audio>
+
   </body>
 </html>

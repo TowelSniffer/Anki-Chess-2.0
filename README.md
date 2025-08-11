@@ -70,6 +70,10 @@ Changing the value of `acceptVariations` will decide if side variations consider
 	var acceptVariations = true;
 ```
 
+### Mute sound
+
+set muteAudio variable to true on both sided of card
+
 ## Cross Compatability
 
 I have verified compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable. 
