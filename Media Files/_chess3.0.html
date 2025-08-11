@@ -14383,6 +14383,7 @@ background-image: url('_bK.svg');
               select: (key) => { // onclick handler: 'key' is the clicked square string (e.g., "e2")
                 //prevent radip firing on touchscreen
                 if (debounceTimeout !== null) {
+                  util_1.drawArrows(cg, chess);
                   return
                 };
                 debounceTimeout = setTimeout(() => {
