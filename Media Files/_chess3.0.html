@@ -8030,14 +8030,13 @@ background-image: url('_bK.svg');
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "r3r1k1/p4pp1/1q1p3p/3Pn3/P1p1n3/N4P2/1PB1R1PP/RQ4K1 w - - 0 26"]
+[FEN "8/7p/8/8/4B1PP/k1p1P3/1p2K3/8 w - - 0 51"]
 [SetUp "1"]
 
-26. Kh1 Nf2+ {EV: 98.3%, N: 99.00% of 16.8k} 27. Kg1 {EV: 1.2%, N: 77.28% of
-61.2k} Nxf3+ {EV: 99.6%, N: 85.99% of 82.7k} 28. gxf3 {EV: 0.5%, N: 82.43% of
-78.4k} Rxe2 {EV: 99.8%, N: 82.41% of 121k} (28... Nd3+ {EV: 99.6%, N: 2.24% of
-121k}) (28... Nh3+ {EV: 99.2%, N: 12.71% of 121k}) (28... Ng4+ {EV: 99.6%, N:
-2.20% of 121k}) *
+51. Kd1 Ka2 (51... c2+ 52. Ke1 (52. Ke2 Kb3 53. Bf3 (53. Kf3)) c1=R+ (52...
+c1=Q+) (52... b1=Q+) (52... b1=B) (52... Ka2 53. Bxh7 Kb1 (53... b1=Q+) (53...
+b1=R+)) 53. Kd2 Ra1) 52. Bxh7 b1=Q+ (52... c2+ 53. Ke1 b1=Q+ (53... Kb1) (53...
+b1=N)) 53. Bxb1+ Kxb1 *
 `;
 
     // load user text
@@ -14437,57 +14436,59 @@ background-image: url('_bK.svg');
                   // checks if clicked square is a correct choice and if so moves to first instance.
                   let moveTracker = false; //will be refrenced to see if valid move is played
                   if (expectedMove?.variations) {
+                    const expectedMoveStore = expectedMove?.notation?.notation; // helps
                     for (var i = 0; i < legalMovesToSquare.length; i++) {
-                      if (expectedMove?.notation?.notation === legalMovesToSquare[i].san) {
-                        chess.move(legalMovesToSquare[i].san);
-                        if (expectedMove.notation.promotion) { // fix promotion animation
-                            chess.move(expectedMove.notation.notation);
-                            const lastMove = chess.undo();
-                            chess.remove(lastMove.from);
-                            chess.put({ type: 'p', color: chess.turn() }, lastMove.to);
-                            cg.set({
-                                fen: chess.fen(),
-                            });
-                            chess.remove(lastMove.to);
-                            chess.put({ type: 'p', color: chess.turn() }, lastMove.from);
-                            chess.move(expectedMove.notation.notation);
-                            setTimeout(() => {
-                              cg.set({ animation: { enabled: false} })
+                      const legalMovesToSquareAlt = legalMovesToSquare[i].san; // store each legal move to check against main line and variations
+                      if (moveTracker) { // line found
+                        break
+                      }
+                      for (var k = 0; k < legalMovesToSquare.length; k++) { // first loop legal moves against mainline. Note this will only run once
+                        const legalMovesToSquareAlt = legalMovesToSquare[k].san;
+                        if (expectedMove?.notation?.notation === legalMovesToSquareAlt) {
+                          chess.move(legalMovesToSquareAlt);
+                          if (expectedMove.notation.promotion) { // fix promotion animation
+                              const lastMove = chess.undo();
+                              chess.remove(lastMove.from);
+                              chess.put({ type: 'p', color: chess.turn() }, lastMove.to);
                               cg.set({
                                   fen: chess.fen(),
                               });
-                              cg.set({ animation: { enabled: true} })
-                              util_1.drawArrows(cg, chess);
-                            }, 200)
-                        } else {
-                          chess.move(expectedMove.notation.notation);
-                          cg.set({
-                              fen: chess.fen()
-                          });
+                              chess.remove(lastMove.to);
+                              chess.put({ type: 'p', color: chess.turn() }, lastMove.from);
+                              chess.move(expectedMove.notation.notation);
+                              setTimeout(() => {
+                                cg.set({ animation: { enabled: false} })
+                                cg.set({
+                                    fen: chess.fen(),
+                                });
+                                cg.set({ animation: { enabled: true} })
+                                util_1.drawArrows(cg, chess);
+                              }, 200)
+                            } else {
+                              cg.set({
+                                  fen: chess.fen()
+                              });
+                            }
+                            const lastMove = chess.getLastMove();
+                            changeAudio(lastMove);
+                            cg.set({
+                                check: chess.in_check(),
+                                turnColor: util_1.toColor(chess),
+                                movable: {
+                                  color: util_1.toColor(chess),
+                                  dests: util_1.toDests(chess)
+                                },
+                                lastMove: [lastMove.from, lastMove.to]
+                            });
+                            util_1.PGNnavigator(cg, chess, lastMove.san);
+                            moveTracker = true;
+                            break
+                          }
                         }
-                        const lastMove = chess.getLastMove();
-                        changeAudio(lastMove);
-                        cg.set({
-                            check: chess.in_check(),
-                            turnColor: util_1.toColor(chess),
-                            movable: {
-                              color: util_1.toColor(chess),
-                              dests: util_1.toDests(chess)
-                            },
-                            lastMove: [lastMove.from, lastMove.to]
-                        });
-                        util_1.PGNnavigator(cg, chess, lastMove.san);
-                        moveTracker = true;
-                        break
-                      }
-                      const legalMovesToSquareAlt = legalMovesToSquare[i].san;
-                      for (var j = 0; j < expectedMove?.variations.length; j++) {
-                        chess.move(legalMovesToSquareAlt);
-                        chess.undo();
+                      for (var j = 0; j < expectedMove?.variations.length; j++) { // consecutively loop for alternate line only entire minline has been looked at
                         if (expectedMove.variations[j][0].notation.notation === legalMovesToSquareAlt) {
                           chess.move(expectedMove.variations[j][0].notation.notation);
                           if (expectedMove.variations[j][0].notation.promotion) { // fix promotion animation
-                              chess.move(expectedMove.variations[j][0].notation.notation);
                               const lastMove = chess.undo();
                               chess.remove(lastMove.from);
                               chess.put({ type: 'p', color: chess.turn() }, lastMove.to);
@@ -14506,7 +14507,6 @@ background-image: url('_bK.svg');
                                 util_1.drawArrows(cg, chess);
                               }, 200)
                           } else {
-                            chess.move(expectedMove.variations[j][0].notation.notation);
                             cg.set({
                                 fen: chess.fen()
                             });
