@@ -8033,10 +8033,8 @@ background-image: url('_bK.svg');
 [FEN "8/7p/8/8/4B1PP/k1p1P3/1p2K3/8 w - - 0 51"]
 [SetUp "1"]
 
-51. Kd1 Ka2 (51... c2+ 52. Ke1 (52. Ke2 Kb3 53. Bf3 (53. Kf3)) c1=R+ (52...
-c1=Q+) (52... b1=Q+) (52... b1=B) (52... Ka2 53. Bxh7 Kb1 (53... b1=Q+) (53...
-b1=R+)) 53. Kd2 Ra1) 52. Bxh7 b1=Q+ (52... c2+ 53. Ke1 b1=Q+ (53... Kb1) (53...
-b1=N)) 53. Bxb1+ Kxb1 *
+51. Kd1 Ka2 (51... c2+ 52. Ke1 c1=R+ (52... c1=Q+) (52... b1=Q+) (52... b1=B))
+52. Bxh7 b1=Q+ 53. Bxb1+ Kxb1 *
 `;
 
     // load user text
@@ -14112,7 +14110,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
             cg.set({
                 movable: {
                     events: {
-                        after: util_1.puzzlePlay(cg, chess, 1000, false)
+                        after: util_1.puzzlePlay(cg, chess, 1000, false, chess2)
                     }
                 }
             });
@@ -14257,6 +14255,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
         run(el) {
           const fen = ankiFen;
           const chess = new chess_js_1.Chess(fen);
+          const chess2 = new chess_js_1.Chess();
           const cg = chessground_1.Chessground(el, {
             fen: fen,
             turnColor: boardRotation,
@@ -14314,7 +14313,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
                       check: chess.in_check(),
                       lastMove: [lastMove.from, lastMove.to]
                   });
-                  util_1.puzzlePlay(cg, chess, 300, legalMovesToSquare[0].from, legalMovesToSquare[0].to)();
+                  util_1.puzzlePlay(cg, chess, 300, legalMovesToSquare[0].from, legalMovesToSquare[0].to, chess2)();
                 }
               }
             }
@@ -14322,7 +14321,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
           cg.set({
               movable: {
                   events: {
-                      after: util_1.puzzlePlay(cg, chess, 300)
+                      after: util_1.puzzlePlay(cg, chess, 300, null, null, chess2)
                   }
               }
           });
@@ -14390,7 +14389,6 @@ b1=N)) 53. Bxb1+ Kxb1 *
                   util_1.drawArrows(cg, chess);
                   return
                 };
-                console.log(selectState)
                 debounceTimeout = setTimeout(() => {
                   debounceTimeout = null; // Reset when it fires
                 }, 100); // 100 is as low as it can seem to go
@@ -14449,13 +14447,13 @@ b1=N)) 53. Bxb1+ Kxb1 *
                           chess.move(legalMovesToSquareAlt);
                           if (expectedMove.notation.promotion) { // fix promotion animation
                               const lastMove = chess.undo();
-                              chess.remove(lastMove.from);
-                              chess.put({ type: 'p', color: chess.turn() }, lastMove.to);
+                              const chess2 = new chess_js_1.Chess();
+                              chess2.load(chess.fen());
+                              chess2.remove(lastMove.from);
+                              chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
                               cg.set({
-                                  fen: chess.fen(),
+                                  fen: chess2.fen(),
                               });
-                              chess.remove(lastMove.to);
-                              chess.put({ type: 'p', color: chess.turn() }, lastMove.from);
                               chess.move(expectedMove.notation.notation);
                               setTimeout(() => {
                                 cg.set({ animation: { enabled: false} })
@@ -14491,13 +14489,13 @@ b1=N)) 53. Bxb1+ Kxb1 *
                           chess.move(expectedMove.variations[j][0].notation.notation);
                           if (expectedMove.variations[j][0].notation.promotion) { // fix promotion animation
                               const lastMove = chess.undo();
-                              chess.remove(lastMove.from);
-                              chess.put({ type: 'p', color: chess.turn() }, lastMove.to);
+                              const chess2 = new chess_js_1.Chess();
+                              chess2.load(chess.fen());
+                              chess2.remove(lastMove.from);
+                              chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
                               cg.set({
-                                  fen: chess.fen(),
+                                  fen: chess2.fen(),
                               });
-                              chess.remove(lastMove.to);
-                              chess.put({ type: 'p', color: chess.turn() }, lastMove.from);
                               chess.move(expectedMove.variations[j][0].notation.notation);
                               setTimeout(() => {
                                 cg.set({ animation: { enabled: false} })
@@ -14574,8 +14572,8 @@ b1=N)) 53. Bxb1+ Kxb1 *
             if (lastMove) {
               if (lastMove.promotion) { // fix promotion animation
                   const chess2 = new chess_js_1.Chess(); // new chess instance to no break old one
-                  chess2.remove(lastMove.to);
                   chess2.load(FENpos);
+                  chess2.remove(lastMove.to);
                   chess2.remove(lastMove.from);
                   chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
                   cg.set({ animation: { enabled: false} })
@@ -14632,20 +14630,21 @@ b1=N)) 53. Bxb1+ Kxb1 *
             }
           };
           var navFoward = function() { // Move Forward in PGN
+            const chess2 = new chess_js_1.Chess(); // second chess intance for promotion handling animation
             if (count == 0) { // handles for when board undone to first move
               try { // chess.getLastMove() wont work if first move of puzzle
                 const lastMove = chess.getLastMove();
               } catch (e) { // chess.getLastMove(); failing means this must be the beginning of the PGN and not simply the start of a variation
                 pgnState = true;
                 expectedMove = expectedLine[count];
-                util_1.PGNnavigator(cg, chess);
+                util_1.PGNnavigator(cg, chess, null, chess2);
               }
             } else if (expectedLine[count]?.notation) {
               const lastMove = chess.getLastMove();
               if ((expectedLine[count-1]?.notation?.notation == lastMove.san)) {
                 // checks if last move made was part of PGN
                 expectedMove = expectedLine[count];
-                util_1.PGNnavigator(cg, chess);
+                util_1.PGNnavigator(cg, chess, null, chess2);
               }
             }
           }
@@ -15164,7 +15163,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
         };
     }
     exports.playOtherSide = playOtherSide;
-    function moveChecker(moveCheck, cg, chess, orig, dest, delay) {
+    function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     // funtion to check if move is correct
       let moveCheckIsPromote = false;
       if (moveCheck.includes("=")) { // convert pawn move into promotion
@@ -15293,15 +15292,17 @@ b1=N)) 53. Bxb1+ Kxb1 *
     } else { // incorect move played
       errorCount++;
       if (moveCheckIsPromote && (errorCount <= (handicap+1))) { // makes pawn animate back when wrong promotion chosen
-        chess.remove(orig);
-        chess.put({ type: 'p', color: chess.turn() }, dest);
+
+        chess2.load(chess.fen());
+        chess2.remove(orig);
+        chess2.put({ type: 'p', color: chess.turn() }, dest);
         cg.set({ animation: { enabled: false} })
         cg.set({
-            fen: chess.fen(),
+            fen: chess2.fen(),
         });
         cg.set({ animation: { enabled: true} })
-        chess.remove(dest);
-        chess.put({ type: 'p', color: chess.turn() }, orig);
+        chess2.remove(dest);
+        chess2.put({ type: 'p', color: chess.turn() }, orig);
         cg.set({
             fen: chess.fen(),
         });
@@ -15335,13 +15336,12 @@ b1=N)) 53. Bxb1+ Kxb1 *
           }
           if (moveCheckIsPromote && expectedMove.notation.promotion) { // check against random move
             // makes pawn animate back when wrong promotion chosen
-            chess.remove(orig);
-            chess.put({ type: 'p', color: chess.turn() }, dest);
+            chess2.load(chess.fen());
+            chess2.remove(orig);
+            chess2.put({ type: 'p', color: chess.turn() }, dest);
             cg.set({
-                fen: chess.fen(),
+                fen: chess2.fen(),
             });
-            chess.remove(dest);
-            chess.put({ type: 'p', color: chess.turn() }, orig);
             chess.move(expectedMove.notation.notation);
             setTimeout(() => {
               cg.set({ animation: { enabled: false} })
@@ -15351,15 +15351,14 @@ b1=N)) 53. Bxb1+ Kxb1 *
               cg.set({ animation: { enabled: true} })
             }, 200)
           } else if (expectedMove.notation.promotion) {
+              chess2.load(chess.fen());
               chess.move(expectedMove.notation.notation);
               const lastMove = chess.undo();
-              chess.remove(lastMove.from);
-              chess.put({ type: 'p', color: chess.turn() }, lastMove.to);
+              chess2.remove(lastMove.from);
+              chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
               cg.set({
-                  fen: chess.fen(),
+                  fen: chess2.fen(),
               });
-              chess.remove(lastMove.to);
-              chess.put({ type: 'p', color: chess.turn() }, lastMove.from);
               chess.move(expectedMove.notation.notation);
               setTimeout(() => {
                 cg.set({ animation: { enabled: false} })
@@ -15489,7 +15488,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
       }
     };
     exports.drawArrows = drawArrows;
-    function PGNnavigator(cg, chess, moveSan) {
+    function PGNnavigator(cg, chess, moveSan, chess2) {
     // Keeps track of where or if board state is within PGN
       if (moveSan) {
         // check if function is provided a move to consider otherwise it will assume next move of PGN
@@ -15520,13 +15519,12 @@ b1=N)) 53. Bxb1+ Kxb1 *
         const lastMoveAi = chess.getLastMove();
         if (expectedMove.notation.promotion) {
           const lastMove = chess.undo();
-          chess.remove(lastMove.from);
-          chess.put({ type: 'p', color: chess.turn() }, lastMove.to);
+          chess2.load(chess.fen());
+          chess2.remove(lastMove.from);
+          chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
           cg.set({
-              fen: chess.fen(),
+              fen: chess2.fen(),
           });
-          chess.remove(lastMoveAi.to);
-          chess.put({ type: 'p', color: chess.turn() }, lastMove.from);
           chess.move(expectedMove.notation.notation);
           setTimeout(() => {
             cg.set({ animation: { enabled: false} })
@@ -15581,7 +15579,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
         }
       );
     }
-    function promotePopup(moveCheck, cg, chess, orig, dest, delay) {
+    function promotePopup(moveCheck, cg, chess, orig, dest, delay, chess2) {
       const cancelPopup = function(){
         cg.set({
             fen: chess.fen(),
@@ -15593,6 +15591,9 @@ b1=N)) 53. Bxb1+ Kxb1 *
         });
         toggleDisplay('showHide');
         document.querySelector("cg-board").style.cursor = 'pointer';
+        if (boardMode == 'Viewer') {
+          drawArrows(cg, chess);
+        }
       }
       const promoteButtons = document.querySelectorAll("#center > button");
       const overlay = document.querySelector("#overlay");
@@ -15602,7 +15603,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
           promoteChoice=this.value;
           if (boardMode === 'Puzzle') {
             cancelPopup();
-            moveChecker(moveCheck, cg, chess, orig, dest, delay)
+            moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2)
           } else if (boardMode === 'Viewer') {
             cancelPopup();
             const move = chess.move({ from: orig, to: dest, promotion: promoteChoice});
@@ -15632,7 +15633,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
       toggleDisplay('showHide');
       document.querySelector("cg-board").style.cursor = 'default';
     }
-    function puzzlePlay(cg, chess, delay, from, to) {
+    function puzzlePlay(cg, chess, delay, from, to, chess2) {
         return (orig, dest) => { // drag and drop after event for Puzzle
           selectState = false; // disables select state indication for dropped piece to allow for click move event
           if (from) { // from and to are manually provided with click move select: event
@@ -15658,9 +15659,9 @@ b1=N)) 53. Bxb1+ Kxb1 *
             };
           }
           if (moveCheck.includes("=")) {//promotion
-            promotePopup(moveCheck, cg, chess, orig, dest, delay)
+            promotePopup(moveCheck, cg, chess, orig, dest, delay, chess2)
           } else {
-            moveChecker(moveCheck, cg, chess, orig, dest, delay);
+            moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2);
           }
         };
     }
