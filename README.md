@@ -135,14 +135,8 @@ addon](https://ankiweb.net/shared/info/569467423)
 
 ## resources used For this were:
 
-#### ~~ChessBoard js~~
-~~https://chessboardjs.com/index.html~~
-
 #### Chessground
 https://github.com/ornicar/chessground
-
-#### and the PGN viewer
-https://github.com/mliebelt/PgnViewerJS
 
 #### Auerswald Collection, 3500 tactics (PGN format)
 http://gorgonian.weebly.com/pgn.html
@@ -152,3 +146,10 @@ https://github.com/jhlywa/chess.js/blob/master/README.md
 
 #### pgn-parser (much better than what I tried to write haha)
 https://github.com/mliebelt/pgn-parser
+
+
+#### ~~ChessBoard js~~
+~~https://chessboardjs.com/index.html~~
+
+#### ~~PGN viewer~~
+~~https://github.com/mliebelt/PgnViewerJS~~
