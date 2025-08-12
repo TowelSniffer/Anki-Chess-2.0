@@ -138,9 +138,6 @@ addon](https://ankiweb.net/shared/info/569467423)
 #### Chessground
 https://github.com/ornicar/chessground
 
-#### Auerswald Collection, 3500 tactics (PGN format)
-http://gorgonian.weebly.com/pgn.html
-
 #### chess.js
 https://github.com/jhlywa/chess.js/blob/master/README.md
 
