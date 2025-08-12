@@ -28,7 +28,8 @@ How to install:
 1. Browse for and select the downloaded file `chess.apkg`.
 1. Download the Media Files.rar folder and extract. Copy the contents of the Media Files folder into you anki collection.media folder
 
-👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository).
+👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository). Also [Discord server](
+https://discord.gg/YPj4Pz2Qzw). 
 
 ## Customization
 
