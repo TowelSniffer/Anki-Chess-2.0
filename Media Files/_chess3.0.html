@@ -8111,7 +8111,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
     document.querySelector('#promoteN').src = "_"+boardRotation[0]+"N.svg";
     document.querySelector('#promoteR').src = "_"+boardRotation[0]+"R.svg";
     var count; // Int so we can track on which move we are.
-    var selectState; // used to track if piece is selected
+    var selectState = false; // used to track if piece is selected
     var pgnState = true; // boolian to indicate when entering and exiting scope of PGN
     var expectedLine; // Set initially to the mainline of pgn but can change path with variations
     var chosenMove; // used to seperated played move from variations
@@ -14390,6 +14390,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
                   util_1.drawArrows(cg, chess);
                   return
                 };
+                console.log(selectState)
                 debounceTimeout = setTimeout(() => {
                   debounceTimeout = null; // Reset when it fires
                 }, 100); // 100 is as low as it can seem to go
@@ -14407,7 +14408,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
                   return
                 } else if (selectState) {
                   // key is not a movable piece and currently peice selected
-                  const moveCheck = chess.move({ from: selectState, to: key });
+                  const moveCheck = chess.move({ from: selectState, to: key, promotion: promoteChoice});
                   if (moveCheck) {// needed to handle when peice selected and moving to movabale square
                     chess.undo();
                     return
@@ -14485,7 +14486,7 @@ b1=N)) 53. Bxb1+ Kxb1 *
                             break
                           }
                         }
-                      for (var j = 0; j < expectedMove?.variations.length; j++) { // consecutively loop for alternate line only entire minline has been looked at
+                      for (var j = 0; j < expectedMove?.variations?.length; j++) { // consecutively loop for alternate line only entire minline has been looked at
                         if (expectedMove.variations[j][0].notation.notation === legalMovesToSquareAlt) {
                           chess.move(expectedMove.variations[j][0].notation.notation);
                           if (expectedMove.variations[j][0].notation.promotion) { // fix promotion animation
