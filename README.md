@@ -28,7 +28,8 @@ How to install:
 1. Browse for and select the downloaded file `chess.apkg`.
 1. Download the Media Files.rar folder and extract. Copy the contents of the Media Files folder into you anki collection.media folder
 
-👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository).
+👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository). Also [Discord server](
+https://discord.gg/YPj4Pz2Qzw). 
 
 ## Customization
 
@@ -134,20 +135,18 @@ addon](https://ankiweb.net/shared/info/569467423)
 
 ## resources used For this were:
 
-#### ~~ChessBoard js~~
-~~https://chessboardjs.com/index.html~~
-
 #### Chessground
 https://github.com/ornicar/chessground
-
-#### and the PGN viewer
-https://github.com/mliebelt/PgnViewerJS
-
-#### Auerswald Collection, 3500 tactics (PGN format)
-http://gorgonian.weebly.com/pgn.html
 
 #### chess.js
 https://github.com/jhlywa/chess.js/blob/master/README.md
 
 #### pgn-parser (much better than what I tried to write haha)
 https://github.com/mliebelt/pgn-parser
+
+
+#### ~~ChessBoard js~~
+~~https://chessboardjs.com/index.html~~
+
+#### ~~PGN viewer~~
+~~https://github.com/mliebelt/PgnViewerJS~~
