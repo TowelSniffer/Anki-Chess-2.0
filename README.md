@@ -3,11 +3,11 @@ An interactive chess template for anki.
 
 ## practice tactics
 
-![chess GIF](examples/puzzleDemo.mp4)
+![chess GIF](examples/puzzleDemo.webp)
 
 ## Study Games
 
-![chess GIF](examples/viewerDemo.mp4)
+![chess GIF](examples/viewerDemo.webp)
 
 
 ## Features
