@@ -1,7 +1,14 @@
 # Anki-Chess-2.0
 An interactive chess template for anki.
 
-![chess GIF](examples/chess.webp)
+## practice tactics
+
+![chess GIF](examples/puzzleDemo.mp4)
+
+## Study Games
+
+![chess GIF](examples/viewerDemo.mp4)
+
 
 Tutorial: https://youtu.be/NZOK1dZAvpI
 
