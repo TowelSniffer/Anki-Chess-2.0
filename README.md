@@ -78,7 +78,19 @@ Changing the value of `acceptVariations` will decide if side variations consider
 
 ### Mute sound
 
-set muteAudio variable to true on both sided of card
+Set muteAudio variable to true on both sided of card
+
+```
+	var muteAudio = false;
+```
+
+### Font Size
+
+Set font size in px for user text passed to card
+
+```
+	var fontSize = 18;
+```
 
 ## Cross Compatability
 
