@@ -10,8 +10,6 @@ An interactive chess template for anki.
 ![chess GIF](examples/viewerDemo.mp4)
 
 
-Tutorial: https://youtu.be/NZOK1dZAvpI
-
 ## Features
 
 - Works with PGN format
