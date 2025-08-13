@@ -7579,9 +7579,10 @@
   --coord-white: rgba(255, 255, 255, 0.8);
   --coord-black: rgba(72, 72, 72, 0.8);
   --background-color: transparent;
-  --board-size: min(max(calc(98vh - 12px), 200px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
+  --board-size: min(max(calc(98vh - 12px), 300px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
   --border-color: #808080;
   --border-shadow: LightSlateGrey;
+  --max-width: min(100vw, 1000px)
 }
 
 ::-webkit-scrollbar {
@@ -7650,11 +7651,68 @@ button {
 }
 
 #container {
-  padding-top: 5px; /*min top margin when client height is low*/
-  padding-bottom: 5px; /*min bottom margin when client height is low*/
-  display: flex;
-  flex-direction: column;
+  padding-right: 12px;
+  gap: 10px;
+/*   height: max(100%, var(--board-size)); */
+  width: var(--max-width);
+  grid-template-areas:
+    "one two"
+    "one three";
+  margin-inline: auto; /* Best practice for centering the block itself */
+  /* --- THE GRID FIX --- */
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  justify-content: center;
+/*   align-items: center; */
+}
+
+#commentBox {
+  /* No width or grow property needed. 'auto' in the parent will handle it. */
+  grid-area: one;
+  padding: 16px;
+  font-family: serif;
+  margin-bottom: 5px;
+  width:calc(var(--max-width) - var(--board-size) - 60px);
+  box-shadow: 0px 0px 3px 0px black;
+  color: #333B45;
+  background-color: #D7DEE9;
+  border-radius: 4px;
+  max-height: calc(var(--board-size) - 20px);
+  overflow: scroll;
+}
+
+
+#chessground-examples {
+  grid-area: two;
+  max-width: 600px;
+}
+
+#buttons-container {
+  grid-area: three;
+  padding-left: 12px;
+  display:flex;
+  justify-content: center;
   align-items: center;
+}
+
+/* --- Apply these styles ONLY when in landscape mode --- */
+@media (orientation: portrait) {
+  #container {
+    padding-right: 0px;
+  grid-template-areas:
+    "two"
+    "three"
+    "one";
+    grid-template-columns: auto;
+  }
+  #commentBox {
+    width: calc(var(--board-size) - 20px);
+    height: calc(100vh - var(--board-size) - 140px);;
+  }
+}
+#textField {
+  /* No width or grow property needed. 'auto' in the parent will handle it. */
 }
 
 #overlay {
@@ -7679,30 +7737,12 @@ button {
 
 }
 
-#textField {
-  padding: 6px;
-  font-family: serif;
-  margin-bottom: 5px;
-  text-align: center;
-  font-size: 1.5em;
-  width: var(--board-size);
-  font-weight: bold;
-  box-shadow: 0px 0px 3px 0px black;
-  color: black;
-  background-color: #D7DEE9;
-  border-radius: 4px;
-}
-
 .hidden {
   display: none !important;
 }
 
 p {
   display:none; /*dirty approach to get rid of randome p element under board*/
-}
-
-#buttons-container {
-  display:flex;
 }
 
 button.navBtn {
@@ -7718,7 +7758,8 @@ button.navBtn {
   max-width: 60px;
   max-height: 60px;
   margin:5px;
-  margin-top: 10px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 button.navBtn:hover {
@@ -7767,15 +7808,6 @@ button.promoteBtn:focus {
  html, img {
    margin: 0;
    color: white;
-
- }
-
- #chessground-examples {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  max-width: 600px;
  }
 
 .cg-wrap {
@@ -7990,11 +8022,17 @@ background-image: url('_bK.svg');
   <body>
     <div id="overlay" class="hidden showHide"></div>
     <div id="container">
-      <div id="textField" class="hidden"></div>
+      <div id="commentBox" class="hidden">
+        <div id="textField"></div>
+        <hr>
+        <div id="pgnComment"></div>
+      </div>
       <div id="chessground-examples"></div>
       <div id="buttons-container">
+        <button class="navBtn" id="resetBoard"><span class="material-icons">first_page</span></button>
         <button class="navBtn" id="navBackward"><span class="material-icons">keyboard_arrow_left</span></button>
-        <button class="navBtn" id="navFoward"><span class="material-icons">keyboard_arrow_right</span></button>
+        <button class="navBtn" id="navForward"><span class="material-icons">keyboard_arrow_right</span></button>
+        <button class="navBtn" id="rotateBoard"><span class="material-icons md-small">flip</span></button>
         <button class="navBtn" title="Copy FEN to clipboard" id="copyFen"><span class="material-icons md-small">content_copy</span></button>
       </div>
     </div>
@@ -8023,30 +8061,28 @@ background-image: url('_bK.svg');
     }
 
     let ankiFen;
-    let urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "?"]
-[Site "?"]
-[Date "2023.02.13"]
+    let urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "The Opera Game"]
+[Site "Paris Opera House"]
+[Date "1858.11.02"]
 [Round "?"]
-[White "White"]
-[Black "Black"]
-[Result "*"]
-[FEN "rnbqk1nr/ppppp1bP/8/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 4"]
-[SetUp "1"]
+[White "Paul Morphy"]
+[Black "Duke of Brunswick & Count Isouart"]
+[Result "1-0"]
+[ECO "C41"]
 
-4... e6 5. hxg8=Q+ Ke7 6. Qxd8+ Kd6 7. Qe7+ (7. d3 Bc3+) *
+1. e4 e5 2. Nf3 d6 {This is the Philidor Defence. It's solid but can be passive.} 3. d4 Bg4?! {This pin is a bit premature. A more common and solid move would be 3...exd4.} 4. dxe5 Bxf3 (4... dxe5 5. Qxd8+ Kxd8 6. Nxe5 {White wins a pawn and has a better position.}) 5. Qxf3! {A great move. Morphy is willing to accept doubled pawns to accelerate his development.} 5... dxe5 6. Bc4 {Putting immediate pressure on the weak f7 square.} 6... Nf6 7. Qb3! {A powerful double attack on f7 and b7.} 7... Qe7 {This is the only move to defend both threats, but it places the queen on an awkward square and blocks the f8-bishop.} 8. Nc3 c6 9. Bg5 {Now Black's knight on f6 is pinned and cannot move without the queen being captured.} 9... b5?! {A desperate attempt to kick the bishop and relieve some pressure, but it weakens Black's queenside.} 10. Nxb5! {A brilliant sacrifice! Morphy sees that his attack is worth more than the knight.} 10... cxb5 11. Bxb5+ Nbd7 12. O-O-O {All of White's pieces are now in the attack, while Black's are tangled up and undeveloped.} 12... Rd8 13. Rxd7! {Another fantastic sacrifice to remove the defending knight.} 13... Rxd7 14. Rd1 {Renewing the pin and intensifying the pressure. Black is completely paralyzed.} 14... Qe6 {Trying to trade queens to relieve the pressure, but it's too late.} 15. Bxd7+ Nxd7 (15... Qxd7 16. Qb8+ Ke7 17. Qxe5+ Kd8 18. Bxf6+ {and White wins easily.}) 16. Qb8+! {The stunning final sacrifice! Morphy forces mate by sacrificing his most powerful piece.} 16... Nxb8 17. Rd8# {A beautiful checkmate, delivered with just a rook and bishop.} 1-0
 `;
 
     // load user text
-    const ankiText = getUrlVars()["userText"] //? getUrlVars()["userText"] : `Black to <b>promote<br><ul><li>testing <i>html</i></li></ul></b>`;
+    const fontSize = getUrlVars()["fontSize"] ? getUrlVars()["fontSize"] : 16;
+    const ankiText = getUrlVars()["userText"] //? getUrlVars()["userText"] : `<h2>The Opera Game</h2>White: Paul Morphy<br>Black:Duke of Brunswick & Count Isouart`;
     if (ankiText) {
-      const textField = document.querySelector("#textField")
-      textField.classList.toggle('hidden');
+      commentBox.style = "font-size: " + fontSize + "px;"
+      commentBox.classList.toggle('hidden');
       textField.innerHTML = ankiText;
     }
 
-
-
-    var background = getUrlVars()["background"] ? getUrlVars()["background"] : "grey";
+    var background = getUrlVars()["background"] ? getUrlVars()["background"] : "#2C2C2C";
     document.documentElement.style.setProperty('--background-color', background);
     let parsedPGN = parsePgn(urlPGN, {
       startRule: "game"
@@ -8065,12 +8101,11 @@ background-image: url('_bK.svg');
     var solvedColour = "limegreen"; // sets border colour on puzzle completion
     var errorTrack = getUrlVars()["errorTrack"] ? getUrlVars()["errorTrack"] : '';
     var disableArrows = getUrlVars()["disableArrows"] ? getUrlVars()["disableArrows"] : 'false'; // eneable/disable drawing arrows for alternate lines
-
     let boardRotation = "black";
     const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
     var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer'; // Front = Puzzle Back = Viewer
-    var patt = /(( b | w ))(?!.*\1)/g;
-    var result = ankiFen.match(patt);
+    const patt = /(( b | w ))(?!.*\1)/g;
+    const result = ankiFen.match(patt);
     if (result == " w ") {
       boardRotation = "white";
     }
@@ -8091,7 +8126,7 @@ background-image: url('_bK.svg');
     } else if (flipBoard == 'true' && boardRotation == "black") {
       boardRotation = "white";
     }
-
+    var boarOrientation = boardRotation; // track board orientation for fliping
     document.documentElement.style.setProperty('--border-color', boardRotation);
 
     if (errorTrack == "true" && boardMode == 'Viewer') {
@@ -14358,7 +14393,7 @@ background-image: url('_bK.svg');
                 count++;
                 expectedMove = expectedLine[count];
                 cg.playPremove();
-            }, 100);
+            }, 200);
           }
           document.querySelector('#buttons-container').style = "display: none"
           return cg;
@@ -14461,7 +14496,7 @@ background-image: url('_bK.svg');
                                 });
                                 cg.set({ animation: { enabled: true} })
                                 util_1.drawArrows(cg, chess);
-                              }, 150)
+                              }, 200)
                             } else {
                               cg.set({
                                   fen: chess.fen()
@@ -14503,7 +14538,7 @@ background-image: url('_bK.svg');
                                 });
                                 cg.set({ animation: { enabled: true} })
                                 util_1.drawArrows(cg, chess);
-                              }, 150)
+                              }, 200)
                           } else {
                             cg.set({
                                 fen: chess.fen()
@@ -14565,6 +14600,40 @@ background-image: url('_bK.svg');
             }
             return null; // Parent not found in this branch
           };
+
+          var resetBoard = function() {
+            count = 0; // Int so we can track on which move we are.
+            expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
+            expectedMove = parsedPGN.moves[count]; // Set the expected move according to PGN
+            pgnState = true; // incase outside PGN
+            chess.reset();
+            chess.load(ankiFen);
+            cg.set({
+                  fen: chess.fen(),
+                  check: chess.in_check(),
+                  turnColor: util_1.toColor(chess),
+                  orientation: boarOrientation,
+                  movable: {
+                    color: util_1.toColor(chess),
+                    dests: util_1.toDests(chess)
+                  }
+            });
+            util_1.drawArrows(cg, chess);
+
+          }
+          var rotateBoard = function() {
+              boarOrientation = ((boarOrientation === 'white') ? 'black' : 'white')
+              const root = document.documentElement;
+              // Get the current values of the CSS variables
+              const coordWhite = getComputedStyle(root).getPropertyValue('--coord-white').trim();
+              const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
+              // Swap the values. so coord colors are correct
+              root.style.setProperty('--coord-white', coordBlack);
+              root.style.setProperty('--coord-black', coordWhite);
+              cg.set({
+                  orientation: boarOrientation
+              });
+          }
           function navBackward() { // Move forward in PGN
             const lastMove = chess.undo();
             const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
@@ -14628,7 +14697,7 @@ background-image: url('_bK.svg');
               }
             }
           };
-          var navFoward = function() { // Move Forward in PGN
+          var navForward = function() { // Move Forward in PGN
             const chess2 = new chess_js_1.Chess(); // second chess intance for promotion handling animation
             if (count == 0) { // handles for when board undone to first move
               try { // chess.getLastMove() wont work if first move of puzzle
@@ -14673,16 +14742,19 @@ background-image: url('_bK.svg');
           }
 
           // handle event listeners for buttons
+          document.querySelector("#resetBoard").addEventListener('click', resetBoard);
           document.querySelector("#navBackward").addEventListener('click', navBackward);
-          document.querySelector("#navFoward").addEventListener('click', navFoward);
+          document.querySelector("#navForward").addEventListener('click', navForward);
+          document.querySelector("#rotateBoard").addEventListener('click', rotateBoard);
           document.querySelector("#copyFen").addEventListener('click', copyFen);
           el.addEventListener('wheel', (event) => { // scroll Navigation
+              event.preventDefault();
               if (event.deltaY < 0) {
                 // Perform actions for scrolling up
                 navBackward()
               } else if (event.deltaY > 0) {
                 // Perform actions for scrolling down
-                navFoward()
+                navForward()
               }
           });
           cg.set({
@@ -14729,7 +14801,7 @@ background-image: url('_bK.svg');
                 expectedMove = expectedLine[count];
                 cg.playPremove();
                 util_1.drawArrows(cg, chess);
-            }, 100);
+            }, 200);
           } else {
             util_1.drawArrows(cg, chess);
           }
@@ -15237,7 +15309,7 @@ background-image: url('_bK.svg');
                   fen: chess.fen(),
               });
               cg.set({ animation: { enabled: true} })
-            }, 150)
+            }, 200)
           } else {
             cg.set({
                 fen: chess.fen()
@@ -15348,12 +15420,12 @@ background-image: url('_bK.svg');
 
             }
           }
-          if (moveCheckIsPromote && expectedMove.notation.promotion) {
-            // check against random move
-            // makes pawn animate back when wrong promotion chosen
+          if (moveCheckIsPromote && expectedMove.notation.promotion) { // attempted a promotion and correct move is another promotion
+            chess.move(expectedMove.notation.notation);
+            const lastMove = chess.undo(); // orig dest to wont work here as same pawn might promote od different squar
             chess2.load(chess.fen());
-            chess2.remove(orig);
-            chess2.put({ type: 'p', color: chess.turn() }, dest);
+            chess2.remove(lastMove.from);
+            chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
             cg.set({
                 fen: chess2.fen(),
             });
@@ -15364,7 +15436,7 @@ background-image: url('_bK.svg');
                   fen: chess.fen(),
               });
               cg.set({ animation: { enabled: true} })
-            }, 150)
+            }, 200)
           } else if (expectedMove.notation.promotion) {
               chess2.load(chess.fen());
               chess.move(expectedMove.notation.notation);
@@ -15381,7 +15453,7 @@ background-image: url('_bK.svg');
                     fen: chess.fen(),
                 });
                 cg.set({ animation: { enabled: true} })
-              }, 150)
+              }, 200)
           } else {
             chess.move(expectedMove.notation.notation);
             cg.set({
@@ -15430,7 +15502,7 @@ background-image: url('_bK.svg');
                         fen: chess.fen(),
                     });
                     cg.set({ animation: { enabled: true} })
-                  }, 150)
+                  }, 200)
                 } else {
                   chess.move(expectedMove.notation.notation);
                   cg.set({
@@ -15499,6 +15571,12 @@ background-image: url('_bK.svg');
     function drawArrows(cg, chess) {
       if (!pgnState || typeof expectedMove === 'string') { // outside/end of pgn
         return
+      }
+      const comment = expectedLine[count - 1]?.commentAfter;
+      if (comment) {
+        pgnComment.innerHTML = "<ul><li>" + expectedLine[count -1].commentAfter+ "</ul></li>";
+      } else {
+        pgnComment.innerHTML = ""
       }
       if (expectedMove?.variations) {
 
@@ -15570,7 +15648,7 @@ background-image: url('_bK.svg');
             });
             drawArrows(cg, chess);
             cg.set({ animation: { enabled: true} })
-          }, 150)
+          }, 200)
         } else {
           cg.set({
               fen: chess.fen()
@@ -15673,11 +15751,12 @@ background-image: url('_bK.svg');
     function puzzlePlay(cg, chess, delay, from, to, chess2) {
         return (orig, dest) => { // drag and drop after event for Puzzle
           selectState = false; // disables select state indication for dropped piece to allow for click move event
+          const moveAccepted = count; // count will increase if a correct move is played
           if (from) { // from and to are manually provided with click move select: event
             orig = from;
             dest = to;
           };
-
+          const playerComment = expectedLine[count]?.commentAfter;
           foundVariation = false; // is move correct?
           alternateMoves = [];
           chess.move({ from: orig, to: dest, promotion: promoteChoice}); // move to check
@@ -15699,6 +15778,13 @@ background-image: url('_bK.svg');
             promotePopup(moveCheck, cg, chess, orig, dest, delay, chess2)
           } else {
             moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2);
+          }
+          const opponentComment = expectedLine[count]?.commentAfter;
+          console.log(count ,playerComment, opponentComment)
+          if ((playerComment || opponentComment) && (moveAccepted < count) ) {
+            pgnComment.innerHTML = "<ul><li>" + ((boarOrientation === 'white') ? '<b>White: </b>' : '<b>Black: </b>') + (playerComment ? playerComment : '') + "</li><li>" + ((boarOrientation === 'white') ? '<b>Black: </b>' : '<b>White: </b>') + (opponentComment ? opponentComment : '') + "</ul></li>";
+          } else if (moveAccepted < count){
+            pgnComment.innerHTML = ""
           }
         };
     }
@@ -15743,6 +15829,7 @@ background-image: url('_bK.svg');
       count = 0; // Int so we can track on which move we are.
       expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
       expectedMove = parsedPGN.moves[count]; // Set the expected move according to PGN
+
       ChessgroundExamples.run(document.getElementById('chessground-examples'));
       const el = document.querySelector('.cg-wrap');
       if (el) {
@@ -15755,7 +15842,6 @@ background-image: url('_bK.svg');
     function positionPromoteOverlay() {
       const promoteOverlay = document.getElementById('center');
       const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
-
       // Set the position of the promote element
       promoteOverlay.style.top = (rect.top + 6) + 'px';
       promoteOverlay.style.left = (rect.left + 6) + 'px';
@@ -15763,33 +15849,13 @@ background-image: url('_bK.svg');
     }
 
     async function resizeBoard() {
-      if (document.querySelector("#container").scrollHeight > document.body.clientHeight) {
-        document.body.style.alignItems = "start"
-      } else {
-        document.body.style.alignItems = "center"
-      }
-      let resizeTimer;
-      resizeTimer = await setTimeout(() => {
-      if (document.querySelector("#container").scrollHeight > document.body.clientHeight) {
-        clearTimeout(resizeTimer);
-          while (document.querySelector("#container").scrollHeight > document.body.clientHeight && vh < 1000) {
-            vh++;
-            document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 200px), max(calc(98vw - 12px), 200px), 600px)');
-          }
-        } else {
-          while (!(document.querySelector("#container").scrollHeight > document.body.clientHeight) && vh > -1 ) {
-            vh--;
-            document.documentElement.style.setProperty('--board-size', 'min(max(calc(98vh - ' + vh + 'px), 200px), max(calc(98vw - 12px), 200px), 600px)');
-          }
-        };
-      }, 200);
       positionPromoteOverlay();
     }
 
 
     async function loadElements() {
       await reload();
-      await resizeBoard();
+      // await resizeBoard();
 
       setTimeout(() => {
         positionPromoteOverlay();
