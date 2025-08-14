@@ -1,0 +1,331 @@
+:root {
+  --coord-white: rgba(255, 255, 255, 0.8);
+  --coord-black: rgba(72, 72, 72, 0.8);
+  --background-color: transparent;
+  --board-size: min(max(calc(98vh - 87px), 300px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
+  --border-color: #808080;
+  --border-shadow: LightSlateGrey;
+  --max-width: min(100vw, 1000px)
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent; /*disable the tap/touch highlight that sametimes appears over the board when using a touch screen */
+}
+
+html {
+  height:100vh;
+  width:100vw;
+}
+
+body {
+  background: var(--background-color);
+  margin:0;
+  height:100vh;
+  width:100%;
+  display: flex;
+  align-items: center;
+  justify-content:center;
+}
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url("../_materialicons.woff2") format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: min(75px, calc(var(--board-size)*0.15));
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -moz-font-feature-settings: 'liga';
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.md-small {
+  font-size: min(45px, calc(var(--board-size)*0.09));;
+}
+
+select { font-size:1.2em; }
+
+button {
+  position: relative;
+  top: 0.07em;
+  font-size: 1.4em;
+  background-color: #f5f5f5;
+  color: #333B45 !important;
+  border: 1px solid #dcdcdc;
+  border-radius: 2px;
+  box-shadow: 0px 0px 3px 1px black;
+  z-index: 100;
+  cursor: pointer;
+}
+
+#container {
+  padding-right: 12px;
+  gap: 10px;
+/*   height: max(100%, var(--board-size)); */
+  width: var(--max-width);
+  grid-template-areas:
+    "one two"
+    "one three";
+  margin-inline: auto; /* Best practice for centering the block itself */
+  /* --- THE GRID FIX --- */
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  justify-content: center;
+/*   align-items: center; */
+}
+
+#commentBox {
+  /* No width or grow property needed. 'auto' in the parent will handle it. */
+  grid-area: one;
+  padding: 16px;
+  font-family: serif;
+  margin-bottom: 5px;
+  width:calc(var(--max-width) - var(--board-size) - 60px);
+  box-shadow: 0px 0px 3px 0px black;
+  color: #333B45;
+  background-color: #D7DEE9;
+  border-radius: 4px;
+  max-height: calc(var(--board-size) - 20px);
+  overflow: scroll;
+}
+
+#board-container {
+  grid-area: two;
+  max-width: 600px;
+}
+
+#buttons-container {
+  grid-area: three;
+  padding-left: 12px;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* --- Apply these styles ONLY when in landscape mode --- */
+@media (orientation: portrait) {
+  #container {
+    padding-right: 0px;
+    grid-template-areas:
+    "two"
+    "three"
+    "one";
+    grid-template-columns: auto;
+  }
+  #commentBox {
+    width: calc(var(--board-size) - 20px);
+    height: calc(100vh - var(--board-size) - 140px);;
+  }
+  #buttons-container {
+    padding-left: 0px;
+  }
+}
+#textField {
+  /* No width or grow property needed. 'auto' in the parent will handle it. */
+}
+
+#overlay {
+  height:100vh;
+  width:100vw;
+  position:absolute;
+  z-index: 99;
+  background: rgba(0,0,0,0.5);
+}
+
+#center {
+  position:absolute;
+  height: calc(var(--board-size)*0.25);
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  width: var(--board-size);
+  box-shadow: 0px 0px 3px 1px black;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.hidden {
+  display: none !important;
+}
+
+p {
+  display:none; /*dirty approach to get rid of randome p element under board*/
+}
+
+button.navBtn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  border: 1px solid #333B45;
+  box-shadow: 0px 0px 3px 0px black;
+  height: calc(var(--board-size)*0.125);
+  width: calc(var(--board-size)*0.125);
+  max-width: 60px;
+  max-height: 60px;
+  margin:5px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+button.navBtn:hover {
+  background-color: #d6d6d6;
+  box-shadow: 0px 0px 6px 0px grey;
+  color: #333;
+}
+button.navBtn:active {
+  background-color: #557D38;
+}
+
+button.navBtn:focus {
+  outline: 0;
+}
+
+button.promoteBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #737373;
+  box-shadow: 0px 0px 3px 0px black;
+  height: calc(var(--board-size)*0.125);
+  width: calc(var(--board-size)*0.125);
+  border: 0px;
+  margin:10px;
+}
+
+.promotePiece {
+  margin: 0;
+  height: calc(var(--board-size)*0.125);
+  width: calc(var(--board-size)*0.125)
+}
+
+button.promoteBtn:hover {
+  background-color: #d6d6d6;
+  box-shadow: 0px 0px 6px 0px grey;
+  color: #333;
+}
+button.promoteBtn:active {
+  background-color: #557D38;
+}
+
+button.promoteBtn:focus {
+  outline: 0;
+}
+ html, img {
+   margin: 0;
+   color: white;
+ }
+
+ .cg-wrap {
+  width: var(--board-size);
+  height: var(--board-size);
+  box-shadow: 0px 0px 6px 0px var(--border-color);
+  border: 6px solid var(--border-color);
+  /* box-sizing: border-box; */
+  width: var(--board-size);
+  height: var(--board-size);
+  position: relative;
+  margin:0 auto;
+  display: block;
+ }
+
+cg-container {
+  width: var(--board-size)!important;
+  height: var(--board-size)!important;
+}
+
+cg-board {
+  width: var(--board-size);
+  height: var(--board-size);
+  background-color: #f0d9b5;
+  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4PSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIgogICAgIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+CjxnIGlkPSJhIj4KICA8ZyBpZD0iYiI+CiAgICA8ZyBpZD0iYyI+CiAgICAgIDxnIGlkPSJkIj4KICAgICAgICA8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjZjBkOWI1IiBpZD0iZSIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iMSIgaHJlZj0iI2UiIHg6aHJlZj0iI2UiLz4KICAgICAgICA8cmVjdCB5PSIxIiB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjYjU4ODYzIiBpZD0iZiIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iLTEiIGhyZWY9IiNmIiB4OmhyZWY9IiNmIi8+CiAgICAgIDwvZz4KICAgICAgPHVzZSB4PSIyIiBocmVmPSIjZCIgeDpocmVmPSIjZCIvPgogICAgPC9nPgogICAgPHVzZSB4PSI0IiBocmVmPSIjYyIgeDpocmVmPSIjYyIvPgogIDwvZz4KICA8dXNlIHk9IjIiIGhyZWY9IiNiIiB4OmhyZWY9IiNiIi8+CjwvZz4KPHVzZSB5PSI0IiBocmVmPSIjYSIgeDpocmVmPSIjYSIvPgo8L3N2Zz4K');
+}
+
+/* Promote buttons */
+/* Piece SVGs */
+.promoteBtn {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+}
+.promoteBtn .promotePiece {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.cg-wrap piece.pawn.white {
+background-image: url('../_wP.svg');
+}
+.cg-wrap piece.bishop.white {
+background-image: url('../_wB.svg');
+}
+.cg-wrap piece.knight.white {
+background-image: url('../_wN.svg');
+}
+.cg-wrap piece.rook.white {
+background-image: url('../_wR.svg');
+}
+.cg-wrap piece.queen.white {
+background-image: url('../_wQ.svg');
+}
+.cg-wrap piece.king.white {
+background-image: url('../_wK.svg');
+}
+.cg-wrap piece.pawn.black {
+background-image: url('../_bP.svg');
+}
+.cg-wrap piece.bishop.black {
+background-image: url('../_bB.svg');
+}
+.cg-wrap piece.knight.black {
+background-image: url('../_bN.svg');
+}
+.cg-wrap piece.rook.black {
+background-image: url('../_bR.svg');
+}
+.cg-wrap piece.queen.black {
+background-image: url('../_bQ.svg');
+}
+.cg-wrap piece.king.black {
+background-image: url('../_bK.svg');
+}
+
+.cg-wrap coords:nth-child(odd) coord:nth-child(even),
+.cg-wrap coords.squares:nth-child(even) coord:nth-child(odd),
+.cg-wrap.orientation-black coords.files:nth-child(odd) coord:nth-child(even),
+.cg-wrap coords.files:nth-child(even) coord:nth-child(even),
+.cg-wrap coords.ranks:nth-child(even) coord:nth-child(odd) {
+  color: var(--coord-white);
+}
+
+.cg-wrap coords:nth-child(odd) coord:nth-child(odd),
+.cg-wrap coords.squares:nth-child(even) coord:nth-child(even),
+.cg-wrap.orientation-black coords.files:nth-child(odd) coord:nth-child(odd),
+.cg-wrap coords.files:nth-child(even) coord:nth-child(odd),
+.cg-wrap coords.ranks:nth-child(even) coord:nth-child(even){
+  color: var(--coord-black);
+}
+/* --- Chesground --- */
