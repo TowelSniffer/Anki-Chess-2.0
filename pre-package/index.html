@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chess</title>
+  </head>
+  <body>
+    <div id="chessground-examples"></div>
+    <audio id="myAudio" src=""></audio>
+    <div id="pgn-comment"></div>
+    <div id="buttons-container">
+        <button id="resetBoard">Reset</button>
+        <button id="navBackward"><</button>
+        <button id="navForward">></button>
+        <button id="rotateBoard">Rotate</button>
+        <button id="copyFen">Copy FEN</button>
+    </div>
+    <div id="center" style="display: none;">
+        <button value="q">Queen</button>
+        <button value="r">Rook</button>
+        <button value="b">Bishop</button>
+        <button value="n">Knight</button>
+    </div>
+    <div id="overlay" style="display: none;"></div>
+    <script src="bundle.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
