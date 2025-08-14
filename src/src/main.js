@@ -45,7 +45,7 @@ var errorTrack = getUrlVars()["errorTrack"] ? getUrlVars()["errorTrack"] : '';
 const disableArrows = getUrlVars()["disableArrows"] ? getUrlVars()["disableArrows"] : 'false'; // eneable/disable drawing arrows for alternate lines
 let boardRotation = "black";
 const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-const boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Puzzle'; // Front = Puzzle Back = Viewer
+const boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer'; // Front = Puzzle Back = Viewer
 const background = getUrlVars()["background"] ? getUrlVars()["background"] : "#2C2C2C"; // background colour
 
 // --- initialize Template ---
