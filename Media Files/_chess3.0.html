@@ -7579,7 +7579,7 @@
   --coord-white: rgba(255, 255, 255, 0.8);
   --coord-black: rgba(72, 72, 72, 0.8);
   --background-color: transparent;
-  --board-size: min(max(calc(98vh - 12px), 300px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
+  --board-size: min(max(calc(98vh - 87px), 300px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
   --border-color: #808080;
   --border-shadow: LightSlateGrey;
   --max-width: min(100vw, 1000px)
@@ -7700,7 +7700,7 @@ button {
 @media (orientation: portrait) {
   #container {
     padding-right: 0px;
-  grid-template-areas:
+    grid-template-areas:
     "two"
     "three"
     "one";
@@ -7709,6 +7709,9 @@ button {
   #commentBox {
     width: calc(var(--board-size) - 20px);
     height: calc(100vh - var(--board-size) - 140px);;
+  }
+  #buttons-container {
+    padding-left: 0px;
   }
 }
 #textField {
