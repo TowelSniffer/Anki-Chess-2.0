@@ -1,0 +1,19 @@
+<html>
+<head>
+    <script src="/lib/index.umd.js" type="text/javascript"></script>
+</head>
+<body>
+<p>Shows how the parser can be directly used in the browser without any change. Just do the following to have it run:
+<ul>
+    <li>Start `http-server` in the root directory (one level above this directory).</li>
+    <li>Go the http://localhost:8080/doc (or whatever port is used by your local server).</li>
+    <li>You should get a popup from the following script call that uses the PgnParser.</li>
+</ul></p>
+<div></div>
+<script>
+    var pgn = PgnParser.parse('e4 e5 Nf3 Nc6', { startRule: 'pgn'})
+    var prettyJson = JSON.stringify(pgn, null, 2)
+    window.alert(prettyJson)
+</script>
+</body>
+</html>

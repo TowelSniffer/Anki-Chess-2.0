@@ -1,0 +1,22 @@
+{
+  "name": "anki-chess",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/main.js --bundle --outfile=dist/bundle.js --loader:.css=css --loader:.woff2=file --loader:.svg=file"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@mliebelt/pgn-parser": "^1.4.18",
+    "chess.js": "^1.4.0",
+    "chessground": "^9.2.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9"
+  }
+}
