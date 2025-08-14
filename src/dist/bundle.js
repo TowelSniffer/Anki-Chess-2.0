@@ -13754,7 +13754,7 @@ ${contextLines.join("\n")}`;
       var disableArrows = getUrlVars()["disableArrows"] ? getUrlVars()["disableArrows"] : "false";
       var boardRotation = "black";
       var flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : "true";
-      var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : "Puzzle";
+      var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : "Viewer";
       var background = getUrlVars()["background"] ? getUrlVars()["background"] : "#2C2C2C";
       document.documentElement.style.setProperty("--background-color", background);
       var parsedPGN = (0, import_pgn_parser.parse)(urlPGN, { startRule: "game" });
