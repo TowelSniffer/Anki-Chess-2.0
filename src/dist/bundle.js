@@ -13690,18 +13690,6 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // node_modules/chessground/assets/chessground.brown.css
-  var init_chessground_brown = __esm({
-    "node_modules/chessground/assets/chessground.brown.css"() {
-    }
-  });
-
-  // node_modules/chessground/assets/chessground.cburnett.css
-  var init_chessground_cburnett = __esm({
-    "node_modules/chessground/assets/chessground.cburnett.css"() {
-    }
-  });
-
   // src/custom.css
   var init_custom = __esm({
     "src/custom.css"() {
@@ -13715,8 +13703,6 @@ ${contextLines.join("\n")}`;
       init_chessground();
       var import_pgn_parser = __toESM(require_index_umd());
       init_chessground_base();
-      init_chessground_brown();
-      init_chessground_cburnett();
       init_custom();
       function toggleDisplay(className) {
         const elements = document.querySelectorAll("." + className);
