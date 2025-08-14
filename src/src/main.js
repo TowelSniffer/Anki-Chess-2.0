@@ -2,8 +2,6 @@ import { Chess, SQUARES } from 'chess.js';
 import { Chessground } from 'chessground';
 import { parse } from '@mliebelt/pgn-parser';
 import 'chessground/assets/chessground.base.css';
-import 'chessground/assets/chessground.brown.css';
-import 'chessground/assets/chessground.cburnett.css';
 import './custom.css';
 
 function toggleDisplay(className) { // toggle hidden class for promote elements
