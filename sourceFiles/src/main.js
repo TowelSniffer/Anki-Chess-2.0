@@ -33,7 +33,7 @@ const urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "The Opera Ga
 `;
 let ankiFen; // initialize starting FEN
 const fontSize = getUrlVars()["fontSize"] ? getUrlVars()["fontSize"] : 16; // font size for user text and pgn comments in px
-const ankiText = getUrlVars()["userText"] ? getUrlVars()["userText"] : `<h2>The Opera Game</h2>White: Paul Morphy<br>Black:Duke of Brunswick & Count Isouart`;
+const ankiText = getUrlVars()["userText"] //? getUrlVars()["userText"] : `<h2>The Opera Game</h2>White: Paul Morphy<br>Black:Duke of Brunswick & Count Isouart`;
 const muteAudio = getUrlVars()["muteAudio"] ? getUrlVars()["muteAudio"] : 'false';
 const handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 1;
 const strictScoring = getUrlVars()["strictScoring"] ? getUrlVars()["strictScoring"] : 'false';
@@ -329,7 +329,7 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     if (errorCount > handicap) {
     const audio = document.getElementById("myAudio");
     audio.src = "_Error.mp3"
-    audio.play();
+    audio.play().catch(() => {});
     setTimeout(() => {
         // mistake limit met so puzzle auto advances
         errorTrack = 'true';
@@ -485,7 +485,7 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     }, delay);
     } else {
     audio.src = "_Error.mp3"
-    audio.play();
+    audio.play().catch(() => {});
     }
 }
 }
@@ -723,7 +723,7 @@ function changeAudio(gameState) {
     } else {
     audio.src = "_Move.mp3"
     }
-    audio.play();
+    audio.play().catch(() => {});
 };
 
 
@@ -743,7 +743,6 @@ function reload() {
         
         const cg = Chessground(board, {
         fen: ankiFen,
-        ranksPosition: 'right',
         turnColor: boardRotation,
         orientation: boardRotation,
         movable: {
@@ -1176,12 +1175,12 @@ function reload() {
             document.execCommand('copy');
             const audio = document.getElementById("myAudio");
             audio.src = "_computer-mouse-click.mp3"
-            audio.play();
+            audio.play().catch(() => {});
             return true;
         } catch (err) {
             const audio = document.getElementById("myAudio");
             audio.src = "_Error.mp3"
-            audio.play();
+            audio.play().catch(() => {});
             console.error('Failed to copy text using execCommand:', err);
             return false;
         } finally {
