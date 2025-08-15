@@ -13730,7 +13730,7 @@ ${contextLines.join("\n")}`;
 `;
       var ankiFen;
       var fontSize = getUrlVars()["fontSize"] ? getUrlVars()["fontSize"] : 16;
-      var ankiText = getUrlVars()["userText"] ? getUrlVars()["userText"] : `<h2>The Opera Game</h2>White: Paul Morphy<br>Black:Duke of Brunswick & Count Isouart`;
+      var ankiText = getUrlVars()["userText"];
       var muteAudio = getUrlVars()["muteAudio"] ? getUrlVars()["muteAudio"] : "false";
       var handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 1;
       var strictScoring = getUrlVars()["strictScoring"] ? getUrlVars()["strictScoring"] : "false";
@@ -14003,7 +14003,8 @@ ${contextLines.join("\n")}`;
           if (errorCount > handicap) {
             const audio2 = document.getElementById("myAudio");
             audio2.src = "_Error.mp3";
-            audio2.play();
+            audio2.play().catch(() => {
+            });
             setTimeout(() => {
               errorTrack = "true";
               window.parent.postMessage(errorTrack, "*");
@@ -14157,7 +14158,8 @@ ${contextLines.join("\n")}`;
             }, delay);
           } else {
             audio.src = "_Error.mp3";
-            audio.play();
+            audio.play().catch(() => {
+            });
           }
         }
       }
@@ -14393,7 +14395,8 @@ ${contextLines.join("\n")}`;
         } else {
           audio.src = "_Move.mp3";
         }
-        audio.play();
+        audio.play().catch(() => {
+        });
       }
       function reload() {
         count = 0;
@@ -14405,7 +14408,6 @@ ${contextLines.join("\n")}`;
         if (boardMode === "Puzzle") {
           const cg = Chessground(board, {
             fen: ankiFen,
-            ranksPosition: "right",
             turnColor: boardRotation,
             orientation: boardRotation,
             movable: {
@@ -14806,12 +14808,14 @@ ${contextLines.join("\n")}`;
               document.execCommand("copy");
               const audio = document.getElementById("myAudio");
               audio.src = "_computer-mouse-click.mp3";
-              audio.play();
+              audio.play().catch(() => {
+              });
               return true;
             } catch (err) {
               const audio = document.getElementById("myAudio");
               audio.src = "_Error.mp3";
-              audio.play();
+              audio.play().catch(() => {
+              });
               console.error("Failed to copy text using execCommand:", err);
               return false;
             } finally {
