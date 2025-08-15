@@ -1,0 +1,16 @@
+.lpv {
+  *::-webkit-scrollbar,
+  *::-webkit-scrollbar-corner {
+    width: 0.5rem;
+    background: var(--c-lpv-bg, $lpv-bg);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--c-lpv-font-bg, $lpv-font-bg);
+  }
+
+  *::-webkit-scrollbar-thumb:hover,
+  *::-webkit-scrollbar-thumb:active {
+    background: var(--c-lpv-font-shy, $lpv-font-shy);
+  }
+}

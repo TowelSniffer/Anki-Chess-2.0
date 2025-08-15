@@ -408,7 +408,7 @@ cg-board piece.fading {
   display: flex;
   pointer-events: none;
   opacity: 0.8;
-  font-size: calc(var(--board-size) * 0.02);
+  font-size: 12px;
   font-weight: bold;
 }
 .cg-wrap coords.ranks {
@@ -424,8 +424,8 @@ cg-board piece.fading {
   flex-flow: column;
 }
 .cg-wrap coords.files {
-  bottom: calc(var(--board-size) * 0.005);
-  left: calc(var(--board-size) * 0.004);
+  bottom: 0.6em;
+  left: 1.2%;
   flex-flow: row;
   width: 100%;
   height: 10px;
@@ -437,9 +437,6 @@ cg-board piece.fading {
 }
 .cg-wrap coords coord {
   flex: 1 1 auto;
-}
-.cg-wrap coords.ranks coord {
-  transform: translateY(39%);
 }
 
 .cg-wrap coords.files:nth-child(even) coord:nth-child(even),

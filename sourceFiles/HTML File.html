@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stockfish ASM.js Direct Usage</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        #output { border: 1px solid #ccc; padding: 10px; min-height: 150px; max-height: 300px; overflow-y: scroll; background-color: #f9f9f9; white-space: pre-wrap; margin-bottom: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Stockfish ASM.js on Main Thread Example</h1>
+    <p>This example loads Stockfish 10.0.2 (ASM.js version) directly on the main thread. Note that computations will block the UI.</p>
+    <pre id="output">Initializing Stockfish...</pre>
+    <button onclick="startStockfish()">Start Analysis (Depth 12)</button>
+
+    <script src="./dist/_stockfish.js"></script>
+
+    <script>
+        var stockfish = STOCKFISH();
+
+        stockfish.addEventListener('message', function (e) {
+        console.log(e.data);
+        });
+
+        stockfish.postMessage('uci');
+    </script>
+</body>
+</html>
