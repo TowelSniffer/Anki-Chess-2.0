@@ -1,0 +1,28 @@
+{
+  "name": "@badrap/result",
+  "version": "0.2.13",
+  "description": "A TypeScript result type taking cues from Rust's Result and Haskell's Either types",
+  "source": "src/index.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "require": "./dist/index.js",
+    "default": "./dist/index.modern.mjs"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.module.mjs",
+  "unpkg": "./dist/index.umd.js",
+  "sideEffects": false,
+  "repository": "badrap/result",
+  "author": "Joachim Viide <jviide@iki.fi>",
+  "license": "MIT",
+  "scripts": {
+    "test": "vitest --run",
+    "build": "rm -rf dist/* && microbundle",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "microbundle": "^0.15.1",
+    "typescript": "^4.8.4",
+    "vitest": "^0.24.3"
+  }
+}

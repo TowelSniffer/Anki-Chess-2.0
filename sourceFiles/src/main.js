@@ -3,6 +3,7 @@ import { Chessground } from 'chessground';
 import { parse } from '@mliebelt/pgn-parser';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
+import LichessPgnViewer from '@lichess-org/pgn-viewer';
 
 function toggleDisplay(className) { // toggle hidden class for promote elements
     const elements = document.querySelectorAll('.' + className);
@@ -43,7 +44,7 @@ var errorTrack = getUrlVars()["errorTrack"] ? getUrlVars()["errorTrack"] : '';
 const disableArrows = getUrlVars()["disableArrows"] ? getUrlVars()["disableArrows"] : 'false'; // eneable/disable drawing arrows for alternate lines
 let boardRotation = "black";
 const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-const boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer'; // Front = Puzzle Back = Viewer
+const boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'test'; // Front = Puzzle Back = Viewer
 const background = getUrlVars()["background"] ? getUrlVars()["background"] : "#2C2C2C"; // background colour
 
 // --- initialize Template ---
@@ -74,7 +75,7 @@ if (flipBoard != 'true' && boardRotation == "white" || flipBoard == 'true' && bo
     const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
     // Swap the values
     root.style.setProperty('--coord-white', coordBlack);
-    root.style.setProperty('--coord-black', coordWhite);
+    root.style.setProperty('--coord-black', coordBlack);
 }
 
 if (flipBoard == 'true' && boardRotation == "white") {
@@ -214,7 +215,7 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
         errorCount = 0; // reset error count after move played
         if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
         const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-        if (moveVar !== expectedMove.variations.length) { // variation chosen instead of main line
+        if (moveVar !== expectedMove.variants.length) {
             // switch main line of PGN to the main line of chose variation
             count = 0; // varation moves begin at 0 again
             expectedLine = expectedMove.variations[moveVar];
@@ -317,7 +318,6 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     cg.set({
         fen: chess.fen(),
     });
-    }
 
 
     const audio = document.getElementById("myAudio");
@@ -337,8 +337,8 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
         solvedColour = "#b31010";
         if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
         // looked for variations and randomly choses one
-        const randomIndex = Math.floor(Math.random() * (expectedMove.variations.length + 1)); // +1 to include mainline
-        if (randomIndex != expectedMove.variations.length) {
+        const randomIndex = Math.floor(Math.random() * (expectedMove.variants.length + 1));
+        if (randomIndex != expectedMove.variants.length) {
             count = 0;
             expectedLine = expectedMove.variations[randomIndex]
             expectedMove = expectedLine[count];
@@ -402,8 +402,8 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
             setTimeout(() => {
             errorCount = 0;
                 if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                if (moveVar == expectedMove.variations.length) {
+                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
+                if (moveVar == expectedMove.variants.length) {
                 } else {
                 count = 0;
                 expectedLine = expectedMove.variations[moveVar];
@@ -487,6 +487,7 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     audio.src = "_Error.mp3"
     audio.play().catch(() => {});
     }
+}
 }
 }
 function drawArrows(cg, chess) {
@@ -820,8 +821,8 @@ function reload() {
         if (chess.isGameOver() == false && flipBoard == 'true') {
         setTimeout(() => {
             if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                if (moveVar == expectedMove.variations.length) {
+                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
+                if (moveVar == expectedMove.variants.length) {
                 } else {
                 count = 0;
                 expectedLine = expectedMove.variations[moveVar];
@@ -970,7 +971,7 @@ function reload() {
                     for (var j = 0; j < expectedMove?.variations?.length; j++) { // consecutively loop for alternate line only entire minline has been looked at
                     if (expectedMove.variations[j][0].notation.notation === legalMovesToSquareAlt) {
                         chess.move(expectedMove.variations[j][0].notation.notation);
-                        if (expectedMove.variations[j][0].notation.promotion) { // fix promotion animation
+                        if (expectedMove.variants[j][0].notation.promotion) { // fix promotion animation
                             const lastMove = chess.undo();
                             const chess2 = new Chess();
                             chess2.load(chess.fen());
@@ -979,7 +980,7 @@ function reload() {
                             cg.set({
                                 fen: chess2.fen(),
                             });
-                            chess.move(expectedMove.variations[j][0].notation.notation);
+                            chess.move(expectedMove.variants[j][0].notation.notation);
                             setTimeout(() => {
                             cg.set({ animation: { enabled: false} })
                             cg.set({
@@ -1078,7 +1079,7 @@ function reload() {
             const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
             // Swap the values. so coord colors are correct
             root.style.setProperty('--coord-white', coordBlack);
-            root.style.setProperty('--coord-black', coordWhite);
+            root.style.setProperty('--coord-black', coordBlack);
             cg.set({
                 orientation: boarOrientation
             });
@@ -1220,8 +1221,8 @@ function reload() {
         if (chess.isGameOver() == false && flipBoard == 'true') {
         setTimeout(() => {
             if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                if (moveVar == expectedMove.variations.length) {
+                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
+                if (moveVar == expectedMove.variants.length) {
                 } else {
                 count = 0;
                 expectedLine = expectedMove.variations[moveVar];
@@ -1254,7 +1255,20 @@ function reload() {
         }
         return cg;
 
+
+    } else if (boardMode === 'test') {
+        const boardContainer = document.getElementById('board-container');
+        const pgnViewer = new LichessPgnViewer(boardContainer, {
+            pgn: urlPGN,
+        });
     
+        var stockfish = STOCKFISH();
+        
+        stockfish.addEventListener('message', function (e) {
+        console.log(e.data);
+        });
+        
+        stockfish.postMessage('uci');
     }
 
 }
@@ -1263,6 +1277,9 @@ function reload() {
 let vh = 12;
 
 function positionPromoteOverlay() {
+    if (boardMode === 'test') { 
+        return
+    };
     const promoteOverlay = document.getElementById('center');
     const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
     // Set the position of the promote element
@@ -1289,5 +1306,4 @@ if (muteAudio == 'true') {
     const audioElement = document.getElementById("myAudio");
     audioElement.muted = true;
 }
-
-loadElements();
+loadElements()

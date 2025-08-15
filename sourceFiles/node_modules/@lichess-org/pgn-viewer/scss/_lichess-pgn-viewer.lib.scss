@@ -1,0 +1,78 @@
+// in addition to scss overrides, all colors below may be overridden with css
+// variables defined as --c-lpv-accent, --c-lpv-accent-over, etc.
+
+$lpv-site-hue: 37 !default;
+$lpv-accent: hsl(88, 62%, 37%) !default;
+$lpv-accent-over: white !default;
+$lpv-bg: hsl($lpv-site-hue, 5%, 18%) !default;
+$lpv-fbt-hover: mix($lpv-accent, $lpv-bg, 75%) !default;
+$lpv-bg-player: $lpv-bg !default;
+$lpv-bg-controls: $lpv-bg !default;
+$lpv-bg-movelist: $lpv-bg !default;
+$lpv-bg-variation: hsl($lpv-site-hue, 5%, 15%) !default;
+$lpv-bg-pane: mix($lpv-accent, $lpv-bg, 15%) !default;
+$lpv-pgn-text: mix($lpv-bg-pane, $lpv-bg, 30%) !default;
+$lpv-font: #aaa !default;
+$lpv-font-shy: mix($lpv-font, $lpv-bg, 50%) !default;
+$lpv-past-moves: $lpv-font !default;
+$lpv-font-bg: mix($lpv-font, $lpv-bg, 20%) !default;
+$lpv-current-move: mix($lpv-accent, $lpv-bg, 70%) !default;
+$lpv-move-hover: mix($lpv-accent, $lpv-bg, 30%) !default;
+$lpv-border: hsl(0, 0%, 25%) !default;
+$lpv-side-border: hsl(37deg, 5%, 13%) !default;
+
+/* move highlights */
+$lpv-inaccuracy: hsl(202, 78%, 62%) !default;
+$lpv-mistake: hsl(41, 100%, 45%) !default;
+$lpv-blunder: hsl(0, 69%, 60%) !default;
+$lpv-good-move: hsl(130, 67%, 62%) !default;
+$lpv-brilliant: hsl(129, 71%, 45%) !default;
+$lpv-interesting: hsl(307, 80%, 70%) !default;
+$lpv-bg-inaccuracy-hover: mix($lpv-inaccuracy, $lpv-bg, 30%) !default;
+$lpv-bg-mistake-hover: mix($lpv-mistake, $lpv-bg, 30%) !default;
+$lpv-bg-blunder-hover: mix($lpv-blunder, $lpv-bg, 30%) !default;
+$lpv-bg-good-hover: mix($lpv-good-move, $lpv-bg, 30%) !default;
+$lpv-bg-brilliant-hover: mix($lpv-brilliant, $lpv-bg, 30%) !default;
+$lpv-bg-interesting-hover: mix($lpv-interesting, $lpv-bg, 30%) !default;
+
+@import './fbt';
+@import './util';
+@import './layout';
+@import './side';
+@import './player';
+@import './pane';
+@import './controls';
+@import './scrollbar';
+@import './font';
+
+.lpv {
+  border-radius: 5px;
+  box-shadow:
+    0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 3px 1px -2px rgba(0, 0, 0, 0.2),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  background: var(--c-lpv-bg, $lpv-bg);
+  color: var(--c-lpv-font, $lpv-font);
+  box-sizing: border-box;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
+
+  &__board {
+    user-select: none;
+    .cg-wrap {
+      @extend %square;
+    }
+    cg-board {
+      box-shadow: none;
+    }
+  }
+
+  &:focus {
+    outline: auto 2px var(--c-lpv-accent, $lpv-accent);
+  }
+}
