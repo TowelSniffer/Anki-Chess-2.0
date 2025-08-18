@@ -13728,7 +13728,6 @@ ${contextLines.join("\n")}`;
       };
       var state = {
         ankiFen: "",
-        depth: 5,
         boardRotation: "black",
         solvedColour: "limegreen",
         errorTrack: getUrlParam("errorTrack", null),
@@ -13750,6 +13749,22 @@ ${contextLines.join("\n")}`;
       if (!state.errorTrack) {
         state.errorTrack = false;
       }
+      window.addEventListener("error", (event2) => {
+        const message = event2.message || "";
+        const filename = event2.filename || "";
+        const isDetailedStockfishCrash = message.includes("abort") && filename.includes("_stockfish.js");
+        const isGenericCrossOriginError = message === "Script error.";
+        if (isDetailedStockfishCrash || isGenericCrossOriginError) {
+          event2.preventDefault();
+          console.warn("Caught a fatal Stockfish crash via global error handler.");
+          if (isGenericCrossOriginError) {
+            console.log("Note: The error was reported as a generic 'Script error.' due to browser security policies. Assuming it was Stockfish and attempting a restart.");
+          } else {
+            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+          }
+          handleStockfishCrash("window.onerror");
+        }
+      });
       var cg = null;
       var chess = null;
       function initAudio(mute) {
@@ -13949,87 +13964,135 @@ ${contextLines.join("\n")}`;
         }
         writePgnComments(commentRewrite);
         if (state.analysisToggledOn) {
-          state.depth = 5;
-          stockfishCalc();
+          startAnalysis(100);
         }
       }
-      var stockfish = STOCKFISH();
-      stockfish.onmessage = (event2) => {
-        const message = event2.data ? event2.data : event2;
-        if (typeof message !== "string") {
-          return;
+      var stockfish;
+      function handleStockfishCrash(source) {
+        console.error(`Stockfish engine crashed. Source: ${source}.`);
+        console.log("Attempting to restart the engine...");
+        state.isStockfishBusy = false;
+        if (state.deepAnalysis) {
+          state.deepAnalysis = false;
+          const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+          setNavButtonsDisabled(false);
+          deepAnalysisBtn.classList.remove("active-toggle");
         }
-        if (message.startsWith("info")) {
-          const parts = message.split(" ");
-          const pvDepthIndex = parts.indexOf("depth");
-          const pvSanIndex = parts.indexOf("pvSan");
-          if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
-            const firstMove = parts[pvSanIndex + 1];
+        setTimeout(initializeStockfish, 100);
+      }
+      function initializeStockfish() {
+        console.log("Initializing Stockfish engine...");
+        stockfish = STOCKFISH();
+        stockfish.onmessage = (event2) => {
+          const message = event2.data ? event2.data : event2;
+          if (typeof message !== "string") return;
+          if (message.startsWith("info")) {
+            const parts = message.split(" ");
+            const pvSanIndex = parts.indexOf("pvSan");
+            const pvDepthIndex = parts.indexOf("depth");
+            if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
+              const firstMove = parts[pvSanIndex + 1];
+              const pvDepth = parts[pvDepthIndex + 1];
+              console.log(pvDepth);
+              const tempChess = new Chess(chess.fen());
+              const moveObject = tempChess.move(firstMove);
+              if (moveObject) {
+                state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+                state.chessGroundShapes.push({
+                  orig: moveObject.from,
+                  dest: moveObject.to,
+                  brush: "stockfish",
+                  san: moveObject.san
+                });
+                cg.set({ drawable: { shapes: state.chessGroundShapes } });
+              }
+            }
+          } else if (message.startsWith("bestmove")) {
+            cg.set({ viewOnly: false });
+            state.isStockfishBusy = false;
+            if (state.deepAnalysis) {
+              state.deepAnalysis = false;
+              const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+              setNavButtonsDisabled(false);
+              deepAnalysisBtn.classList.remove("active-toggle");
+            }
+            const bestMoveUci = message.split(" ")[1];
             const tempChess = new Chess(chess.fen());
-            const moveObject = tempChess.move(firstMove);
+            const moveObject = tempChess.move(bestMoveUci);
             if (moveObject) {
               state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
               state.chessGroundShapes.push({
                 orig: moveObject.from,
                 dest: moveObject.to,
-                brush: "stockfish",
+                brush: "stockfinished",
                 san: moveObject.san
               });
               cg.set({ drawable: { shapes: state.chessGroundShapes } });
             }
           }
-        } else if (message.startsWith("bestmove")) {
-          cg.set({ viewOnly: false });
-          state.isStockfishBusy = false;
-          if (state.deepAnalysis === true) {
-            state.deepAnalysis = false;
-            document.querySelector("#stockfishCalc").disabled = false;
-            document.querySelector("#stockfishCalc").classList.toggle("active-toggle");
-          }
-          const bestMoveUci = message.split(" ")[1];
-          const tempChess = new Chess(chess.fen());
-          const moveObject = tempChess.move(bestMoveUci);
-          if (moveObject) {
-            state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
-            state.chessGroundShapes.push({
-              orig: moveObject.from,
-              dest: moveObject.to,
-              brush: "stockfinished",
-              san: moveObject.san
-            });
-            cg.set({ drawable: { shapes: state.chessGroundShapes } });
-          }
-        }
-      };
-      function stockfishCalc() {
-        return new Promise((resolve, reject) => {
-          if (chess.moves().length === 0 || state.isStockfishBusy) return;
-          state.isStockfishBusy = true;
-          stockfish.postMessage(`position fen ${chess.fen()}`);
-          stockfish.postMessage(`go depth ${state.depth}`);
-          stockfish.postMessage("uci");
-        });
+        };
+        stockfish.onerror = (error) => {
+          handleStockfishCrash("stockfish.onerror");
+        };
+        stockfish.postMessage("uci");
+      }
+      function startAnalysis(movetime) {
+        if (chess.moves().length === 0 || state.isStockfishBusy) return;
+        state.isStockfishBusy = true;
+        stockfish.postMessage(`position fen ${chess.fen()}`);
+        stockfish.postMessage(`go movetime ${movetime}`);
       }
       function toggleStockfishAnalysis() {
         state.analysisToggledOn = !state.analysisToggledOn;
         const toggleButton = document.querySelector("#stockfishToggle");
         toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
         if (state.analysisToggledOn) {
-          stockfishCalc();
+          startAnalysis(100);
         } else {
+          if (state.isStockfishBusy) {
+            stockfish.postMessage("stop");
+            state.isStockfishBusy = false;
+            if (state.deepAnalysis) {
+              state.deepAnalysis = false;
+              const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+              setNavButtonsDisabled(false);
+              deepAnalysisBtn.classList.remove("active-toggle");
+            }
+          }
           state.chessGroundShapes = state.chessGroundShapes.filter(
             (shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished"
           );
-          drawArrows(cg, chess);
+          cg.set({ drawable: { shapes: state.chessGroundShapes } });
         }
       }
+      function setNavButtonsDisabled(disabled) {
+        const buttonIds = ["#resetBoard", "#navBackward", "#navForward", "#rotateBoard", "#copyFen", "#stockfishToggle"];
+        buttonIds.forEach((id) => {
+          const button = document.querySelector(id);
+          if (button) {
+            button.disabled = disabled;
+          }
+        });
+      }
       function deepAnalysis() {
-        document.querySelector("#stockfishCalc").classList.toggle("active-toggle");
-        document.querySelector("#stockfishCalc").disabled = true;
-        state.deepAnalysis = true;
-        state.depth = 15;
-        cg.set({ viewOnly: true });
-        stockfishCalc();
+        const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+        if (state.deepAnalysis) {
+          stockfish.postMessage("stop");
+          state.isStockfishBusy = false;
+          state.deepAnalysis = false;
+          deepAnalysisBtn.classList.remove("active-toggle");
+          setNavButtonsDisabled(false);
+          cg.set({ viewOnly: false });
+          if (state.analysisToggledOn) {
+            startAnalysis(100);
+          }
+        } else {
+          deepAnalysisBtn.classList.add("active-toggle");
+          setNavButtonsDisabled(true);
+          state.deepAnalysis = true;
+          cg.set({ viewOnly: true });
+          startAnalysis(6e3);
+        }
       }
       function makeMove(cg2, chess2, move3) {
         const moveResult = chess2.move(move3);
@@ -14287,20 +14350,17 @@ ${contextLines.join("\n")}`;
                 }
                 state.selectState = false;
               }
-              let arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "mainLine");
-              if (!arrowMove) {
-                arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "altLine");
-              }
-              if (!arrowMove) {
-                arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "stockfinished");
-              }
-              if (!arrowMove) {
-                arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "stockfish");
-              }
-              if (arrowMove && config.boardMode === "Viewer") {
-                cg.move(arrowMove.orig, arrowMove.dest);
-                handleViewerMove(cg, chess, arrowMove.san, null);
-                return;
+              const priority = ["mainLine", "altLine", "stockfinished", "stockfish"];
+              const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
+              if (arrowMove) {
+                if (arrowMove.brush === "stockfish" || arrowMove.brush === "stockfinished") {
+                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
+                  state.pgnState = false;
+                }
+                if (config.boardMode === "Viewer") {
+                  cg.move(arrowMove.orig, arrowMove.dest);
+                  handleViewerMove(cg, chess, arrowMove.san, null);
+                }
               } else {
                 const allMoves = chess.moves({ verbose: true });
                 const movesToSquare = allMoves.filter((move3) => move3.to === key);
@@ -14422,8 +14482,7 @@ ${contextLines.join("\n")}`;
           drawArrows(cg, chess);
           writePgnComments();
           if (state.analysisToggledOn) {
-            state.depth = 5;
-            stockfishCalc();
+            startAnalysis(100);
           }
         }
         function navForward() {
@@ -14524,6 +14583,7 @@ ${contextLines.join("\n")}`;
       async function loadElements() {
         await reload();
         await resizeBoard();
+        initializeStockfish();
         setTimeout(() => {
           positionPromoteOverlay();
         }, 200);

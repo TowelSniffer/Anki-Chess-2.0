@@ -362,6 +362,10 @@ button.navBtn.active-toggle {
 button.navBtn:focus {
   outline: 0;
 }
+button.navBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 button.promoteBtn {
   display: flex;
   justify-content: center;

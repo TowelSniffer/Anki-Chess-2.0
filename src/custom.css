@@ -208,6 +208,12 @@ button.navBtn:focus {
   outline: 0;
 }
 
+/* Example if all buttons had class="nav-button" */
+button.navBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 button.promoteBtn {
   display: flex;
   justify-content: center;
