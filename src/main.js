@@ -35,7 +35,6 @@ const config = {
 // --- Global State ---
 let state = {
     ankiFen: "",
-    depth: 5,
     boardRotation: "black",
     solvedColour: "limegreen",
     errorTrack: getUrlParam("errorTrack", null),
@@ -57,6 +56,37 @@ let state = {
 if (!state.errorTrack) {
     state.errorTrack = false;
 }
+
+/**
+ * This is a last-resort safety net to catch the fatal "abort" error from the
+ * pure JS version of Stockfish. This can happen under high CPU load and
+ * crashes the script instance, often bypassing its internal .onerror handler.
+ */
+window.addEventListener('error', (event) => {
+    const message = event.message || '';
+    const filename = event.filename || '';
+
+    // Condition 1: A detailed error message that we can identify.
+    const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
+
+    // Condition 2: A generic "Script error." This happens when an error is thrown
+    // by a script from a different origin (a browser security feature). We have to
+    // assume this might be Stockfish crashing, as it's the most likely source of
+    // fatal, script-terminating errors in this context.
+    const isGenericCrossOriginError = message === 'Script error.';
+
+    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
+        // Prevent the default browser error console message since we are handling it
+        event.preventDefault();
+        console.warn("Caught a fatal Stockfish crash via global error handler.");
+        if (isGenericCrossOriginError) {
+            console.log("Note: The error was reported as a generic 'Script error.' due to browser security policies. Assuming it was Stockfish and attempting a restart.");
+        } else {
+            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+        }
+        handleStockfishCrash("window.onerror");
+    }
+});
 
 // --- Stockfish Analysis State ---
 let cg = null;
@@ -298,89 +328,103 @@ function updateBoard(cg, chess, move, quite, commentRewrite) { // animate user/a
     }
     writePgnComments(commentRewrite);
     if (state.analysisToggledOn) {
-        state.depth = 5;
-        stockfishCalc();
+        startAnalysis(100);
     }
 }
+let stockfish;
 
-// --- Global Stockfish Instance and State ---
-const stockfish = STOCKFISH();
-// Set the message handler ONCE. This handler will delegate to the active promise.
-stockfish.onmessage = (event) => {
-    // The stockfish.js library can be run as a worker or directly.
-    // When run directly (pure JS), the message is the event itself.
-    // When run as a worker, the message is in event.data.
-    // This handles both cases to ensure we get the message string.
-    const message = event.data ? event.data : event;
+function handleStockfishCrash(source) {
+    console.error(`Stockfish engine crashed. Source: ${source}.`);
+    console.log("Attempting to restart the engine...");
 
-    // We only care about string messages from stockfish
-    if (typeof message !== 'string') {
-        return;
+    // Reset any state that might be stuck because of the crash
+    state.isStockfishBusy = false;
+    if (state.deepAnalysis) {
+        state.deepAnalysis = false;
+        const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+        setNavButtonsDisabled(false);
+        deepAnalysisBtn.classList.remove('active-toggle');
     }
 
-    // Check for analysis lines ('info ...')
-    if (message.startsWith('info')) {
+    // Re-initialize a fresh instance after a short delay to let the browser recover.
+    setTimeout(initializeStockfish, 100);
+}
 
-        const parts = message.split(' ');
-        const pvDepthIndex = parts.indexOf('depth');
-        const pvSanIndex = parts.indexOf('pvSan');
-        // 'pvSan' contains the principal variation in Standard Algebraic Notation.
-        if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
-            const firstMove = parts[pvSanIndex + 1];
+function initializeStockfish() {
+    console.log("Initializing Stockfish engine...");
+    stockfish = STOCKFISH(); // This creates the JS instance
+
+    // Set the message handler for the new instance
+    stockfish.onmessage = (event) => {
+        const message = event.data ? event.data : event;
+        if (typeof message !== 'string') return;
+
+        if (message.startsWith('info')) {
+            const parts = message.split(' ');
+            const pvSanIndex = parts.indexOf('pvSan');
+            const pvDepthIndex = parts.indexOf('depth');
+            if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
+                const firstMove = parts[pvSanIndex + 1];
+                const pvDepth = parts[pvDepthIndex + 1];
+                console.log(pvDepth);
+                const tempChess = new Chess(chess.fen());
+                const moveObject = tempChess.move(firstMove);
+
+                if (moveObject) {
+                    state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
+                    state.chessGroundShapes.push({
+                        orig: moveObject.from,
+                        dest: moveObject.to,
+                        brush: 'stockfish',
+                        san: moveObject.san,
+                    });
+                    cg.set({ drawable: { shapes: state.chessGroundShapes } });
+                }
+            }
+        } else if (message.startsWith('bestmove')) {
+            cg.set({ viewOnly: false });
+            state.isStockfishBusy = false;
+            if (state.deepAnalysis) {
+                state.deepAnalysis = false;
+                const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+                setNavButtonsDisabled(false);
+                deepAnalysisBtn.classList.remove('active-toggle');
+            }
+            const bestMoveUci = message.split(' ')[1];
             const tempChess = new Chess(chess.fen());
-            const moveObject = tempChess.move(firstMove);
+            const moveObject = tempChess.move(bestMoveUci);
 
-            // Only draw the analysis arrow if the move is valid for the current position.
             if (moveObject) {
                 state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
                 state.chessGroundShapes.push({
                     orig: moveObject.from,
                     dest: moveObject.to,
-                    brush: 'stockfish',
+                    brush: 'stockfinished',
                     san: moveObject.san,
                 });
-                cg.set({ drawable: { shapes: state.chessGroundShapes } })
+                cg.set({ drawable: { shapes: state.chessGroundShapes } });
             }
         }
-    } else if (message.startsWith('bestmove')) {
-        cg.set({ viewOnly: false });
-        state.isStockfishBusy = false;
-        if (state.deepAnalysis === true) {
-            state.deepAnalysis = false;
-            document.querySelector("#stockfishCalc").disabled = false; // Re-enable the button
-            document.querySelector("#stockfishCalc").classList.toggle('active-toggle');
-        }
-        const bestMoveUci = message.split(' ')[1];
-        // The 'bestmove' is in UCI format (e.g., 'e2e4'). We need to convert it to SAN.
-        // We use a temporary chess instance to not alter the main game state.
-        const tempChess = new Chess(chess.fen());
-        const moveObject = tempChess.move(bestMoveUci);
+    };
 
-        // A bestmove of '0000' or '(none)' can result in a null moveObject.
-        // We must guard against this to prevent a crash.
-        if (moveObject) {
-            // First, remove any existing stockfish arrow to prevent duplicates.
-            state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
-            // Then, add the new best move arrow.
-            state.chessGroundShapes.push({
-                orig: moveObject.from,
-                dest: moveObject.to,
-                brush: 'stockfinished',
-                san: moveObject.san,
-            });
-            cg.set({ drawable: { shapes: state.chessGroundShapes } })
-        }
-    }
-};
+    // Set the error handler to restart the engine on crash
+    stockfish.onerror = (error) => {
+        handleStockfishCrash("stockfish.onerror");
+    };
 
-function stockfishCalc() {
-    return new Promise((resolve, reject) => {
-        if (chess.moves().length === 0 || state.isStockfishBusy) return
-        state.isStockfishBusy = true;
-        stockfish.postMessage(`position fen ${chess.fen()}`);
-        stockfish.postMessage(`go depth ${state.depth}`);
-        stockfish.postMessage('uci');
-    });
+    // Send the initial 'uci' command to confirm the engine is ready.
+    stockfish.postMessage('uci');
+}
+
+/**
+ * Starts a new Stockfish analysis.
+ * @param {number} movetime - The time in milliseconds for the engine to think.
+ */
+function startAnalysis(movetime) {
+    if (chess.moves().length === 0 || state.isStockfishBusy) return;
+    state.isStockfishBusy = true;
+    stockfish.postMessage(`position fen ${chess.fen()}`);
+    stockfish.postMessage(`go movetime ${movetime}`);
 }
 
 function toggleStockfishAnalysis() {
@@ -391,25 +435,69 @@ function toggleStockfishAnalysis() {
 
     if (state.analysisToggledOn) {
         // Turn analysis ON
-        stockfishCalc(); // Start analysis for the current position
+        startAnalysis(100);
     } else {
         // Turn analysis OFF
+        if (state.isStockfishBusy) {
+            stockfish.postMessage('stop'); // Tell the engine to stop thinking
+            state.isStockfishBusy = false;
+            if (state.deepAnalysis) {
+                state.deepAnalysis = false;
+                const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+                setNavButtonsDisabled(false);
+                deepAnalysisBtn.classList.remove('active-toggle');
+            }
+        }
         // Filter out the analysis arrows
         state.chessGroundShapes = state.chessGroundShapes.filter(
             shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished'
         );
         // Update the board to remove the arrows
-        drawArrows(cg, chess);
+        cg.set({ drawable: { shapes: state.chessGroundShapes } });
     }
 }
 
+/**
+ * Enables or disables the main navigation and action buttons.
+ * This is used to prevent user actions during deep analysis.
+ * @param {boolean} disabled - True to disable the buttons, false to enable them.
+ */
+function setNavButtonsDisabled(disabled) {
+    const buttonIds = ['#resetBoard', '#navBackward', '#navForward', '#rotateBoard', '#copyFen', '#stockfishToggle'];
+    buttonIds.forEach(id => {
+        const button = document.querySelector(id);
+        if (button) {
+            button.disabled = disabled;
+        }
+    });
+}
+
 function deepAnalysis() {
-    document.querySelector("#stockfishCalc").classList.toggle('active-toggle');
-    document.querySelector("#stockfishCalc").disabled = true; // Disable the button
-    state.deepAnalysis = true;
-    state.depth = 15;
-    cg.set({ viewOnly: true });
-    stockfishCalc();
+    const deepAnalysisBtn = document.querySelector("#stockfishCalc");
+
+    // If deep analysis is already running, clicking the button again will cancel it.
+    if (state.deepAnalysis) {
+        stockfish.postMessage('stop');
+        state.isStockfishBusy = false;
+        state.deepAnalysis = false;
+
+        deepAnalysisBtn.classList.remove('active-toggle');
+        setNavButtonsDisabled(false);
+        cg.set({ viewOnly: false });
+
+        // If regular analysis is toggled on, restart it with its normal, shallow depth.
+        if (state.analysisToggledOn) {
+            startAnalysis(100);
+        }
+    } else {
+        // Otherwise, start a new deep analysis.
+        deepAnalysisBtn.classList.add('active-toggle');
+        setNavButtonsDisabled(true);
+        // The button is intentionally NOT disabled, allowing it to be clicked again to cancel.
+        state.deepAnalysis = true;
+        cg.set({ viewOnly: true });
+        startAnalysis(6000);
+    }
 }
 
 function makeMove(cg, chess, move) {
@@ -697,25 +785,24 @@ function reload() {
                     }
                     state.selectState = false;
                 }
-                // Prioritize the main (green) line, but allow clicking on variations (blue) as well.
-                let arrowMove = state.chessGroundShapes.find(shape => shape.dest === key && shape.brush === 'mainLine');
+                // Find the highest-priority arrow pointing to the clicked square. This is more
+                // efficient and readable than iterating through the shapes array multiple times.
+                const priority = ['mainLine', 'altLine', 'stockfinished', 'stockfish'];
+                const arrowMove = state.chessGroundShapes
+                    .filter(shape => shape.dest === key && priority.includes(shape.brush))
+                    .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
 
-                // If no green arrow was clicked, check for a blue one.
-                if (!arrowMove) {
-                    arrowMove = state.chessGroundShapes.find(shape => shape.dest === key && shape.brush === 'altLine');
-                }
-                if (!arrowMove) {
-                    arrowMove = state.chessGroundShapes.find(shape => shape.dest === key && shape.brush === 'stockfinished');
-                }
-                if (!arrowMove) {
-                    arrowMove = state.chessGroundShapes.find(shape => shape.dest === key && shape.brush === 'stockfish');
-                }
-                if (arrowMove && (config.boardMode === 'Viewer')) {
-                    cg.move(arrowMove.orig, arrowMove.dest);
-                    handleViewerMove(cg, chess, arrowMove.san, null);
-                    return; // The action is complete.
-                } else { // check if only one legal play
-                    // Get all legal moves on the board and filter for those that land on the clicked square.
+                if (arrowMove) {
+                    // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
+                    if (arrowMove.brush === 'stockfish' || arrowMove.brush === 'stockfinished') {
+                        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine');
+                        state.pgnState = false;
+                    }
+                    if (config.boardMode === 'Viewer') {
+                        cg.move(arrowMove.orig, arrowMove.dest);
+                        handleViewerMove(cg, chess, arrowMove.san, null);
+                    }
+                } else { // No arrow was clicked, check if there's only one legal play to this square.
                     const allMoves = chess.moves({ verbose: true });
                     const movesToSquare = allMoves.filter(move => move.to === key);
                     if (movesToSquare.length === 1) {
@@ -841,8 +928,7 @@ function reload() {
         drawArrows(cg, chess);
         writePgnComments();
         if (state.analysisToggledOn) {
-            state.depth = 5;
-            stockfishCalc();
+            startAnalysis(100);
         }
     }
     function navForward() {
@@ -955,6 +1041,7 @@ async function resizeBoard() {
 async function loadElements() {
     await reload();
     await resizeBoard();
+    initializeStockfish();
 
     setTimeout(() => {
         positionPromoteOverlay();
