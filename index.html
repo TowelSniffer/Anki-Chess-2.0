@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anki Chess</title>
-    <link rel="stylesheet" href="_chess3.0.css">
+    <link rel="stylesheet" href="dist/bundle.css">
 </head>
 <body>
     <div id="overlay" class="hidden showHide"></div>
@@ -21,8 +21,10 @@
             <button class="navBtn" id="resetBoard"><span class="material-icons">first_page</span></button>
             <button class="navBtn" id="navBackward"><span class="material-icons">keyboard_arrow_left</span></button>
             <button class="navBtn" id="navForward"><span class="material-icons">keyboard_arrow_right</span></button>
-            <button class="navBtn" id="rotateBoard"><span class="material-icons md-small">flip</span></button>
             <button class="navBtn" title="Copy FEN to clipboard" id="copyFen"><span class="material-icons md-small">content_copy</span></button>
+            <button class="navBtn" id="stockfishToggle"><span class="material-icons md-small">developer_board_off</span></button>
+            <button class="navBtn" id="stockfishCalc"><span class="material-icons md-small">search</span></button>
+            <button class="navBtn" id="rotateBoard"><span class="material-icons md-small">flip</span></button>
         </div>
     </div>
     <div class="hidden showHide" id="center">
@@ -31,8 +33,7 @@
     <button class="promoteBtn" value="n"><img class="promotePiece" id="promoteN"></button>
     <button class="promoteBtn" value="r"><img class="promotePiece" id="promoteR"></button>
     </div>
-    <audio id="myAudio"></audio>
-    <script src="_stockfish.js"></script>
-    <script src="_chess3.0.js"></script>
+    <script src="dist/stockfish.js"></script>
+    <script src="dist/bundle.js"></script>
 </body>
 </html>

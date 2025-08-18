@@ -355,6 +355,10 @@ button.navBtn:hover {
 button.navBtn:active {
   background-color: #557D38;
 }
+button.navBtn.active-toggle {
+  background-color: #a5d6a7;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
 button.navBtn:focus {
   outline: 0;
 }

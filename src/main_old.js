@@ -3,7 +3,6 @@ import { Chessground } from 'chessground';
 import { parse } from '@mliebelt/pgn-parser';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
-import LichessPgnViewer from '@lichess-org/pgn-viewer';
 
 function toggleDisplay(className) { // toggle hidden class for promote elements
     const elements = document.querySelectorAll('.' + className);
@@ -34,7 +33,7 @@ const urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "The Opera Ga
 `;
 let ankiFen; // initialize starting FEN
 const fontSize = getUrlVars()["fontSize"] ? getUrlVars()["fontSize"] : 16; // font size for user text and pgn comments in px
-const ankiText = getUrlVars()["userText"] //? getUrlVars()["userText"] : `<h2>The Opera Game</h2>White: Paul Morphy<br>Black:Duke of Brunswick & Count Isouart`;
+const ankiText = getUrlVars()["userText"] ? getUrlVars()["userText"] : `<h2>The Opera Game</h2>White: Paul Morphy<br>Black:Duke of Brunswick & Count Isouart`;
 const muteAudio = getUrlVars()["muteAudio"] ? getUrlVars()["muteAudio"] : 'false';
 const handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 1;
 const strictScoring = getUrlVars()["strictScoring"] ? getUrlVars()["strictScoring"] : 'false';
@@ -44,7 +43,7 @@ var errorTrack = getUrlVars()["errorTrack"] ? getUrlVars()["errorTrack"] : '';
 const disableArrows = getUrlVars()["disableArrows"] ? getUrlVars()["disableArrows"] : 'false'; // eneable/disable drawing arrows for alternate lines
 let boardRotation = "black";
 const flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : 'true';
-const boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'test'; // Front = Puzzle Back = Viewer
+const boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : 'Viewer'; // Front = Puzzle Back = Viewer
 const background = getUrlVars()["background"] ? getUrlVars()["background"] : "#2C2C2C"; // background colour
 
 // --- initialize Template ---
@@ -75,7 +74,7 @@ if (flipBoard != 'true' && boardRotation == "white" || flipBoard == 'true' && bo
     const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
     // Swap the values
     root.style.setProperty('--coord-white', coordBlack);
-    root.style.setProperty('--coord-black', coordBlack);
+    root.style.setProperty('--coord-black', coordWhite);
 }
 
 if (flipBoard == 'true' && boardRotation == "white") {
@@ -142,7 +141,7 @@ function playOtherSide(cg, chess) {
     return (orig, dest) => {
         selectState = false; // piece has been dropped when this is run so assume no select
         const promoteCheck = chess.move({ from: orig, to: dest, promotion: promoteChoice});
-        if (promoteCheck.san.includes("=")) { 
+        if (promoteCheck.san.includes("=")) {
             chess.undo();
             promotePopup(null, cg, chess, orig, dest, null)
         } else {
@@ -215,7 +214,7 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
         errorCount = 0; // reset error count after move played
         if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
         const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-        if (moveVar !== expectedMove.variants.length) {
+        if (moveVar !== expectedMove.variations.length) { // variation chosen instead of main line
             // switch main line of PGN to the main line of chose variation
             count = 0; // varation moves begin at 0 again
             expectedLine = expectedMove.variations[moveVar];
@@ -318,6 +317,7 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     cg.set({
         fen: chess.fen(),
     });
+    }
 
 
     const audio = document.getElementById("myAudio");
@@ -329,7 +329,7 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     if (errorCount > handicap) {
     const audio = document.getElementById("myAudio");
     audio.src = "_Error.mp3"
-    audio.play().catch(() => {});
+    audio.play();
     setTimeout(() => {
         // mistake limit met so puzzle auto advances
         errorTrack = 'true';
@@ -337,8 +337,8 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
         solvedColour = "#b31010";
         if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
         // looked for variations and randomly choses one
-        const randomIndex = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-        if (randomIndex != expectedMove.variants.length) {
+        const randomIndex = Math.floor(Math.random() * (expectedMove.variations.length + 1)); // +1 to include mainline
+        if (randomIndex != expectedMove.variations.length) {
             count = 0;
             expectedLine = expectedMove.variations[randomIndex]
             expectedMove = expectedLine[count];
@@ -402,8 +402,8 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
             setTimeout(() => {
             errorCount = 0;
                 if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-                if (moveVar == expectedMove.variants.length) {
+                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                if (moveVar == expectedMove.variations.length) {
                 } else {
                 count = 0;
                 expectedLine = expectedMove.variations[moveVar];
@@ -485,9 +485,8 @@ function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
     }, delay);
     } else {
     audio.src = "_Error.mp3"
-    audio.play().catch(() => {});
+    audio.play();
     }
-}
 }
 }
 function drawArrows(cg, chess) {
@@ -724,7 +723,7 @@ function changeAudio(gameState) {
     } else {
     audio.src = "_Move.mp3"
     }
-    audio.play().catch(() => {});
+    audio.play();
 };
 
 
@@ -744,6 +743,7 @@ function reload() {
         
         const cg = Chessground(board, {
         fen: ankiFen,
+        ranksPosition: 'right',
         turnColor: boardRotation,
         orientation: boardRotation,
         movable: {
@@ -821,8 +821,8 @@ function reload() {
         if (chess.isGameOver() == false && flipBoard == 'true') {
         setTimeout(() => {
             if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-                if (moveVar == expectedMove.variants.length) {
+                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                if (moveVar == expectedMove.variations.length) {
                 } else {
                 count = 0;
                 expectedLine = expectedMove.variations[moveVar];
@@ -971,7 +971,7 @@ function reload() {
                     for (var j = 0; j < expectedMove?.variations?.length; j++) { // consecutively loop for alternate line only entire minline has been looked at
                     if (expectedMove.variations[j][0].notation.notation === legalMovesToSquareAlt) {
                         chess.move(expectedMove.variations[j][0].notation.notation);
-                        if (expectedMove.variants[j][0].notation.promotion) { // fix promotion animation
+                        if (expectedMove.variations[j][0].notation.promotion) { // fix promotion animation
                             const lastMove = chess.undo();
                             const chess2 = new Chess();
                             chess2.load(chess.fen());
@@ -980,7 +980,7 @@ function reload() {
                             cg.set({
                                 fen: chess2.fen(),
                             });
-                            chess.move(expectedMove.variants[j][0].notation.notation);
+                            chess.move(expectedMove.variations[j][0].notation.notation);
                             setTimeout(() => {
                             cg.set({ animation: { enabled: false} })
                             cg.set({
@@ -1079,72 +1079,70 @@ function reload() {
             const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
             // Swap the values. so coord colors are correct
             root.style.setProperty('--coord-white', coordBlack);
-            root.style.setProperty('--coord-black', coordBlack);
+            root.style.setProperty('--coord-black', coordWhite);
             cg.set({
                 orientation: boarOrientation
             });
         }
         function navBackward() { // Move forward in PGN
-        const lastMove = chess.undo();
-        const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
-        if (lastMove) {
-            if (lastMove.promotion) { // fix promotion animation
-                const chess2 = new Chess(); // new chess instance to no break old one
-                chess2.load(FENpos);
-                chess2.remove(lastMove.to);
-                chess2.remove(lastMove.from);
-                chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
-                cg.set({ animation: { enabled: false} })
+            const lastMove = chess.undo();
+            const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
+            if (lastMove) {
+                if (lastMove.promotion) { // fix promotion animation
+                    const chess2 = new Chess(); // new chess instance to no break old one
+                    chess2.load(FENpos);
+                    chess2.remove(lastMove.to);
+                    chess2.remove(lastMove.from);
+                    chess2.put({ type: 'p', color: chess.turn() }, lastMove.to);
+                    cg.set({ animation: { enabled: false} })
+                    cg.set({
+                        fen: chess2.fen(),
+                    });
+                    chess2.remove(lastMove.to);
+                    chess2.put({ type: 'p', color: chess.turn() }, lastMove.from);
+                    cg.set({ animation: { enabled: true} })
+                    cg.set({
+                        fen: FENpos
+                    });
+                } else {
                 cg.set({
-                    fen: chess2.fen(),
+                    fen: chess.fen()
                 });
-                chess2.remove(lastMove.to);
-                chess2.put({ type: 'p', color: chess.turn() }, lastMove.from);
-                cg.set({ animation: { enabled: true} })
+                }
                 cg.set({
-                    fen: FENpos
+                    check: chess.inCheck(),
+                    turnColor: toColor(chess),
+                    movable: {
+                    color: toColor(chess),
+                    dests: toDests(chess)
+                    },
+                    lastMove: [lastMove.from, lastMove.to]
                 });
-            } else {
-            cg.set({
-                fen: chess.fen()
-            });
-            }
-            cg.set({
-                check: chess.inCheck(),
-                turnColor: toColor(chess),
-                movable: {
-                color: toColor(chess),
-                dests: toDests(chess)
-                },
-                lastMove: [lastMove.from, lastMove.to]
-            });
 
-            if (expectedLine[count-1]?.notation?.notation === lastMove.san) {
-            if (true) {
-                count--
-                expectedMove = expectedLine[count];
-                if (count === 0) {
-                let parentOfChild = findParent(parsedPGN.moves, expectedLine);
-                if (parentOfChild) {
-                    for (var i = 0; i < 2; i++) {
-                    parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
-
-                    };
-                    expectedLine = parentOfChild.parent;
-                    count = parentOfChild.key;
+                if (expectedLine[count-1]?.notation?.notation === lastMove.san) {
+                    count--
                     expectedMove = expectedLine[count];
+                    if (count === 0) {
+                        let parentOfChild = findParent(parsedPGN.moves, expectedLine);
+                        if (parentOfChild) {
+                            for (var i = 0; i < 2; i++) {
+                            parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+
+                            };
+                            expectedLine = parentOfChild.parent;
+                            count = parentOfChild.key;
+                            expectedMove = expectedLine[count];
+                        }
+                    }
                 }
+                if (count == 0) {
+                pgnState = true; // needed for returning to first move from variation
+                drawArrows(cg, chess);
+                } else if (expectedLine[count-1].notation.notation == getLastMove(chess).san) {
+                pgnState = true; // inside PGN
+                drawArrows(cg, chess);
                 }
             }
-            }
-            if (count == 0) {
-            pgnState = true; // needed for returning to first move from variation
-            drawArrows(cg, chess);
-            } else if (expectedLine[count-1].notation.notation == getLastMove(chess).san) {
-            pgnState = true; // inside PGN
-            drawArrows(cg, chess);
-            }
-        }
         };
         var navForward = function() { // Move Forward in PGN
         const chess2 = new Chess(); // second chess intance for promotion handling animation
@@ -1176,12 +1174,12 @@ function reload() {
             document.execCommand('copy');
             const audio = document.getElementById("myAudio");
             audio.src = "_computer-mouse-click.mp3"
-            audio.play().catch(() => {});
+            audio.play();
             return true;
         } catch (err) {
             const audio = document.getElementById("myAudio");
             audio.src = "_Error.mp3"
-            audio.play().catch(() => {});
+            audio.play();
             console.error('Failed to copy text using execCommand:', err);
             return false;
         } finally {
@@ -1221,8 +1219,8 @@ function reload() {
         if (chess.isGameOver() == false && flipBoard == 'true') {
         setTimeout(() => {
             if (expectedMove?.variations.length > 0 && acceptVariations == 'true') {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-                if (moveVar == expectedMove.variants.length) {
+                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
+                if (moveVar == expectedMove.variations.length) {
                 } else {
                 count = 0;
                 expectedLine = expectedMove.variations[moveVar];
@@ -1255,20 +1253,7 @@ function reload() {
         }
         return cg;
 
-
-    } else if (boardMode === 'test') {
-        const boardContainer = document.getElementById('board-container');
-        const pgnViewer = new LichessPgnViewer(boardContainer, {
-            pgn: urlPGN,
-        });
     
-        var stockfish = STOCKFISH();
-        
-        stockfish.addEventListener('message', function (e) {
-        console.log(e.data);
-        });
-        
-        stockfish.postMessage('uci');
     }
 
 }
@@ -1277,9 +1262,6 @@ function reload() {
 let vh = 12;
 
 function positionPromoteOverlay() {
-    if (boardMode === 'test') { 
-        return
-    };
     const promoteOverlay = document.getElementById('center');
     const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
     // Set the position of the promote element
@@ -1306,4 +1288,5 @@ if (muteAudio == 'true') {
     const audioElement = document.getElementById("myAudio");
     audioElement.muted = true;
 }
-loadElements()
+
+loadElements();
