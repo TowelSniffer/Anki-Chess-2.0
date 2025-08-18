@@ -182,8 +182,8 @@
     var peg$f1 = function(tagPairs) {
       return Object.fromEntries(tagPairs);
     };
-    var peg$f2 = function(tagName2, tagValue) {
-      return [tagName2, tagValue];
+    var peg$f2 = function(tagName, tagValue) {
+      return [tagName, tagValue];
     };
     var peg$f3 = function(root, marker) {
       return { root, marker };
@@ -1186,8 +1186,8 @@
   }
   function algebraic(square) {
     const f = file(square);
-    const r2 = rank(square);
-    return "abcdefgh".substring(f, f + 1) + "87654321".substring(r2, r2 + 1);
+    const r = rank(square);
+    return "abcdefgh".substring(f, f + 1) + "87654321".substring(r, r + 1);
   }
   function swapColor(color) {
     return color === WHITE ? BLACK : WHITE;
@@ -1317,8 +1317,8 @@
     return "";
   }
   function addMove(moves, color, from, to, piece, captured = void 0, flags = BITS.NORMAL) {
-    const r2 = rank(to);
-    if (piece === PAWN && (r2 === RANK_1 || r2 === RANK_8)) {
+    const r = rank(to);
+    if (piece === PAWN && (r === RANK_1 || r === RANK_8)) {
       for (let i = 0; i < PROMOTIONS.length; i++) {
         const promotion = PROMOTIONS[i];
         moves.push({
@@ -1379,10 +1379,10 @@
           var offset_s = this.location.source && typeof this.location.source.offset === "function" ? this.location.source.offset(s) : s;
           var loc = this.location.source + ":" + offset_s.line + ":" + offset_s.column;
           if (src) {
-            var e2 = this.location.end;
+            var e = this.location.end;
             var filler = peg$padEnd("", offset_s.line.toString().length, " ");
             var line = src[s.line - 1];
-            var last = s.line === e2.line ? e2.column : line.length + 1;
+            var last = s.line === e.line ? e.column : line.length + 1;
             var hatLen = last - s.column || 1;
             str += "\n --> " + loc + "\n" + filler + " |\n" + offset_s.line + " | " + line + "\n" + filler + " | " + peg$padEnd("", s.column - 1, " ") + peg$padEnd("", hatLen, "^");
           } else {
@@ -3589,21 +3589,14 @@
       bounds.top + bounds.height * (7 - pos[1]) / 8 + bounds.height / 16
     ];
   }
-  var invRanks, allKeys, pos2key, key2pos, uciToMove, allPos, timer, opposite, distanceSq, samePiece, posToTranslate, translate, translateAndScale, setVisible, eventPosition, isRightButton, createEl;
+  var invRanks, allKeys, pos2key, key2pos, allPos, timer, opposite, distanceSq, samePiece, posToTranslate, translate, translateAndScale, setVisible, eventPosition, isRightButton, createEl;
   var init_util = __esm({
     "node_modules/chessground/dist/util.js"() {
       init_types();
       invRanks = [...ranks].reverse();
-      allKeys = Array.prototype.concat(...files.map((c) => ranks.map((r2) => c + r2)));
+      allKeys = Array.prototype.concat(...files.map((c) => ranks.map((r) => c + r)));
       pos2key = (pos) => allKeys[8 * pos[0] + pos[1]];
       key2pos = (k) => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
-      uciToMove = (uci) => {
-        if (!uci)
-          return void 0;
-        if (uci[1] === "@")
-          return [uci.slice(2, 4)];
-        return [uci.slice(0, 2), uci.slice(2, 4)];
-      };
       allPos = allKeys.map(key2pos);
       timer = () => {
         let startAt;
@@ -3642,17 +3635,17 @@
       setVisible = (el, v) => {
         el.style.visibility = v ? "visible" : "hidden";
       };
-      eventPosition = (e2) => {
+      eventPosition = (e) => {
         var _a;
-        if (e2.clientX || e2.clientX === 0)
-          return [e2.clientX, e2.clientY];
-        if ((_a = e2.targetTouches) === null || _a === void 0 ? void 0 : _a[0])
-          return [e2.targetTouches[0].clientX, e2.targetTouches[0].clientY];
+        if (e.clientX || e.clientX === 0)
+          return [e.clientX, e.clientY];
+        if ((_a = e.targetTouches) === null || _a === void 0 ? void 0 : _a[0])
+          return [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
         return;
       };
-      isRightButton = (e2) => e2.button === 2;
-      createEl = (tagName2, className) => {
-        const el = document.createElement(tagName2);
+      isRightButton = (e) => e.button === 2;
+      createEl = (tagName, className) => {
+        const el = document.createElement(tagName);
         if (className)
           el.className = className;
         return el;
@@ -3675,7 +3668,7 @@
     const piece = pieces.get(key);
     if (!piece)
       return [];
-    const pos = key2pos(key), r2 = piece.role, mobility = r2 === "pawn" ? pawn(piece.color) : r2 === "knight" ? knight : r2 === "bishop" ? bishop : r2 === "rook" ? rook : r2 === "queen" ? queen : king(piece.color, rookFilesOf(pieces, piece.color), canCastle);
+    const pos = key2pos(key), r = piece.role, mobility = r === "pawn" ? pawn(piece.color) : r === "knight" ? knight : r === "bishop" ? bishop : r === "rook" ? rook : r === "queen" ? queen : king(piece.color, rookFilesOf(pieces, piece.color), canCastle);
     return allPos.filter((pos2) => (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(pos[0], pos[1], pos2[0], pos2[1])).map(pos2key);
   }
   var diff, pawn, knight, bishop, rook, queen, king;
@@ -4240,24 +4233,24 @@
         piece
       });
       closer = (piece, pieces) => pieces.sort((p1, p2) => distanceSq(piece.pos, p1.pos) - distanceSq(piece.pos, p2.pos))[0];
-      easing = (t2) => t2 < 0.5 ? 4 * t2 * t2 * t2 : (t2 - 1) * (2 * t2 - 2) * (2 * t2 - 2) + 1;
+      easing = (t) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
     }
   });
 
   // node_modules/chessground/dist/draw.js
-  function start(state, e2) {
-    if (e2.touches && e2.touches.length > 1)
+  function start(state, e) {
+    if (e.touches && e.touches.length > 1)
       return;
-    e2.stopPropagation();
-    e2.preventDefault();
-    e2.ctrlKey ? unselect(state) : cancelMove(state);
-    const pos = eventPosition(e2), orig = getKeyAtDomPos(pos, whitePov(state), state.dom.bounds());
+    e.stopPropagation();
+    e.preventDefault();
+    e.ctrlKey ? unselect(state) : cancelMove(state);
+    const pos = eventPosition(e), orig = getKeyAtDomPos(pos, whitePov(state), state.dom.bounds());
     if (!orig)
       return;
     state.drawable.current = {
       orig,
       pos,
-      brush: eventBrush(e2),
+      brush: eventBrush(e),
       snapToValidMove: state.drawable.defaultSnapToValidMove
     };
     processDraw(state);
@@ -4280,9 +4273,9 @@
       }
     });
   }
-  function move(state, e2) {
+  function move(state, e) {
     if (state.drawable.current)
-      state.drawable.current.pos = eventPosition(e2);
+      state.drawable.current.pos = eventPosition(e);
   }
   function end(state) {
     const cur = state.drawable.current;
@@ -4305,10 +4298,10 @@
       onChange(state.drawable);
     }
   }
-  function eventBrush(e2) {
+  function eventBrush(e) {
     var _a;
-    const modA = (e2.shiftKey || e2.ctrlKey) && isRightButton(e2);
-    const modB = e2.altKey || e2.metaKey || ((_a = e2.getModifierState) === null || _a === void 0 ? void 0 : _a.call(e2, "AltGraph"));
+    const modA = (e.shiftKey || e.ctrlKey) && isRightButton(e);
+    const modB = e.altKey || e.metaKey || ((_a = e.getModifierState) === null || _a === void 0 ? void 0 : _a.call(e, "AltGraph"));
     return brushes[(modA ? 1 : 0) + (modB ? 2 : 0)];
   }
   function addShape(drawable, cur) {
@@ -4338,27 +4331,27 @@
   });
 
   // node_modules/chessground/dist/drag.js
-  function start2(s, e2) {
-    if (!(s.trustAllEvents || e2.isTrusted))
+  function start2(s, e) {
+    if (!(s.trustAllEvents || e.isTrusted))
       return;
-    if (e2.buttons !== void 0 && e2.buttons > 1)
+    if (e.buttons !== void 0 && e.buttons > 1)
       return;
-    if (e2.touches && e2.touches.length > 1)
+    if (e.touches && e.touches.length > 1)
       return;
-    const bounds = s.dom.bounds(), position = eventPosition(e2), orig = getKeyAtDomPos(position, whitePov(s), bounds);
+    const bounds = s.dom.bounds(), position = eventPosition(e), orig = getKeyAtDomPos(position, whitePov(s), bounds);
     if (!orig)
       return;
     const piece = s.pieces.get(orig);
     const previouslySelected = s.selected;
     if (!previouslySelected && s.drawable.enabled && (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor))
       clear(s);
-    if (e2.cancelable !== false && (!e2.touches || s.blockTouchScroll || piece || previouslySelected || pieceCloseTo(s, position)))
-      e2.preventDefault();
-    else if (e2.touches)
+    if (e.cancelable !== false && (!e.touches || s.blockTouchScroll || piece || previouslySelected || pieceCloseTo(s, position)))
+      e.preventDefault();
+    else if (e.touches)
       return;
     const hadPremove = !!s.premovable.current;
     const hadPredrop = !!s.predroppable.current;
-    s.stats.ctrlKey = e2.ctrlKey;
+    s.stats.ctrlKey = e.ctrlKey;
     if (s.selected && canMove(s, s.selected, orig)) {
       anim((state) => selectSquare(state, orig), s);
     } else {
@@ -4375,7 +4368,7 @@
         started: s.draggable.autoDistance && s.stats.dragged,
         element,
         previouslySelected,
-        originTarget: e2.target,
+        originTarget: e.target,
         keyHasChanged: false
       };
       element.cgDragging = true;
@@ -4404,11 +4397,11 @@
     }
     return false;
   }
-  function dragNewPiece(s, piece, e2, force) {
+  function dragNewPiece(s, piece, e, force) {
     const key = "a0";
     s.pieces.set(key, piece);
     s.dom.redraw();
-    const position = eventPosition(e2);
+    const position = eventPosition(e);
     s.draggable.current = {
       orig: key,
       piece,
@@ -4416,7 +4409,7 @@
       pos: position,
       started: true,
       element: () => pieceElementByKey(s, key),
-      originTarget: e2.target,
+      originTarget: e.target,
       newPiece: true,
       force: !!force,
       keyHasChanged: false
@@ -4457,30 +4450,30 @@
       processDrag(s);
     });
   }
-  function move2(s, e2) {
-    if (s.draggable.current && (!e2.touches || e2.touches.length < 2)) {
-      s.draggable.current.pos = eventPosition(e2);
+  function move2(s, e) {
+    if (s.draggable.current && (!e.touches || e.touches.length < 2)) {
+      s.draggable.current.pos = eventPosition(e);
     }
   }
-  function end2(s, e2) {
+  function end2(s, e) {
     const cur = s.draggable.current;
     if (!cur)
       return;
-    if (e2.type === "touchend" && e2.cancelable !== false)
-      e2.preventDefault();
-    if (e2.type === "touchend" && cur.originTarget !== e2.target && !cur.newPiece) {
+    if (e.type === "touchend" && e.cancelable !== false)
+      e.preventDefault();
+    if (e.type === "touchend" && cur.originTarget !== e.target && !cur.newPiece) {
       s.draggable.current = void 0;
       return;
     }
     unsetPremove(s);
     unsetPredrop(s);
-    const eventPos = eventPosition(e2) || cur.pos;
+    const eventPos = eventPosition(e) || cur.pos;
     const dest = getKeyAtDomPos(eventPos, whitePov(s), s.dom.bounds());
     if (dest && cur.started && cur.orig !== dest) {
       if (cur.newPiece)
         dropNewPiece(s, cur.orig, dest, cur.force);
       else {
-        s.stats.ctrlKey = e2.ctrlKey;
+        s.stats.ctrlKey = e.ctrlKey;
         if (userMove(s, cur.orig, dest))
           s.stats.dragged = true;
       }
@@ -4510,9 +4503,9 @@
     }
   }
   function removeDragElements(s) {
-    const e2 = s.dom.elements;
-    if (e2.ghost)
-      setVisible(e2.ghost, false);
+    const e = s.dom.elements;
+    if (e.ghost)
+      setVisible(e.ghost, false);
   }
   function pieceElementByKey(s, key) {
     let el = s.dom.elements.board.firstChild;
@@ -4865,11 +4858,11 @@
     return [m.lineWidth, m.hilite && "*"].filter((x) => x).join(",");
   }
   function textHash(s) {
-    let h2 = 0;
+    let h = 0;
     for (let i = 0; i < s.length; i++) {
-      h2 = (h2 << 5) - h2 + s.charCodeAt(i) >>> 0;
+      h = (h << 5) - h + s.charCodeAt(i) >>> 0;
     }
-    return h2.toString();
+    return h.toString();
   }
   function renderShape(state, { shape, current, hash: hash2 }, brushes2, dests, bounds) {
     var _a, _b;
@@ -4987,8 +4980,8 @@
   function isShort(dest, dests) {
     return true === (dest && dests.has(dest) && dests.get(dest).size > 1);
   }
-  function createElement(tagName2) {
-    return document.createElementNS("http://www.w3.org/2000/svg", tagName2);
+  function createElement(tagName) {
+    return document.createElementNS("http://www.w3.org/2000/svg", tagName);
   }
   function setAttributes(el, attrs) {
     for (const key in attrs) {
@@ -5079,8 +5072,8 @@
     element.classList.toggle("manipulable", !s.viewOnly);
     const container = createEl("cg-container");
     element.appendChild(container);
-    const board = createEl("cg-board");
-    container.appendChild(board);
+    const board2 = createEl("cg-board");
+    container.appendChild(board2);
     let svg;
     let customSvg;
     let autoPieces;
@@ -5108,7 +5101,7 @@
       const ranksPositionClass = s.ranksPosition === "left" ? " left" : "";
       if (s.coordinatesOnSquares) {
         const rankN = s.orientation === "white" ? (i) => i + 1 : (i) => 8 - i;
-        files.forEach((f, i) => container.appendChild(renderCoords(ranks.map((r2) => f + r2), "squares rank" + rankN(i) + orientClass + ranksPositionClass)));
+        files.forEach((f, i) => container.appendChild(renderCoords(ranks.map((r) => f + r), "squares rank" + rankN(i) + orientClass + ranksPositionClass)));
       } else {
         container.appendChild(renderCoords(ranks, "ranks" + orientClass + ranksPositionClass));
         container.appendChild(renderCoords(files, "files" + orientClass));
@@ -5121,7 +5114,7 @@
       container.appendChild(ghost);
     }
     return {
-      board,
+      board: board2,
       container,
       wrap: element,
       ghost,
@@ -5149,7 +5142,7 @@
   });
 
   // node_modules/chessground/dist/drop.js
-  function drop(s, e2) {
+  function drop(s, e) {
     if (!s.dropmode.active)
       return;
     unsetPremove(s);
@@ -5157,7 +5150,7 @@
     const piece = s.dropmode.piece;
     if (piece) {
       s.pieces.set("a0", piece);
-      const position = eventPosition(e2);
+      const position = eventPosition(e);
       const dest = position && getKeyAtDomPos(position, whitePov(s), s.dom.bounds());
       if (dest)
         dropNewPiece(s, "a0", dest);
@@ -5178,7 +5171,7 @@
     if ("ResizeObserver" in window)
       new ResizeObserver(onResize).observe(s.dom.elements.wrap);
     if (s.disableContextMenu || s.drawable.enabled) {
-      boardEl.addEventListener("contextmenu", (e2) => e2.preventDefault());
+      boardEl.addEventListener("contextmenu", (e) => e.preventDefault());
     }
     if (s.viewOnly)
       return;
@@ -5218,27 +5211,27 @@
       init_draw();
       init_drop();
       init_util();
-      startDragOrDraw = (s) => (e2) => {
+      startDragOrDraw = (s) => (e) => {
         if (s.draggable.current)
           cancel2(s);
         else if (s.drawable.current)
           cancel(s);
-        else if (e2.shiftKey || isRightButton(e2)) {
+        else if (e.shiftKey || isRightButton(e)) {
           if (s.drawable.enabled)
-            start(s, e2);
+            start(s, e);
         } else if (!s.viewOnly) {
           if (s.dropmode.active)
-            drop(s, e2);
+            drop(s, e);
           else
-            start2(s, e2);
+            start2(s, e);
         }
       };
-      dragOrDraw = (s, withDrag, withDraw) => (e2) => {
+      dragOrDraw = (s, withDrag, withDraw) => (e) => {
         if (s.drawable.current) {
           if (s.drawable.enabled)
-            withDraw(s, e2);
+            withDraw(s, e);
         } else if (!s.viewOnly)
-          withDrag(s, e2);
+          withDrag(s, e);
       };
     }
   });
@@ -5658,10 +5651,10 @@
                   var offset_s = this.location.source && typeof this.location.source.offset === "function" ? this.location.source.offset(s) : s;
                   var loc = this.location.source + ":" + offset_s.line + ":" + offset_s.column;
                   if (src) {
-                    var e2 = this.location.end;
+                    var e = this.location.end;
                     var filler = peg$padEnd2("", offset_s.line.toString().length, " ");
                     var line = src[s.line - 1];
-                    var last = s.line === e2.line ? e2.column : line.length + 1;
+                    var last = s.line === e.line ? e.column : line.length + 1;
                     var hatLen = last - s.column || 1;
                     str += "\n --> " + loc + "\n" + filler + " |\n" + offset_s.line + " | " + line + "\n" + filler + " | " + peg$padEnd2("", s.column - 1, " ") + peg$padEnd2("", hatLen, "^");
                   } else {
@@ -6198,10 +6191,10 @@
                 var peg$f2 = function(games) {
                   return games;
                 };
-                var peg$f3 = function(t2, c, p) {
+                var peg$f3 = function(t, c, p) {
                   var mess = messages;
                   messages = [];
-                  return { tags: t2, gameComment: c, moves: p, messages: mess };
+                  return { tags: t, gameComment: c, moves: p, messages: mess };
                 };
                 var peg$f4 = function(head, m) {
                   return m;
@@ -6406,8 +6399,8 @@
                 var peg$f66 = function(value) {
                   return value;
                 };
-                var peg$f67 = function(c, t2) {
-                  return c + "/" + t2;
+                var peg$f67 = function(c, t) {
+                  return c + "/" + t;
                 };
                 var peg$f68 = function(value) {
                   return value;
@@ -6505,8 +6498,8 @@
                   move3.commentDiag = ca;
                   return arr;
                 };
-                var peg$f92 = function(e2) {
-                  return e2;
+                var peg$f92 = function(e) {
+                  return e;
                 };
                 var peg$f93 = function(eg) {
                   return [eg];
@@ -13472,9 +13465,9 @@
                 function mi(o) {
                   return o.join("").match(/\?/) ? o.join("") : makeInteger(o);
                 }
-                function merge(array2) {
+                function merge(array) {
                   var ret = {};
-                  array2.forEach(function(json) {
+                  array.forEach(function(json) {
                     for (var key in json) {
                       if (Array.isArray(json[key])) {
                         ret[key] = ret[key] ? ret[key].concat(json[key]) : json[key];
@@ -13488,14 +13481,14 @@
                 function trimStart(st) {
                   if (typeof st !== "string")
                     return st;
-                  var r2 = /^\s+/;
-                  return st.replace(r2, "");
+                  var r = /^\s+/;
+                  return st.replace(r, "");
                 }
                 function trimEnd(st) {
                   if (typeof st !== "string")
                     return st;
-                  var r2 = /\s+$/;
-                  return st.replace(r2, "");
+                  var r = /\s+$/;
+                  return st.replace(r, "");
                 }
                 peg$result = peg$startRuleFunction();
                 if (options.peg$library) {
@@ -13703,4275 +13696,6 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // node_modules/chessops/dist/esm/types.js
-  var FILE_NAMES, RANK_NAMES, COLORS, ROLES, CASTLING_SIDES, isDrop;
-  var init_types2 = __esm({
-    "node_modules/chessops/dist/esm/types.js"() {
-      FILE_NAMES = ["a", "b", "c", "d", "e", "f", "g", "h"];
-      RANK_NAMES = ["1", "2", "3", "4", "5", "6", "7", "8"];
-      COLORS = ["white", "black"];
-      ROLES = ["pawn", "knight", "bishop", "rook", "queen", "king"];
-      CASTLING_SIDES = ["a", "h"];
-      isDrop = (v) => "role" in v;
-    }
-  });
-
-  // node_modules/chessops/dist/esm/util.js
-  function charToRole(ch) {
-    switch (ch.toLowerCase()) {
-      case "p":
-        return "pawn";
-      case "n":
-        return "knight";
-      case "b":
-        return "bishop";
-      case "r":
-        return "rook";
-      case "q":
-        return "queen";
-      case "k":
-        return "king";
-      default:
-        return;
-    }
-  }
-  function parseSquare(str) {
-    if (str.length !== 2)
-      return;
-    return squareFromCoords(str.charCodeAt(0) - "a".charCodeAt(0), str.charCodeAt(1) - "1".charCodeAt(0));
-  }
-  var defined, opposite2, squareRank, squareFile, squareFromCoords, roleToChar, makeSquare, makeUci, kingCastlesTo, rookCastlesTo;
-  var init_util2 = __esm({
-    "node_modules/chessops/dist/esm/util.js"() {
-      init_types2();
-      defined = (v) => v !== void 0;
-      opposite2 = (color) => color === "white" ? "black" : "white";
-      squareRank = (square) => square >> 3;
-      squareFile = (square) => square & 7;
-      squareFromCoords = (file2, rank2) => 0 <= file2 && file2 < 8 && 0 <= rank2 && rank2 < 8 ? file2 + 8 * rank2 : void 0;
-      roleToChar = (role) => {
-        switch (role) {
-          case "pawn":
-            return "p";
-          case "knight":
-            return "n";
-          case "bishop":
-            return "b";
-          case "rook":
-            return "r";
-          case "queen":
-            return "q";
-          case "king":
-            return "k";
-        }
-      };
-      makeSquare = (square) => FILE_NAMES[squareFile(square)] + RANK_NAMES[squareRank(square)];
-      makeUci = (move3) => isDrop(move3) ? `${roleToChar(move3.role).toUpperCase()}@${makeSquare(move3.to)}` : makeSquare(move3.from) + makeSquare(move3.to) + (move3.promotion ? roleToChar(move3.promotion) : "");
-      kingCastlesTo = (color, side) => color === "white" ? side === "a" ? 2 : 6 : side === "a" ? 58 : 62;
-      rookCastlesTo = (color, side) => color === "white" ? side === "a" ? 3 : 5 : side === "a" ? 59 : 61;
-    }
-  });
-
-  // node_modules/chessops/dist/esm/squareSet.js
-  var popcnt32, bswap32, rbit32, SquareSet;
-  var init_squareSet = __esm({
-    "node_modules/chessops/dist/esm/squareSet.js"() {
-      popcnt32 = (n2) => {
-        n2 = n2 - (n2 >>> 1 & 1431655765);
-        n2 = (n2 & 858993459) + (n2 >>> 2 & 858993459);
-        return Math.imul(n2 + (n2 >>> 4) & 252645135, 16843009) >> 24;
-      };
-      bswap32 = (n2) => {
-        n2 = n2 >>> 8 & 16711935 | (n2 & 16711935) << 8;
-        return n2 >>> 16 & 65535 | (n2 & 65535) << 16;
-      };
-      rbit32 = (n2) => {
-        n2 = n2 >>> 1 & 1431655765 | (n2 & 1431655765) << 1;
-        n2 = n2 >>> 2 & 858993459 | (n2 & 858993459) << 2;
-        n2 = n2 >>> 4 & 252645135 | (n2 & 252645135) << 4;
-        return bswap32(n2);
-      };
-      SquareSet = class _SquareSet {
-        constructor(lo, hi) {
-          this.lo = lo | 0;
-          this.hi = hi | 0;
-        }
-        static fromSquare(square) {
-          return square >= 32 ? new _SquareSet(0, 1 << square - 32) : new _SquareSet(1 << square, 0);
-        }
-        static fromRank(rank2) {
-          return new _SquareSet(255, 0).shl64(8 * rank2);
-        }
-        static fromFile(file2) {
-          return new _SquareSet(16843009 << file2, 16843009 << file2);
-        }
-        static empty() {
-          return new _SquareSet(0, 0);
-        }
-        static full() {
-          return new _SquareSet(4294967295, 4294967295);
-        }
-        static corners() {
-          return new _SquareSet(129, 2164260864);
-        }
-        static center() {
-          return new _SquareSet(402653184, 24);
-        }
-        static backranks() {
-          return new _SquareSet(255, 4278190080);
-        }
-        static backrank(color) {
-          return color === "white" ? new _SquareSet(255, 0) : new _SquareSet(0, 4278190080);
-        }
-        static lightSquares() {
-          return new _SquareSet(1437226410, 1437226410);
-        }
-        static darkSquares() {
-          return new _SquareSet(2857740885, 2857740885);
-        }
-        complement() {
-          return new _SquareSet(~this.lo, ~this.hi);
-        }
-        xor(other) {
-          return new _SquareSet(this.lo ^ other.lo, this.hi ^ other.hi);
-        }
-        union(other) {
-          return new _SquareSet(this.lo | other.lo, this.hi | other.hi);
-        }
-        intersect(other) {
-          return new _SquareSet(this.lo & other.lo, this.hi & other.hi);
-        }
-        diff(other) {
-          return new _SquareSet(this.lo & ~other.lo, this.hi & ~other.hi);
-        }
-        intersects(other) {
-          return this.intersect(other).nonEmpty();
-        }
-        isDisjoint(other) {
-          return this.intersect(other).isEmpty();
-        }
-        supersetOf(other) {
-          return other.diff(this).isEmpty();
-        }
-        subsetOf(other) {
-          return this.diff(other).isEmpty();
-        }
-        shr64(shift) {
-          if (shift >= 64)
-            return _SquareSet.empty();
-          if (shift >= 32)
-            return new _SquareSet(this.hi >>> shift - 32, 0);
-          if (shift > 0)
-            return new _SquareSet(this.lo >>> shift ^ this.hi << 32 - shift, this.hi >>> shift);
-          return this;
-        }
-        shl64(shift) {
-          if (shift >= 64)
-            return _SquareSet.empty();
-          if (shift >= 32)
-            return new _SquareSet(0, this.lo << shift - 32);
-          if (shift > 0)
-            return new _SquareSet(this.lo << shift, this.hi << shift ^ this.lo >>> 32 - shift);
-          return this;
-        }
-        bswap64() {
-          return new _SquareSet(bswap32(this.hi), bswap32(this.lo));
-        }
-        rbit64() {
-          return new _SquareSet(rbit32(this.hi), rbit32(this.lo));
-        }
-        minus64(other) {
-          const lo = this.lo - other.lo;
-          const c = (lo & other.lo & 1) + (other.lo >>> 1) + (lo >>> 1) >>> 31;
-          return new _SquareSet(lo, this.hi - (other.hi + c));
-        }
-        equals(other) {
-          return this.lo === other.lo && this.hi === other.hi;
-        }
-        size() {
-          return popcnt32(this.lo) + popcnt32(this.hi);
-        }
-        isEmpty() {
-          return this.lo === 0 && this.hi === 0;
-        }
-        nonEmpty() {
-          return this.lo !== 0 || this.hi !== 0;
-        }
-        has(square) {
-          return (square >= 32 ? this.hi & 1 << square - 32 : this.lo & 1 << square) !== 0;
-        }
-        set(square, on) {
-          return on ? this.with(square) : this.without(square);
-        }
-        with(square) {
-          return square >= 32 ? new _SquareSet(this.lo, this.hi | 1 << square - 32) : new _SquareSet(this.lo | 1 << square, this.hi);
-        }
-        without(square) {
-          return square >= 32 ? new _SquareSet(this.lo, this.hi & ~(1 << square - 32)) : new _SquareSet(this.lo & ~(1 << square), this.hi);
-        }
-        toggle(square) {
-          return square >= 32 ? new _SquareSet(this.lo, this.hi ^ 1 << square - 32) : new _SquareSet(this.lo ^ 1 << square, this.hi);
-        }
-        last() {
-          if (this.hi !== 0)
-            return 63 - Math.clz32(this.hi);
-          if (this.lo !== 0)
-            return 31 - Math.clz32(this.lo);
-          return;
-        }
-        first() {
-          if (this.lo !== 0)
-            return 31 - Math.clz32(this.lo & -this.lo);
-          if (this.hi !== 0)
-            return 63 - Math.clz32(this.hi & -this.hi);
-          return;
-        }
-        withoutFirst() {
-          if (this.lo !== 0)
-            return new _SquareSet(this.lo & this.lo - 1, this.hi);
-          return new _SquareSet(0, this.hi & this.hi - 1);
-        }
-        moreThanOne() {
-          return this.hi !== 0 && this.lo !== 0 || (this.lo & this.lo - 1) !== 0 || (this.hi & this.hi - 1) !== 0;
-        }
-        singleSquare() {
-          return this.moreThanOne() ? void 0 : this.last();
-        }
-        *[Symbol.iterator]() {
-          let lo = this.lo;
-          let hi = this.hi;
-          while (lo !== 0) {
-            const idx = 31 - Math.clz32(lo & -lo);
-            lo ^= 1 << idx;
-            yield idx;
-          }
-          while (hi !== 0) {
-            const idx = 31 - Math.clz32(hi & -hi);
-            hi ^= 1 << idx;
-            yield 32 + idx;
-          }
-        }
-        *reversed() {
-          let lo = this.lo;
-          let hi = this.hi;
-          while (hi !== 0) {
-            const idx = 31 - Math.clz32(hi);
-            hi ^= 1 << idx;
-            yield 32 + idx;
-          }
-          while (lo !== 0) {
-            const idx = 31 - Math.clz32(lo);
-            lo ^= 1 << idx;
-            yield idx;
-          }
-        }
-      };
-    }
-  });
-
-  // node_modules/chessops/dist/esm/attacks.js
-  var computeRange, tabulate, KING_ATTACKS, KNIGHT_ATTACKS, PAWN_ATTACKS, kingAttacks, knightAttacks, pawnAttacks, FILE_RANGE, RANK_RANGE, DIAG_RANGE, ANTI_DIAG_RANGE, hyperbola, fileAttacks, rankAttacks, bishopAttacks, rookAttacks, queenAttacks, attacks, ray, between;
-  var init_attacks = __esm({
-    "node_modules/chessops/dist/esm/attacks.js"() {
-      init_squareSet();
-      init_util2();
-      computeRange = (square, deltas) => {
-        let range = SquareSet.empty();
-        for (const delta of deltas) {
-          const sq = square + delta;
-          if (0 <= sq && sq < 64 && Math.abs(squareFile(square) - squareFile(sq)) <= 2) {
-            range = range.with(sq);
-          }
-        }
-        return range;
-      };
-      tabulate = (f) => {
-        const table = [];
-        for (let square = 0; square < 64; square++)
-          table[square] = f(square);
-        return table;
-      };
-      KING_ATTACKS = tabulate((sq) => computeRange(sq, [-9, -8, -7, -1, 1, 7, 8, 9]));
-      KNIGHT_ATTACKS = tabulate((sq) => computeRange(sq, [-17, -15, -10, -6, 6, 10, 15, 17]));
-      PAWN_ATTACKS = {
-        white: tabulate((sq) => computeRange(sq, [7, 9])),
-        black: tabulate((sq) => computeRange(sq, [-7, -9]))
-      };
-      kingAttacks = (square) => KING_ATTACKS[square];
-      knightAttacks = (square) => KNIGHT_ATTACKS[square];
-      pawnAttacks = (color, square) => PAWN_ATTACKS[color][square];
-      FILE_RANGE = tabulate((sq) => SquareSet.fromFile(squareFile(sq)).without(sq));
-      RANK_RANGE = tabulate((sq) => SquareSet.fromRank(squareRank(sq)).without(sq));
-      DIAG_RANGE = tabulate((sq) => {
-        const diag = new SquareSet(134480385, 2151686160);
-        const shift = 8 * (squareRank(sq) - squareFile(sq));
-        return (shift >= 0 ? diag.shl64(shift) : diag.shr64(-shift)).without(sq);
-      });
-      ANTI_DIAG_RANGE = tabulate((sq) => {
-        const diag = new SquareSet(270549120, 16909320);
-        const shift = 8 * (squareRank(sq) + squareFile(sq) - 7);
-        return (shift >= 0 ? diag.shl64(shift) : diag.shr64(-shift)).without(sq);
-      });
-      hyperbola = (bit, range, occupied) => {
-        let forward = occupied.intersect(range);
-        let reverse = forward.bswap64();
-        forward = forward.minus64(bit);
-        reverse = reverse.minus64(bit.bswap64());
-        return forward.xor(reverse.bswap64()).intersect(range);
-      };
-      fileAttacks = (square, occupied) => hyperbola(SquareSet.fromSquare(square), FILE_RANGE[square], occupied);
-      rankAttacks = (square, occupied) => {
-        const range = RANK_RANGE[square];
-        let forward = occupied.intersect(range);
-        let reverse = forward.rbit64();
-        forward = forward.minus64(SquareSet.fromSquare(square));
-        reverse = reverse.minus64(SquareSet.fromSquare(63 - square));
-        return forward.xor(reverse.rbit64()).intersect(range);
-      };
-      bishopAttacks = (square, occupied) => {
-        const bit = SquareSet.fromSquare(square);
-        return hyperbola(bit, DIAG_RANGE[square], occupied).xor(hyperbola(bit, ANTI_DIAG_RANGE[square], occupied));
-      };
-      rookAttacks = (square, occupied) => fileAttacks(square, occupied).xor(rankAttacks(square, occupied));
-      queenAttacks = (square, occupied) => bishopAttacks(square, occupied).xor(rookAttacks(square, occupied));
-      attacks = (piece, square, occupied) => {
-        switch (piece.role) {
-          case "pawn":
-            return pawnAttacks(piece.color, square);
-          case "knight":
-            return knightAttacks(square);
-          case "bishop":
-            return bishopAttacks(square, occupied);
-          case "rook":
-            return rookAttacks(square, occupied);
-          case "queen":
-            return queenAttacks(square, occupied);
-          case "king":
-            return kingAttacks(square);
-        }
-      };
-      ray = (a, b) => {
-        const other = SquareSet.fromSquare(b);
-        if (RANK_RANGE[a].intersects(other))
-          return RANK_RANGE[a].with(a);
-        if (ANTI_DIAG_RANGE[a].intersects(other))
-          return ANTI_DIAG_RANGE[a].with(a);
-        if (DIAG_RANGE[a].intersects(other))
-          return DIAG_RANGE[a].with(a);
-        if (FILE_RANGE[a].intersects(other))
-          return FILE_RANGE[a].with(a);
-        return SquareSet.empty();
-      };
-      between = (a, b) => ray(a, b).intersect(SquareSet.full().shl64(a).xor(SquareSet.full().shl64(b))).withoutFirst();
-    }
-  });
-
-  // node_modules/chessops/dist/esm/board.js
-  var Board;
-  var init_board2 = __esm({
-    "node_modules/chessops/dist/esm/board.js"() {
-      init_squareSet();
-      init_types2();
-      Board = class _Board {
-        constructor() {
-        }
-        static default() {
-          const board = new _Board();
-          board.reset();
-          return board;
-        }
-        /**
-         * Resets all pieces to the default starting position for standard chess.
-         */
-        reset() {
-          this.occupied = new SquareSet(65535, 4294901760);
-          this.promoted = SquareSet.empty();
-          this.white = new SquareSet(65535, 0);
-          this.black = new SquareSet(0, 4294901760);
-          this.pawn = new SquareSet(65280, 16711680);
-          this.knight = new SquareSet(66, 1107296256);
-          this.bishop = new SquareSet(36, 603979776);
-          this.rook = new SquareSet(129, 2164260864);
-          this.queen = new SquareSet(8, 134217728);
-          this.king = new SquareSet(16, 268435456);
-        }
-        static empty() {
-          const board = new _Board();
-          board.clear();
-          return board;
-        }
-        clear() {
-          this.occupied = SquareSet.empty();
-          this.promoted = SquareSet.empty();
-          for (const color of COLORS)
-            this[color] = SquareSet.empty();
-          for (const role of ROLES)
-            this[role] = SquareSet.empty();
-        }
-        clone() {
-          const board = new _Board();
-          board.occupied = this.occupied;
-          board.promoted = this.promoted;
-          for (const color of COLORS)
-            board[color] = this[color];
-          for (const role of ROLES)
-            board[role] = this[role];
-          return board;
-        }
-        getColor(square) {
-          if (this.white.has(square))
-            return "white";
-          if (this.black.has(square))
-            return "black";
-          return;
-        }
-        getRole(square) {
-          for (const role of ROLES) {
-            if (this[role].has(square))
-              return role;
-          }
-          return;
-        }
-        get(square) {
-          const color = this.getColor(square);
-          if (!color)
-            return;
-          const role = this.getRole(square);
-          const promoted = this.promoted.has(square);
-          return { color, role, promoted };
-        }
-        /**
-         * Removes and returns the piece from the given `square`, if any.
-         */
-        take(square) {
-          const piece = this.get(square);
-          if (piece) {
-            this.occupied = this.occupied.without(square);
-            this[piece.color] = this[piece.color].without(square);
-            this[piece.role] = this[piece.role].without(square);
-            if (piece.promoted)
-              this.promoted = this.promoted.without(square);
-          }
-          return piece;
-        }
-        /**
-         * Put `piece` onto `square`, potentially replacing an existing piece.
-         * Returns the existing piece, if any.
-         */
-        set(square, piece) {
-          const old = this.take(square);
-          this.occupied = this.occupied.with(square);
-          this[piece.color] = this[piece.color].with(square);
-          this[piece.role] = this[piece.role].with(square);
-          if (piece.promoted)
-            this.promoted = this.promoted.with(square);
-          return old;
-        }
-        has(square) {
-          return this.occupied.has(square);
-        }
-        *[Symbol.iterator]() {
-          for (const square of this.occupied) {
-            yield [square, this.get(square)];
-          }
-        }
-        pieces(color, role) {
-          return this[color].intersect(this[role]);
-        }
-        rooksAndQueens() {
-          return this.rook.union(this.queen);
-        }
-        bishopsAndQueens() {
-          return this.bishop.union(this.queen);
-        }
-        /**
-         * Finds the unique king of the given `color`, if any.
-         */
-        kingOf(color) {
-          return this.pieces(color, "king").singleSquare();
-        }
-      };
-    }
-  });
-
-  // node_modules/chessops/dist/esm/setup.js
-  var MaterialSide, Material, RemainingChecks;
-  var init_setup = __esm({
-    "node_modules/chessops/dist/esm/setup.js"() {
-      init_types2();
-      MaterialSide = class _MaterialSide {
-        constructor() {
-        }
-        static empty() {
-          const m = new _MaterialSide();
-          for (const role of ROLES)
-            m[role] = 0;
-          return m;
-        }
-        static fromBoard(board, color) {
-          const m = new _MaterialSide();
-          for (const role of ROLES)
-            m[role] = board.pieces(color, role).size();
-          return m;
-        }
-        clone() {
-          const m = new _MaterialSide();
-          for (const role of ROLES)
-            m[role] = this[role];
-          return m;
-        }
-        equals(other) {
-          return ROLES.every((role) => this[role] === other[role]);
-        }
-        add(other) {
-          const m = new _MaterialSide();
-          for (const role of ROLES)
-            m[role] = this[role] + other[role];
-          return m;
-        }
-        subtract(other) {
-          const m = new _MaterialSide();
-          for (const role of ROLES)
-            m[role] = this[role] - other[role];
-          return m;
-        }
-        nonEmpty() {
-          return ROLES.some((role) => this[role] > 0);
-        }
-        isEmpty() {
-          return !this.nonEmpty();
-        }
-        hasPawns() {
-          return this.pawn > 0;
-        }
-        hasNonPawns() {
-          return this.knight > 0 || this.bishop > 0 || this.rook > 0 || this.queen > 0 || this.king > 0;
-        }
-        size() {
-          return this.pawn + this.knight + this.bishop + this.rook + this.queen + this.king;
-        }
-      };
-      Material = class _Material {
-        constructor(white, black) {
-          this.white = white;
-          this.black = black;
-        }
-        static empty() {
-          return new _Material(MaterialSide.empty(), MaterialSide.empty());
-        }
-        static fromBoard(board) {
-          return new _Material(MaterialSide.fromBoard(board, "white"), MaterialSide.fromBoard(board, "black"));
-        }
-        clone() {
-          return new _Material(this.white.clone(), this.black.clone());
-        }
-        equals(other) {
-          return this.white.equals(other.white) && this.black.equals(other.black);
-        }
-        add(other) {
-          return new _Material(this.white.add(other.white), this.black.add(other.black));
-        }
-        subtract(other) {
-          return new _Material(this.white.subtract(other.white), this.black.subtract(other.black));
-        }
-        count(role) {
-          return this.white[role] + this.black[role];
-        }
-        size() {
-          return this.white.size() + this.black.size();
-        }
-        isEmpty() {
-          return this.white.isEmpty() && this.black.isEmpty();
-        }
-        nonEmpty() {
-          return !this.isEmpty();
-        }
-        hasPawns() {
-          return this.white.hasPawns() || this.black.hasPawns();
-        }
-        hasNonPawns() {
-          return this.white.hasNonPawns() || this.black.hasNonPawns();
-        }
-      };
-      RemainingChecks = class _RemainingChecks {
-        constructor(white, black) {
-          this.white = white;
-          this.black = black;
-        }
-        static default() {
-          return new _RemainingChecks(3, 3);
-        }
-        clone() {
-          return new _RemainingChecks(this.white, this.black);
-        }
-        equals(other) {
-          return this.white === other.white && this.black === other.black;
-        }
-      };
-    }
-  });
-
-  // node_modules/@badrap/result/dist/index.modern.mjs
-  var r, t, e, n;
-  var init_index_modern = __esm({
-    "node_modules/@badrap/result/dist/index.modern.mjs"() {
-      r = class {
-        unwrap(r2, t2) {
-          const e2 = this._chain((t3) => n.ok(r2 ? r2(t3) : t3), (r3) => t2 ? n.ok(t2(r3)) : n.err(r3));
-          if (e2.isErr) throw e2.error;
-          return e2.value;
-        }
-        map(r2, t2) {
-          return this._chain((t3) => n.ok(r2(t3)), (r3) => n.err(t2 ? t2(r3) : r3));
-        }
-        chain(r2, t2) {
-          return this._chain(r2, t2 || ((r3) => n.err(r3)));
-        }
-      };
-      t = class extends r {
-        constructor(r2) {
-          super(), this.value = void 0, this.isOk = true, this.isErr = false, this.value = r2;
-        }
-        _chain(r2, t2) {
-          return r2(this.value);
-        }
-      };
-      e = class extends r {
-        constructor(r2) {
-          super(), this.error = void 0, this.isOk = false, this.isErr = true, this.error = r2;
-        }
-        _chain(r2, t2) {
-          return t2(this.error);
-        }
-      };
-      !(function(r2) {
-        r2.ok = function(r3) {
-          return new t(r3);
-        }, r2.err = function(r3) {
-          return new e(r3 || new Error());
-        }, r2.all = function(t2) {
-          if (Array.isArray(t2)) {
-            const e3 = [];
-            for (let r3 = 0; r3 < t2.length; r3++) {
-              const n3 = t2[r3];
-              if (n3.isErr) return n3;
-              e3.push(n3.value);
-            }
-            return r2.ok(e3);
-          }
-          const e2 = {}, n2 = Object.keys(t2);
-          for (let r3 = 0; r3 < n2.length; r3++) {
-            const s = t2[n2[r3]];
-            if (s.isErr) return s;
-            e2[n2[r3]] = s.value;
-          }
-          return r2.ok(e2);
-        };
-      })(n || (n = {}));
-    }
-  });
-
-  // node_modules/chessops/dist/esm/chess.js
-  var IllegalSetup, PositionError, attacksTo, Castles, Position, Chess2, validEpSquare, legalEpSquare, canCaptureEp, castlingDest, pseudoDests, castlingSide, normalizeMove;
-  var init_chess2 = __esm({
-    "node_modules/chessops/dist/esm/chess.js"() {
-      init_index_modern();
-      init_attacks();
-      init_board2();
-      init_squareSet();
-      init_types2();
-      init_util2();
-      (function(IllegalSetup2) {
-        IllegalSetup2["Empty"] = "ERR_EMPTY";
-        IllegalSetup2["OppositeCheck"] = "ERR_OPPOSITE_CHECK";
-        IllegalSetup2["PawnsOnBackrank"] = "ERR_PAWNS_ON_BACKRANK";
-        IllegalSetup2["Kings"] = "ERR_KINGS";
-        IllegalSetup2["Variant"] = "ERR_VARIANT";
-      })(IllegalSetup || (IllegalSetup = {}));
-      PositionError = class extends Error {
-      };
-      attacksTo = (square, attacker, board, occupied) => board[attacker].intersect(rookAttacks(square, occupied).intersect(board.rooksAndQueens()).union(bishopAttacks(square, occupied).intersect(board.bishopsAndQueens())).union(knightAttacks(square).intersect(board.knight)).union(kingAttacks(square).intersect(board.king)).union(pawnAttacks(opposite2(attacker), square).intersect(board.pawn)));
-      Castles = class _Castles {
-        constructor() {
-        }
-        static default() {
-          const castles = new _Castles();
-          castles.castlingRights = SquareSet.corners();
-          castles.rook = {
-            white: { a: 0, h: 7 },
-            black: { a: 56, h: 63 }
-          };
-          castles.path = {
-            white: { a: new SquareSet(14, 0), h: new SquareSet(96, 0) },
-            black: { a: new SquareSet(0, 234881024), h: new SquareSet(0, 1610612736) }
-          };
-          return castles;
-        }
-        static empty() {
-          const castles = new _Castles();
-          castles.castlingRights = SquareSet.empty();
-          castles.rook = {
-            white: { a: void 0, h: void 0 },
-            black: { a: void 0, h: void 0 }
-          };
-          castles.path = {
-            white: { a: SquareSet.empty(), h: SquareSet.empty() },
-            black: { a: SquareSet.empty(), h: SquareSet.empty() }
-          };
-          return castles;
-        }
-        clone() {
-          const castles = new _Castles();
-          castles.castlingRights = this.castlingRights;
-          castles.rook = {
-            white: { a: this.rook.white.a, h: this.rook.white.h },
-            black: { a: this.rook.black.a, h: this.rook.black.h }
-          };
-          castles.path = {
-            white: { a: this.path.white.a, h: this.path.white.h },
-            black: { a: this.path.black.a, h: this.path.black.h }
-          };
-          return castles;
-        }
-        add(color, side, king2, rook2) {
-          const kingTo = kingCastlesTo(color, side);
-          const rookTo = rookCastlesTo(color, side);
-          this.castlingRights = this.castlingRights.with(rook2);
-          this.rook[color][side] = rook2;
-          this.path[color][side] = between(rook2, rookTo).with(rookTo).union(between(king2, kingTo).with(kingTo)).without(king2).without(rook2);
-        }
-        static fromSetup(setup) {
-          const castles = _Castles.empty();
-          const rooks = setup.castlingRights.intersect(setup.board.rook);
-          for (const color of COLORS) {
-            const backrank = SquareSet.backrank(color);
-            const king2 = setup.board.kingOf(color);
-            if (!defined(king2) || !backrank.has(king2))
-              continue;
-            const side = rooks.intersect(setup.board[color]).intersect(backrank);
-            const aSide = side.first();
-            if (defined(aSide) && aSide < king2)
-              castles.add(color, "a", king2, aSide);
-            const hSide = side.last();
-            if (defined(hSide) && king2 < hSide)
-              castles.add(color, "h", king2, hSide);
-          }
-          return castles;
-        }
-        discardRook(square) {
-          if (this.castlingRights.has(square)) {
-            this.castlingRights = this.castlingRights.without(square);
-            for (const color of COLORS) {
-              for (const side of CASTLING_SIDES) {
-                if (this.rook[color][side] === square)
-                  this.rook[color][side] = void 0;
-              }
-            }
-          }
-        }
-        discardColor(color) {
-          this.castlingRights = this.castlingRights.diff(SquareSet.backrank(color));
-          this.rook[color].a = void 0;
-          this.rook[color].h = void 0;
-        }
-      };
-      Position = class {
-        constructor(rules) {
-          this.rules = rules;
-        }
-        reset() {
-          this.board = Board.default();
-          this.pockets = void 0;
-          this.turn = "white";
-          this.castles = Castles.default();
-          this.epSquare = void 0;
-          this.remainingChecks = void 0;
-          this.halfmoves = 0;
-          this.fullmoves = 1;
-        }
-        setupUnchecked(setup) {
-          this.board = setup.board.clone();
-          this.board.promoted = SquareSet.empty();
-          this.pockets = void 0;
-          this.turn = setup.turn;
-          this.castles = Castles.fromSetup(setup);
-          this.epSquare = validEpSquare(this, setup.epSquare);
-          this.remainingChecks = void 0;
-          this.halfmoves = setup.halfmoves;
-          this.fullmoves = setup.fullmoves;
-        }
-        // When subclassing overwrite at least:
-        //
-        // - static default()
-        // - static fromSetup()
-        // - static clone()
-        //
-        // - dests()
-        // - isVariantEnd()
-        // - variantOutcome()
-        // - hasInsufficientMaterial()
-        // - isStandardMaterial()
-        kingAttackers(square, attacker, occupied) {
-          return attacksTo(square, attacker, this.board, occupied);
-        }
-        playCaptureAt(square, captured) {
-          this.halfmoves = 0;
-          if (captured.role === "rook")
-            this.castles.discardRook(square);
-          if (this.pockets)
-            this.pockets[opposite2(captured.color)][captured.promoted ? "pawn" : captured.role]++;
-        }
-        ctx() {
-          const variantEnd = this.isVariantEnd();
-          const king2 = this.board.kingOf(this.turn);
-          if (!defined(king2)) {
-            return { king: king2, blockers: SquareSet.empty(), checkers: SquareSet.empty(), variantEnd, mustCapture: false };
-          }
-          const snipers = rookAttacks(king2, SquareSet.empty()).intersect(this.board.rooksAndQueens()).union(bishopAttacks(king2, SquareSet.empty()).intersect(this.board.bishopsAndQueens())).intersect(this.board[opposite2(this.turn)]);
-          let blockers = SquareSet.empty();
-          for (const sniper of snipers) {
-            const b = between(king2, sniper).intersect(this.board.occupied);
-            if (!b.moreThanOne())
-              blockers = blockers.union(b);
-          }
-          const checkers = this.kingAttackers(king2, opposite2(this.turn), this.board.occupied);
-          return {
-            king: king2,
-            blockers,
-            checkers,
-            variantEnd,
-            mustCapture: false
-          };
-        }
-        clone() {
-          var _a, _b;
-          const pos = new this.constructor();
-          pos.board = this.board.clone();
-          pos.pockets = (_a = this.pockets) === null || _a === void 0 ? void 0 : _a.clone();
-          pos.turn = this.turn;
-          pos.castles = this.castles.clone();
-          pos.epSquare = this.epSquare;
-          pos.remainingChecks = (_b = this.remainingChecks) === null || _b === void 0 ? void 0 : _b.clone();
-          pos.halfmoves = this.halfmoves;
-          pos.fullmoves = this.fullmoves;
-          return pos;
-        }
-        validate() {
-          if (this.board.occupied.isEmpty())
-            return n.err(new PositionError(IllegalSetup.Empty));
-          if (this.board.king.size() !== 2)
-            return n.err(new PositionError(IllegalSetup.Kings));
-          if (!defined(this.board.kingOf(this.turn)))
-            return n.err(new PositionError(IllegalSetup.Kings));
-          const otherKing = this.board.kingOf(opposite2(this.turn));
-          if (!defined(otherKing))
-            return n.err(new PositionError(IllegalSetup.Kings));
-          if (this.kingAttackers(otherKing, this.turn, this.board.occupied).nonEmpty()) {
-            return n.err(new PositionError(IllegalSetup.OppositeCheck));
-          }
-          if (SquareSet.backranks().intersects(this.board.pawn)) {
-            return n.err(new PositionError(IllegalSetup.PawnsOnBackrank));
-          }
-          return n.ok(void 0);
-        }
-        dropDests(_ctx) {
-          return SquareSet.empty();
-        }
-        dests(square, ctx) {
-          ctx = ctx || this.ctx();
-          if (ctx.variantEnd)
-            return SquareSet.empty();
-          const piece = this.board.get(square);
-          if (!piece || piece.color !== this.turn)
-            return SquareSet.empty();
-          let pseudo, legal;
-          if (piece.role === "pawn") {
-            pseudo = pawnAttacks(this.turn, square).intersect(this.board[opposite2(this.turn)]);
-            const delta = this.turn === "white" ? 8 : -8;
-            const step2 = square + delta;
-            if (0 <= step2 && step2 < 64 && !this.board.occupied.has(step2)) {
-              pseudo = pseudo.with(step2);
-              const canDoubleStep = this.turn === "white" ? square < 16 : square >= 64 - 16;
-              const doubleStep = step2 + delta;
-              if (canDoubleStep && !this.board.occupied.has(doubleStep)) {
-                pseudo = pseudo.with(doubleStep);
-              }
-            }
-            if (defined(this.epSquare) && canCaptureEp(this, square, ctx)) {
-              legal = SquareSet.fromSquare(this.epSquare);
-            }
-          } else if (piece.role === "bishop")
-            pseudo = bishopAttacks(square, this.board.occupied);
-          else if (piece.role === "knight")
-            pseudo = knightAttacks(square);
-          else if (piece.role === "rook")
-            pseudo = rookAttacks(square, this.board.occupied);
-          else if (piece.role === "queen")
-            pseudo = queenAttacks(square, this.board.occupied);
-          else
-            pseudo = kingAttacks(square);
-          pseudo = pseudo.diff(this.board[this.turn]);
-          if (defined(ctx.king)) {
-            if (piece.role === "king") {
-              const occ = this.board.occupied.without(square);
-              for (const to of pseudo) {
-                if (this.kingAttackers(to, opposite2(this.turn), occ).nonEmpty())
-                  pseudo = pseudo.without(to);
-              }
-              return pseudo.union(castlingDest(this, "a", ctx)).union(castlingDest(this, "h", ctx));
-            }
-            if (ctx.checkers.nonEmpty()) {
-              const checker = ctx.checkers.singleSquare();
-              if (!defined(checker))
-                return SquareSet.empty();
-              pseudo = pseudo.intersect(between(checker, ctx.king).with(checker));
-            }
-            if (ctx.blockers.has(square))
-              pseudo = pseudo.intersect(ray(square, ctx.king));
-          }
-          if (legal)
-            pseudo = pseudo.union(legal);
-          return pseudo;
-        }
-        isVariantEnd() {
-          return false;
-        }
-        variantOutcome(_ctx) {
-          return;
-        }
-        hasInsufficientMaterial(color) {
-          if (this.board[color].intersect(this.board.pawn.union(this.board.rooksAndQueens())).nonEmpty())
-            return false;
-          if (this.board[color].intersects(this.board.knight)) {
-            return this.board[color].size() <= 2 && this.board[opposite2(color)].diff(this.board.king).diff(this.board.queen).isEmpty();
-          }
-          if (this.board[color].intersects(this.board.bishop)) {
-            const sameColor = !this.board.bishop.intersects(SquareSet.darkSquares()) || !this.board.bishop.intersects(SquareSet.lightSquares());
-            return sameColor && this.board.pawn.isEmpty() && this.board.knight.isEmpty();
-          }
-          return true;
-        }
-        // The following should be identical in all subclasses
-        toSetup() {
-          var _a, _b;
-          return {
-            board: this.board.clone(),
-            pockets: (_a = this.pockets) === null || _a === void 0 ? void 0 : _a.clone(),
-            turn: this.turn,
-            castlingRights: this.castles.castlingRights,
-            epSquare: legalEpSquare(this),
-            remainingChecks: (_b = this.remainingChecks) === null || _b === void 0 ? void 0 : _b.clone(),
-            halfmoves: Math.min(this.halfmoves, 150),
-            fullmoves: Math.min(Math.max(this.fullmoves, 1), 9999)
-          };
-        }
-        isInsufficientMaterial() {
-          return COLORS.every((color) => this.hasInsufficientMaterial(color));
-        }
-        hasDests(ctx) {
-          ctx = ctx || this.ctx();
-          for (const square of this.board[this.turn]) {
-            if (this.dests(square, ctx).nonEmpty())
-              return true;
-          }
-          return this.dropDests(ctx).nonEmpty();
-        }
-        isLegal(move3, ctx) {
-          if (isDrop(move3)) {
-            if (!this.pockets || this.pockets[this.turn][move3.role] <= 0)
-              return false;
-            if (move3.role === "pawn" && SquareSet.backranks().has(move3.to))
-              return false;
-            return this.dropDests(ctx).has(move3.to);
-          } else {
-            if (move3.promotion === "pawn")
-              return false;
-            if (move3.promotion === "king" && this.rules !== "antichess")
-              return false;
-            if (!!move3.promotion !== (this.board.pawn.has(move3.from) && SquareSet.backranks().has(move3.to)))
-              return false;
-            const dests = this.dests(move3.from, ctx);
-            return dests.has(move3.to) || dests.has(normalizeMove(this, move3).to);
-          }
-        }
-        isCheck() {
-          const king2 = this.board.kingOf(this.turn);
-          return defined(king2) && this.kingAttackers(king2, opposite2(this.turn), this.board.occupied).nonEmpty();
-        }
-        isEnd(ctx) {
-          if (ctx ? ctx.variantEnd : this.isVariantEnd())
-            return true;
-          return this.isInsufficientMaterial() || !this.hasDests(ctx);
-        }
-        isCheckmate(ctx) {
-          ctx = ctx || this.ctx();
-          return !ctx.variantEnd && ctx.checkers.nonEmpty() && !this.hasDests(ctx);
-        }
-        isStalemate(ctx) {
-          ctx = ctx || this.ctx();
-          return !ctx.variantEnd && ctx.checkers.isEmpty() && !this.hasDests(ctx);
-        }
-        outcome(ctx) {
-          const variantOutcome = this.variantOutcome(ctx);
-          if (variantOutcome)
-            return variantOutcome;
-          ctx = ctx || this.ctx();
-          if (this.isCheckmate(ctx))
-            return { winner: opposite2(this.turn) };
-          else if (this.isInsufficientMaterial() || this.isStalemate(ctx))
-            return { winner: void 0 };
-          else
-            return;
-        }
-        allDests(ctx) {
-          ctx = ctx || this.ctx();
-          const d = /* @__PURE__ */ new Map();
-          if (ctx.variantEnd)
-            return d;
-          for (const square of this.board[this.turn]) {
-            d.set(square, this.dests(square, ctx));
-          }
-          return d;
-        }
-        play(move3) {
-          const turn = this.turn;
-          const epSquare = this.epSquare;
-          const castling = castlingSide(this, move3);
-          this.epSquare = void 0;
-          this.halfmoves += 1;
-          if (turn === "black")
-            this.fullmoves += 1;
-          this.turn = opposite2(turn);
-          if (isDrop(move3)) {
-            this.board.set(move3.to, { role: move3.role, color: turn });
-            if (this.pockets)
-              this.pockets[turn][move3.role]--;
-            if (move3.role === "pawn")
-              this.halfmoves = 0;
-          } else {
-            const piece = this.board.take(move3.from);
-            if (!piece)
-              return;
-            let epCapture;
-            if (piece.role === "pawn") {
-              this.halfmoves = 0;
-              if (move3.to === epSquare) {
-                epCapture = this.board.take(move3.to + (turn === "white" ? -8 : 8));
-              }
-              const delta = move3.from - move3.to;
-              if (Math.abs(delta) === 16 && 8 <= move3.from && move3.from <= 55) {
-                this.epSquare = move3.from + move3.to >> 1;
-              }
-              if (move3.promotion) {
-                piece.role = move3.promotion;
-                piece.promoted = !!this.pockets;
-              }
-            } else if (piece.role === "rook") {
-              this.castles.discardRook(move3.from);
-            } else if (piece.role === "king") {
-              if (castling) {
-                const rookFrom = this.castles.rook[turn][castling];
-                if (defined(rookFrom)) {
-                  const rook2 = this.board.take(rookFrom);
-                  this.board.set(kingCastlesTo(turn, castling), piece);
-                  if (rook2)
-                    this.board.set(rookCastlesTo(turn, castling), rook2);
-                }
-              }
-              this.castles.discardColor(turn);
-            }
-            if (!castling) {
-              const capture = this.board.set(move3.to, piece) || epCapture;
-              if (capture)
-                this.playCaptureAt(move3.to, capture);
-            }
-          }
-          if (this.remainingChecks) {
-            if (this.isCheck())
-              this.remainingChecks[turn] = Math.max(this.remainingChecks[turn] - 1, 0);
-          }
-        }
-      };
-      Chess2 = class extends Position {
-        constructor() {
-          super("chess");
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-      };
-      validEpSquare = (pos, square) => {
-        if (!defined(square))
-          return;
-        const epRank = pos.turn === "white" ? 5 : 2;
-        const forward = pos.turn === "white" ? 8 : -8;
-        if (squareRank(square) !== epRank)
-          return;
-        if (pos.board.occupied.has(square + forward))
-          return;
-        const pawn2 = square - forward;
-        if (!pos.board.pawn.has(pawn2) || !pos.board[opposite2(pos.turn)].has(pawn2))
-          return;
-        return square;
-      };
-      legalEpSquare = (pos) => {
-        if (!defined(pos.epSquare))
-          return;
-        const ctx = pos.ctx();
-        const ourPawns = pos.board.pieces(pos.turn, "pawn");
-        const candidates = ourPawns.intersect(pawnAttacks(opposite2(pos.turn), pos.epSquare));
-        for (const candidate of candidates) {
-          if (pos.dests(candidate, ctx).has(pos.epSquare))
-            return pos.epSquare;
-        }
-        return;
-      };
-      canCaptureEp = (pos, pawnFrom, ctx) => {
-        if (!defined(pos.epSquare))
-          return false;
-        if (!pawnAttacks(pos.turn, pawnFrom).has(pos.epSquare))
-          return false;
-        if (!defined(ctx.king))
-          return true;
-        const delta = pos.turn === "white" ? 8 : -8;
-        const captured = pos.epSquare - delta;
-        return pos.kingAttackers(ctx.king, opposite2(pos.turn), pos.board.occupied.toggle(pawnFrom).toggle(captured).with(pos.epSquare)).without(captured).isEmpty();
-      };
-      castlingDest = (pos, side, ctx) => {
-        if (!defined(ctx.king) || ctx.checkers.nonEmpty())
-          return SquareSet.empty();
-        const rook2 = pos.castles.rook[pos.turn][side];
-        if (!defined(rook2))
-          return SquareSet.empty();
-        if (pos.castles.path[pos.turn][side].intersects(pos.board.occupied))
-          return SquareSet.empty();
-        const kingTo = kingCastlesTo(pos.turn, side);
-        const kingPath = between(ctx.king, kingTo);
-        const occ = pos.board.occupied.without(ctx.king);
-        for (const sq of kingPath) {
-          if (pos.kingAttackers(sq, opposite2(pos.turn), occ).nonEmpty())
-            return SquareSet.empty();
-        }
-        const rookTo = rookCastlesTo(pos.turn, side);
-        const after = pos.board.occupied.toggle(ctx.king).toggle(rook2).toggle(rookTo);
-        if (pos.kingAttackers(kingTo, opposite2(pos.turn), after).nonEmpty())
-          return SquareSet.empty();
-        return SquareSet.fromSquare(rook2);
-      };
-      pseudoDests = (pos, square, ctx) => {
-        if (ctx.variantEnd)
-          return SquareSet.empty();
-        const piece = pos.board.get(square);
-        if (!piece || piece.color !== pos.turn)
-          return SquareSet.empty();
-        let pseudo = attacks(piece, square, pos.board.occupied);
-        if (piece.role === "pawn") {
-          let captureTargets = pos.board[opposite2(pos.turn)];
-          if (defined(pos.epSquare))
-            captureTargets = captureTargets.with(pos.epSquare);
-          pseudo = pseudo.intersect(captureTargets);
-          const delta = pos.turn === "white" ? 8 : -8;
-          const step2 = square + delta;
-          if (0 <= step2 && step2 < 64 && !pos.board.occupied.has(step2)) {
-            pseudo = pseudo.with(step2);
-            const canDoubleStep = pos.turn === "white" ? square < 16 : square >= 64 - 16;
-            const doubleStep = step2 + delta;
-            if (canDoubleStep && !pos.board.occupied.has(doubleStep)) {
-              pseudo = pseudo.with(doubleStep);
-            }
-          }
-          return pseudo;
-        } else {
-          pseudo = pseudo.diff(pos.board[pos.turn]);
-        }
-        if (square === ctx.king)
-          return pseudo.union(castlingDest(pos, "a", ctx)).union(castlingDest(pos, "h", ctx));
-        else
-          return pseudo;
-      };
-      castlingSide = (pos, move3) => {
-        if (isDrop(move3))
-          return;
-        const delta = move3.to - move3.from;
-        if (Math.abs(delta) !== 2 && !pos.board[pos.turn].has(move3.to))
-          return;
-        if (!pos.board.king.has(move3.from))
-          return;
-        return delta > 0 ? "h" : "a";
-      };
-      normalizeMove = (pos, move3) => {
-        const side = castlingSide(pos, move3);
-        if (!side)
-          return move3;
-        const rookFrom = pos.castles.rook[pos.turn][side];
-        return {
-          from: move3.from,
-          to: defined(rookFrom) ? rookFrom : move3.to
-        };
-      };
-    }
-  });
-
-  // node_modules/chessops/dist/esm/compat.js
-  var scalachessCharPair;
-  var init_compat = __esm({
-    "node_modules/chessops/dist/esm/compat.js"() {
-      init_types2();
-      init_util2();
-      scalachessCharPair = (move3) => isDrop(move3) ? String.fromCharCode(35 + move3.to, 35 + 64 + 8 * 5 + ["queen", "rook", "bishop", "knight", "pawn"].indexOf(move3.role)) : String.fromCharCode(35 + move3.from, move3.promotion ? 35 + 64 + 8 * ["queen", "rook", "bishop", "knight", "king"].indexOf(move3.promotion) + squareFile(move3.to) : 35 + move3.to);
-    }
-  });
-
-  // node_modules/chessops/dist/esm/fen.js
-  var INITIAL_BOARD_FEN, INITIAL_EPD, INITIAL_FEN, EMPTY_BOARD_FEN, EMPTY_EPD, EMPTY_FEN, InvalidFen, FenError, nthIndexOf, parseSmallUint, charToPiece, parseBoardFen, parsePockets, parseCastlingFen, parseRemainingChecks, parseFen, makePiece2, makeBoardFen, makePocket, makePockets, makeCastlingFen, makeRemainingChecks, makeFen;
-  var init_fen2 = __esm({
-    "node_modules/chessops/dist/esm/fen.js"() {
-      init_index_modern();
-      init_board2();
-      init_setup();
-      init_squareSet();
-      init_types2();
-      init_util2();
-      INITIAL_BOARD_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-      INITIAL_EPD = INITIAL_BOARD_FEN + " w KQkq -";
-      INITIAL_FEN = INITIAL_EPD + " 0 1";
-      EMPTY_BOARD_FEN = "8/8/8/8/8/8/8/8";
-      EMPTY_EPD = EMPTY_BOARD_FEN + " w - -";
-      EMPTY_FEN = EMPTY_EPD + " 0 1";
-      (function(InvalidFen2) {
-        InvalidFen2["Fen"] = "ERR_FEN";
-        InvalidFen2["Board"] = "ERR_BOARD";
-        InvalidFen2["Pockets"] = "ERR_POCKETS";
-        InvalidFen2["Turn"] = "ERR_TURN";
-        InvalidFen2["Castling"] = "ERR_CASTLING";
-        InvalidFen2["EpSquare"] = "ERR_EP_SQUARE";
-        InvalidFen2["RemainingChecks"] = "ERR_REMAINING_CHECKS";
-        InvalidFen2["Halfmoves"] = "ERR_HALFMOVES";
-        InvalidFen2["Fullmoves"] = "ERR_FULLMOVES";
-      })(InvalidFen || (InvalidFen = {}));
-      FenError = class extends Error {
-      };
-      nthIndexOf = (haystack, needle, n2) => {
-        let index = haystack.indexOf(needle);
-        while (n2-- > 0) {
-          if (index === -1)
-            break;
-          index = haystack.indexOf(needle, index + needle.length);
-        }
-        return index;
-      };
-      parseSmallUint = (str) => /^\d{1,4}$/.test(str) ? parseInt(str, 10) : void 0;
-      charToPiece = (ch) => {
-        const role = charToRole(ch);
-        return role && { role, color: ch.toLowerCase() === ch ? "black" : "white" };
-      };
-      parseBoardFen = (boardPart) => {
-        const board = Board.empty();
-        let rank2 = 7;
-        let file2 = 0;
-        for (let i = 0; i < boardPart.length; i++) {
-          const c = boardPart[i];
-          if (c === "/" && file2 === 8) {
-            file2 = 0;
-            rank2--;
-          } else {
-            const step2 = parseInt(c, 10);
-            if (step2 > 0)
-              file2 += step2;
-            else {
-              if (file2 >= 8 || rank2 < 0)
-                return n.err(new FenError(InvalidFen.Board));
-              const square = file2 + rank2 * 8;
-              const piece = charToPiece(c);
-              if (!piece)
-                return n.err(new FenError(InvalidFen.Board));
-              if (boardPart[i + 1] === "~") {
-                piece.promoted = true;
-                i++;
-              }
-              board.set(square, piece);
-              file2++;
-            }
-          }
-        }
-        if (rank2 !== 0 || file2 !== 8)
-          return n.err(new FenError(InvalidFen.Board));
-        return n.ok(board);
-      };
-      parsePockets = (pocketPart) => {
-        if (pocketPart.length > 64)
-          return n.err(new FenError(InvalidFen.Pockets));
-        const pockets = Material.empty();
-        for (const c of pocketPart) {
-          const piece = charToPiece(c);
-          if (!piece)
-            return n.err(new FenError(InvalidFen.Pockets));
-          pockets[piece.color][piece.role]++;
-        }
-        return n.ok(pockets);
-      };
-      parseCastlingFen = (board, castlingPart) => {
-        let castlingRights = SquareSet.empty();
-        if (castlingPart === "-")
-          return n.ok(castlingRights);
-        for (const c of castlingPart) {
-          const lower = c.toLowerCase();
-          const color = c === lower ? "black" : "white";
-          const rank2 = color === "white" ? 0 : 7;
-          if ("a" <= lower && lower <= "h") {
-            castlingRights = castlingRights.with(squareFromCoords(lower.charCodeAt(0) - "a".charCodeAt(0), rank2));
-          } else if (lower === "k" || lower === "q") {
-            const rooksAndKings = board[color].intersect(SquareSet.backrank(color)).intersect(board.rook.union(board.king));
-            const candidate = lower === "k" ? rooksAndKings.last() : rooksAndKings.first();
-            castlingRights = castlingRights.with(defined(candidate) && board.rook.has(candidate) ? candidate : squareFromCoords(lower === "k" ? 7 : 0, rank2));
-          } else
-            return n.err(new FenError(InvalidFen.Castling));
-        }
-        if (COLORS.some((color) => SquareSet.backrank(color).intersect(castlingRights).size() > 2)) {
-          return n.err(new FenError(InvalidFen.Castling));
-        }
-        return n.ok(castlingRights);
-      };
-      parseRemainingChecks = (part) => {
-        const parts = part.split("+");
-        if (parts.length === 3 && parts[0] === "") {
-          const white = parseSmallUint(parts[1]);
-          const black = parseSmallUint(parts[2]);
-          if (!defined(white) || white > 3 || !defined(black) || black > 3) {
-            return n.err(new FenError(InvalidFen.RemainingChecks));
-          }
-          return n.ok(new RemainingChecks(3 - white, 3 - black));
-        } else if (parts.length === 2) {
-          const white = parseSmallUint(parts[0]);
-          const black = parseSmallUint(parts[1]);
-          if (!defined(white) || white > 3 || !defined(black) || black > 3) {
-            return n.err(new FenError(InvalidFen.RemainingChecks));
-          }
-          return n.ok(new RemainingChecks(white, black));
-        } else
-          return n.err(new FenError(InvalidFen.RemainingChecks));
-      };
-      parseFen = (fen) => {
-        const parts = fen.split(/[\s_]+/);
-        const boardPart = parts.shift();
-        let board;
-        let pockets = n.ok(void 0);
-        if (boardPart.endsWith("]")) {
-          const pocketStart = boardPart.indexOf("[");
-          if (pocketStart === -1)
-            return n.err(new FenError(InvalidFen.Fen));
-          board = parseBoardFen(boardPart.slice(0, pocketStart));
-          pockets = parsePockets(boardPart.slice(pocketStart + 1, -1));
-        } else {
-          const pocketStart = nthIndexOf(boardPart, "/", 7);
-          if (pocketStart === -1)
-            board = parseBoardFen(boardPart);
-          else {
-            board = parseBoardFen(boardPart.slice(0, pocketStart));
-            pockets = parsePockets(boardPart.slice(pocketStart + 1));
-          }
-        }
-        let turn;
-        const turnPart = parts.shift();
-        if (!defined(turnPart) || turnPart === "w")
-          turn = "white";
-        else if (turnPart === "b")
-          turn = "black";
-        else
-          return n.err(new FenError(InvalidFen.Turn));
-        return board.chain((board2) => {
-          const castlingPart = parts.shift();
-          const castlingRights = defined(castlingPart) ? parseCastlingFen(board2, castlingPart) : n.ok(SquareSet.empty());
-          const epPart = parts.shift();
-          let epSquare;
-          if (defined(epPart) && epPart !== "-") {
-            epSquare = parseSquare(epPart);
-            if (!defined(epSquare))
-              return n.err(new FenError(InvalidFen.EpSquare));
-          }
-          let halfmovePart = parts.shift();
-          let earlyRemainingChecks;
-          if (defined(halfmovePart) && halfmovePart.includes("+")) {
-            earlyRemainingChecks = parseRemainingChecks(halfmovePart);
-            halfmovePart = parts.shift();
-          }
-          const halfmoves = defined(halfmovePart) ? parseSmallUint(halfmovePart) : 0;
-          if (!defined(halfmoves))
-            return n.err(new FenError(InvalidFen.Halfmoves));
-          const fullmovesPart = parts.shift();
-          const fullmoves = defined(fullmovesPart) ? parseSmallUint(fullmovesPart) : 1;
-          if (!defined(fullmoves))
-            return n.err(new FenError(InvalidFen.Fullmoves));
-          const remainingChecksPart = parts.shift();
-          let remainingChecks = n.ok(void 0);
-          if (defined(remainingChecksPart)) {
-            if (defined(earlyRemainingChecks))
-              return n.err(new FenError(InvalidFen.RemainingChecks));
-            remainingChecks = parseRemainingChecks(remainingChecksPart);
-          } else if (defined(earlyRemainingChecks)) {
-            remainingChecks = earlyRemainingChecks;
-          }
-          if (parts.length > 0)
-            return n.err(new FenError(InvalidFen.Fen));
-          return pockets.chain((pockets2) => castlingRights.chain((castlingRights2) => remainingChecks.map((remainingChecks2) => {
-            return {
-              board: board2,
-              pockets: pockets2,
-              turn,
-              castlingRights: castlingRights2,
-              remainingChecks: remainingChecks2,
-              epSquare,
-              halfmoves,
-              fullmoves: Math.max(1, fullmoves)
-            };
-          })));
-        });
-      };
-      makePiece2 = (piece) => {
-        let r2 = roleToChar(piece.role);
-        if (piece.color === "white")
-          r2 = r2.toUpperCase();
-        if (piece.promoted)
-          r2 += "~";
-        return r2;
-      };
-      makeBoardFen = (board) => {
-        let fen = "";
-        let empty = 0;
-        for (let rank2 = 7; rank2 >= 0; rank2--) {
-          for (let file2 = 0; file2 < 8; file2++) {
-            const square = file2 + rank2 * 8;
-            const piece = board.get(square);
-            if (!piece)
-              empty++;
-            else {
-              if (empty > 0) {
-                fen += empty;
-                empty = 0;
-              }
-              fen += makePiece2(piece);
-            }
-            if (file2 === 7) {
-              if (empty > 0) {
-                fen += empty;
-                empty = 0;
-              }
-              if (rank2 !== 0)
-                fen += "/";
-            }
-          }
-        }
-        return fen;
-      };
-      makePocket = (material) => ROLES.map((role) => roleToChar(role).repeat(material[role])).join("");
-      makePockets = (pocket) => makePocket(pocket.white).toUpperCase() + makePocket(pocket.black);
-      makeCastlingFen = (board, castlingRights) => {
-        let fen = "";
-        for (const color of COLORS) {
-          const backrank = SquareSet.backrank(color);
-          let king2 = board.kingOf(color);
-          if (defined(king2) && !backrank.has(king2))
-            king2 = void 0;
-          const candidates = board.pieces(color, "rook").intersect(backrank);
-          for (const rook2 of castlingRights.intersect(backrank).reversed()) {
-            if (rook2 === candidates.first() && defined(king2) && rook2 < king2) {
-              fen += color === "white" ? "Q" : "q";
-            } else if (rook2 === candidates.last() && defined(king2) && king2 < rook2) {
-              fen += color === "white" ? "K" : "k";
-            } else {
-              const file2 = FILE_NAMES[squareFile(rook2)];
-              fen += color === "white" ? file2.toUpperCase() : file2;
-            }
-          }
-        }
-        return fen || "-";
-      };
-      makeRemainingChecks = (checks) => `${checks.white}+${checks.black}`;
-      makeFen = (setup, opts) => [
-        makeBoardFen(setup.board) + (setup.pockets ? `[${makePockets(setup.pockets)}]` : ""),
-        setup.turn[0],
-        makeCastlingFen(setup.board, setup.castlingRights),
-        defined(setup.epSquare) ? makeSquare(setup.epSquare) : "-",
-        ...setup.remainingChecks ? [makeRemainingChecks(setup.remainingChecks)] : [],
-        ...(opts === null || opts === void 0 ? void 0 : opts.epd) ? [] : [Math.max(0, Math.min(setup.halfmoves, 9999)), Math.max(1, Math.min(setup.fullmoves, 9999))]
-      ].join(" ");
-    }
-  });
-
-  // node_modules/chessops/dist/esm/debug.js
-  var init_debug = __esm({
-    "node_modules/chessops/dist/esm/debug.js"() {
-    }
-  });
-
-  // node_modules/chessops/dist/esm/san.js
-  var makeSanWithoutSuffix, makeSanAndPlay, parseSan;
-  var init_san = __esm({
-    "node_modules/chessops/dist/esm/san.js"() {
-      init_attacks();
-      init_squareSet();
-      init_types2();
-      init_util2();
-      makeSanWithoutSuffix = (pos, move3) => {
-        let san = "";
-        if (isDrop(move3)) {
-          if (move3.role !== "pawn")
-            san = roleToChar(move3.role).toUpperCase();
-          san += "@" + makeSquare(move3.to);
-        } else {
-          const role = pos.board.getRole(move3.from);
-          if (!role)
-            return "--";
-          if (role === "king" && (pos.board[pos.turn].has(move3.to) || Math.abs(move3.to - move3.from) === 2)) {
-            san = move3.to > move3.from ? "O-O" : "O-O-O";
-          } else {
-            const capture = pos.board.occupied.has(move3.to) || role === "pawn" && squareFile(move3.from) !== squareFile(move3.to);
-            if (role !== "pawn") {
-              san = roleToChar(role).toUpperCase();
-              let others;
-              if (role === "king")
-                others = kingAttacks(move3.to).intersect(pos.board.king);
-              else if (role === "queen")
-                others = queenAttacks(move3.to, pos.board.occupied).intersect(pos.board.queen);
-              else if (role === "rook")
-                others = rookAttacks(move3.to, pos.board.occupied).intersect(pos.board.rook);
-              else if (role === "bishop")
-                others = bishopAttacks(move3.to, pos.board.occupied).intersect(pos.board.bishop);
-              else
-                others = knightAttacks(move3.to).intersect(pos.board.knight);
-              others = others.intersect(pos.board[pos.turn]).without(move3.from);
-              if (others.nonEmpty()) {
-                const ctx = pos.ctx();
-                for (const from of others) {
-                  if (!pos.dests(from, ctx).has(move3.to))
-                    others = others.without(from);
-                }
-                if (others.nonEmpty()) {
-                  let row = false;
-                  let column = others.intersects(SquareSet.fromRank(squareRank(move3.from)));
-                  if (others.intersects(SquareSet.fromFile(squareFile(move3.from))))
-                    row = true;
-                  else
-                    column = true;
-                  if (column)
-                    san += FILE_NAMES[squareFile(move3.from)];
-                  if (row)
-                    san += RANK_NAMES[squareRank(move3.from)];
-                }
-              }
-            } else if (capture)
-              san = FILE_NAMES[squareFile(move3.from)];
-            if (capture)
-              san += "x";
-            san += makeSquare(move3.to);
-            if (move3.promotion)
-              san += "=" + roleToChar(move3.promotion).toUpperCase();
-          }
-        }
-        return san;
-      };
-      makeSanAndPlay = (pos, move3) => {
-        var _a;
-        const san = makeSanWithoutSuffix(pos, move3);
-        pos.play(move3);
-        if ((_a = pos.outcome()) === null || _a === void 0 ? void 0 : _a.winner)
-          return san + "#";
-        if (pos.isCheck())
-          return san + "+";
-        return san;
-      };
-      parseSan = (pos, san) => {
-        const ctx = pos.ctx();
-        const match = san.match(/^([NBRQK])?([a-h])?([1-8])?[-x]?([a-h][1-8])(?:=?([nbrqkNBRQK]))?[+#]?$/);
-        if (!match) {
-          let castlingSide2;
-          if (san === "O-O" || san === "O-O+" || san === "O-O#")
-            castlingSide2 = "h";
-          else if (san === "O-O-O" || san === "O-O-O+" || san === "O-O-O#")
-            castlingSide2 = "a";
-          if (castlingSide2) {
-            const rook2 = pos.castles.rook[pos.turn][castlingSide2];
-            if (!defined(ctx.king) || !defined(rook2) || !pos.dests(ctx.king, ctx).has(rook2))
-              return;
-            return {
-              from: ctx.king,
-              to: rook2
-            };
-          }
-          const match2 = san.match(/^([pnbrqkPNBRQK])?@([a-h][1-8])[+#]?$/);
-          if (!match2)
-            return;
-          const move3 = {
-            role: match2[1] ? charToRole(match2[1]) : "pawn",
-            to: parseSquare(match2[2])
-          };
-          return pos.isLegal(move3, ctx) ? move3 : void 0;
-        }
-        const role = match[1] ? charToRole(match[1]) : "pawn";
-        const to = parseSquare(match[4]);
-        const promotion = match[5] ? charToRole(match[5]) : void 0;
-        if (!!promotion !== (role === "pawn" && SquareSet.backranks().has(to)))
-          return;
-        if (promotion === "king" && pos.rules !== "antichess")
-          return;
-        let candidates = pos.board.pieces(pos.turn, role);
-        if (role === "pawn" && !match[2])
-          candidates = candidates.intersect(SquareSet.fromFile(squareFile(to)));
-        else if (match[2])
-          candidates = candidates.intersect(SquareSet.fromFile(match[2].charCodeAt(0) - "a".charCodeAt(0)));
-        if (match[3])
-          candidates = candidates.intersect(SquareSet.fromRank(match[3].charCodeAt(0) - "1".charCodeAt(0)));
-        const pawnAdvance = role === "pawn" ? SquareSet.fromFile(squareFile(to)) : SquareSet.empty();
-        candidates = candidates.intersect(pawnAdvance.union(attacks({ color: opposite2(pos.turn), role }, to, pos.board.occupied)));
-        let from;
-        for (const candidate of candidates) {
-          if (pos.dests(candidate, ctx).has(to)) {
-            if (defined(from))
-              return;
-            from = candidate;
-          }
-        }
-        if (!defined(from))
-          return;
-        return {
-          from,
-          to,
-          promotion
-        };
-      };
-    }
-  });
-
-  // node_modules/chessops/dist/esm/transform.js
-  var init_transform = __esm({
-    "node_modules/chessops/dist/esm/transform.js"() {
-    }
-  });
-
-  // node_modules/chessops/dist/esm/variant.js
-  var Crazyhouse, Atomic, Antichess, KingOfTheHill, ThreeCheck, racingKingsBoard, RacingKings, hordeBoard, Horde, defaultPosition, setupPosition;
-  var init_variant = __esm({
-    "node_modules/chessops/dist/esm/variant.js"() {
-      init_index_modern();
-      init_attacks();
-      init_board2();
-      init_chess2();
-      init_setup();
-      init_squareSet();
-      init_types2();
-      init_util2();
-      Crazyhouse = class extends Position {
-        constructor() {
-          super("crazyhouse");
-        }
-        reset() {
-          super.reset();
-          this.pockets = Material.empty();
-        }
-        setupUnchecked(setup) {
-          super.setupUnchecked(setup);
-          this.board.promoted = setup.board.promoted.intersect(setup.board.occupied).diff(setup.board.king).diff(setup.board.pawn);
-          this.pockets = setup.pockets ? setup.pockets.clone() : Material.empty();
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-        validate() {
-          return super.validate().chain((_) => {
-            var _a, _b;
-            if ((_a = this.pockets) === null || _a === void 0 ? void 0 : _a.count("king")) {
-              return n.err(new PositionError(IllegalSetup.Kings));
-            }
-            if ((((_b = this.pockets) === null || _b === void 0 ? void 0 : _b.size()) || 0) + this.board.occupied.size() > 64) {
-              return n.err(new PositionError(IllegalSetup.Variant));
-            }
-            return n.ok(void 0);
-          });
-        }
-        hasInsufficientMaterial(color) {
-          if (!this.pockets)
-            return super.hasInsufficientMaterial(color);
-          return this.board.occupied.size() + this.pockets.size() <= 3 && this.board.pawn.isEmpty() && this.board.promoted.isEmpty() && this.board.rooksAndQueens().isEmpty() && this.pockets.count("pawn") <= 0 && this.pockets.count("rook") <= 0 && this.pockets.count("queen") <= 0;
-        }
-        dropDests(ctx) {
-          var _a, _b;
-          const mask = this.board.occupied.complement().intersect(((_a = this.pockets) === null || _a === void 0 ? void 0 : _a[this.turn].hasNonPawns()) ? SquareSet.full() : ((_b = this.pockets) === null || _b === void 0 ? void 0 : _b[this.turn].hasPawns()) ? SquareSet.backranks().complement() : SquareSet.empty());
-          ctx = ctx || this.ctx();
-          if (defined(ctx.king) && ctx.checkers.nonEmpty()) {
-            const checker = ctx.checkers.singleSquare();
-            if (!defined(checker))
-              return SquareSet.empty();
-            return mask.intersect(between(checker, ctx.king));
-          } else
-            return mask;
-        }
-      };
-      Atomic = class extends Position {
-        constructor() {
-          super("atomic");
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-        validate() {
-          if (this.board.occupied.isEmpty())
-            return n.err(new PositionError(IllegalSetup.Empty));
-          if (this.board.king.size() > 2)
-            return n.err(new PositionError(IllegalSetup.Kings));
-          const otherKing = this.board.kingOf(opposite2(this.turn));
-          if (!defined(otherKing))
-            return n.err(new PositionError(IllegalSetup.Kings));
-          if (this.kingAttackers(otherKing, this.turn, this.board.occupied).nonEmpty()) {
-            return n.err(new PositionError(IllegalSetup.OppositeCheck));
-          }
-          if (SquareSet.backranks().intersects(this.board.pawn)) {
-            return n.err(new PositionError(IllegalSetup.PawnsOnBackrank));
-          }
-          return n.ok(void 0);
-        }
-        kingAttackers(square, attacker, occupied) {
-          const attackerKings = this.board.pieces(attacker, "king");
-          if (attackerKings.isEmpty() || kingAttacks(square).intersects(attackerKings)) {
-            return SquareSet.empty();
-          }
-          return super.kingAttackers(square, attacker, occupied);
-        }
-        playCaptureAt(square, captured) {
-          super.playCaptureAt(square, captured);
-          this.board.take(square);
-          for (const explode of kingAttacks(square).intersect(this.board.occupied).diff(this.board.pawn)) {
-            const piece = this.board.take(explode);
-            if ((piece === null || piece === void 0 ? void 0 : piece.role) === "rook")
-              this.castles.discardRook(explode);
-            if ((piece === null || piece === void 0 ? void 0 : piece.role) === "king")
-              this.castles.discardColor(piece.color);
-          }
-        }
-        hasInsufficientMaterial(color) {
-          if (this.board.pieces(opposite2(color), "king").isEmpty())
-            return false;
-          if (this.board[color].diff(this.board.king).isEmpty())
-            return true;
-          if (this.board[opposite2(color)].diff(this.board.king).nonEmpty()) {
-            if (this.board.occupied.equals(this.board.bishop.union(this.board.king))) {
-              if (!this.board.bishop.intersect(this.board.white).intersects(SquareSet.darkSquares())) {
-                return !this.board.bishop.intersect(this.board.black).intersects(SquareSet.lightSquares());
-              }
-              if (!this.board.bishop.intersect(this.board.white).intersects(SquareSet.lightSquares())) {
-                return !this.board.bishop.intersect(this.board.black).intersects(SquareSet.darkSquares());
-              }
-            }
-            return false;
-          }
-          if (this.board.queen.nonEmpty() || this.board.pawn.nonEmpty())
-            return false;
-          if (this.board.knight.union(this.board.bishop).union(this.board.rook).size() === 1)
-            return true;
-          if (this.board.occupied.equals(this.board.knight.union(this.board.king))) {
-            return this.board.knight.size() <= 2;
-          }
-          return false;
-        }
-        dests(square, ctx) {
-          ctx = ctx || this.ctx();
-          let dests = SquareSet.empty();
-          for (const to of pseudoDests(this, square, ctx)) {
-            const after = this.clone();
-            after.play({ from: square, to });
-            const ourKing = after.board.kingOf(this.turn);
-            if (defined(ourKing) && (!defined(after.board.kingOf(after.turn)) || after.kingAttackers(ourKing, after.turn, after.board.occupied).isEmpty())) {
-              dests = dests.with(to);
-            }
-          }
-          return dests;
-        }
-        isVariantEnd() {
-          return !!this.variantOutcome();
-        }
-        variantOutcome(_ctx) {
-          for (const color of COLORS) {
-            if (this.board.pieces(color, "king").isEmpty())
-              return { winner: opposite2(color) };
-          }
-          return;
-        }
-      };
-      Antichess = class extends Position {
-        constructor() {
-          super("antichess");
-        }
-        reset() {
-          super.reset();
-          this.castles = Castles.empty();
-        }
-        setupUnchecked(setup) {
-          super.setupUnchecked(setup);
-          this.castles = Castles.empty();
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-        validate() {
-          if (this.board.occupied.isEmpty())
-            return n.err(new PositionError(IllegalSetup.Empty));
-          if (SquareSet.backranks().intersects(this.board.pawn)) {
-            return n.err(new PositionError(IllegalSetup.PawnsOnBackrank));
-          }
-          return n.ok(void 0);
-        }
-        kingAttackers(_square, _attacker, _occupied) {
-          return SquareSet.empty();
-        }
-        ctx() {
-          const ctx = super.ctx();
-          if (defined(this.epSquare) && pawnAttacks(opposite2(this.turn), this.epSquare).intersects(this.board.pieces(this.turn, "pawn"))) {
-            ctx.mustCapture = true;
-            return ctx;
-          }
-          const enemy = this.board[opposite2(this.turn)];
-          for (const from of this.board[this.turn]) {
-            if (pseudoDests(this, from, ctx).intersects(enemy)) {
-              ctx.mustCapture = true;
-              return ctx;
-            }
-          }
-          return ctx;
-        }
-        dests(square, ctx) {
-          ctx = ctx || this.ctx();
-          const dests = pseudoDests(this, square, ctx);
-          const enemy = this.board[opposite2(this.turn)];
-          return dests.intersect(ctx.mustCapture ? defined(this.epSquare) && this.board.getRole(square) === "pawn" ? enemy.with(this.epSquare) : enemy : SquareSet.full());
-        }
-        hasInsufficientMaterial(color) {
-          if (this.board[color].isEmpty())
-            return false;
-          if (this.board[opposite2(color)].isEmpty())
-            return true;
-          if (this.board.occupied.equals(this.board.bishop)) {
-            const weSomeOnLight = this.board[color].intersects(SquareSet.lightSquares());
-            const weSomeOnDark = this.board[color].intersects(SquareSet.darkSquares());
-            const theyAllOnDark = this.board[opposite2(color)].isDisjoint(SquareSet.lightSquares());
-            const theyAllOnLight = this.board[opposite2(color)].isDisjoint(SquareSet.darkSquares());
-            return weSomeOnLight && theyAllOnDark || weSomeOnDark && theyAllOnLight;
-          }
-          if (this.board.occupied.equals(this.board.knight) && this.board.occupied.size() === 2) {
-            return this.board.white.intersects(SquareSet.lightSquares()) !== this.board.black.intersects(SquareSet.darkSquares()) !== (this.turn === color);
-          }
-          return false;
-        }
-        isVariantEnd() {
-          return this.board[this.turn].isEmpty();
-        }
-        variantOutcome(ctx) {
-          ctx = ctx || this.ctx();
-          if (ctx.variantEnd || this.isStalemate(ctx)) {
-            return { winner: this.turn };
-          }
-          return;
-        }
-      };
-      KingOfTheHill = class extends Position {
-        constructor() {
-          super("kingofthehill");
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-        hasInsufficientMaterial(_color) {
-          return false;
-        }
-        isVariantEnd() {
-          return this.board.king.intersects(SquareSet.center());
-        }
-        variantOutcome(_ctx) {
-          for (const color of COLORS) {
-            if (this.board.pieces(color, "king").intersects(SquareSet.center()))
-              return { winner: color };
-          }
-          return;
-        }
-      };
-      ThreeCheck = class extends Position {
-        constructor() {
-          super("3check");
-        }
-        reset() {
-          super.reset();
-          this.remainingChecks = RemainingChecks.default();
-        }
-        setupUnchecked(setup) {
-          var _a;
-          super.setupUnchecked(setup);
-          this.remainingChecks = ((_a = setup.remainingChecks) === null || _a === void 0 ? void 0 : _a.clone()) || RemainingChecks.default();
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-        hasInsufficientMaterial(color) {
-          return this.board.pieces(color, "king").equals(this.board[color]);
-        }
-        isVariantEnd() {
-          return !!this.remainingChecks && (this.remainingChecks.white <= 0 || this.remainingChecks.black <= 0);
-        }
-        variantOutcome(_ctx) {
-          if (this.remainingChecks) {
-            for (const color of COLORS) {
-              if (this.remainingChecks[color] <= 0)
-                return { winner: color };
-            }
-          }
-          return;
-        }
-      };
-      racingKingsBoard = () => {
-        const board = Board.empty();
-        board.occupied = new SquareSet(65535, 0);
-        board.promoted = SquareSet.empty();
-        board.white = new SquareSet(61680, 0);
-        board.black = new SquareSet(3855, 0);
-        board.pawn = SquareSet.empty();
-        board.knight = new SquareSet(6168, 0);
-        board.bishop = new SquareSet(9252, 0);
-        board.rook = new SquareSet(16962, 0);
-        board.queen = new SquareSet(129, 0);
-        board.king = new SquareSet(33024, 0);
-        return board;
-      };
-      RacingKings = class extends Position {
-        constructor() {
-          super("racingkings");
-        }
-        reset() {
-          this.board = racingKingsBoard();
-          this.pockets = void 0;
-          this.turn = "white";
-          this.castles = Castles.empty();
-          this.epSquare = void 0;
-          this.remainingChecks = void 0;
-          this.halfmoves = 0;
-          this.fullmoves = 1;
-        }
-        setupUnchecked(setup) {
-          super.setupUnchecked(setup);
-          this.castles = Castles.empty();
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-        validate() {
-          if (this.isCheck() || this.board.pawn.nonEmpty())
-            return n.err(new PositionError(IllegalSetup.Variant));
-          return super.validate();
-        }
-        dests(square, ctx) {
-          ctx = ctx || this.ctx();
-          if (square === ctx.king)
-            return super.dests(square, ctx);
-          let dests = SquareSet.empty();
-          for (const to of super.dests(square, ctx)) {
-            const move3 = { from: square, to };
-            const after = this.clone();
-            after.play(move3);
-            if (!after.isCheck())
-              dests = dests.with(to);
-          }
-          return dests;
-        }
-        hasInsufficientMaterial(_color) {
-          return false;
-        }
-        isVariantEnd() {
-          const goal = SquareSet.fromRank(7);
-          const inGoal = this.board.king.intersect(goal);
-          if (inGoal.isEmpty())
-            return false;
-          if (this.turn === "white" || inGoal.intersects(this.board.black))
-            return true;
-          const blackKing = this.board.kingOf("black");
-          if (defined(blackKing)) {
-            const occ = this.board.occupied.without(blackKing);
-            for (const target of kingAttacks(blackKing).intersect(goal).diff(this.board.black)) {
-              if (this.kingAttackers(target, "white", occ).isEmpty())
-                return false;
-            }
-          }
-          return true;
-        }
-        variantOutcome(ctx) {
-          if (ctx ? !ctx.variantEnd : !this.isVariantEnd())
-            return;
-          const goal = SquareSet.fromRank(7);
-          const blackInGoal = this.board.pieces("black", "king").intersects(goal);
-          const whiteInGoal = this.board.pieces("white", "king").intersects(goal);
-          if (blackInGoal && !whiteInGoal)
-            return { winner: "black" };
-          if (whiteInGoal && !blackInGoal)
-            return { winner: "white" };
-          return { winner: void 0 };
-        }
-      };
-      hordeBoard = () => {
-        const board = Board.empty();
-        board.occupied = new SquareSet(4294967295, 4294901862);
-        board.promoted = SquareSet.empty();
-        board.white = new SquareSet(4294967295, 102);
-        board.black = new SquareSet(0, 4294901760);
-        board.pawn = new SquareSet(4294967295, 16711782);
-        board.knight = new SquareSet(0, 1107296256);
-        board.bishop = new SquareSet(0, 603979776);
-        board.rook = new SquareSet(0, 2164260864);
-        board.queen = new SquareSet(0, 134217728);
-        board.king = new SquareSet(0, 268435456);
-        return board;
-      };
-      Horde = class extends Position {
-        constructor() {
-          super("horde");
-        }
-        reset() {
-          this.board = hordeBoard();
-          this.pockets = void 0;
-          this.turn = "white";
-          this.castles = Castles.default();
-          this.castles.discardColor("white");
-          this.epSquare = void 0;
-          this.remainingChecks = void 0;
-          this.halfmoves = 0;
-          this.fullmoves = 1;
-        }
-        static default() {
-          const pos = new this();
-          pos.reset();
-          return pos;
-        }
-        static fromSetup(setup) {
-          const pos = new this();
-          pos.setupUnchecked(setup);
-          return pos.validate().map((_) => pos);
-        }
-        clone() {
-          return super.clone();
-        }
-        validate() {
-          if (this.board.occupied.isEmpty())
-            return n.err(new PositionError(IllegalSetup.Empty));
-          if (this.board.king.size() !== 1)
-            return n.err(new PositionError(IllegalSetup.Kings));
-          const otherKing = this.board.kingOf(opposite2(this.turn));
-          if (defined(otherKing) && this.kingAttackers(otherKing, this.turn, this.board.occupied).nonEmpty()) {
-            return n.err(new PositionError(IllegalSetup.OppositeCheck));
-          }
-          for (const color of COLORS) {
-            const backranks = this.board.pieces(color, "king").isEmpty() ? SquareSet.backrank(opposite2(color)) : SquareSet.backranks();
-            if (this.board.pieces(color, "pawn").intersects(backranks)) {
-              return n.err(new PositionError(IllegalSetup.PawnsOnBackrank));
-            }
-          }
-          return n.ok(void 0);
-        }
-        hasInsufficientMaterial(color) {
-          if (this.board.pieces(color, "king").nonEmpty())
-            return false;
-          const oppositeSquareColor = (squareColor) => squareColor === "light" ? "dark" : "light";
-          const coloredSquares = (squareColor) => squareColor === "light" ? SquareSet.lightSquares() : SquareSet.darkSquares();
-          const hasBishopPair = (side) => {
-            const bishops = this.board.pieces(side, "bishop");
-            return bishops.intersects(SquareSet.darkSquares()) && bishops.intersects(SquareSet.lightSquares());
-          };
-          const horde = MaterialSide.fromBoard(this.board, color);
-          const hordeBishops = (squareColor) => coloredSquares(squareColor).intersect(this.board.pieces(color, "bishop")).size();
-          const hordeBishopColor = hordeBishops("light") >= 1 ? "light" : "dark";
-          const hordeNum = horde.pawn + horde.knight + horde.rook + horde.queen + Math.min(hordeBishops("dark"), 2) + Math.min(hordeBishops("light"), 2);
-          const pieces = MaterialSide.fromBoard(this.board, opposite2(color));
-          const piecesBishops = (squareColor) => coloredSquares(squareColor).intersect(this.board.pieces(opposite2(color), "bishop")).size();
-          const piecesNum = pieces.size();
-          const piecesOfRoleNot = (piece) => piecesNum - piece;
-          if (hordeNum === 0)
-            return true;
-          if (hordeNum >= 4) {
-            return false;
-          }
-          if ((horde.pawn >= 1 || horde.queen >= 1) && hordeNum >= 2) {
-            return false;
-          }
-          if (horde.rook >= 1 && hordeNum >= 2) {
-            if (!(hordeNum === 2 && horde.rook === 1 && horde.bishop === 1 && piecesOfRoleNot(piecesBishops(hordeBishopColor)) === 1)) {
-              return false;
-            }
-          }
-          if (hordeNum === 1) {
-            if (piecesNum === 1) {
-              return true;
-            } else if (horde.queen === 1) {
-              return !(pieces.pawn >= 1 || pieces.rook >= 1 || piecesBishops("light") >= 2 || piecesBishops("dark") >= 2);
-            } else if (horde.pawn === 1) {
-              const pawnSquare = this.board.pieces(color, "pawn").last();
-              const promoteToQueen = this.clone();
-              promoteToQueen.board.set(pawnSquare, { color, role: "queen" });
-              const promoteToKnight = this.clone();
-              promoteToKnight.board.set(pawnSquare, { color, role: "knight" });
-              return promoteToQueen.hasInsufficientMaterial(color) && promoteToKnight.hasInsufficientMaterial(color);
-            } else if (horde.rook === 1) {
-              return !(pieces.pawn >= 2 || pieces.rook >= 1 && pieces.pawn >= 1 || pieces.rook >= 1 && pieces.knight >= 1 || pieces.pawn >= 1 && pieces.knight >= 1);
-            } else if (horde.bishop === 1) {
-              return !// The king can be mated on A1 if there is a pawn/opposite-color-bishop
-              // on A2 and an opposite-color-bishop on B1.
-              // If black has two or more pawns, white gets the benefit of the doubt;
-              // there is an outside chance that white promotes its pawns to
-              // opposite-color-bishops and selfmates theirself.
-              // Every other case that the king is mated by the bishop requires that
-              // black has two pawns or two opposite-color-bishop or a pawn and an
-              // opposite-color-bishop.
-              // For example a king on A3 can be mated if there is
-              // a pawn/opposite-color-bishop on A4, a pawn/opposite-color-bishop on
-              // B3, a pawn/bishop/rook/queen on A2 and any other piece on B2.
-              (piecesBishops(oppositeSquareColor(hordeBishopColor)) >= 2 || piecesBishops(oppositeSquareColor(hordeBishopColor)) >= 1 && pieces.pawn >= 1 || pieces.pawn >= 2);
-            } else if (horde.knight === 1) {
-              return !// The king on A1 can be smother mated by a knight on C2 if there is
-              // a pawn/knight/bishop on B2, a knight/rook on B1 and any other piece
-              // on A2.
-              // Moreover, when black has four or more pieces and two of them are
-              // pawns, black can promote their pawns and selfmate theirself.
-              (piecesNum >= 4 && (pieces.knight >= 2 || pieces.pawn >= 2 || pieces.rook >= 1 && pieces.knight >= 1 || pieces.rook >= 1 && pieces.bishop >= 1 || pieces.knight >= 1 && pieces.bishop >= 1 || pieces.rook >= 1 && pieces.pawn >= 1 || pieces.knight >= 1 && pieces.pawn >= 1 || pieces.bishop >= 1 && pieces.pawn >= 1 || hasBishopPair(opposite2(color)) && pieces.pawn >= 1) && (piecesBishops("dark") < 2 || piecesOfRoleNot(piecesBishops("dark")) >= 3) && (piecesBishops("light") < 2 || piecesOfRoleNot(piecesBishops("light")) >= 3));
-            }
-          } else if (hordeNum === 2) {
-            if (piecesNum === 1) {
-              return true;
-            } else if (horde.knight === 2) {
-              return pieces.pawn + pieces.bishop + pieces.knight < 1;
-            } else if (hasBishopPair(color)) {
-              return !// A king on A1 obstructed by a pawn/bishop on A2 is mated
-              // by the bishop pair.
-              (pieces.pawn >= 1 || pieces.bishop >= 1 || pieces.knight >= 1 && pieces.rook + pieces.queen >= 1);
-            } else if (horde.bishop >= 1 && horde.knight >= 1) {
-              return !// A king on A1 obstructed by a pawn/opposite-color-bishop on
-              // A2 is mated by a knight on D2 and a bishop on C3.
-              (pieces.pawn >= 1 || piecesBishops(oppositeSquareColor(hordeBishopColor)) >= 1 || piecesOfRoleNot(piecesBishops(hordeBishopColor)) >= 3);
-            } else {
-              return !// A king on A1 obstructed by a pawn/opposite-bishop/knight
-              // on A2 and a opposite-bishop/knight on B1 is mated by two
-              // bishops on B2 and C3. This position is theoretically
-              // achievable even when black has two pawns or when they
-              // have a pawn and an opposite color bishop.
-              (pieces.pawn >= 1 && piecesBishops(oppositeSquareColor(hordeBishopColor)) >= 1 || pieces.pawn >= 1 && pieces.knight >= 1 || piecesBishops(oppositeSquareColor(hordeBishopColor)) >= 1 && pieces.knight >= 1 || piecesBishops(oppositeSquareColor(hordeBishopColor)) >= 2 || pieces.knight >= 2 || pieces.pawn >= 2);
-            }
-          } else if (hordeNum === 3) {
-            if (horde.knight === 2 && horde.bishop === 1 || horde.knight === 3 || hasBishopPair(color)) {
-              return false;
-            } else {
-              return piecesNum === 1;
-            }
-          }
-          return true;
-        }
-        isVariantEnd() {
-          return this.board.white.isEmpty() || this.board.black.isEmpty();
-        }
-        variantOutcome(_ctx) {
-          if (this.board.white.isEmpty())
-            return { winner: "black" };
-          if (this.board.black.isEmpty())
-            return { winner: "white" };
-          return;
-        }
-      };
-      defaultPosition = (rules) => {
-        switch (rules) {
-          case "chess":
-            return Chess2.default();
-          case "antichess":
-            return Antichess.default();
-          case "atomic":
-            return Atomic.default();
-          case "horde":
-            return Horde.default();
-          case "racingkings":
-            return RacingKings.default();
-          case "kingofthehill":
-            return KingOfTheHill.default();
-          case "3check":
-            return ThreeCheck.default();
-          case "crazyhouse":
-            return Crazyhouse.default();
-        }
-      };
-      setupPosition = (rules, setup) => {
-        switch (rules) {
-          case "chess":
-            return Chess2.fromSetup(setup);
-          case "antichess":
-            return Antichess.fromSetup(setup);
-          case "atomic":
-            return Atomic.fromSetup(setup);
-          case "horde":
-            return Horde.fromSetup(setup);
-          case "racingkings":
-            return RacingKings.fromSetup(setup);
-          case "kingofthehill":
-            return KingOfTheHill.fromSetup(setup);
-          case "3check":
-            return ThreeCheck.fromSetup(setup);
-          case "crazyhouse":
-            return Crazyhouse.fromSetup(setup);
-        }
-      };
-    }
-  });
-
-  // node_modules/chessops/dist/esm/pgn.js
-  function parseCommentShapeColor(str) {
-    switch (str) {
-      case "G":
-        return "green";
-      case "R":
-        return "red";
-      case "Y":
-        return "yellow";
-      case "B":
-        return "blue";
-      default:
-        return;
-    }
-  }
-  var defaultGame, Node, ChildNode, transform, makeOutcome, parseOutcome, defaultHeaders, BOM, isWhitespace, isCommentLine, PgnError, PgnParser, parsePgn, parseVariant, startingPosition, parseCommentShape, parseComment;
-  var init_pgn = __esm({
-    "node_modules/chessops/dist/esm/pgn.js"() {
-      init_index_modern();
-      init_chess2();
-      init_fen2();
-      init_util2();
-      init_variant();
-      defaultGame = (initHeaders = defaultHeaders) => ({
-        headers: initHeaders(),
-        moves: new Node()
-      });
-      Node = class {
-        constructor() {
-          this.children = [];
-        }
-        *mainlineNodes() {
-          let node2 = this;
-          while (node2.children.length) {
-            const child = node2.children[0];
-            yield child;
-            node2 = child;
-          }
-        }
-        *mainline() {
-          for (const child of this.mainlineNodes())
-            yield child.data;
-        }
-        end() {
-          let node2 = this;
-          while (node2.children.length)
-            node2 = node2.children[0];
-          return node2;
-        }
-      };
-      ChildNode = class extends Node {
-        constructor(data) {
-          super();
-          this.data = data;
-        }
-      };
-      transform = (node2, ctx, f) => {
-        const root = new Node();
-        const stack = [
-          {
-            before: node2,
-            after: root,
-            ctx
-          }
-        ];
-        let frame;
-        while (frame = stack.pop()) {
-          for (let childIndex = 0; childIndex < frame.before.children.length; childIndex++) {
-            const ctx2 = childIndex < frame.before.children.length - 1 ? frame.ctx.clone() : frame.ctx;
-            const childBefore = frame.before.children[childIndex];
-            const data = f(ctx2, childBefore.data, childIndex);
-            if (defined(data)) {
-              const childAfter = new ChildNode(data);
-              frame.after.children.push(childAfter);
-              stack.push({
-                before: childBefore,
-                after: childAfter,
-                ctx: ctx2
-              });
-            }
-          }
-        }
-        return root;
-      };
-      makeOutcome = (outcome) => {
-        if (!outcome)
-          return "*";
-        else if (outcome.winner === "white")
-          return "1-0";
-        else if (outcome.winner === "black")
-          return "0-1";
-        else
-          return "1/2-1/2";
-      };
-      parseOutcome = (s) => {
-        if (s === "1-0" || s === "1\u20130" || s === "1\u20140")
-          return { winner: "white" };
-        else if (s === "0-1" || s === "0\u20131" || s === "0\u20141")
-          return { winner: "black" };
-        else if (s === "1/2-1/2" || s === "1/2\u20131/2" || s === "1/2\u20141/2")
-          return { winner: void 0 };
-        else
-          return;
-      };
-      defaultHeaders = () => /* @__PURE__ */ new Map([
-        ["Event", "?"],
-        ["Site", "?"],
-        ["Date", "????.??.??"],
-        ["Round", "?"],
-        ["White", "?"],
-        ["Black", "?"],
-        ["Result", "*"]
-      ]);
-      BOM = "\uFEFF";
-      isWhitespace = (line) => /^\s*$/.test(line);
-      isCommentLine = (line) => line.startsWith("%");
-      PgnError = class extends Error {
-      };
-      PgnParser = class {
-        constructor(emitGame, initHeaders = defaultHeaders, maxBudget = 1e6) {
-          this.emitGame = emitGame;
-          this.initHeaders = initHeaders;
-          this.maxBudget = maxBudget;
-          this.lineBuf = [];
-          this.resetGame();
-          this.state = 0;
-        }
-        resetGame() {
-          this.budget = this.maxBudget;
-          this.found = false;
-          this.state = 1;
-          this.game = defaultGame(this.initHeaders);
-          this.stack = [{ parent: this.game.moves, root: true }];
-          this.commentBuf = [];
-        }
-        consumeBudget(cost) {
-          this.budget -= cost;
-          if (this.budget < 0)
-            throw new PgnError("ERR_PGN_BUDGET");
-        }
-        parse(data, options) {
-          if (this.budget < 0)
-            return;
-          try {
-            let idx = 0;
-            for (; ; ) {
-              const nlIdx = data.indexOf("\n", idx);
-              if (nlIdx === -1) {
-                break;
-              }
-              const crIdx = nlIdx > idx && data[nlIdx - 1] === "\r" ? nlIdx - 1 : nlIdx;
-              this.consumeBudget(nlIdx - idx);
-              this.lineBuf.push(data.slice(idx, crIdx));
-              idx = nlIdx + 1;
-              this.handleLine();
-            }
-            this.consumeBudget(data.length - idx);
-            this.lineBuf.push(data.slice(idx));
-            if (!(options === null || options === void 0 ? void 0 : options.stream)) {
-              this.handleLine();
-              this.emit(void 0);
-            }
-          } catch (err) {
-            this.emit(err);
-          }
-        }
-        handleLine() {
-          let freshLine = true;
-          let line = this.lineBuf.join("");
-          this.lineBuf = [];
-          continuedLine: for (; ; ) {
-            switch (this.state) {
-              case 0:
-                if (line.startsWith(BOM))
-                  line = line.slice(BOM.length);
-                this.state = 1;
-              // fall through
-              case 1:
-                if (isWhitespace(line) || isCommentLine(line))
-                  return;
-                this.found = true;
-                this.state = 2;
-              // fall through
-              case 2: {
-                if (isCommentLine(line))
-                  return;
-                let moreHeaders = true;
-                while (moreHeaders) {
-                  moreHeaders = false;
-                  line = line.replace(/^\s*\[([A-Za-z0-9][A-Za-z0-9_+#=:-]*)\s+"((?:[^"\\]|\\"|\\\\)*)"\]/, (_match, headerName, headerValue) => {
-                    this.consumeBudget(200);
-                    this.handleHeader(headerName, headerValue.replace(/\\"/g, '"').replace(/\\\\/g, "\\"));
-                    moreHeaders = true;
-                    freshLine = false;
-                    return "";
-                  });
-                }
-                if (isWhitespace(line))
-                  return;
-                this.state = 3;
-              }
-              case 3: {
-                if (freshLine) {
-                  if (isCommentLine(line))
-                    return;
-                  if (isWhitespace(line))
-                    return this.emit(void 0);
-                }
-                const tokenRegex = /(?:[NBKRQ]?[a-h]?[1-8]?[-x]?[a-h][1-8](?:=?[nbrqkNBRQK])?|[pnbrqkPNBRQK]?@[a-h][1-8]|[O0o][-–—][O0o](?:[-–—][O0o])?)[+#]?|--|Z0|0000|@@@@|{|;|\$\d{1,4}|[?!]{1,2}|\(|\)|\*|1[-–—]0|0[-–—]1|1\/2[-–—]1\/2/g;
-                let match;
-                while (match = tokenRegex.exec(line)) {
-                  const frame = this.stack[this.stack.length - 1];
-                  let token = match[0];
-                  if (token === ";")
-                    return;
-                  else if (token.startsWith("$"))
-                    this.handleNag(parseInt(token.slice(1), 10));
-                  else if (token === "!")
-                    this.handleNag(1);
-                  else if (token === "?")
-                    this.handleNag(2);
-                  else if (token === "!!")
-                    this.handleNag(3);
-                  else if (token === "??")
-                    this.handleNag(4);
-                  else if (token === "!?")
-                    this.handleNag(5);
-                  else if (token === "?!")
-                    this.handleNag(6);
-                  else if (token === "1-0" || token === "1\u20130" || token === "1\u20140" || token === "0-1" || token === "0\u20131" || token === "0\u20141" || token === "1/2-1/2" || token === "1/2\u20131/2" || token === "1/2\u20141/2" || token === "*") {
-                    if (this.stack.length === 1 && token !== "*")
-                      this.handleHeader("Result", token);
-                  } else if (token === "(") {
-                    this.consumeBudget(100);
-                    this.stack.push({ parent: frame.parent, root: false });
-                  } else if (token === ")") {
-                    if (this.stack.length > 1)
-                      this.stack.pop();
-                  } else if (token === "{") {
-                    const openIndex = tokenRegex.lastIndex;
-                    const beginIndex = line[openIndex] === " " ? openIndex + 1 : openIndex;
-                    line = line.slice(beginIndex);
-                    this.state = 4;
-                    continue continuedLine;
-                  } else {
-                    this.consumeBudget(100);
-                    if (token.startsWith("O") || token.startsWith("0") || token.startsWith("o")) {
-                      token = token.replace(/[0o]/g, "O").replace(/[–—]/g, "-");
-                    } else if (token === "Z0" || token === "0000" || token === "@@@@")
-                      token = "--";
-                    if (frame.node)
-                      frame.parent = frame.node;
-                    frame.node = new ChildNode({
-                      san: token,
-                      startingComments: frame.startingComments
-                    });
-                    frame.startingComments = void 0;
-                    frame.root = false;
-                    frame.parent.children.push(frame.node);
-                  }
-                }
-                return;
-              }
-              case 4: {
-                const closeIndex = line.indexOf("}");
-                if (closeIndex === -1) {
-                  this.commentBuf.push(line);
-                  return;
-                } else {
-                  const endIndex = closeIndex > 0 && line[closeIndex - 1] === " " ? closeIndex - 1 : closeIndex;
-                  this.commentBuf.push(line.slice(0, endIndex));
-                  this.handleComment();
-                  line = line.slice(closeIndex);
-                  this.state = 3;
-                  freshLine = false;
-                }
-              }
-            }
-          }
-        }
-        handleHeader(name, value) {
-          this.game.headers.set(name, name === "Result" ? makeOutcome(parseOutcome(value)) : value);
-        }
-        handleNag(nag) {
-          var _a;
-          this.consumeBudget(50);
-          const frame = this.stack[this.stack.length - 1];
-          if (frame.node) {
-            (_a = frame.node.data).nags || (_a.nags = []);
-            frame.node.data.nags.push(nag);
-          }
-        }
-        handleComment() {
-          var _a, _b;
-          this.consumeBudget(100);
-          const frame = this.stack[this.stack.length - 1];
-          const comment = this.commentBuf.join("\n");
-          this.commentBuf = [];
-          if (frame.node) {
-            (_a = frame.node.data).comments || (_a.comments = []);
-            frame.node.data.comments.push(comment);
-          } else if (frame.root) {
-            (_b = this.game).comments || (_b.comments = []);
-            this.game.comments.push(comment);
-          } else {
-            frame.startingComments || (frame.startingComments = []);
-            frame.startingComments.push(comment);
-          }
-        }
-        emit(err) {
-          if (this.state === 4)
-            this.handleComment();
-          if (err)
-            return this.emitGame(this.game, err);
-          if (this.found)
-            this.emitGame(this.game, void 0);
-          this.resetGame();
-        }
-      };
-      parsePgn = (pgn2, initHeaders = defaultHeaders) => {
-        const games = [];
-        new PgnParser((game) => games.push(game), initHeaders, NaN).parse(pgn2);
-        return games;
-      };
-      parseVariant = (variant) => {
-        switch ((variant || "chess").toLowerCase()) {
-          case "chess":
-          case "chess960":
-          case "chess 960":
-          case "standard":
-          case "from position":
-          case "classical":
-          case "normal":
-          case "fischerandom":
-          // Cute Chess
-          case "fischerrandom":
-          case "fischer random":
-          case "wild/0":
-          case "wild/1":
-          case "wild/2":
-          case "wild/3":
-          case "wild/4":
-          case "wild/5":
-          case "wild/6":
-          case "wild/7":
-          case "wild/8":
-          case "wild/8a":
-            return "chess";
-          case "crazyhouse":
-          case "crazy house":
-          case "house":
-          case "zh":
-            return "crazyhouse";
-          case "king of the hill":
-          case "koth":
-          case "kingofthehill":
-            return "kingofthehill";
-          case "three-check":
-          case "three check":
-          case "threecheck":
-          case "three check chess":
-          case "3-check":
-          case "3 check":
-          case "3check":
-            return "3check";
-          case "antichess":
-          case "anti chess":
-          case "anti":
-            return "antichess";
-          case "atomic":
-          case "atom":
-          case "atomic chess":
-            return "atomic";
-          case "horde":
-          case "horde chess":
-            return "horde";
-          case "racing kings":
-          case "racingkings":
-          case "racing":
-          case "race":
-            return "racingkings";
-          default:
-            return;
-        }
-      };
-      startingPosition = (headers) => {
-        const rules = parseVariant(headers.get("Variant"));
-        if (!rules)
-          return n.err(new PositionError(IllegalSetup.Variant));
-        const fen = headers.get("FEN");
-        if (fen)
-          return parseFen(fen).chain((setup) => setupPosition(rules, setup));
-        else
-          return n.ok(defaultPosition(rules));
-      };
-      parseCommentShape = (str) => {
-        const color = parseCommentShapeColor(str.slice(0, 1));
-        const from = parseSquare(str.slice(1, 3));
-        const to = parseSquare(str.slice(3, 5));
-        if (!color || !defined(from))
-          return;
-        if (str.length === 3)
-          return { color, from, to: from };
-        if (str.length === 5 && defined(to))
-          return { color, from, to };
-        return;
-      };
-      parseComment = (comment) => {
-        let emt, clock, evaluation;
-        const shapes = [];
-        const text = comment.replace(/\s?\[%(emt|clk)\s(\d{1,5}):(\d{1,2}):(\d{1,2}(?:\.\d{0,3})?)\]\s?/g, (_, annotation, hours, minutes, seconds) => {
-          const value = parseInt(hours, 10) * 3600 + parseInt(minutes, 10) * 60 + parseFloat(seconds);
-          if (annotation === "emt")
-            emt = value;
-          else if (annotation === "clk")
-            clock = value;
-          return "  ";
-        }).replace(/\s?\[%(?:csl|cal)\s([RGYB][a-h][1-8](?:[a-h][1-8])?(?:,[RGYB][a-h][1-8](?:[a-h][1-8])?)*)\]\s?/g, (_, arrows) => {
-          for (const arrow of arrows.split(",")) {
-            shapes.push(parseCommentShape(arrow));
-          }
-          return "  ";
-        }).replace(/\s?\[%eval\s(?:#([+-]?\d{1,5})|([+-]?(?:\d{1,5}|\d{0,5}\.\d{1,2})))(?:,(\d{1,5}))?\]\s?/g, (_, mate, pawns, d) => {
-          const depth = d && parseInt(d, 10);
-          evaluation = mate ? { mate: parseInt(mate, 10), depth } : { pawns: parseFloat(pawns), depth };
-          return "  ";
-        }).trim();
-        return {
-          text,
-          shapes,
-          emt,
-          clock,
-          evaluation
-        };
-      };
-    }
-  });
-
-  // node_modules/chessops/dist/esm/index.js
-  var init_esm = __esm({
-    "node_modules/chessops/dist/esm/index.js"() {
-      init_util2();
-      init_compat();
-      init_debug();
-      init_fen2();
-      init_san();
-      init_transform();
-      init_variant();
-      init_pgn();
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/translation.js
-  function translate2(translator) {
-    return (key) => translator && translator(key) || defaultTranslator(key);
-  }
-  var defaultTranslator, defaultTranslations;
-  var init_translation = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/translation.js"() {
-      defaultTranslator = (key) => defaultTranslations[key];
-      defaultTranslations = {
-        flipTheBoard: "Flip the board",
-        analysisBoard: "Analysis board",
-        practiceWithComputer: "Practice with computer",
-        getPgn: "Get PGN",
-        download: "Download",
-        viewOnLichess: "View on Lichess",
-        viewOnSite: "View on site"
-      };
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/path.js
-  var Path;
-  var init_path = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/path.js"() {
-      Path = class _Path {
-        constructor(path) {
-          this.path = path;
-          this.size = () => this.path.length / 2;
-          this.head = () => this.path.slice(0, 2);
-          this.tail = () => new _Path(this.path.slice(2));
-          this.init = () => new _Path(this.path.slice(0, -2));
-          this.last = () => this.path.slice(-2);
-          this.empty = () => this.path == "";
-          this.contains = (other) => this.path.startsWith(other.path);
-          this.isChildOf = (parent) => this.init() === parent;
-          this.append = (id) => new _Path(this.path + id);
-          this.equals = (other) => this.path == other.path;
-        }
-      };
-      Path.root = new Path("");
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/game.js
-  var Game, childById, nodeAtPathFrom, isMoveNode, isMoveData;
-  var init_game = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/game.js"() {
-      init_path();
-      Game = class {
-        constructor(initial2, moves, players, metadata) {
-          this.initial = initial2;
-          this.moves = moves;
-          this.players = players;
-          this.metadata = metadata;
-          this.nodeAt = (path) => nodeAtPathFrom(this.moves, path);
-          this.dataAt = (path) => {
-            const node2 = this.nodeAt(path);
-            return node2 ? isMoveNode(node2) ? node2.data : this.initial : void 0;
-          };
-          this.title = () => this.players.white.name ? [
-            this.players.white.title,
-            this.players.white.name,
-            "vs",
-            this.players.black.title,
-            this.players.black.name
-          ].filter((x) => x && !!x.trim()).join("_").replace(" ", "-") : "lichess-pgn-viewer";
-          this.pathAtMainlinePly = (ply) => {
-            var _a;
-            return ply == 0 ? Path.root : ((_a = this.mainline[Math.max(0, Math.min(this.mainline.length - 1, ply == "last" ? 9999 : ply - 1))]) === null || _a === void 0 ? void 0 : _a.path) || Path.root;
-          };
-          this.hasPlayerName = () => {
-            var _a, _b;
-            return !!(((_a = this.players.white) === null || _a === void 0 ? void 0 : _a.name) || ((_b = this.players.black) === null || _b === void 0 ? void 0 : _b.name));
-          };
-          this.mainline = Array.from(this.moves.mainline());
-        }
-      };
-      childById = (node2, id) => node2.children.find((c) => c.data.path.last() == id);
-      nodeAtPathFrom = (node2, path) => {
-        if (path.empty())
-          return node2;
-        const child = childById(node2, path.head());
-        return child ? nodeAtPathFrom(child, path.tail()) : void 0;
-      };
-      isMoveNode = (n2) => "data" in n2;
-      isMoveData = (d) => "uci" in d;
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/pgn.js
-  function makePlayers(headers, metadata) {
-    const get = (color, field) => {
-      const raw = headers.get(`${color}${field}`);
-      return raw == "?" || raw == "" ? void 0 : raw;
-    };
-    const makePlayer = (color) => {
-      const name = get(color, "");
-      return {
-        name,
-        title: get(color, "title"),
-        rating: parseInt(get(color, "elo") || "") || void 0,
-        isLichessUser: metadata.isLichess && !!(name === null || name === void 0 ? void 0 : name.match(/^[a-z0-9][a-z0-9_-]{0,28}[a-z0-9]$/i))
-      };
-    };
-    return {
-      white: makePlayer("white"),
-      black: makePlayer("black")
-    };
-  }
-  function makeMetadata(headers, lichess) {
-    var _a;
-    const site = headers.get("chapterurl") || headers.get("gameurl") || headers.get("source") || headers.get("site");
-    const tcs = (_a = headers.get("timecontrol")) === null || _a === void 0 ? void 0 : _a.split("+").map((x) => parseInt(x));
-    const timeControl = tcs && tcs[0] ? {
-      initial: tcs[0],
-      increment: tcs[1] || 0
-    } : void 0;
-    const orientation = headers.get("orientation");
-    return {
-      externalLink: site && site.match(/^https?:\/\//) ? site : void 0,
-      isLichess: !!(lichess && (site === null || site === void 0 ? void 0 : site.startsWith(lichess))),
-      timeControl,
-      orientation: orientation === "white" || orientation === "black" ? orientation : void 0,
-      result: headers.get("result")
-    };
-  }
-  var State, parseComments, makeGame, makeMoves, makeClocks;
-  var init_pgn2 = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/pgn.js"() {
-      init_esm();
-      init_compat();
-      init_fen2();
-      init_pgn();
-      init_san();
-      init_game();
-      init_path();
-      State = class _State {
-        constructor(pos, path, clocks) {
-          this.pos = pos;
-          this.path = path;
-          this.clocks = clocks;
-          this.clone = () => new _State(this.pos.clone(), this.path, { ...this.clocks });
-        }
-      };
-      parseComments = (strings) => {
-        const comments = strings.map(parseComment);
-        const reduceTimes = (times) => times.reduce((last, time) => typeof time == void 0 ? last : time, void 0);
-        return {
-          texts: comments.map((c) => c.text).filter((t2) => !!t2),
-          shapes: comments.flatMap((c) => c.shapes),
-          clock: reduceTimes(comments.map((c) => c.clock)),
-          emt: reduceTimes(comments.map((c) => c.emt))
-        };
-      };
-      makeGame = (pgn2, lichess = false) => {
-        var _a, _b;
-        const game = parsePgn(pgn2)[0] || parsePgn("*")[0];
-        const start5 = startingPosition(game.headers).unwrap();
-        const fen = makeFen(start5.toSetup());
-        const comments = parseComments(game.comments || []);
-        const headers = new Map(Array.from(game.headers, ([key, value]) => [key.toLowerCase(), value]));
-        const metadata = makeMetadata(headers, lichess);
-        const initial2 = {
-          fen,
-          turn: start5.turn,
-          check: start5.isCheck(),
-          pos: start5.clone(),
-          comments: comments.texts,
-          shapes: comments.shapes,
-          clocks: {
-            white: ((_a = metadata.timeControl) === null || _a === void 0 ? void 0 : _a.initial) || comments.clock,
-            black: ((_b = metadata.timeControl) === null || _b === void 0 ? void 0 : _b.initial) || comments.clock
-          }
-        };
-        const moves = makeMoves(start5, game.moves, metadata);
-        const players = makePlayers(headers, metadata);
-        return new Game(initial2, moves, players, metadata);
-      };
-      makeMoves = (start5, moves, metadata) => transform(moves, new State(start5, Path.root, {}), (state, node2, _index) => {
-        const move3 = parseSan(state.pos, node2.san);
-        if (!move3)
-          return void 0;
-        const moveId = scalachessCharPair(move3);
-        const path = state.path.append(moveId);
-        const san = makeSanAndPlay(state.pos, move3);
-        state.path = path;
-        const setup = state.pos.toSetup();
-        const comments = parseComments(node2.comments || []);
-        const startingComments = parseComments(node2.startingComments || []);
-        const shapes = [...comments.shapes, ...startingComments.shapes];
-        const ply = (setup.fullmoves - 1) * 2 + (state.pos.turn === "white" ? 0 : 1);
-        let clocks = state.clocks = makeClocks(state.clocks, state.pos.turn, comments.clock);
-        if (ply < 2 && metadata.timeControl)
-          clocks = {
-            white: metadata.timeControl.initial,
-            black: metadata.timeControl.initial,
-            ...clocks
-          };
-        const moveNode = {
-          path,
-          ply,
-          move: move3,
-          san,
-          uci: makeUci(move3),
-          fen: makeFen(state.pos.toSetup()),
-          turn: state.pos.turn,
-          check: state.pos.isCheck(),
-          comments: comments.texts,
-          startingComments: startingComments.texts,
-          nags: node2.nags || [],
-          shapes,
-          clocks,
-          emt: comments.emt
-        };
-        return moveNode;
-      });
-      makeClocks = (prev, turn, clk) => turn == "white" ? { ...prev, black: clk } : { ...prev, white: clk };
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/pgnViewer.js
-  var PgnViewer;
-  var init_pgnViewer = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/pgnViewer.js"() {
-      init_esm();
-      init_translation();
-      init_util();
-      init_path();
-      init_game();
-      init_pgn2();
-      PgnViewer = class {
-        constructor(opts, redraw) {
-          this.opts = opts;
-          this.redraw = redraw;
-          this.flipped = false;
-          this.pane = "board";
-          this.autoScrollRequested = false;
-          this.curNode = () => this.game.nodeAt(this.path) || this.game.moves;
-          this.curData = () => this.game.dataAt(this.path) || this.game.initial;
-          this.goTo = (to, focus = true) => {
-            var _a, _b;
-            const path = to == "first" ? Path.root : to == "prev" ? this.path.init() : to == "next" ? (_b = (_a = this.game.nodeAt(this.path)) === null || _a === void 0 ? void 0 : _a.children[0]) === null || _b === void 0 ? void 0 : _b.data.path : this.game.pathAtMainlinePly("last");
-            this.toPath(path || this.path, focus);
-          };
-          this.canGoTo = (to) => to == "prev" || to == "first" ? !this.path.empty() : !!this.curNode().children[0];
-          this.toPath = (path, focus = true) => {
-            this.path = path;
-            this.pane = "board";
-            this.autoScrollRequested = true;
-            this.redrawGround();
-            this.redraw();
-            if (focus)
-              this.focus();
-          };
-          this.focus = () => {
-            var _a;
-            return (_a = this.div) === null || _a === void 0 ? void 0 : _a.focus();
-          };
-          this.toggleMenu = () => {
-            this.pane = this.pane == "board" ? "menu" : "board";
-            this.redraw();
-          };
-          this.togglePgn = () => {
-            this.pane = this.pane == "pgn" ? "board" : "pgn";
-            this.redraw();
-          };
-          this.orientation = () => {
-            const base = this.opts.orientation || "white";
-            return this.flipped ? opposite2(base) : base;
-          };
-          this.flip = () => {
-            this.flipped = !this.flipped;
-            this.pane = "board";
-            this.redrawGround();
-            this.redraw();
-          };
-          this.cgState = () => {
-            var _a;
-            const data = this.curData();
-            const lastMove = isMoveData(data) ? uciToMove(data.uci) : (_a = this.opts.chessground) === null || _a === void 0 ? void 0 : _a.lastMove;
-            return {
-              fen: data.fen,
-              orientation: this.orientation(),
-              check: data.check,
-              lastMove,
-              turnColor: data.turn
-            };
-          };
-          this.analysisUrl = () => this.game.metadata.isLichess && this.game.metadata.externalLink || `https://lichess.org/analysis/${this.curData().fen.replace(" ", "_")}?color=${this.orientation()}`;
-          this.practiceUrl = () => `${this.analysisUrl()}#practice`;
-          this.setGround = (cg) => {
-            this.ground = cg;
-            this.redrawGround();
-          };
-          this.redrawGround = () => this.withGround((g) => {
-            g.set(this.cgState());
-            g.setShapes(this.curData().shapes.map((s) => ({
-              orig: makeSquare(s.from),
-              dest: makeSquare(s.to),
-              brush: s.color
-            })));
-          });
-          this.withGround = (f) => this.ground && f(this.ground);
-          this.game = makeGame(opts.pgn, opts.lichess);
-          opts.orientation = opts.orientation || this.game.metadata.orientation;
-          this.translate = translate2(opts.translate);
-          this.path = this.game.pathAtMainlinePly(opts.initialPly);
-        }
-      };
-    }
-  });
-
-  // node_modules/snabbdom/build/htmldomapi.js
-  function createElement2(tagName2, options) {
-    return document.createElement(tagName2, options);
-  }
-  function createElementNS(namespaceURI, qualifiedName, options) {
-    return document.createElementNS(namespaceURI, qualifiedName, options);
-  }
-  function createDocumentFragment() {
-    return parseFragment(document.createDocumentFragment());
-  }
-  function createTextNode(text) {
-    return document.createTextNode(text);
-  }
-  function createComment(text) {
-    return document.createComment(text);
-  }
-  function insertBefore(parentNode2, newNode, referenceNode) {
-    if (isDocumentFragment(parentNode2)) {
-      let node2 = parentNode2;
-      while (node2 && isDocumentFragment(node2)) {
-        const fragment2 = parseFragment(node2);
-        node2 = fragment2.parent;
-      }
-      parentNode2 = node2 !== null && node2 !== void 0 ? node2 : parentNode2;
-    }
-    if (isDocumentFragment(newNode)) {
-      newNode = parseFragment(newNode, parentNode2);
-    }
-    if (referenceNode && isDocumentFragment(referenceNode)) {
-      referenceNode = parseFragment(referenceNode).firstChildNode;
-    }
-    parentNode2.insertBefore(newNode, referenceNode);
-  }
-  function removeChild(node2, child) {
-    node2.removeChild(child);
-  }
-  function appendChild(node2, child) {
-    if (isDocumentFragment(child)) {
-      child = parseFragment(child, node2);
-    }
-    node2.appendChild(child);
-  }
-  function parentNode(node2) {
-    if (isDocumentFragment(node2)) {
-      while (node2 && isDocumentFragment(node2)) {
-        const fragment2 = parseFragment(node2);
-        node2 = fragment2.parent;
-      }
-      return node2 !== null && node2 !== void 0 ? node2 : null;
-    }
-    return node2.parentNode;
-  }
-  function nextSibling(node2) {
-    var _a;
-    if (isDocumentFragment(node2)) {
-      const fragment2 = parseFragment(node2);
-      const parent = parentNode(fragment2);
-      if (parent && fragment2.lastChildNode) {
-        const children = Array.from(parent.childNodes);
-        const index = children.indexOf(fragment2.lastChildNode);
-        return (_a = children[index + 1]) !== null && _a !== void 0 ? _a : null;
-      }
-      return null;
-    }
-    return node2.nextSibling;
-  }
-  function tagName(elm) {
-    return elm.tagName;
-  }
-  function setTextContent(node2, text) {
-    node2.textContent = text;
-  }
-  function getTextContent(node2) {
-    return node2.textContent;
-  }
-  function isElement(node2) {
-    return node2.nodeType === 1;
-  }
-  function isText(node2) {
-    return node2.nodeType === 3;
-  }
-  function isComment(node2) {
-    return node2.nodeType === 8;
-  }
-  function isDocumentFragment(node2) {
-    return node2.nodeType === 11;
-  }
-  function parseFragment(fragmentNode, parentNode2) {
-    var _a, _b, _c;
-    const fragment2 = fragmentNode;
-    (_a = fragment2.parent) !== null && _a !== void 0 ? _a : fragment2.parent = parentNode2 !== null && parentNode2 !== void 0 ? parentNode2 : null;
-    (_b = fragment2.firstChildNode) !== null && _b !== void 0 ? _b : fragment2.firstChildNode = fragmentNode.firstChild;
-    (_c = fragment2.lastChildNode) !== null && _c !== void 0 ? _c : fragment2.lastChildNode = fragmentNode.lastChild;
-    return fragment2;
-  }
-  var htmlDomApi;
-  var init_htmldomapi = __esm({
-    "node_modules/snabbdom/build/htmldomapi.js"() {
-      htmlDomApi = {
-        createElement: createElement2,
-        createElementNS,
-        createTextNode,
-        createDocumentFragment,
-        createComment,
-        insertBefore,
-        removeChild,
-        appendChild,
-        parentNode,
-        nextSibling,
-        tagName,
-        setTextContent,
-        getTextContent,
-        isElement,
-        isText,
-        isComment,
-        isDocumentFragment
-      };
-    }
-  });
-
-  // node_modules/snabbdom/build/vnode.js
-  function vnode(sel, data, children, text, elm) {
-    const key = data === void 0 ? void 0 : data.key;
-    return { sel, data, children, text, elm, key };
-  }
-  var init_vnode = __esm({
-    "node_modules/snabbdom/build/vnode.js"() {
-    }
-  });
-
-  // node_modules/snabbdom/build/is.js
-  function primitive(s) {
-    return typeof s === "string" || typeof s === "number" || s instanceof String || s instanceof Number;
-  }
-  var array;
-  var init_is = __esm({
-    "node_modules/snabbdom/build/is.js"() {
-      array = Array.isArray;
-    }
-  });
-
-  // node_modules/snabbdom/build/init.js
-  function isUndef(s) {
-    return s === void 0;
-  }
-  function isDef(s) {
-    return s !== void 0;
-  }
-  function sameVnode(vnode1, vnode2) {
-    var _a, _b;
-    const isSameKey = vnode1.key === vnode2.key;
-    const isSameIs = ((_a = vnode1.data) === null || _a === void 0 ? void 0 : _a.is) === ((_b = vnode2.data) === null || _b === void 0 ? void 0 : _b.is);
-    const isSameSel = vnode1.sel === vnode2.sel;
-    const isSameTextOrFragment = !vnode1.sel && vnode1.sel === vnode2.sel ? typeof vnode1.text === typeof vnode2.text : true;
-    return isSameSel && isSameKey && isSameIs && isSameTextOrFragment;
-  }
-  function documentFragmentIsNotSupported() {
-    throw new Error("The document fragment is not supported on this platform.");
-  }
-  function isElement2(api, vnode2) {
-    return api.isElement(vnode2);
-  }
-  function isDocumentFragment2(api, vnode2) {
-    return api.isDocumentFragment(vnode2);
-  }
-  function createKeyToOldIdx(children, beginIdx, endIdx) {
-    var _a;
-    const map = {};
-    for (let i = beginIdx; i <= endIdx; ++i) {
-      const key = (_a = children[i]) === null || _a === void 0 ? void 0 : _a.key;
-      if (key !== void 0) {
-        map[key] = i;
-      }
-    }
-    return map;
-  }
-  function init(modules, domApi, options) {
-    const cbs = {
-      create: [],
-      update: [],
-      remove: [],
-      destroy: [],
-      pre: [],
-      post: []
-    };
-    const api = domApi !== void 0 ? domApi : htmlDomApi;
-    for (const hook of hooks) {
-      for (const module of modules) {
-        const currentHook = module[hook];
-        if (currentHook !== void 0) {
-          cbs[hook].push(currentHook);
-        }
-      }
-    }
-    function emptyNodeAt(elm) {
-      const id = elm.id ? "#" + elm.id : "";
-      const classes = elm.getAttribute("class");
-      const c = classes ? "." + classes.split(" ").join(".") : "";
-      return vnode(api.tagName(elm).toLowerCase() + id + c, {}, [], void 0, elm);
-    }
-    function emptyDocumentFragmentAt(frag) {
-      return vnode(void 0, {}, [], void 0, frag);
-    }
-    function createRmCb(childElm, listeners) {
-      return function rmCb() {
-        if (--listeners === 0) {
-          const parent = api.parentNode(childElm);
-          if (parent !== null) {
-            api.removeChild(parent, childElm);
-          }
-        }
-      };
-    }
-    function createElm(vnode2, insertedVnodeQueue) {
-      var _a, _b, _c, _d;
-      let i;
-      let data = vnode2.data;
-      if (data !== void 0) {
-        const init2 = (_a = data.hook) === null || _a === void 0 ? void 0 : _a.init;
-        if (isDef(init2)) {
-          init2(vnode2);
-          data = vnode2.data;
-        }
-      }
-      const children = vnode2.children;
-      const sel = vnode2.sel;
-      if (sel === "!") {
-        if (isUndef(vnode2.text)) {
-          vnode2.text = "";
-        }
-        vnode2.elm = api.createComment(vnode2.text);
-      } else if (sel === "") {
-        vnode2.elm = api.createTextNode(vnode2.text);
-      } else if (sel !== void 0) {
-        const hashIdx = sel.indexOf("#");
-        const dotIdx = sel.indexOf(".", hashIdx);
-        const hash2 = hashIdx > 0 ? hashIdx : sel.length;
-        const dot = dotIdx > 0 ? dotIdx : sel.length;
-        const tag = hashIdx !== -1 || dotIdx !== -1 ? sel.slice(0, Math.min(hash2, dot)) : sel;
-        const elm = vnode2.elm = isDef(data) && isDef(i = data.ns) ? api.createElementNS(i, tag, data) : api.createElement(tag, data);
-        if (hash2 < dot)
-          elm.setAttribute("id", sel.slice(hash2 + 1, dot));
-        if (dotIdx > 0)
-          elm.setAttribute("class", sel.slice(dot + 1).replace(/\./g, " "));
-        for (i = 0; i < cbs.create.length; ++i)
-          cbs.create[i](emptyNode, vnode2);
-        if (primitive(vnode2.text) && (!array(children) || children.length === 0)) {
-          api.appendChild(elm, api.createTextNode(vnode2.text));
-        }
-        if (array(children)) {
-          for (i = 0; i < children.length; ++i) {
-            const ch = children[i];
-            if (ch != null) {
-              api.appendChild(elm, createElm(ch, insertedVnodeQueue));
-            }
-          }
-        }
-        const hook = vnode2.data.hook;
-        if (isDef(hook)) {
-          (_b = hook.create) === null || _b === void 0 ? void 0 : _b.call(hook, emptyNode, vnode2);
-          if (hook.insert) {
-            insertedVnodeQueue.push(vnode2);
-          }
-        }
-      } else if (((_c = options === null || options === void 0 ? void 0 : options.experimental) === null || _c === void 0 ? void 0 : _c.fragments) && vnode2.children) {
-        vnode2.elm = ((_d = api.createDocumentFragment) !== null && _d !== void 0 ? _d : documentFragmentIsNotSupported)();
-        for (i = 0; i < cbs.create.length; ++i)
-          cbs.create[i](emptyNode, vnode2);
-        for (i = 0; i < vnode2.children.length; ++i) {
-          const ch = vnode2.children[i];
-          if (ch != null) {
-            api.appendChild(vnode2.elm, createElm(ch, insertedVnodeQueue));
-          }
-        }
-      } else {
-        vnode2.elm = api.createTextNode(vnode2.text);
-      }
-      return vnode2.elm;
-    }
-    function addVnodes(parentElm, before, vnodes, startIdx, endIdx, insertedVnodeQueue) {
-      for (; startIdx <= endIdx; ++startIdx) {
-        const ch = vnodes[startIdx];
-        if (ch != null) {
-          api.insertBefore(parentElm, createElm(ch, insertedVnodeQueue), before);
-        }
-      }
-    }
-    function invokeDestroyHook(vnode2) {
-      var _a, _b;
-      const data = vnode2.data;
-      if (data !== void 0) {
-        (_b = (_a = data === null || data === void 0 ? void 0 : data.hook) === null || _a === void 0 ? void 0 : _a.destroy) === null || _b === void 0 ? void 0 : _b.call(_a, vnode2);
-        for (let i = 0; i < cbs.destroy.length; ++i)
-          cbs.destroy[i](vnode2);
-        if (vnode2.children !== void 0) {
-          for (let j = 0; j < vnode2.children.length; ++j) {
-            const child = vnode2.children[j];
-            if (child != null && typeof child !== "string") {
-              invokeDestroyHook(child);
-            }
-          }
-        }
-      }
-    }
-    function removeVnodes(parentElm, vnodes, startIdx, endIdx) {
-      var _a, _b;
-      for (; startIdx <= endIdx; ++startIdx) {
-        let listeners;
-        let rm;
-        const ch = vnodes[startIdx];
-        if (ch != null) {
-          if (isDef(ch.sel)) {
-            invokeDestroyHook(ch);
-            listeners = cbs.remove.length + 1;
-            rm = createRmCb(ch.elm, listeners);
-            for (let i = 0; i < cbs.remove.length; ++i)
-              cbs.remove[i](ch, rm);
-            const removeHook = (_b = (_a = ch === null || ch === void 0 ? void 0 : ch.data) === null || _a === void 0 ? void 0 : _a.hook) === null || _b === void 0 ? void 0 : _b.remove;
-            if (isDef(removeHook)) {
-              removeHook(ch, rm);
-            } else {
-              rm();
-            }
-          } else if (ch.children) {
-            invokeDestroyHook(ch);
-            removeVnodes(parentElm, ch.children, 0, ch.children.length - 1);
-          } else {
-            api.removeChild(parentElm, ch.elm);
-          }
-        }
-      }
-    }
-    function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue) {
-      let oldStartIdx = 0;
-      let newStartIdx = 0;
-      let oldEndIdx = oldCh.length - 1;
-      let oldStartVnode = oldCh[0];
-      let oldEndVnode = oldCh[oldEndIdx];
-      let newEndIdx = newCh.length - 1;
-      let newStartVnode = newCh[0];
-      let newEndVnode = newCh[newEndIdx];
-      let oldKeyToIdx;
-      let idxInOld;
-      let elmToMove;
-      let before;
-      while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
-        if (oldStartVnode == null) {
-          oldStartVnode = oldCh[++oldStartIdx];
-        } else if (oldEndVnode == null) {
-          oldEndVnode = oldCh[--oldEndIdx];
-        } else if (newStartVnode == null) {
-          newStartVnode = newCh[++newStartIdx];
-        } else if (newEndVnode == null) {
-          newEndVnode = newCh[--newEndIdx];
-        } else if (sameVnode(oldStartVnode, newStartVnode)) {
-          patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
-          oldStartVnode = oldCh[++oldStartIdx];
-          newStartVnode = newCh[++newStartIdx];
-        } else if (sameVnode(oldEndVnode, newEndVnode)) {
-          patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue);
-          oldEndVnode = oldCh[--oldEndIdx];
-          newEndVnode = newCh[--newEndIdx];
-        } else if (sameVnode(oldStartVnode, newEndVnode)) {
-          patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
-          api.insertBefore(parentElm, oldStartVnode.elm, api.nextSibling(oldEndVnode.elm));
-          oldStartVnode = oldCh[++oldStartIdx];
-          newEndVnode = newCh[--newEndIdx];
-        } else if (sameVnode(oldEndVnode, newStartVnode)) {
-          patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
-          api.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
-          oldEndVnode = oldCh[--oldEndIdx];
-          newStartVnode = newCh[++newStartIdx];
-        } else {
-          if (oldKeyToIdx === void 0) {
-            oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
-          }
-          idxInOld = oldKeyToIdx[newStartVnode.key];
-          if (isUndef(idxInOld)) {
-            api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
-            newStartVnode = newCh[++newStartIdx];
-          } else if (isUndef(oldKeyToIdx[newEndVnode.key])) {
-            api.insertBefore(parentElm, createElm(newEndVnode, insertedVnodeQueue), api.nextSibling(oldEndVnode.elm));
-            newEndVnode = newCh[--newEndIdx];
-          } else {
-            elmToMove = oldCh[idxInOld];
-            if (elmToMove.sel !== newStartVnode.sel) {
-              api.insertBefore(parentElm, createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
-            } else {
-              patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
-              oldCh[idxInOld] = void 0;
-              api.insertBefore(parentElm, elmToMove.elm, oldStartVnode.elm);
-            }
-            newStartVnode = newCh[++newStartIdx];
-          }
-        }
-      }
-      if (newStartIdx <= newEndIdx) {
-        before = newCh[newEndIdx + 1] == null ? null : newCh[newEndIdx + 1].elm;
-        addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
-      }
-      if (oldStartIdx <= oldEndIdx) {
-        removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
-      }
-    }
-    function patchVnode(oldVnode, vnode2, insertedVnodeQueue) {
-      var _a, _b, _c, _d, _e, _f, _g, _h;
-      const hook = (_a = vnode2.data) === null || _a === void 0 ? void 0 : _a.hook;
-      (_b = hook === null || hook === void 0 ? void 0 : hook.prepatch) === null || _b === void 0 ? void 0 : _b.call(hook, oldVnode, vnode2);
-      const elm = vnode2.elm = oldVnode.elm;
-      if (oldVnode === vnode2)
-        return;
-      if (vnode2.data !== void 0 || isDef(vnode2.text) && vnode2.text !== oldVnode.text) {
-        (_c = vnode2.data) !== null && _c !== void 0 ? _c : vnode2.data = {};
-        (_d = oldVnode.data) !== null && _d !== void 0 ? _d : oldVnode.data = {};
-        for (let i = 0; i < cbs.update.length; ++i)
-          cbs.update[i](oldVnode, vnode2);
-        (_g = (_f = (_e = vnode2.data) === null || _e === void 0 ? void 0 : _e.hook) === null || _f === void 0 ? void 0 : _f.update) === null || _g === void 0 ? void 0 : _g.call(_f, oldVnode, vnode2);
-      }
-      const oldCh = oldVnode.children;
-      const ch = vnode2.children;
-      if (isUndef(vnode2.text)) {
-        if (isDef(oldCh) && isDef(ch)) {
-          if (oldCh !== ch)
-            updateChildren(elm, oldCh, ch, insertedVnodeQueue);
-        } else if (isDef(ch)) {
-          if (isDef(oldVnode.text))
-            api.setTextContent(elm, "");
-          addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
-        } else if (isDef(oldCh)) {
-          removeVnodes(elm, oldCh, 0, oldCh.length - 1);
-        } else if (isDef(oldVnode.text)) {
-          api.setTextContent(elm, "");
-        }
-      } else if (oldVnode.text !== vnode2.text) {
-        if (isDef(oldCh)) {
-          removeVnodes(elm, oldCh, 0, oldCh.length - 1);
-        }
-        api.setTextContent(elm, vnode2.text);
-      }
-      (_h = hook === null || hook === void 0 ? void 0 : hook.postpatch) === null || _h === void 0 ? void 0 : _h.call(hook, oldVnode, vnode2);
-    }
-    return function patch(oldVnode, vnode2) {
-      let i, elm, parent;
-      const insertedVnodeQueue = [];
-      for (i = 0; i < cbs.pre.length; ++i)
-        cbs.pre[i]();
-      if (isElement2(api, oldVnode)) {
-        oldVnode = emptyNodeAt(oldVnode);
-      } else if (isDocumentFragment2(api, oldVnode)) {
-        oldVnode = emptyDocumentFragmentAt(oldVnode);
-      }
-      if (sameVnode(oldVnode, vnode2)) {
-        patchVnode(oldVnode, vnode2, insertedVnodeQueue);
-      } else {
-        elm = oldVnode.elm;
-        parent = api.parentNode(elm);
-        createElm(vnode2, insertedVnodeQueue);
-        if (parent !== null) {
-          api.insertBefore(parent, vnode2.elm, api.nextSibling(elm));
-          removeVnodes(parent, [oldVnode], 0, 0);
-        }
-      }
-      for (i = 0; i < insertedVnodeQueue.length; ++i) {
-        insertedVnodeQueue[i].data.hook.insert(insertedVnodeQueue[i]);
-      }
-      for (i = 0; i < cbs.post.length; ++i)
-        cbs.post[i]();
-      return vnode2;
-    };
-  }
-  var emptyNode, hooks;
-  var init_init = __esm({
-    "node_modules/snabbdom/build/init.js"() {
-      init_vnode();
-      init_is();
-      init_htmldomapi();
-      emptyNode = vnode("", {}, [], void 0, void 0);
-      hooks = [
-        "create",
-        "update",
-        "remove",
-        "destroy",
-        "pre",
-        "post"
-      ];
-    }
-  });
-
-  // node_modules/snabbdom/build/h.js
-  function addNS(data, children, sel) {
-    data.ns = "http://www.w3.org/2000/svg";
-    if (sel !== "foreignObject" && children !== void 0) {
-      for (let i = 0; i < children.length; ++i) {
-        const child = children[i];
-        if (typeof child === "string")
-          continue;
-        const childData = child.data;
-        if (childData !== void 0) {
-          addNS(childData, child.children, child.sel);
-        }
-      }
-    }
-  }
-  function h(sel, b, c) {
-    let data = {};
-    let children;
-    let text;
-    let i;
-    if (c !== void 0) {
-      if (b !== null) {
-        data = b;
-      }
-      if (array(c)) {
-        children = c;
-      } else if (primitive(c)) {
-        text = c.toString();
-      } else if (c && c.sel) {
-        children = [c];
-      }
-    } else if (b !== void 0 && b !== null) {
-      if (array(b)) {
-        children = b;
-      } else if (primitive(b)) {
-        text = b.toString();
-      } else if (b && b.sel) {
-        children = [b];
-      } else {
-        data = b;
-      }
-    }
-    if (children !== void 0) {
-      for (i = 0; i < children.length; ++i) {
-        if (primitive(children[i]))
-          children[i] = vnode(void 0, void 0, void 0, children[i], void 0);
-      }
-    }
-    if (sel.startsWith("svg") && (sel.length === 3 || sel[3] === "." || sel[3] === "#")) {
-      addNS(data, children, sel);
-    }
-    return vnode(sel, data, children, text, void 0);
-  }
-  var init_h = __esm({
-    "node_modules/snabbdom/build/h.js"() {
-      init_vnode();
-      init_is();
-    }
-  });
-
-  // node_modules/snabbdom/build/hooks.js
-  var init_hooks = __esm({
-    "node_modules/snabbdom/build/hooks.js"() {
-    }
-  });
-
-  // node_modules/snabbdom/build/modules/attributes.js
-  function updateAttrs(oldVnode, vnode2) {
-    let key;
-    const elm = vnode2.elm;
-    let oldAttrs = oldVnode.data.attrs;
-    let attrs = vnode2.data.attrs;
-    if (!oldAttrs && !attrs)
-      return;
-    if (oldAttrs === attrs)
-      return;
-    oldAttrs = oldAttrs || {};
-    attrs = attrs || {};
-    for (key in attrs) {
-      const cur = attrs[key];
-      const old = oldAttrs[key];
-      if (old !== cur) {
-        if (cur === true) {
-          elm.setAttribute(key, "");
-        } else if (cur === false) {
-          elm.removeAttribute(key);
-        } else {
-          if (key.charCodeAt(0) !== xChar) {
-            elm.setAttribute(key, cur);
-          } else if (key.charCodeAt(3) === colonChar) {
-            elm.setAttributeNS(xmlNS, key, cur);
-          } else if (key.charCodeAt(5) === colonChar) {
-            key.charCodeAt(1) === mChar ? elm.setAttributeNS(xmlnsNS, key, cur) : elm.setAttributeNS(xlinkNS, key, cur);
-          } else {
-            elm.setAttribute(key, cur);
-          }
-        }
-      }
-    }
-    for (key in oldAttrs) {
-      if (!(key in attrs)) {
-        elm.removeAttribute(key);
-      }
-    }
-  }
-  var xlinkNS, xmlnsNS, xmlNS, colonChar, xChar, mChar, attributesModule;
-  var init_attributes = __esm({
-    "node_modules/snabbdom/build/modules/attributes.js"() {
-      xlinkNS = "http://www.w3.org/1999/xlink";
-      xmlnsNS = "http://www.w3.org/2000/xmlns/";
-      xmlNS = "http://www.w3.org/XML/1998/namespace";
-      colonChar = 58;
-      xChar = 120;
-      mChar = 109;
-      attributesModule = {
-        create: updateAttrs,
-        update: updateAttrs
-      };
-    }
-  });
-
-  // node_modules/snabbdom/build/modules/class.js
-  function updateClass(oldVnode, vnode2) {
-    let cur;
-    let name;
-    const elm = vnode2.elm;
-    let oldClass = oldVnode.data.class;
-    let klass = vnode2.data.class;
-    if (!oldClass && !klass)
-      return;
-    if (oldClass === klass)
-      return;
-    oldClass = oldClass || {};
-    klass = klass || {};
-    for (name in oldClass) {
-      if (oldClass[name] && !Object.prototype.hasOwnProperty.call(klass, name)) {
-        elm.classList.remove(name);
-      }
-    }
-    for (name in klass) {
-      cur = klass[name];
-      if (cur !== oldClass[name]) {
-        elm.classList[cur ? "add" : "remove"](name);
-      }
-    }
-  }
-  var classModule;
-  var init_class = __esm({
-    "node_modules/snabbdom/build/modules/class.js"() {
-      classModule = { create: updateClass, update: updateClass };
-    }
-  });
-
-  // node_modules/snabbdom/build/index.js
-  var init_build = __esm({
-    "node_modules/snabbdom/build/index.js"() {
-      init_init();
-      init_h();
-      init_hooks();
-      init_attributes();
-      init_class();
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/view/util.js
-  function bindMobileMousedown(el, f, redraw) {
-    for (const mousedownEvent of ["touchstart", "mousedown"]) {
-      el.addEventListener(mousedownEvent, (e2) => {
-        f(e2);
-        e2.preventDefault();
-        if (redraw)
-          redraw();
-      }, { passive: false });
-    }
-  }
-  function onInsert(f) {
-    return {
-      insert: (vnode2) => f(vnode2.elm)
-    };
-  }
-  var bind;
-  var init_util3 = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/view/util.js"() {
-      bind = (eventName, f, redraw, passive = true) => onInsert((el) => el.addEventListener(eventName, (e2) => {
-        const res = f(e2);
-        if (res === false)
-          e2.preventDefault();
-        redraw === null || redraw === void 0 ? void 0 : redraw();
-        return res;
-      }, { passive }));
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/events.js
-  function stepwiseScroll(inner) {
-    let scrollTotal = 0;
-    return (e2) => {
-      scrollTotal += e2.deltaY * (e2.deltaMode ? 40 : 1);
-      if (Math.abs(scrollTotal) >= 4) {
-        inner(e2, true);
-        scrollTotal = 0;
-      } else {
-        inner(e2, false);
-      }
-    };
-  }
-  function eventRepeater(action, e2) {
-    const repeat = () => {
-      action();
-      delay = Math.max(100, delay - delay / 15);
-      timeout = setTimeout(repeat, delay);
-    };
-    let delay = 350;
-    let timeout = setTimeout(repeat, 500);
-    action();
-    const eventName = e2.type == "touchstart" ? "touchend" : "mouseup";
-    document.addEventListener(eventName, () => clearTimeout(timeout), { once: true });
-  }
-  var suppressKeyNavOn, onKeyDown;
-  var init_events2 = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/events.js"() {
-      suppressKeyNavOn = (e2) => e2.altKey || e2.ctrlKey || e2.shiftKey || e2.metaKey || document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement;
-      onKeyDown = (ctrl) => (e2) => {
-        if (suppressKeyNavOn(e2))
-          return;
-        else if (e2.key == "ArrowLeft")
-          ctrl.goTo("prev");
-        else if (e2.key == "ArrowRight")
-          ctrl.goTo("next");
-        else if (e2.key == "f")
-          ctrl.flip();
-      };
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/view/menu.js
-  var renderMenu, renderExternalLink, renderControls, dirButton;
-  var init_menu = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/view/menu.js"() {
-      init_build();
-      init_util3();
-      init_events2();
-      renderMenu = (ctrl) => {
-        var _a, _b;
-        return h("div.lpv__menu.lpv__pane", [
-          h("button.lpv__menu__entry.lpv__menu__flip.lpv__fbt", {
-            hook: bind("click", ctrl.flip)
-          }, ctrl.translate("flipTheBoard")),
-          ((_a = ctrl.opts.menu.analysisBoard) === null || _a === void 0 ? void 0 : _a.enabled) ? h("a.lpv__menu__entry.lpv__menu__analysis.lpv__fbt", {
-            attrs: {
-              href: ctrl.analysisUrl(),
-              target: "_blank"
-            }
-          }, ctrl.translate("analysisBoard")) : void 0,
-          ((_b = ctrl.opts.menu.practiceWithComputer) === null || _b === void 0 ? void 0 : _b.enabled) ? h("a.lpv__menu__entry.lpv__menu__practice.lpv__fbt", {
-            attrs: {
-              href: ctrl.practiceUrl(),
-              target: "_blank"
-            }
-          }, ctrl.translate("practiceWithComputer")) : void 0,
-          ctrl.opts.menu.getPgn.enabled ? h("button.lpv__menu__entry.lpv__menu__pgn.lpv__fbt", {
-            hook: bind("click", ctrl.togglePgn)
-          }, ctrl.translate("getPgn")) : void 0,
-          renderExternalLink(ctrl)
-        ]);
-      };
-      renderExternalLink = (ctrl) => {
-        const link = ctrl.game.metadata.externalLink;
-        return link && h("a.lpv__menu__entry.lpv__fbt", {
-          attrs: {
-            href: link,
-            target: "_blank"
-          }
-        }, ctrl.translate(ctrl.game.metadata.isLichess ? "viewOnLichess" : "viewOnSite"));
-      };
-      renderControls = (ctrl) => h("div.lpv__controls", [
-        ctrl.pane == "board" ? void 0 : dirButton(ctrl, "first", "step-backward"),
-        dirButton(ctrl, "prev", "left-open"),
-        h("button.lpv__fbt.lpv__controls__menu.lpv__icon", {
-          class: {
-            active: ctrl.pane != "board",
-            "lpv__icon-ellipsis-vert": ctrl.pane == "board"
-          },
-          hook: bind("click", ctrl.toggleMenu)
-        }, ctrl.pane == "board" ? void 0 : "X"),
-        dirButton(ctrl, "next", "right-open"),
-        ctrl.pane == "board" ? void 0 : dirButton(ctrl, "last", "step-forward")
-      ]);
-      dirButton = (ctrl, to, icon) => h(`button.lpv__controls__goto.lpv__controls__goto--${to}.lpv__fbt.lpv__icon.lpv__icon-${icon}`, {
-        class: { disabled: ctrl.pane == "board" && !ctrl.canGoTo(to) },
-        hook: onInsert((el) => bindMobileMousedown(el, (e2) => eventRepeater(() => ctrl.goTo(to), e2)))
-      });
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/view/glyph.js
-  var renderNag, glyphs;
-  var init_glyph = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/view/glyph.js"() {
-      init_build();
-      renderNag = (nag) => {
-        const glyph = glyphs[nag];
-        return glyph ? h("nag", { attrs: { title: glyph.name } }, glyph.symbol) : void 0;
-      };
-      glyphs = {
-        1: {
-          symbol: "!",
-          name: "Good move"
-        },
-        2: {
-          symbol: "?",
-          name: "Mistake"
-        },
-        3: {
-          symbol: "!!",
-          name: "Brilliant move"
-        },
-        4: {
-          symbol: "??",
-          name: "Blunder"
-        },
-        5: {
-          symbol: "!?",
-          name: "Interesting move"
-        },
-        6: {
-          symbol: "?!",
-          name: "Dubious move"
-        },
-        7: {
-          symbol: "\u25A1",
-          name: "Only move"
-        },
-        22: {
-          symbol: "\u2A00",
-          name: "Zugzwang"
-        },
-        10: {
-          symbol: "=",
-          name: "Equal position"
-        },
-        13: {
-          symbol: "\u221E",
-          name: "Unclear position"
-        },
-        14: {
-          symbol: "\u2A72",
-          name: "White is slightly better"
-        },
-        15: {
-          symbol: "\u2A71",
-          name: "Black is slightly better"
-        },
-        16: {
-          symbol: "\xB1",
-          name: "White is better"
-        },
-        17: {
-          symbol: "\u2213",
-          name: "Black is better"
-        },
-        18: {
-          symbol: "+\u2212",
-          name: "White is winning"
-        },
-        19: {
-          symbol: "-+",
-          name: "Black is winning"
-        },
-        146: {
-          symbol: "N",
-          name: "Novelty"
-        },
-        32: {
-          symbol: "\u2191\u2191",
-          name: "Development"
-        },
-        36: {
-          symbol: "\u2191",
-          name: "Initiative"
-        },
-        40: {
-          symbol: "\u2192",
-          name: "Attack"
-        },
-        132: {
-          symbol: "\u21C6",
-          name: "Counterplay"
-        },
-        138: {
-          symbol: "\u2295",
-          name: "Time trouble"
-        },
-        44: {
-          symbol: "=\u221E",
-          name: "With compensation"
-        },
-        140: {
-          symbol: "\u2206",
-          name: "With the idea"
-        }
-      };
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/view/side.js
-  var renderMoves, renderResultComment, emptyMove, indexNode, commentNode, parenOpen, parenClose, moveTurn, makeMoveNodes, makeMainVariation, makeVariationMoves, renderMove, autoScroll;
-  var init_side = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/view/side.js"() {
-      init_build();
-      init_path();
-      init_glyph();
-      renderMoves = (ctrl) => h("div.lpv__side", [
-        h("div.lpv__moves", {
-          hook: {
-            insert: (vnode2) => {
-              const el = vnode2.elm;
-              if (!ctrl.path.empty())
-                autoScroll(ctrl, el);
-              el.addEventListener("mousedown", (e2) => {
-                const path = e2.target.getAttribute("p");
-                if (path)
-                  ctrl.toPath(new Path(path));
-              }, { passive: true });
-            },
-            postpatch: (_, vnode2) => {
-              if (ctrl.autoScrollRequested) {
-                autoScroll(ctrl, vnode2.elm);
-                ctrl.autoScrollRequested = false;
-              }
-            }
-          }
-        }, [...ctrl.game.initial.comments.map(commentNode), ...makeMoveNodes(ctrl), ...renderResultComment(ctrl)])
-      ]);
-      renderResultComment = (ctrl) => {
-        const res = ctrl.game.metadata.result;
-        return res && res != "*" ? [h("comment.result", ctrl.game.metadata.result)] : [];
-      };
-      emptyMove = () => h("move.empty", "...");
-      indexNode = (turn) => h("index", `${turn}.`);
-      commentNode = (comment) => h("comment", comment);
-      parenOpen = () => h("paren.open", "(");
-      parenClose = () => h("paren.close", ")");
-      moveTurn = (move3) => Math.floor((move3.ply - 1) / 2) + 1;
-      makeMoveNodes = (ctrl) => {
-        const moveDom = renderMove(ctrl);
-        const elms = [];
-        let node2, variations = ctrl.game.moves.children.slice(1);
-        if (ctrl.game.initial.pos.turn == "black" && ctrl.game.mainline[0])
-          elms.push(indexNode(ctrl.game.initial.pos.fullmoves), emptyMove());
-        while (node2 = (node2 || ctrl.game.moves).children[0]) {
-          const move3 = node2.data;
-          const oddMove = move3.ply % 2 == 1;
-          if (oddMove)
-            elms.push(indexNode(moveTurn(move3)));
-          elms.push(moveDom(move3));
-          const addEmptyMove = oddMove && (variations.length || move3.comments.length) && node2.children.length;
-          if (addEmptyMove)
-            elms.push(emptyMove());
-          move3.comments.forEach((comment) => elms.push(commentNode(comment)));
-          variations.forEach((variation) => elms.push(makeMainVariation(moveDom, variation)));
-          if (addEmptyMove)
-            elms.push(indexNode(moveTurn(move3)), emptyMove());
-          variations = node2.children.slice(1);
-        }
-        return elms;
-      };
-      makeMainVariation = (moveDom, node2) => h("variation", [...node2.data.startingComments.map(commentNode), ...makeVariationMoves(moveDom, node2)]);
-      makeVariationMoves = (moveDom, node2) => {
-        let elms = [];
-        let variations = [];
-        if (node2.data.ply % 2 == 0)
-          elms.push(h("index", [moveTurn(node2.data), "..."]));
-        do {
-          const move3 = node2.data;
-          if (move3.ply % 2 == 1)
-            elms.push(h("index", [moveTurn(move3), "."]));
-          elms.push(moveDom(move3));
-          move3.comments.forEach((comment) => elms.push(commentNode(comment)));
-          variations.forEach((variation) => {
-            elms = [...elms, parenOpen(), ...makeVariationMoves(moveDom, variation), parenClose()];
-          });
-          variations = node2.children.slice(1);
-          node2 = node2.children[0];
-        } while (node2);
-        return elms;
-      };
-      renderMove = (ctrl) => (move3) => h("move", {
-        class: {
-          current: ctrl.path.equals(move3.path),
-          ancestor: ctrl.path.contains(move3.path),
-          good: move3.nags.includes(1),
-          mistake: move3.nags.includes(2),
-          brilliant: move3.nags.includes(3),
-          blunder: move3.nags.includes(4),
-          interesting: move3.nags.includes(5),
-          inaccuracy: move3.nags.includes(6)
-        },
-        attrs: {
-          p: move3.path.path
-        }
-      }, [move3.san, ...move3.nags.map(renderNag)]);
-      autoScroll = (ctrl, cont) => {
-        const target = cont.querySelector(".current");
-        if (!target) {
-          cont.scrollTop = ctrl.path.empty() ? 0 : 99999;
-          return;
-        }
-        cont.scrollTop = target.offsetTop - cont.offsetHeight / 2 + target.offsetHeight;
-      };
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/view/player.js
-  function renderPlayer(ctrl, side) {
-    const color = side == "bottom" ? ctrl.orientation() : opposite2(ctrl.orientation());
-    const player = ctrl.game.players[color];
-    const personEls = [
-      player.title ? h("span.lpv__player__title", player.title) : void 0,
-      h("span.lpv__player__name", player.name),
-      player.rating ? h("span.lpv__player__rating", ["(", player.rating, ")"]) : void 0
-    ];
-    return h(`div.lpv__player.lpv__player--${side}`, [
-      player.isLichessUser ? h("a.lpv__player__person.ulpt.user-link", { attrs: { href: `${ctrl.opts.lichess}/@/${player.name}` } }, personEls) : h("span.lpv__player__person", personEls),
-      ctrl.opts.showClocks ? renderClock(ctrl, color) : void 0
-    ]);
-  }
-  var renderClock, clockContent, pad2;
-  var init_player = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/view/player.js"() {
-      init_esm();
-      init_build();
-      renderClock = (ctrl, color) => {
-        const move3 = ctrl.curData();
-        const clock = move3.clocks && move3.clocks[color];
-        return typeof clock == void 0 ? void 0 : h("div.lpv__player__clock", { class: { active: color == move3.turn } }, clockContent(clock));
-      };
-      clockContent = (seconds) => {
-        if (!seconds && seconds !== 0)
-          return ["-"];
-        const date = new Date(seconds * 1e3), sep = ":", baseStr = pad2(date.getUTCMinutes()) + sep + pad2(date.getUTCSeconds());
-        return seconds >= 3600 ? [Math.floor(seconds / 3600) + sep + baseStr] : [baseStr];
-      };
-      pad2 = (num) => (num < 10 ? "0" : "") + num;
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/view/main.js
-  function view(ctrl) {
-    const opts = ctrl.opts, staticClasses = `lpv.lpv--moves-${opts.showMoves}.lpv--controls-${opts.showControls}${opts.classes ? "." + opts.classes.replace(" ", ".") : ""}`;
-    const showPlayers = opts.showPlayers == "auto" ? ctrl.game.hasPlayerName() : opts.showPlayers;
-    return h(`div.${staticClasses}`, {
-      class: {
-        "lpv--menu": ctrl.pane != "board",
-        "lpv--players": showPlayers
-      },
-      attrs: {
-        tabindex: 0
-      },
-      hook: onInsert((el) => {
-        ctrl.setGround(Chessground(el.querySelector(".cg-wrap"), makeConfig(ctrl, el)));
-        if (opts.keyboardToMove)
-          el.addEventListener("keydown", onKeyDown(ctrl));
-      })
-    }, [
-      showPlayers ? renderPlayer(ctrl, "top") : void 0,
-      renderBoard(ctrl),
-      showPlayers ? renderPlayer(ctrl, "bottom") : void 0,
-      opts.showControls ? renderControls(ctrl) : void 0,
-      opts.showMoves ? renderMoves(ctrl) : void 0,
-      ctrl.pane == "menu" ? renderMenu(ctrl) : ctrl.pane == "pgn" ? renderPgnPane(ctrl) : void 0
-    ]);
-  }
-  var renderBoard, renderPgnPane, makeConfig;
-  var init_main = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/view/main.js"() {
-      init_chessground();
-      init_build();
-      init_util3();
-      init_events2();
-      init_menu();
-      init_side();
-      init_player();
-      renderBoard = (ctrl) => h("div.lpv__board", {
-        hook: onInsert((el) => {
-          el.addEventListener("click", ctrl.focus);
-          if (ctrl.opts.scrollToMove && !("ontouchstart" in window))
-            el.addEventListener("wheel", stepwiseScroll((e2, scroll) => {
-              e2.preventDefault();
-              if (e2.deltaY > 0 && scroll)
-                ctrl.goTo("next", false);
-              else if (e2.deltaY < 0 && scroll)
-                ctrl.goTo("prev", false);
-            }));
-        })
-      }, h("div.cg-wrap"));
-      renderPgnPane = (ctrl) => {
-        const blob = new Blob([ctrl.opts.pgn], { type: "text/plain" });
-        return h("div.lpv__pgn.lpv__pane", [
-          h("a.lpv__pgn__download.lpv__fbt", {
-            attrs: {
-              href: window.URL.createObjectURL(blob),
-              download: ctrl.opts.menu.getPgn.fileName || `${ctrl.game.title()}.pgn`
-            }
-          }, ctrl.translate("download")),
-          h("textarea.lpv__pgn__text", ctrl.opts.pgn)
-        ]);
-      };
-      makeConfig = (ctrl, rootEl) => ({
-        viewOnly: !ctrl.opts.drawArrows,
-        addDimensionsCssVarsTo: rootEl,
-        drawable: {
-          enabled: ctrl.opts.drawArrows,
-          visible: true
-        },
-        disableContextMenu: ctrl.opts.drawArrows,
-        ...ctrl.opts.chessground || {},
-        movable: {
-          free: false
-        },
-        draggable: {
-          enabled: false
-        },
-        selectable: {
-          enabled: false
-        },
-        ...ctrl.cgState()
-      });
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/config.js
-  function config_default(element, cfg) {
-    const opts = { ...defaults2 };
-    deepMerge2(opts, cfg);
-    if (opts.fen)
-      opts.pgn = `[FEN "${opts.fen}"]
-${opts.pgn}`;
-    if (!opts.classes)
-      opts.classes = element.className;
-    return opts;
-  }
-  function deepMerge2(base, extend) {
-    for (const key in extend) {
-      if (typeof extend[key] !== "undefined") {
-        if (isPlainObject2(base[key]) && isPlainObject2(extend[key]))
-          deepMerge2(base[key], extend[key]);
-        else
-          base[key] = extend[key];
-      }
-    }
-  }
-  function isPlainObject2(o) {
-    if (typeof o !== "object" || o === null)
-      return false;
-    const proto = Object.getPrototypeOf(o);
-    return proto === Object.prototype || proto === null;
-  }
-  var defaults2;
-  var init_config2 = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/config.js"() {
-      defaults2 = {
-        pgn: "*",
-        // the PGN to render
-        fen: void 0,
-        // initial FEN, will append [FEN "initial FEN"] to the PGN
-        showPlayers: "auto",
-        // show the players above and under the board
-        showClocks: true,
-        // show the clocks alongside the players
-        showMoves: "auto",
-        // false | "right" | "bottom" | auto. "auto" uses media queries
-        showControls: true,
-        // show the [prev, menu, next] buttons
-        scrollToMove: true,
-        // enable scrolling through moves with a mouse wheel
-        keyboardToMove: true,
-        // enable keyboard navigation through moves
-        orientation: void 0,
-        // orientation of the board. Undefined to use the Orientation PGN tag.
-        initialPly: 0,
-        // current position to display. Can be a number, or "last"
-        chessground: {},
-        // chessground configuration https://github.com/lichess-org/chessground/blob/master/src/config.ts#L7
-        drawArrows: true,
-        // allow mouse users to draw volatile arrows on the board. Disable for little perf boost
-        menu: {
-          getPgn: {
-            enabled: true,
-            // enable the "Get PGN" menu entry
-            fileName: void 0
-            // name of the file when user clicks "Download PGN". Leave empty for automatic name.
-          },
-          practiceWithComputer: {
-            enabled: true
-          },
-          analysisBoard: {
-            enabled: true
-          }
-        },
-        lichess: "https://lichess.org",
-        // support for Lichess games, with links to the game and players. Set to false to disable.
-        classes: void 0
-        // CSS classes to set on the root element. Defaults to the element classes before being replaced by LPV.
-      };
-    }
-  });
-
-  // node_modules/@lichess-org/pgn-viewer/dist/main.js
-  function start4(element, cfg) {
-    const patch = init([classModule, attributesModule]);
-    const opts = config_default(element, cfg);
-    const ctrl = new PgnViewer(opts, redraw);
-    const blueprint = view(ctrl);
-    element.innerHTML = "";
-    let vnode2 = patch(element, blueprint);
-    ctrl.div = vnode2.elm;
-    function redraw() {
-      vnode2 = patch(vnode2, view(ctrl));
-    }
-    return ctrl;
-  }
-  var init_main2 = __esm({
-    "node_modules/@lichess-org/pgn-viewer/dist/main.js"() {
-      init_pgnViewer();
-      init_main();
-      init_build();
-      init_config2();
-    }
-  });
-
   // src/main.js
   var require_main = __commonJS({
     "src/main.js"() {
@@ -17980,132 +13704,691 @@ ${opts.pgn}`;
       var import_pgn_parser = __toESM(require_index_umd());
       init_chessground_base();
       init_custom();
-      init_main2();
       function toggleDisplay(className) {
-        const elements = document.querySelectorAll("." + className);
-        elements.forEach((element) => {
-          element.classList.toggle("hidden");
+        document.querySelectorAll("." + className).forEach((el) => el.classList.toggle("hidden"));
+      }
+      var urlVars = {};
+      window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
+        urlVars[key] = decodeURIComponent(value).replace("#!/0", "");
+      });
+      function getUrlParam(name, defaultValue) {
+        return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
+      }
+      var config = {
+        pgn: getUrlParam("PGN", `[Event "The Opera Game"] [Site "Paris Opera House"] [Date "1858.11.02"] [Round "?"] [White "Paul Morphy"] [Black "Duke of Brunswick & Count Isouart"] [Result "1-0"] [ECO "C41"] 1. e4 e5 2. Nf3 d6 {This is the Philidor Defence. It's solid but can be passive.} 3. d4 Bg4?! {This pin is a bit premature. A more common and solid move would be 3...exd4.} 4. dxe5 Bxf3 (4... dxe5 5. Qxd8+ Kxd8 6. Nxe5 {White wins a pawn and has a better position.}) 5. Qxf3! {A great move. Morphy is willing to accept doubled pawns to accelerate his development.} 5... dxe5 6. Bc4 {Putting immediate pressure on the weak f7 square.} 6... Nf6 7. Qb3! {A powerful double attack on f7 and b7.} 7... Qe7 {This is the only move to defend both threats, but it places the queen on an awkward square and blocks the f8-bishop.} 8. Nc3 c6 9. Bg5 {Now Black's knight on f6 is pinned and cannot move without the queen being captured.} 9... b5?! {A desperate attempt to kick the bishop and relieve some pressure, but it weakens Black's queenside.} 10. Nxb5! {A brilliant sacrifice! Morphy sees that his attack is worth more than the knight.} 10... cxb5 11. Bxb5+ Nbd7 12. O-O-O {All of White's pieces are now in the attack, while Black's are tangled up and undeveloped.} 12... Rd8 13. Rxd7! {Another fantastic sacrifice to remove the defending knight.} 13... Rxd7 14. Rd1 {Renewing the pin and intensifying the pressure. Black is completely paralyzed.} 14... Qe6 {Trying to trade queens to relieve the pressure, but it's too late.} 15. Bxd7+ Nxd7 (15... Qxd7 16. Qb8+ Ke7 17. Qxe5+ Kd8 18. Bxf6+ {and White wins easily.}) 16. Qb8+! {The stunning final sacrifice! Morphy forces mate by sacrificing his most powerful piece.} 16... Nxb8 17. Rd8# {A beautiful checkmate, delivered with just a rook and bishop.} 1-0`),
+        fontSize: getUrlParam("fontSize", 16),
+        ankiText: getUrlParam("userText", null),
+        muteAudio: getUrlParam("muteAudio", "false") === "true",
+        handicap: parseInt(getUrlParam("handicap", 1), 10),
+        strictScoring: getUrlParam("strictScoring", "false") === "true",
+        acceptVariations: getUrlParam("acceptVariations", "true") === "true",
+        flipBoard: getUrlParam("flip", "true") === "true",
+        boardMode: getUrlParam("boardMode", "Viewer"),
+        background: getUrlParam("background", "#2C2C2C")
+      };
+      var state = {
+        ankiFen: "",
+        depth: 5,
+        boardRotation: "black",
+        solvedColour: "limegreen",
+        errorTrack: getUrlParam("errorTrack", null),
+        count: 0,
+        selectState: false,
+        pgnState: true,
+        chessGroundShapes: [],
+        expectedLine: [],
+        expectedMove: null,
+        errorCount: 0,
+        promoteChoice: "q",
+        promoteAnimate: true,
+        debounceTimeout: null,
+        navTimeout: null,
+        isStockfishBusy: false,
+        analysisToggledOn: false,
+        deepAnalysis: false
+      };
+      if (!state.errorTrack) {
+        state.errorTrack = false;
+      }
+      var cg = null;
+      var chess = null;
+      function initAudio(mute) {
+        const sounds = ["Move", "checkmate", "move-check", "Capture", "castle", "promote", "Error", "computer-mouse-click"];
+        const audioMap2 = /* @__PURE__ */ new Map();
+        sounds.forEach((sound) => {
+          const audio = new Audio(`_${sound}.mp3`);
+          audio.preload = "auto";
+          audio.muted = mute;
+          audioMap2.set(sound, audio);
         });
+        return audioMap2;
       }
-      function getUrlVars() {
-        let vars = {};
-        const parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
-          vars[key] = decodeURIComponent(value).replace("#!/0", "");
-        });
-        return vars;
+      var audioMap = initAudio(config.muteAudio);
+      function playSound(soundName) {
+        const audio = audioMap.get(soundName);
+        if (audio) {
+          audio.cloneNode().play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
+        }
       }
-      var urlPGN = getUrlVars()["PGN"] ? getUrlVars()["PGN"] : `[Event "The Opera Game"]
-[Site "Paris Opera House"]
-[Date "1858.11.02"]
-[Round "?"]
-[White "Paul Morphy"]
-[Black "Duke of Brunswick & Count Isouart"]
-[Result "1-0"]
-[ECO "C41"]
-
-1. e4 e5 2. Nf3 d6 {This is the Philidor Defence. It's solid but can be passive.} 3. d4 Bg4?! {This pin is a bit premature. A more common and solid move would be 3...exd4.} 4. dxe5 Bxf3 (4... dxe5 5. Qxd8+ Kxd8 6. Nxe5 {White wins a pawn and has a better position.}) 5. Qxf3! {A great move. Morphy is willing to accept doubled pawns to accelerate his development.} 5... dxe5 6. Bc4 {Putting immediate pressure on the weak f7 square.} 6... Nf6 7. Qb3! {A powerful double attack on f7 and b7.} 7... Qe7 {This is the only move to defend both threats, but it places the queen on an awkward square and blocks the f8-bishop.} 8. Nc3 c6 9. Bg5 {Now Black's knight on f6 is pinned and cannot move without the queen being captured.} 9... b5?! {A desperate attempt to kick the bishop and relieve some pressure, but it weakens Black's queenside.} 10. Nxb5! {A brilliant sacrifice! Morphy sees that his attack is worth more than the knight.} 10... cxb5 11. Bxb5+ Nbd7 12. O-O-O {All of White's pieces are now in the attack, while Black's are tangled up and undeveloped.} 12... Rd8 13. Rxd7! {Another fantastic sacrifice to remove the defending knight.} 13... Rxd7 14. Rd1 {Renewing the pin and intensifying the pressure. Black is completely paralyzed.} 14... Qe6 {Trying to trade queens to relieve the pressure, but it's too late.} 15. Bxd7+ Nxd7 (15... Qxd7 16. Qb8+ Ke7 17. Qxe5+ Kd8 18. Bxf6+ {and White wins easily.}) 16. Qb8+! {The stunning final sacrifice! Morphy forces mate by sacrificing his most powerful piece.} 16... Nxb8 17. Rd8# {A beautiful checkmate, delivered with just a rook and bishop.} 1-0
-`;
-      var ankiFen;
-      var fontSize = getUrlVars()["fontSize"] ? getUrlVars()["fontSize"] : 16;
-      var ankiText = getUrlVars()["userText"];
-      var muteAudio = getUrlVars()["muteAudio"] ? getUrlVars()["muteAudio"] : "false";
-      var handicap = getUrlVars()["handicap"] ? getUrlVars()["handicap"] : 1;
-      var strictScoring = getUrlVars()["strictScoring"] ? getUrlVars()["strictScoring"] : "false";
-      var acceptVariations = getUrlVars()["acceptVariations"] ? getUrlVars()["acceptVariations"] : "true";
-      var solvedColour = "limegreen";
-      var errorTrack = getUrlVars()["errorTrack"] ? getUrlVars()["errorTrack"] : "";
-      var disableArrows = getUrlVars()["disableArrows"] ? getUrlVars()["disableArrows"] : "false";
-      var boardRotation = "black";
-      var flipBoard = getUrlVars()["flip"] ? getUrlVars()["flip"] : "true";
-      var boardMode = getUrlVars()["boardMode"] ? getUrlVars()["boardMode"] : "test";
-      var background = getUrlVars()["background"] ? getUrlVars()["background"] : "#2C2C2C";
-      document.documentElement.style.setProperty("--background-color", background);
-      var parsedPGN = (0, import_pgn_parser.parse)(urlPGN, { startRule: "game" });
-      if (parsedPGN.tags.FEN) {
-        ankiFen = parsedPGN.tags.FEN;
-      } else {
-        ankiFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      chess = new Chess();
+      var parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
+      state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      chess.load(state.ankiFen);
+      document.documentElement.style.setProperty("--background-color", config.background);
+      if (config.ankiText) {
+        const commentBox = document.getElementById("commentBox");
+        commentBox.style.fontSize = `${config.fontSize}px`;
+        commentBox.classList.remove("hidden");
+        document.getElementById("textField").innerHTML = config.ankiText;
       }
-      if (ankiText) {
-        commentBox.style = "font-size: " + fontSize + "px;";
-        commentBox.classList.toggle("hidden");
-        textField.innerHTML = ankiText;
+      var fenParts = state.ankiFen.split(" ");
+      state.boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
+      if (config.flipBoard) {
+        state.boardRotation = state.boardRotation === "white" ? "black" : "white";
       }
-      var patt = /(( b | w ))(?!.*\1)/g;
-      var result = ankiFen.match(patt);
-      if (result == " w ") {
-        boardRotation = "white";
-      }
-      if (flipBoard != "true" && boardRotation == "white" || flipBoard == "true" && boardRotation == "black") {
+      if (state.boardRotation === "white") {
         const root = document.documentElement;
         const coordWhite = getComputedStyle(root).getPropertyValue("--coord-white").trim();
         const coordBlack = getComputedStyle(root).getPropertyValue("--coord-black").trim();
         root.style.setProperty("--coord-white", coordBlack);
-        root.style.setProperty("--coord-black", coordBlack);
+        root.style.setProperty("--coord-black", coordWhite);
       }
-      if (flipBoard == "true" && boardRotation == "white") {
-        boardRotation = "black";
-      } else if (flipBoard == "true" && boardRotation == "black") {
-        boardRotation = "white";
-      }
-      var boarOrientation = boardRotation;
-      document.documentElement.style.setProperty("--border-color", boardRotation);
-      if (errorTrack == "true" && boardMode == "Viewer") {
-        document.documentElement.style.setProperty("--border-color", "#b31010");
-        document.documentElement.style.setProperty("--border-shadow", "#b31010");
-      } else if (errorTrack == "false" && boardMode == "Viewer") {
-        document.documentElement.style.setProperty("--border-color", "limegreen");
-        document.documentElement.style.setProperty("--border-shadow", "limegreen");
-      }
-      window.parent.postMessage(errorTrack, "*");
-      errorTrack = "false";
-      document.querySelector("#promoteQ").src = "_" + boardRotation[0] + "Q.svg";
-      document.querySelector("#promoteB").src = "_" + boardRotation[0] + "B.svg";
-      document.querySelector("#promoteN").src = "_" + boardRotation[0] + "N.svg";
-      document.querySelector("#promoteR").src = "_" + boardRotation[0] + "R.svg";
-      var count;
-      var selectState = false;
-      var pgnState = true;
-      var expectedLine;
-      var expectedMove;
-      var errorCount = 0;
-      var alternateMove;
-      var alternateMoves = [];
-      var promoteChoice = "q";
-      var debounceTimeout = null;
-      var foundVariation;
-      function toDests(chess) {
+      var boardOrientation = state.boardRotation;
+      document.documentElement.style.setProperty("--border-color", boardOrientation);
+      function toDests(chess2) {
         const dests = /* @__PURE__ */ new Map();
         SQUARES.forEach((s) => {
-          const ms = chess.moves({ square: s, verbose: true });
-          if (ms.length)
-            dests.set(s, ms.map((m) => m.to));
+          const ms = chess2.moves({ square: s, verbose: true });
+          if (ms.length) dests.set(s, ms.map((m) => m.to));
         });
         return dests;
       }
-      function toColor(chess) {
-        return chess.turn() === "w" ? "white" : "black";
+      function toColor(chess2) {
+        return chess2.turn() === "w" ? "white" : "black";
       }
-      function getLastMove(chess) {
-        const allMoves = chess.history({ verbose: true });
+      function getOpponentColor(chess2) {
+        return chess2.turn() === "w" ? "b" : "w";
+      }
+      function getLastMove(chess2) {
+        const allMoves = chess2.history({ verbose: true });
         if (allMoves.length > 0) {
           return allMoves[allMoves.length - 1];
         } else {
           return false;
         }
       }
-      function playOtherSide(cg, chess) {
-        return (orig, dest) => {
-          selectState = false;
-          const promoteCheck = chess.move({ from: orig, to: dest, promotion: promoteChoice });
-          if (promoteCheck.san.includes("=")) {
-            chess.undo();
-            promotePopup(null, cg, chess, orig, dest, null);
-          } else {
-            const lastMove = getLastMove(chess);
-            changeAudio(lastMove);
+      function writePgnComments(reWrite) {
+        const pgnCommentEl = document.getElementById("pgnComment");
+        if (!state.pgnState) {
+          pgnCommentEl.innerHTML = "";
+          return;
+        }
+        if (reWrite) {
+          return;
+        }
+        const currentMovePgn = state.expectedLine[state.count];
+        const lastMovePgn = state.expectedLine[state.count - 1];
+        const comments = [];
+        if (lastMovePgn?.commentAfter) {
+          const moveColour = lastMovePgn.turn === "b" ? "Black" : "White";
+          comments.push({ player: moveColour, text: lastMovePgn.commentAfter });
+        }
+        if (currentMovePgn?.commentAfter) {
+          const moveColour = currentMovePgn.turn === "b" ? "Black" : "White";
+          comments.push({ player: moveColour, text: currentMovePgn.commentAfter });
+        }
+        const uniqueComments = [...new Map(comments.map((item) => [item.text, item])).values()];
+        let commentHTML = "";
+        if (uniqueComments.length > 0) {
+          const listItems = uniqueComments.map((c) => `<li><strong>${c.player}:</strong> ${c.text}</li>`);
+          commentHTML = `<ul>${listItems.join("")}</ul>`;
+        }
+        pgnCommentEl.innerHTML = commentHTML;
+      }
+      function drawArrows(cg2, chess2, redraw) {
+        state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
+        if (!state.pgnState || redraw) {
+          cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+          return;
+        }
+        if (!state.analysisToggledOn) {
+          state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish");
+        }
+        let expectedMove = state.expectedMove;
+        let expectedLine = state.expectedLine;
+        let puzzleMove;
+        let count = state.count;
+        let parentOfChild;
+        if (config.boardMode == "Puzzle") {
+          count--;
+          if (count === 0) {
+            parentOfChild = findParent(parsedPGN.moves, expectedLine);
+            if (parentOfChild) {
+              for (var i = 0; i < 2; i++) {
+                parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+              }
+              ;
+              expectedLine = parentOfChild.parent;
+              count = parentOfChild.key;
+              expectedMove = expectedLine[count];
+            }
+          }
+          if (parentOfChild?.parent) {
+            expectedLine = parentOfChild.parent;
+          }
+          expectedMove = expectedLine[count];
+          if (expectedMove) {
+            puzzleMove = chess2.undo().san;
+          }
+        }
+        if (!expectedMove || typeof expectedMove === "string") {
+          cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+          return;
+        }
+        const tempChess = new Chess(chess2.fen());
+        if (expectedMove?.variations) {
+          for (const variation of expectedMove.variations) {
+            const alternateMove = tempChess.move(variation[0].notation.notation);
+            if (alternateMove && alternateMove.san !== puzzleMove) {
+              state.chessGroundShapes.push({
+                orig: alternateMove.from,
+                dest: alternateMove.to,
+                brush: "altLine",
+                san: alternateMove.san
+              });
+            }
+            tempChess.undo();
+          }
+        }
+        let mainMoveAttempt;
+        if (tempChess.moves().includes(expectedMove.notation.notation)) {
+          mainMoveAttempt = tempChess.move(expectedMove.notation.notation);
+        } else {
+          mainMoveAttempt = null;
+        }
+        if (mainMoveAttempt && mainMoveAttempt.san !== puzzleMove) {
+          state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: "mainLine", san: mainMoveAttempt.san });
+        }
+        if (config.boardMode == "Puzzle" && puzzleMove) {
+          chess2.move(puzzleMove);
+        }
+        cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+      }
+      function updateBoard(cg2, chess2, move3, quite, commentRewrite) {
+        if (!quite) {
+          changeAudio(move3);
+        }
+        if (move3.san.includes("=") && state.promoteAnimate) {
+          const tempChess = new Chess(chess2.fen());
+          tempChess.load(chess2.fen());
+          tempChess.remove(move3.from);
+          tempChess.put({ type: "p", color: getOpponentColor(chess2) }, move3.to);
+          cg2.set({
+            fen: tempChess.fen()
+          });
+          setTimeout(() => {
+            cg2.set({ animation: { enabled: false } });
+            cg2.set({
+              fen: chess2.fen()
+            });
+            cg2.set({ animation: { enabled: true } });
+          }, 200);
+        } else {
+          cg2.set({ fen: chess2.fen() });
+        }
+        cg2.set({
+          check: chess2.inCheck(),
+          turnColor: toColor(chess2),
+          movable: {
+            dests: toDests(chess2)
+          },
+          lastMove: [move3.from, move3.to]
+        });
+        if (config.boardMode === "Viewer") {
+          cg2.set({ movable: { color: toColor(chess2) } });
+        }
+        writePgnComments(commentRewrite);
+        if (state.analysisToggledOn) {
+          state.depth = 5;
+          stockfishCalc();
+        }
+      }
+      var stockfish = STOCKFISH();
+      stockfish.onmessage = (event2) => {
+        const message = event2.data ? event2.data : event2;
+        if (typeof message !== "string") {
+          return;
+        }
+        if (message.startsWith("info")) {
+          const parts = message.split(" ");
+          const pvDepthIndex = parts.indexOf("depth");
+          const pvSanIndex = parts.indexOf("pvSan");
+          if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
+            const firstMove = parts[pvSanIndex + 1];
+            const tempChess = new Chess(chess.fen());
+            const moveObject = tempChess.move(firstMove);
+            if (moveObject) {
+              state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+              state.chessGroundShapes.push({
+                orig: moveObject.from,
+                dest: moveObject.to,
+                brush: "stockfish",
+                san: moveObject.san
+              });
+              cg.set({ drawable: { shapes: state.chessGroundShapes } });
+            }
+          }
+        } else if (message.startsWith("bestmove")) {
+          cg.set({ viewOnly: false });
+          state.isStockfishBusy = false;
+          if (state.deepAnalysis === true) {
+            state.deepAnalysis = false;
+            document.querySelector("#stockfishCalc").disabled = false;
+            document.querySelector("#stockfishCalc").classList.toggle("active-toggle");
+          }
+          const bestMoveUci = message.split(" ")[1];
+          const tempChess = new Chess(chess.fen());
+          const moveObject = tempChess.move(bestMoveUci);
+          if (moveObject) {
+            state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+            state.chessGroundShapes.push({
+              orig: moveObject.from,
+              dest: moveObject.to,
+              brush: "stockfinished",
+              san: moveObject.san
+            });
+            cg.set({ drawable: { shapes: state.chessGroundShapes } });
+          }
+        }
+      };
+      function stockfishCalc() {
+        return new Promise((resolve, reject) => {
+          if (chess.moves().length === 0 || state.isStockfishBusy) return;
+          state.isStockfishBusy = true;
+          stockfish.postMessage(`position fen ${chess.fen()}`);
+          stockfish.postMessage(`go depth ${state.depth}`);
+          stockfish.postMessage("uci");
+        });
+      }
+      function toggleStockfishAnalysis() {
+        state.analysisToggledOn = !state.analysisToggledOn;
+        const toggleButton = document.querySelector("#stockfishToggle");
+        toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
+        if (state.analysisToggledOn) {
+          stockfishCalc();
+        } else {
+          state.chessGroundShapes = state.chessGroundShapes.filter(
+            (shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished"
+          );
+          drawArrows(cg, chess);
+        }
+      }
+      function deepAnalysis() {
+        document.querySelector("#stockfishCalc").classList.toggle("active-toggle");
+        document.querySelector("#stockfishCalc").disabled = true;
+        state.deepAnalysis = true;
+        state.depth = 15;
+        cg.set({ viewOnly: true });
+        stockfishCalc();
+      }
+      function makeMove(cg2, chess2, move3) {
+        const moveResult = chess2.move(move3);
+        if (!moveResult) return null;
+        updateBoard(cg2, chess2, moveResult);
+        return moveResult;
+      }
+      function handleViewerMove(cg2, chess2, orig, dest) {
+        const tempChess = new Chess(chess2.fen());
+        let move3;
+        let promoCheck = false;
+        if (dest) {
+          move3 = tempChess.move({ from: orig, to: dest, promotion: "q" });
+          promoCheck = true;
+        } else {
+          move3 = tempChess.move(orig);
+        }
+        if (move3.san.includes("=") && promoCheck) {
+          promotePopup(cg2, chess2, orig, dest, null);
+        } else {
+          checkUserMove(cg2, chess2, move3.san, null);
+        }
+      }
+      function playAiMove(cg2, chess2, delay) {
+        setTimeout(() => {
+          if (!state.expectedMove || typeof state.expectedMove === "string") return;
+          state.errorCount = 0;
+          if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
+            const moveVar = Math.floor(Math.random() * (state.expectedMove.variations.length + 1));
+            if (moveVar !== state.expectedMove.variations.length) {
+              state.count = 0;
+              state.expectedLine = state.expectedMove.variations[moveVar];
+              state.expectedMove = state.expectedLine[0];
+            }
+          }
+          makeMove(cg2, chess2, state.expectedMove.notation.notation);
+          state.count++;
+          state.expectedMove = state.expectedLine[state.count];
+          if (!state.expectedMove || typeof state.expectedMove === "string") {
+            window.parent.postMessage(state.errorTrack, "*");
+            document.documentElement.style.setProperty("--border-color", state.solvedColour);
+            cg2.set({ viewOnly: true });
+          }
+          drawArrows(cg2, chess2, true);
+        }, delay);
+      }
+      function playUserCorrectMove(cg2, chess2, delay) {
+        setTimeout(() => {
+          cg2.set({ viewOnly: false });
+          if (!state.expectedMove || typeof state.expectedMove === "string") return;
+          makeMove(cg2, chess2, state.expectedMove.notation.notation);
+          state.count++;
+          state.expectedMove = state.expectedLine[state.count];
+          if (!state.expectedMove || typeof state.expectedMove === "string") {
+            window.parent.postMessage(state.errorTrack, "*");
+            document.documentElement.style.setProperty("--border-color", state.solvedColour);
+            cg2.set({ viewOnly: true });
+          }
+        }, delay);
+      }
+      function handleWrongMove(cg2, chess2, move3) {
+        state.errorCount++;
+        playSound("Error");
+        const isFailed = config.strictScoring || state.errorCount > config.handicap;
+        if (isFailed) {
+          state.errorTrack = true;
+          window.parent.postMessage(true, "*");
+          state.solvedColour = "#b31010";
+        }
+        updateBoard(cg2, chess2, move3, true, true);
+        if (state.errorCount > config.handicap) {
+          cg2.set({ viewOnly: true });
+          playUserCorrectMove(cg2, chess2, 300);
+          playAiMove(cg2, chess2, 600);
+        }
+      }
+      function checkUserMove(cg2, chess2, moveSan, delay) {
+        const tempChess = new Chess(chess2.fen());
+        const moveAttempt = tempChess.move(moveSan);
+        if (!moveAttempt) return;
+        let foundVariation = false;
+        if (state.expectedMove?.notation.notation === moveAttempt.san && state.pgnState) {
+          foundVariation = true;
+        } else if (state.expectedMove?.variations && config.acceptVariations && state.pgnState) {
+          for (let i = 0; i < state.expectedMove.variations.length; i++) {
+            if (moveAttempt.san === state.expectedMove.variations[i][0].notation.notation) {
+              state.count = 0;
+              state.expectedLine = state.expectedMove.variations[i];
+              state.expectedMove = state.expectedLine[state.count];
+              foundVariation = true;
+              break;
+            }
+          }
+        }
+        if (foundVariation) {
+          makeMove(cg2, chess2, moveAttempt);
+          state.count++;
+          state.expectedMove = state.expectedLine[state.count];
+          if (state.expectedMove && delay) {
+            playAiMove(cg2, chess2, delay);
+          } else if (delay) {
+            window.parent.postMessage(state.errorTrack, "*");
+            document.documentElement.style.setProperty("--border-color", state.solvedColour);
+            cg2.set({
+              selected: void 0,
+              // Clear any selected square
+              draggable: {
+                current: void 0
+                // Explicitly clear any currently dragged piece
+              },
+              viewOnly: true
+            });
+          }
+          drawArrows(cg2, chess2);
+        } else if (delay) {
+          handleWrongMove(cg2, chess2, moveAttempt);
+          drawArrows(cg2, chess2, true);
+        } else if (!delay) {
+          state.pgnState = false;
+          makeMove(cg2, chess2, moveAttempt);
+        }
+        return foundVariation;
+      }
+      function changeAudio(gameState) {
+        const soundMap = {
+          "#": "checkmate",
+          "+": "move-check",
+          "x": "Capture",
+          "k": "castle",
+          "q": "castle",
+          "p": "promote"
+        };
+        let sound = "Move";
+        for (const flag in soundMap) {
+          if (gameState.san.includes(flag) || gameState.flags && gameState.flags.includes(flag)) {
+            sound = soundMap[flag];
+            break;
+          }
+        }
+        playSound(sound);
+      }
+      function puzzlePlay(cg2, chess2, delay, orig, dest) {
+        const tempChess = new Chess(chess2.fen());
+        let tempMove = false;
+        if (dest) {
+          tempMove = tempChess.move({ from: orig, to: dest, promotion: "q" });
+        } else {
+          tempMove = tempChess.move(orig);
+        }
+        if (!tempMove) return;
+        if (tempMove.san.includes("=") && delay && dest) {
+          promotePopup(cg2, chess2, orig, dest, delay);
+        } else {
+          checkUserMove(cg2, chess2, tempMove.san, delay);
+        }
+      }
+      function promotePopup(cg2, chess2, orig, dest, delay) {
+        const cancelPopup = function() {
+          state.promoteAnimate = true;
+          cg2.set({
+            fen: chess2.fen(),
+            turnColor: toColor(chess2),
+            movable: {
+              color: toColor(chess2),
+              dests: toDests(chess2)
+            }
+          });
+          state.selectState = false;
+          toggleDisplay("showHide");
+          document.querySelector("cg-board").style.cursor = "pointer";
+          if (config.boardMode == "Viewer") {
+            drawArrows(cg2, chess2);
+          }
+        };
+        const promoteButtons = document.querySelectorAll("#center > button");
+        const overlay = document.querySelector("#overlay");
+        for (var i = 0; i < promoteButtons.length; i++) {
+          promoteButtons[i].onclick = function() {
+            state.promoteAnimate = false;
+            event.stopPropagation();
+            state.promoteChoice = this.value;
+            const tempChess = new Chess(chess2.fen());
+            const move3 = tempChess.move({ from: orig, to: dest, promotion: state.promoteChoice });
+            if (config.boardMode === "Puzzle") {
+              puzzlePlay(cg2, chess2, 300, move3.san, null);
+            } else if (config.boardMode === "Viewer") {
+              handleViewerMove(cg2, chess2, move3.san, null);
+            }
+            cancelPopup();
+            document.querySelector(".cg-wrap").style.filter = "none";
+            document.querySelector("cg-board").style.cursor = "pointer";
+          };
+          overlay.onclick = function() {
+            cancelPopup();
+            playSound("Move");
+          };
+        }
+        toggleDisplay("showHide");
+        document.querySelector("cg-board").style.cursor = "default";
+      }
+      function findParent(obj, targetChild) {
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            const value = obj[key];
+            if (typeof value === "object" && value !== null) {
+              if (value === targetChild) {
+                return {
+                  key,
+                  parent: obj
+                  // This is the direct parent
+                };
+              }
+              const foundParent = findParent(value, targetChild);
+              if (foundParent) {
+                return foundParent;
+              }
+            }
+          }
+        }
+        return null;
+      }
+      function reload() {
+        state.count = 0;
+        state.expectedLine = parsedPGN.moves;
+        state.expectedMove = state.expectedLine[0];
+        cg = Chessground(board, {
+          fen: state.ankiFen,
+          orientation: boardOrientation,
+          turnColor: toColor(chess),
+          events: {
+            select: (key) => {
+              if (config.boardMode === "Puzzle") {
+                drawArrows(cg, chess, true);
+              } else {
+                drawArrows(cg, chess);
+              }
+              if (state.debounceTimeout !== null) {
+                return;
+              }
+              ;
+              state.debounceTimeout = setTimeout(() => {
+                state.debounceTimeout = null;
+              }, 100);
+              if (cg.state.selected === state.selectState && state.selectState === key) {
+                state.selectState = false;
+                return;
+              } else if (state.selectState !== key && key === cg.state.selected) {
+                state.selectState = key;
+                return;
+              } else if (state.selectState) {
+                const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
+                const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
+                if (isValidMove) {
+                  return;
+                }
+                state.selectState = false;
+              }
+              let arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "mainLine");
+              if (!arrowMove) {
+                arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "altLine");
+              }
+              if (!arrowMove) {
+                arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "stockfinished");
+              }
+              if (!arrowMove) {
+                arrowMove = state.chessGroundShapes.find((shape) => shape.dest === key && shape.brush === "stockfish");
+              }
+              if (arrowMove && config.boardMode === "Viewer") {
+                cg.move(arrowMove.orig, arrowMove.dest);
+                handleViewerMove(cg, chess, arrowMove.san, null);
+                return;
+              } else {
+                const allMoves = chess.moves({ verbose: true });
+                const movesToSquare = allMoves.filter((move3) => move3.to === key);
+                if (movesToSquare.length === 1) {
+                  cg.move(movesToSquare[0].from, movesToSquare[0].to);
+                  if (config.boardMode === "Puzzle") {
+                    puzzlePlay(cg, chess, 300, movesToSquare[0].san, null);
+                  } else if (config.boardMode === "Viewer") {
+                    handleViewerMove(cg, chess, movesToSquare[0].san, null);
+                  }
+                }
+              }
+            }
+          },
+          premovable: {
+            enabled: true
+          },
+          movable: {
+            color: state.boardRotation,
+            free: false,
+            dests: toDests(chess),
+            events: {
+              after: (orig, dest) => {
+                if (config.boardMode === "Puzzle") {
+                  puzzlePlay(cg, chess, 300, orig, dest);
+                } else {
+                  handleViewerMove(cg, chess, orig, dest);
+                }
+              }
+            }
+          },
+          highlight: { check: true },
+          drawable: {
+            brushes: {
+              stockfish: { key: "stockfish", color: "indianred", opacity: 1, lineWidth: 8 },
+              stockfinished: { key: "stockfinished", color: "red", opacity: 1, lineWidth: 8 },
+              mainLine: { key: "mainLine", color: "green", opacity: 0.7, lineWidth: 12 },
+              altLine: { key: "altLine", color: "blue", opacity: 0.7, lineWidth: 10 }
+            },
+            // An empty array disables user-drawn shapes via right-click/modifier keys.
+            autoShapes: []
+          }
+        });
+        if (config.boardMode === "Puzzle") {
+          if (!chess.isGameOver() && config.flipBoard) {
+            playAiMove(cg, chess, 300);
+          }
+          drawArrows(cg, chess);
+          document.querySelector("#buttons-container").style.display = "none";
+        } else {
+          cg.set({
+            premovable: {
+              enabled: false
+            }
+          });
+          drawArrows(cg, chess);
+        }
+        function navBackward() {
+          if (state.deepAnalysis || config.boardMode === "Puzzle" || state.navTimeout !== null) return;
+          state.navTimeout = setTimeout(() => {
+            state.navTimeout = null;
+          }, 200);
+          const lastMove = chess.undo();
+          const FENpos = chess.fen();
+          if (lastMove) {
+            pgnComment.innerHTML = "";
+            if (lastMove.promotion) {
+              const tempChess = new Chess(chess.fen());
+              tempChess.load(FENpos);
+              tempChess.remove(lastMove.to);
+              tempChess.remove(lastMove.from);
+              tempChess.put({ type: "p", color: chess.turn() }, lastMove.to);
+              cg.set({ animation: { enabled: false } });
+              cg.set({
+                fen: tempChess.fen()
+              });
+              tempChess.remove(lastMove.to);
+              tempChess.put({ type: "p", color: chess.turn() }, lastMove.from);
+              cg.set({ animation: { enabled: true } });
+              cg.set({
+                fen: FENpos
+              });
+            } else {
+              cg.set({
+                fen: chess.fen()
+              });
+            }
             cg.set({
-              fen: chess.fen(),
               check: chess.inCheck(),
               turnColor: toColor(chess),
               movable: {
@@ -18114,1068 +14397,121 @@ ${opts.pgn}`;
               },
               lastMove: [lastMove.from, lastMove.to]
             });
-            PGNnavigator(cg, chess, lastMove.san);
-          }
-        };
-      }
-      function moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2) {
-        let moveCheckIsPromote = false;
-        if (moveCheck.includes("=")) {
-          moveCheckIsPromote = true;
-          chess.move({ from: orig, to: dest, promotion: promoteChoice });
-          cg.set({
-            fen: chess.fen()
-          });
-          moveCheck = chess.undo().san;
-        }
-        if (expectedMove?.variations) {
-          if (expectedMove.notation.notation == moveCheck) {
-            foundVariation = true;
-          } else if (expectedMove.notation.notation !== moveCheck) {
-            if (expectedMove.variations.length > 0 && acceptVariations == "true") {
-              for (var i = 0; i < expectedMove.variations.length; i++) {
-                if (moveCheck === expectedMove.variations[i][0].notation.notation) {
-                  count = 0;
-                  expectedLine = expectedMove.variations[i];
-                  expectedMove = expectedLine[count];
-                  foundVariation = true;
-                  break;
-                }
-              }
-              if (foundVariation === false) {
-                wrongMove(cg, chess);
-              }
-            } else {
-              wrongMove(cg, chess);
-            }
-          }
-        }
-        if (foundVariation == true) {
-          count++;
-          expectedMove = expectedLine[count];
-          chess.move({ from: orig, to: dest, promotion: promoteChoice });
-          changeAudio(getLastMove(chess));
-          cg.set({
-            turnColor: toColor(chess),
-            check: chess.inCheck()
-          });
-          if (expectedMove?.variations) {
-            setTimeout(() => {
-              errorCount = 0;
-              if (expectedMove?.variations.length > 0 && acceptVariations == "true") {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variations.length + 1));
-                if (moveVar !== expectedMove.variants.length) {
-                  count = 0;
-                  expectedLine = expectedMove.variations[moveVar];
-                  expectedMove = expectedLine[0];
-                }
-              }
-              chess.move(expectedMove.notation.notation);
-              const lastMoveAi = getLastMove(chess);
-              if (expectedMove.notation.promotion) {
-                const lastMove = chess.undo();
-                chess2.load(chess.fen());
-                chess2.remove(lastMove.from);
-                chess2.put({ type: "p", color: chess.turn() }, lastMove.to);
-                cg.set({
-                  fen: chess2.fen()
-                });
-                chess.move(expectedMove.notation.notation);
-                setTimeout(() => {
-                  cg.set({ animation: { enabled: false } });
-                  cg.set({
-                    fen: chess.fen()
-                  });
-                  cg.set({ animation: { enabled: true } });
-                }, 200);
-              } else {
-                cg.set({
-                  fen: chess.fen()
-                });
-              }
-              changeAudio(lastMoveAi);
-              cg.set({
-                turnColor: toColor(chess),
-                movable: {
-                  color: toColor(chess),
-                  dests: toDests(chess)
-                }
-              });
-              cg.set({
-                check: chess.inCheck()
-              });
-              cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-              count++;
-              expectedMove = expectedLine[count];
-              cg.playPremove();
-              if (!expectedMove || typeof expectedMove === "string") {
-                window.parent.postMessage(errorTrack, "*");
-                document.documentElement.style.setProperty("--border-color", solvedColour);
-                cg.set({
-                  selected: void 0,
-                  // Clear any selected square
-                  draggable: {
-                    current: void 0
-                    // Explicitly clear any currently dragged piece
-                  },
-                  viewOnly: true
-                });
-              }
-              cg.set({
-                // draw any alternate line if recorded
-                drawable: {
-                  shapes: alternateMoves
-                }
-              });
-            }, delay);
-          } else {
-            count++;
-            expectedMove = expectedLine[count];
-            if (!expectedMove || typeof expectedMove === "string") {
-              window.parent.postMessage(errorTrack, "*");
-              document.documentElement.style.setProperty("--border-color", solvedColour);
-              cg.set({
-                fen: chess.fen(),
-                selected: void 0,
-                // Clear any selected square
-                draggable: {
-                  current: void 0
-                  // Explicitly clear any currently dragged piece
-                },
-                viewOnly: true
-              });
-            }
-            count--;
-            expectedMove = expectedLine[count];
-          }
-          cg.set({
-            drawable: {
-              shapes: alternateMoves
-            }
-          });
-        } else {
-          errorCount++;
-          if (moveCheckIsPromote && errorCount <= handicap + 1) {
-            chess2.load(chess.fen());
-            chess2.remove(orig);
-            chess2.put({ type: "p", color: chess.turn() }, dest);
-            cg.set({ animation: { enabled: false } });
-            cg.set({
-              fen: chess2.fen()
-            });
-            cg.set({ animation: { enabled: true } });
-            chess2.remove(dest);
-            chess2.put({ type: "p", color: chess.turn() }, orig);
-            cg.set({
-              fen: chess.fen()
-            });
-            const audio = document.getElementById("myAudio");
-            if (errorCount > 0 && strictScoring == "true") {
-              errorTrack = "true";
-              window.parent.postMessage(errorTrack, "*");
-              solvedColour = "#b31010";
-            }
-            ;
-            if (errorCount > handicap) {
-              const audio2 = document.getElementById("myAudio");
-              audio2.src = "_Error.mp3";
-              audio2.play().catch(() => {
-              });
-              setTimeout(() => {
-                errorTrack = "true";
-                window.parent.postMessage(errorTrack, "*");
-                solvedColour = "#b31010";
-                if (expectedMove?.variations.length > 0 && acceptVariations == "true") {
-                  const randomIndex = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-                  if (randomIndex != expectedMove.variants.length) {
-                    count = 0;
-                    expectedLine = expectedMove.variations[randomIndex];
-                    expectedMove = expectedLine[count];
+            if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
+              state.count--;
+              state.expectedMove = state.expectedLine[state.count];
+              if (state.count === 0) {
+                let parentOfChild = findParent(parsedPGN.moves, state.expectedLine);
+                if (parentOfChild) {
+                  for (var i = 0; i < 2; i++) {
+                    parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
                   }
-                }
-                if (moveCheckIsPromote && expectedMove.notation.promotion) {
-                  chess.move(expectedMove.notation.notation);
-                  const lastMove = chess.undo();
-                  chess2.load(chess.fen());
-                  chess2.remove(lastMove.from);
-                  chess2.put({ type: "p", color: chess.turn() }, lastMove.to);
-                  cg.set({
-                    fen: chess2.fen()
-                  });
-                  chess.move(expectedMove.notation.notation);
-                  setTimeout(() => {
-                    cg.set({ animation: { enabled: false } });
-                    cg.set({
-                      fen: chess.fen()
-                    });
-                    cg.set({ animation: { enabled: true } });
-                  }, 200);
-                } else if (expectedMove.notation.promotion) {
-                  chess2.load(chess.fen());
-                  chess.move(expectedMove.notation.notation);
-                  const lastMove = chess.undo();
-                  chess2.remove(lastMove.from);
-                  chess2.put({ type: "p", color: chess.turn() }, lastMove.to);
-                  cg.set({
-                    fen: chess2.fen()
-                  });
-                  chess.move(expectedMove.notation.notation);
-                  setTimeout(() => {
-                    cg.set({ animation: { enabled: false } });
-                    cg.set({
-                      fen: chess.fen()
-                    });
-                    cg.set({ animation: { enabled: true } });
-                  }, 200);
-                } else {
-                  chess.move(expectedMove.notation.notation);
-                  cg.set({
-                    fen: chess.fen()
-                  });
-                }
-                const lastMoveAi = getLastMove(chess);
-                changeAudio(lastMoveAi);
-                cg.set({
-                  turnColor: toColor(chess),
-                  check: chess.inCheck(),
-                  lastMove: [lastMoveAi.from, lastMoveAi.to],
-                  movable: {
-                    color: toColor(chess),
-                    dests: toDests(chess)
-                  }
-                });
-                count++;
-                expectedMove = expectedLine[count];
-                if (expectedMove?.variations) {
-                  setTimeout(() => {
-                    errorCount = 0;
-                    if (expectedMove?.variations.length > 0 && acceptVariations == "true") {
-                      const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-                      if (moveVar == expectedMove.variants.length) {
-                      } else {
-                        count = 0;
-                        expectedLine = expectedMove.variations[moveVar];
-                        expectedMove = expectedLine[0];
-                      }
-                    }
-                    if (expectedMove.notation.promotion) {
-                      chess2.load(chess.fen());
-                      chess.move(expectedMove.notation.notation);
-                      const lastMove = chess.undo();
-                      chess2.remove(lastMove.from);
-                      chess2.put({ type: "p", color: chess.turn() }, lastMove.to);
-                      cg.set({
-                        fen: chess2.fen()
-                      });
-                      chess.move(expectedMove.notation.notation);
-                      setTimeout(() => {
-                        cg.set({ animation: { enabled: false } });
-                        cg.set({
-                          fen: chess.fen()
-                        });
-                        cg.set({ animation: { enabled: true } });
-                      }, 200);
-                    } else {
-                      chess.move(expectedMove.notation.notation);
-                      cg.set({
-                        fen: chess.fen()
-                      });
-                    }
-                    const lastMoveAi2 = getLastMove(chess);
-                    changeAudio(lastMoveAi2);
-                    cg.set({
-                      turnColor: toColor(chess),
-                      movable: {
-                        color: toColor(chess),
-                        dests: toDests(chess)
-                      }
-                    });
-                    cg.set({
-                      check: chess.inCheck()
-                    });
-                    cg.set({ lastMove: [lastMoveAi2.from, lastMoveAi2.to] });
-                    count++;
-                    expectedMove = expectedLine[count];
-                    cg.playPremove();
-                    if (!expectedMove || typeof expectedMove === "string") {
-                      window.parent.postMessage(errorTrack, "*");
-                      document.documentElement.style.setProperty("--border-color", solvedColour);
-                      cg.set({
-                        selected: void 0,
-                        // Clear any selected square
-                        draggable: {
-                          current: void 0
-                          // Explicitly clear any currently dragged piece
-                        },
-                        viewOnly: true
-                      });
-                    }
-                  }, delay);
-                } else {
-                  count++;
-                  expectedMove = expectedLine[count];
-                  if (!expectedMove || typeof expectedMove === "string") {
-                    window.parent.postMessage(errorTrack, "*");
-                    document.documentElement.style.setProperty("--border-color", solvedColour);
-                    cg.set({
-                      selected: void 0,
-                      // Clear any selected square
-                      draggable: {
-                        current: void 0
-                        // Explicitly clear any currently dragged piece
-                      },
-                      viewOnly: true
-                    });
-                  }
-                  count--;
-                  expectedMove = expectedLine[count];
-                }
-                errorCount = 0;
-              }, delay);
-            } else {
-              audio.src = "_Error.mp3";
-              audio.play().catch(() => {
-              });
-            }
-          }
-        }
-      }
-      function drawArrows(cg, chess) {
-        if (!pgnState || typeof expectedMove === "string") {
-          return;
-        }
-        const comment = expectedLine[count - 1]?.commentAfter;
-        if (comment) {
-          pgnComment.innerHTML = "<ul><li>" + expectedLine[count - 1].commentAfter + "</ul></li>";
-        } else {
-          pgnComment.innerHTML = "";
-        }
-        if (expectedMove?.variations) {
-          chess.move(expectedMove.notation.notation);
-          alternateMove = chess.undo();
-          if (alternateMove.san === expectedMove.notation.notation) {
-            alternateMoves = [];
-            alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: "green" });
-            for (var i = 0; i < expectedMove.variations.length; i++) {
-              chess.move(expectedMove.variations[i][0].notation.notation);
-              alternateMove = chess.undo();
-              alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: "blue" });
-            }
-            ;
-            const alternateMovesShift = alternateMoves.shift();
-            alternateMoves.push(alternateMovesShift);
-          }
-          cg.set({
-            drawable: {
-              shapes: alternateMoves
-            }
-          });
-        }
-      }
-      function PGNnavigator(cg, chess, moveSan, chess2) {
-        if (moveSan) {
-          if (expectedMove?.variations) {
-            if (moveSan === expectedMove.notation.notation && pgnState) {
-              count++;
-              expectedMove = expectedLine[count];
-              drawArrows(cg, chess);
-            } else if (expectedMove.variations.length > 0 && pgnState) {
-              pgnState = false;
-              for (var i = 0; i < expectedMove.variations.length; i++) {
-                if (moveSan == expectedMove.variations[i][0].notation.notation) {
-                  pgnState = true;
-                  expectedLine = expectedMove.variations[i];
-                  expectedMove = expectedLine[1];
-                  count = 1;
-                  drawArrows(cg, chess);
-                  break;
+                  ;
+                  state.expectedLine = parentOfChild.parent;
+                  state.count = parentOfChild.key;
+                  state.expectedMove = state.expectedLine[state.count];
                 }
               }
-              ;
-            } else if (pgnState) {
-              pgnState = false;
+            }
+            if (state.count == 0) {
+              state.pgnState = true;
+            } else if (state.expectedLine[state.count - 1].notation.notation == getLastMove(chess).san) {
+              state.pgnState = true;
             }
           }
-        } else {
-          chess.move(expectedMove.notation.notation);
-          const lastMoveAi = getLastMove(chess);
-          if (expectedMove.notation.promotion) {
-            const lastMove = chess.undo();
-            chess2.load(chess.fen());
-            chess2.remove(lastMove.from);
-            chess2.put({ type: "p", color: chess.turn() }, lastMove.to);
-            cg.set({
-              fen: chess2.fen()
-            });
-            chess.move(expectedMove.notation.notation);
-            setTimeout(() => {
-              cg.set({ animation: { enabled: false } });
-              cg.set({
-                fen: chess.fen()
-              });
-              drawArrows(cg, chess);
-              cg.set({ animation: { enabled: true } });
-            }, 200);
-          } else {
-            cg.set({
-              fen: chess.fen()
-            });
+          drawArrows(cg, chess);
+          writePgnComments();
+          if (state.analysisToggledOn) {
+            state.depth = 5;
+            stockfishCalc();
           }
-          changeAudio(lastMoveAi);
+        }
+        function navForward() {
+          if (state.deepAnalysis || config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation || state.navTimeout !== null) return;
+          state.navTimeout = setTimeout(() => {
+            state.navTimeout = null;
+          }, 200);
+          const tempChess = new Chess(chess.fen());
+          const move3 = tempChess.move(state.expectedMove?.notation?.notation);
+          if (move3) {
+            puzzlePlay(cg, chess, null, move3.from, move3.to);
+          }
+        }
+        function rotateBoard() {
+          state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+          const root = document.documentElement;
+          const coordWhite = getComputedStyle(root).getPropertyValue("--coord-white").trim();
+          const coordBlack = getComputedStyle(root).getPropertyValue("--coord-black").trim();
+          root.style.setProperty("--coord-white", coordBlack);
+          root.style.setProperty("--coord-black", coordWhite);
           cg.set({
-            turnColor: toColor(chess),
-            lastMove: [lastMoveAi.from, lastMoveAi.to],
+            orientation: state.boardRotation
+          });
+        }
+        function resetBoard() {
+          state.count = 0;
+          state.expectedLine = parsedPGN.moves;
+          state.expectedMove = parsedPGN.moves[state.count];
+          state.pgnState = true;
+          chess.reset();
+          chess.load(state.ankiFen);
+          cg.set({
+            fen: chess.fen(),
             check: chess.inCheck(),
+            turnColor: toColor(chess),
+            orientation: state.boardRotation,
             movable: {
               color: toColor(chess),
               dests: toDests(chess)
             }
           });
-          count++;
-          expectedMove = expectedLine[count];
           drawArrows(cg, chess);
         }
-      }
-      function getLegalMovesToSquare(chess, targetSquare) {
-        const allLegalMoves = chess.moves({ verbose: true });
-        const movesToTargetSquare = [];
-        for (const move3 of allLegalMoves) {
-          if (move3.to === targetSquare) {
-            movesToTargetSquare.push(move3);
+        function copyFen() {
+          let textarea = document.createElement("textarea");
+          textarea.value = chess.fen();
+          textarea.style.position = "absolute";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand("copy");
+            playSound("computer-mouse-click");
+            return true;
+          } catch (err) {
+            playSound("Error");
+            console.error("Failed to copy text using execCommand:", err);
+            return false;
+          } finally {
+            document.body.removeChild(textarea);
           }
         }
-        return movesToTargetSquare;
-      }
-      function wrongMove(cg, chess) {
-        cg.set(
-          {
-            check: chess.inCheck(),
-            fen: chess.fen(),
-            turnColor: toColor(chess),
-            movable: {
-              color: toColor(chess),
-              dests: toDests(chess)
-            }
+        document.querySelector("#resetBoard").addEventListener("click", resetBoard);
+        document.querySelector("#navBackward").addEventListener("click", navBackward);
+        document.querySelector("#navForward").addEventListener("click", navForward);
+        document.querySelector("#rotateBoard").addEventListener("click", rotateBoard);
+        document.querySelector("#copyFen").addEventListener("click", copyFen);
+        document.querySelector("#stockfishToggle").addEventListener("click", toggleStockfishAnalysis);
+        document.querySelector("#stockfishCalc").addEventListener("click", deepAnalysis);
+        board.addEventListener("wheel", (event2) => {
+          event2.preventDefault();
+          if (event2.deltaY < 0) {
+            navBackward();
+          } else if (event2.deltaY > 0) {
+            navForward();
           }
-        );
-      }
-      function promotePopup(moveCheck, cg, chess, orig, dest, delay, chess2) {
-        const cancelPopup = function() {
-          cg.set({
-            fen: chess.fen(),
-            turnColor: toColor(chess),
-            movable: {
-              color: toColor(chess),
-              dests: toDests(chess)
-            }
-          });
-          toggleDisplay("showHide");
-          document.querySelector("cg-board").style.cursor = "pointer";
-          if (boardMode == "Viewer") {
-            drawArrows(cg, chess);
-          }
-        };
-        const promoteButtons = document.querySelectorAll("#center > button");
-        const overlay = document.querySelector("#overlay");
-        for (var i = 0; i < promoteButtons.length; i++) {
-          promoteButtons[i].onclick = function() {
-            event.stopPropagation();
-            promoteChoice = this.value;
-            if (boardMode === "Puzzle") {
-              cancelPopup();
-              moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2);
-            } else if (boardMode === "Viewer") {
-              cancelPopup();
-              const move3 = chess.move({ from: orig, to: dest, promotion: promoteChoice });
-              changeAudio(move3);
-              cg.set({
-                fen: chess.fen(),
-                check: chess.inCheck(),
-                turnColor: toColor(chess),
-                movable: {
-                  color: toColor(chess),
-                  dests: toDests(chess)
-                },
-                lastMove: [move3.from, move3.to]
-              });
-              PGNnavigator(cg, chess, move3.san);
-            }
-            document.querySelector(".cg-wrap").style.filter = "none";
-            document.querySelector("cg-board").style.cursor = "pointer";
-          };
-          overlay.onclick = function() {
-            cancelPopup();
-            const audio = document.getElementById("myAudio");
-            audio.src = "_Move.mp3";
-            audio.play();
-          };
-        }
-        toggleDisplay("showHide");
-        document.querySelector("cg-board").style.cursor = "default";
-      }
-      function puzzlePlay(cg, chess, delay, from, to, chess2) {
-        return (orig, dest) => {
-          selectState = false;
-          const moveAccepted = count;
-          if (from) {
-            orig = from;
-            dest = to;
-          }
-          ;
-          const playerComment = expectedLine[count]?.commentAfter;
-          foundVariation = false;
-          alternateMoves = [];
-          console.log("moveCheck");
-          console.log(chess.fen());
-          chess.move({ from: orig, to: dest, promotion: promoteChoice });
-          const moveCheck = chess.undo().san;
-          console.log(moveCheck);
-          if (expectedMove?.variations.length > 0 && disableArrows == "false") {
-            for (var i = 0; i < expectedMove.variations.length; i++) {
-              if (moveCheck != expectedMove.variations[i][0].notation.notation) {
-                chess.move(expectedMove.variations[i][0].notation.notation);
-                alternateMove = chess.undo();
-                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: "blue" });
-              } else {
-                chess.move(expectedMove.notation.notation);
-                alternateMove = chess.undo();
-                alternateMoves.push({ orig: alternateMove.from, dest: alternateMove.to, brush: "green" });
-              }
-            }
-            ;
-          }
-          if (moveCheck.includes("=")) {
-            promotePopup(moveCheck, cg, chess, orig, dest, delay, chess2);
-          } else {
-            moveChecker(moveCheck, cg, chess, orig, dest, delay, chess2);
-          }
-          const opponentComment = expectedLine[count]?.commentAfter;
-          if ((playerComment || opponentComment) && moveAccepted < count) {
-            pgnComment.innerHTML = "<ul><li>" + (boarOrientation === "white" ? "<b>White: </b>" : "<b>Black: </b>") + (playerComment ? playerComment : "") + "</li><li>" + (boarOrientation === "white" ? "<b>Black: </b>" : "<b>White: </b>") + (opponentComment ? opponentComment : "") + "</ul></li>";
-          } else if (moveAccepted < count) {
-            pgnComment.innerHTML = "";
-          }
-        };
-      }
-      function changeAudio(gameState) {
-        const audio = document.getElementById("myAudio");
-        if (gameState.san.includes("#")) {
-          audio.src = "_checkmate.mp3";
-        } else if (gameState.san.includes("+")) {
-          audio.src = "_move-check.mp3";
-        } else if (gameState.flags.includes("c")) {
-          audio.src = "_Capture.mp3";
-        } else if (gameState.flags.includes("k") || gameState.flags.includes("q")) {
-          audio.src = "_castle.mp3";
-        } else if (gameState.flags.includes("p")) {
-          audio.src = "_promote.mp3";
-        } else {
-          audio.src = "_Move.mp3";
-        }
-        audio.play().catch(() => {
         });
       }
-      function reload() {
-        count = 0;
-        expectedLine = parsedPGN.moves;
-        expectedMove = parsedPGN.moves[count];
-        const chess = new Chess(ankiFen);
-        const chess2 = new Chess();
-        const board = document.getElementById("board");
-        if (boardMode === "Puzzle") {
-          const cg = Chessground(board, {
-            fen: ankiFen,
-            turnColor: boardRotation,
-            orientation: boardRotation,
-            movable: {
-              color: boardRotation,
-              free: false,
-              dests: toDests(chess)
-            },
-            highlight: {
-              check: true
-            },
-            events: {
-              select: (key) => {
-                if (debounceTimeout !== null) {
-                  return;
-                }
-                ;
-                debounceTimeout = setTimeout(() => {
-                  debounceTimeout = null;
-                }, 300);
-                if (cg.state.selected == selectState && selectState == key) {
-                  selectState = false;
-                  return;
-                } else if (selectState !== key && key == cg.state.selected) {
-                  selectState = key;
-                  return;
-                } else if (selectState) {
-                  const legalMovesFromSelected = chess.moves({ square: selectState, verbose: true });
-                  const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
-                  if (isValidMove) {
-                    return;
-                  } else {
-                  }
-                  selectState = false;
-                }
-                const targetSquare = key;
-                const legalMovesToSquare = getLegalMovesToSquare(chess, targetSquare);
-                if (legalMovesToSquare.length == 1) {
-                  const lastMove = chess.move(legalMovesToSquare[0].san);
-                  cg.set({
-                    fen: chess.fen(),
-                    turnColor: toColor(chess),
-                    movable: {
-                      color: toColor(chess),
-                      dests: toDests(chess)
-                    },
-                    check: chess.inCheck(),
-                    lastMove: [lastMove.from, lastMove.to]
-                  });
-                  chess.undo();
-                  puzzlePlay(cg, chess, 300, legalMovesToSquare[0].from, legalMovesToSquare[0].to, chess2)();
-                }
-              }
-            }
-          });
-          cg.set({
-            movable: {
-              events: {
-                after: puzzlePlay(cg, chess, 300, null, null, chess2)
-              }
-            }
-          });
-          if (chess.inCheck() == true) {
-            cg.set({
-              check: true
-            });
-          }
-          if (chess.isGameOver() == false && flipBoard == "true") {
-            setTimeout(() => {
-              if (expectedMove?.variations.length > 0 && acceptVariations == "true") {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-                if (moveVar == expectedMove.variants.length) {
-                } else {
-                  count = 0;
-                  expectedLine = expectedMove.variations[moveVar];
-                  expectedMove = expectedLine[0];
-                }
-              }
-              chess.move(expectedMove.notation.notation);
-              const lastMoveAi = getLastMove(chess);
-              changeAudio(lastMoveAi);
-              cg.set({
-                fen: chess.fen(),
-                movable: {
-                  dests: toDests(chess)
-                }
-              });
-              cg.set({
-                turnColor: boardRotation,
-                check: chess.inCheck()
-              });
-              cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-              count++;
-              expectedMove = expectedLine[count];
-              cg.playPremove();
-            }, 200);
-          }
-          document.querySelector("#buttons-container").style = "display: none";
-        } else if (boardMode === "Viewer") {
-          let findParent = function(obj, targetChild) {
-            for (const key in obj) {
-              if (obj.hasOwnProperty(key)) {
-                const value = obj[key];
-                if (typeof value === "object" && value !== null) {
-                  if (value === targetChild) {
-                    return {
-                      key,
-                      parent: obj
-                      // This is the direct parent
-                    };
-                  }
-                  const foundParent = findParent(value, targetChild);
-                  if (foundParent) {
-                    return foundParent;
-                  }
-                }
-              }
-            }
-            return null;
-          }, navBackward = function() {
-            const lastMove = chess.undo();
-            const FENpos = chess.fen();
-            if (lastMove) {
-              if (lastMove.promotion) {
-                const chess22 = new Chess();
-                chess22.load(FENpos);
-                chess22.remove(lastMove.to);
-                chess22.remove(lastMove.from);
-                chess22.put({ type: "p", color: chess.turn() }, lastMove.to);
-                cg.set({ animation: { enabled: false } });
-                cg.set({
-                  fen: chess22.fen()
-                });
-                chess22.remove(lastMove.to);
-                chess22.put({ type: "p", color: chess.turn() }, lastMove.from);
-                cg.set({ animation: { enabled: true } });
-                cg.set({
-                  fen: FENpos
-                });
-              } else {
-                cg.set({
-                  fen: chess.fen()
-                });
-              }
-              cg.set({
-                check: chess.inCheck(),
-                turnColor: toColor(chess),
-                movable: {
-                  color: toColor(chess),
-                  dests: toDests(chess)
-                },
-                lastMove: [lastMove.from, lastMove.to]
-              });
-              if (expectedLine[count - 1]?.notation?.notation === lastMove.san) {
-                if (true) {
-                  count--;
-                  expectedMove = expectedLine[count];
-                  if (count === 0) {
-                    let parentOfChild = findParent(parsedPGN.moves, expectedLine);
-                    if (parentOfChild) {
-                      for (var i = 0; i < 2; i++) {
-                        parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
-                      }
-                      ;
-                      expectedLine = parentOfChild.parent;
-                      count = parentOfChild.key;
-                      expectedMove = expectedLine[count];
-                    }
-                  }
-                }
-              }
-              if (count == 0) {
-                pgnState = true;
-                drawArrows(cg, chess);
-              } else if (expectedLine[count - 1].notation.notation == getLastMove(chess).san) {
-                pgnState = true;
-                drawArrows(cg, chess);
-              }
-            }
-          };
-          const cg = Chessground(board, {
-            fen: ankiFen,
-            orientation: boardRotation,
-            turnColor: boardRotation,
-            movable: {
-              free: false,
-              color: boardRotation,
-              dests: toDests(chess)
-            },
-            highlight: {
-              check: true
-            },
-            events: {
-              select: (key) => {
-                if (debounceTimeout !== null) {
-                  drawArrows(cg, chess);
-                  return;
-                }
-                ;
-                debounceTimeout = setTimeout(() => {
-                  debounceTimeout = null;
-                }, 100);
-                if (cg.state.selected == selectState && selectState == key) {
-                  selectState = false;
-                  drawArrows(cg, chess);
-                  return;
-                } else if (selectState !== key && key == cg.state.selected) {
-                  selectState = key;
-                  drawArrows(cg, chess);
-                  return;
-                } else if (selectState) {
-                  const legalMovesFromSelected = chess.moves({ square: selectState, verbose: true });
-                  const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
-                  if (isValidMove) {
-                    return;
-                  } else {
-                  }
-                  selectState = false;
-                }
-                const targetSquare = key;
-                const legalMovesToSquare = getLegalMovesToSquare(chess, targetSquare);
-                if (legalMovesToSquare.length == 1) {
-                  chess.move(legalMovesToSquare[0].san);
-                  const lastMove = getLastMove(chess);
-                  changeAudio(lastMove);
-                  cg.set({
-                    fen: chess.fen(),
-                    check: chess.inCheck(),
-                    turnColor: toColor(chess),
-                    movable: {
-                      color: toColor(chess),
-                      dests: toDests(chess)
-                    },
-                    lastMove: [lastMove.from, lastMove.to]
-                  });
-                  PGNnavigator(cg, chess, lastMove.san);
-                } else if (legalMovesToSquare.length > 1 && pgnState) {
-                  let moveTracker = false;
-                  if (expectedMove?.variations) {
-                    const expectedMoveStore = expectedMove?.notation?.notation;
-                    for (var i = 0; i < legalMovesToSquare.length; i++) {
-                      const legalMovesToSquareAlt = legalMovesToSquare[i].san;
-                      if (moveTracker) {
-                        break;
-                      }
-                      for (var k = 0; k < legalMovesToSquare.length; k++) {
-                        const legalMovesToSquareAlt2 = legalMovesToSquare[k].san;
-                        if (expectedMove?.notation?.notation === legalMovesToSquareAlt2) {
-                          chess.move(legalMovesToSquareAlt2);
-                          if (expectedMove.notation.promotion) {
-                            const lastMove2 = chess.undo();
-                            const chess22 = new Chess();
-                            chess22.load(chess.fen());
-                            chess22.remove(lastMove2.from);
-                            chess22.put({ type: "p", color: chess.turn() }, lastMove2.to);
-                            cg.set({
-                              fen: chess22.fen()
-                            });
-                            chess.move(expectedMove.notation.notation);
-                            setTimeout(() => {
-                              cg.set({ animation: { enabled: false } });
-                              cg.set({
-                                fen: chess.fen()
-                              });
-                              cg.set({ animation: { enabled: true } });
-                              drawArrows(cg, chess);
-                            }, 200);
-                          } else {
-                            cg.set({
-                              fen: chess.fen()
-                            });
-                          }
-                          const lastMove = getLastMove(chess);
-                          changeAudio(lastMove);
-                          cg.set({
-                            check: chess.inCheck(),
-                            turnColor: toColor(chess),
-                            movable: {
-                              color: toColor(chess),
-                              dests: toDests(chess)
-                            },
-                            lastMove: [lastMove.from, lastMove.to]
-                          });
-                          PGNnavigator(cg, chess, lastMove.san);
-                          moveTracker = true;
-                          break;
-                        }
-                      }
-                      for (var j = 0; j < expectedMove?.variations?.length; j++) {
-                        if (expectedMove.variations[j][0].notation.notation === legalMovesToSquareAlt) {
-                          chess.move(expectedMove.variations[j][0].notation.notation);
-                          if (expectedMove.variants[j][0].notation.promotion) {
-                            const lastMove2 = chess.undo();
-                            const chess22 = new Chess();
-                            chess22.load(chess.fen());
-                            chess22.remove(lastMove2.from);
-                            chess22.put({ type: "p", color: chess.turn() }, lastMove2.to);
-                            cg.set({
-                              fen: chess22.fen()
-                            });
-                            chess.move(expectedMove.variants[j][0].notation.notation);
-                            setTimeout(() => {
-                              cg.set({ animation: { enabled: false } });
-                              cg.set({
-                                fen: chess.fen()
-                              });
-                              cg.set({ animation: { enabled: true } });
-                              drawArrows(cg, chess);
-                            }, 200);
-                          } else {
-                            cg.set({
-                              fen: chess.fen()
-                            });
-                          }
-                          const lastMove = getLastMove(chess);
-                          changeAudio(lastMove);
-                          cg.set({
-                            check: chess.inCheck(),
-                            turnColor: toColor(chess),
-                            movable: {
-                              color: toColor(chess),
-                              dests: toDests(chess)
-                            },
-                            lastMove: [lastMove.from, lastMove.to]
-                          });
-                          PGNnavigator(cg, chess, legalMovesToSquareAlt);
-                          moveTracker = true;
-                          break;
-                        }
-                      }
-                    }
-                  }
-                  if (!moveTracker) {
-                    drawArrows(cg, chess);
-                  }
-                } else {
-                  drawArrows(cg, chess);
-                }
-              }
-            }
-          });
-          ;
-          var resetBoard = function() {
-            count = 0;
-            expectedLine = parsedPGN.moves;
-            expectedMove = parsedPGN.moves[count];
-            pgnState = true;
-            chess.reset();
-            chess.load(ankiFen);
-            cg.set({
-              fen: chess.fen(),
-              check: chess.inCheck(),
-              turnColor: toColor(chess),
-              orientation: boarOrientation,
-              movable: {
-                color: toColor(chess),
-                dests: toDests(chess)
-              }
-            });
-            drawArrows(cg, chess);
-          };
-          var rotateBoard = function() {
-            boarOrientation = boarOrientation === "white" ? "black" : "white";
-            const root = document.documentElement;
-            const coordWhite = getComputedStyle(root).getPropertyValue("--coord-white").trim();
-            const coordBlack = getComputedStyle(root).getPropertyValue("--coord-black").trim();
-            root.style.setProperty("--coord-white", coordBlack);
-            root.style.setProperty("--coord-black", coordBlack);
-            cg.set({
-              orientation: boarOrientation
-            });
-          };
-          ;
-          var navForward = function() {
-            const chess22 = new Chess();
-            if (count == 0) {
-              const lastMove = getLastMove(chess);
-              if (!lastMove) {
-                pgnState = true;
-                expectedMove = expectedLine[count];
-                PGNnavigator(cg, chess, null, chess22);
-              }
-            } else if (expectedLine[count]?.notation) {
-              const lastMove = getLastMove(chess);
-              if (expectedLine[count - 1]?.notation?.notation == lastMove.san) {
-                expectedMove = expectedLine[count];
-                PGNnavigator(cg, chess, null, chess22);
-              }
-            }
-          };
-          var copyFen = function() {
-            let textarea = document.createElement("textarea");
-            textarea.value = chess.fen();
-            textarea.style.position = "absolute";
-            textarea.style.left = "-9999px";
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-              document.execCommand("copy");
-              const audio = document.getElementById("myAudio");
-              audio.src = "_computer-mouse-click.mp3";
-              audio.play().catch(() => {
-              });
-              return true;
-            } catch (err) {
-              const audio = document.getElementById("myAudio");
-              audio.src = "_Error.mp3";
-              audio.play().catch(() => {
-              });
-              console.error("Failed to copy text using execCommand:", err);
-              return false;
-            } finally {
-              document.body.removeChild(textarea);
-            }
-          };
-          document.querySelector("#resetBoard").addEventListener("click", resetBoard);
-          document.querySelector("#navBackward").addEventListener("click", navBackward);
-          document.querySelector("#navForward").addEventListener("click", navForward);
-          document.querySelector("#rotateBoard").addEventListener("click", rotateBoard);
-          document.querySelector("#copyFen").addEventListener("click", copyFen);
-          board.addEventListener("wheel", (event2) => {
-            event2.preventDefault();
-            if (event2.deltaY < 0) {
-              navBackward();
-            } else if (event2.deltaY > 0) {
-              navForward();
-            }
-          });
-          cg.set({
-            movable: {
-              events: {
-                after: playOtherSide(cg, chess)
-              }
-            }
-          });
-          if (chess.inCheck() == true) {
-            cg.set({
-              turnColor: toColor(chess),
-              check: true
-            });
-          }
-          if (chess.isGameOver() == false && flipBoard == "true") {
-            setTimeout(() => {
-              if (expectedMove?.variations.length > 0 && acceptVariations == "true") {
-                const moveVar = Math.floor(Math.random() * (expectedMove.variants.length + 1));
-                if (moveVar == expectedMove.variants.length) {
-                } else {
-                  count = 0;
-                  expectedLine = expectedMove.variations[moveVar];
-                  expectedMove = expectedLine[0];
-                }
-              }
-              chess.move(expectedMove.notation.notation);
-              const lastMoveAi = getLastMove(chess);
-              changeAudio(lastMoveAi);
-              cg.set({
-                fen: chess.fen(),
-                movable: {
-                  dests: toDests(chess)
-                }
-              });
-              cg.set({
-                turnColor: toColor(chess),
-                check: chess.inCheck()
-              });
-              cg.set({ lastMove: [lastMoveAi.from, lastMoveAi.to] });
-              count++;
-              expectedMove = expectedLine[count];
-              cg.playPremove();
-              drawArrows(cg, chess);
-            }, 200);
-          } else {
-            drawArrows(cg, chess);
-          }
-          return cg;
-        } else if (boardMode === "test") {
-          const boardContainer = document.getElementById("board-container");
-          const pgnViewer = new start4(boardContainer, {
-            pgn: urlPGN
-          });
-          var stockfish = STOCKFISH();
-          stockfish.addEventListener("message", function(e2) {
-            console.log(e2.data);
-          });
-          stockfish.postMessage("uci");
-        }
+      document.querySelector("#promoteQ").src = "_" + state.boardRotation[0] + "Q.svg";
+      document.querySelector("#promoteB").src = "_" + state.boardRotation[0] + "B.svg";
+      document.querySelector("#promoteN").src = "_" + state.boardRotation[0] + "N.svg";
+      document.querySelector("#promoteR").src = "_" + state.boardRotation[0] + "R.svg";
+      if (state.errorTrack === "true" && config.boardMode === "Viewer") {
+        document.documentElement.style.setProperty("--border-color", "#b31010");
+      } else if (state.errorTrack === "false" && config.boardMode === "Viewer") {
+        document.documentElement.style.setProperty("--border-color", "limegreen");
       }
       function positionPromoteOverlay() {
-        if (boardMode === "test") {
-          return;
-        }
-        ;
         const promoteOverlay = document.getElementById("center");
         const rect = document.querySelector(".cg-wrap").getBoundingClientRect();
         promoteOverlay.style.top = rect.top + 6 + "px";
@@ -19191,10 +14527,6 @@ ${opts.pgn}`;
         setTimeout(() => {
           positionPromoteOverlay();
         }, 200);
-      }
-      if (muteAudio == "true") {
-        const audioElement = document.getElementById("myAudio");
-        audioElement.muted = true;
       }
       loadElements();
     }
