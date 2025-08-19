@@ -27,6 +27,8 @@ An interactive chess template for anki.
 
 How to install:
 
+either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) or manually install:
+
 1. Go to the **[_Releases_ page](https://github.com/TowelSniffer/Anki-Chess-2.0/releases)**.
 1. In the latest release's _Assets_ section, download "chess.apkg".
 1. Open Anki and make sure your devices are all synchronised.
