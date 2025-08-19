@@ -27,6 +27,7 @@ const config = {
     handicap: parseInt(getUrlParam("handicap", 1), 10),
     strictScoring: getUrlParam("strictScoring", 'false') === 'true',
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
+    disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'true') === 'true',
     boardMode: getUrlParam("boardMode", 'Viewer'),
     background: getUrlParam("background", "#2C2C2C"),
@@ -109,6 +110,7 @@ function initAudio(mute) {
 const audioMap = initAudio(config.muteAudio);
 
 function playSound(soundName) {
+    if (config.muteAudio) return
     const audio = audioMap.get(soundName);
     if (audio) {
         // Clone the preloaded audio element and play the clone.
@@ -220,6 +222,9 @@ function drawArrows(cg, chess, redraw) {
     if (!state.pgnState || redraw) {
         cg.set({ drawable: { shapes: state.chessGroundShapes } });
         return
+    }
+    if ((config.boardMode === 'Puzzle') && config.disableArrows) {
+        return;
     }
     if (!state.analysisToggledOn) {
         state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfinished' && shape.brush !== 'stockfish');

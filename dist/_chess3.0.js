@@ -13722,6 +13722,7 @@ ${contextLines.join("\n")}`;
         handicap: parseInt(getUrlParam("handicap", 1), 10),
         strictScoring: getUrlParam("strictScoring", "false") === "true",
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
+        disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
         boardMode: getUrlParam("boardMode", "Viewer"),
         background: getUrlParam("background", "#2C2C2C")
@@ -13780,6 +13781,7 @@ ${contextLines.join("\n")}`;
       }
       var audioMap = initAudio(config.muteAudio);
       function playSound(soundName) {
+        if (config.muteAudio) return;
         const audio = audioMap.get(soundName);
         if (audio) {
           audio.cloneNode().play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
@@ -13864,6 +13866,9 @@ ${contextLines.join("\n")}`;
         state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
         if (!state.pgnState || redraw) {
           cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+          return;
+        }
+        if (config.boardMode === "Puzzle" && config.disableArrows) {
           return;
         }
         if (!state.analysisToggledOn) {
