@@ -496,7 +496,7 @@ function deepAnalysis() {
         // The button is intentionally NOT disabled, allowing it to be clicked again to cancel.
         state.deepAnalysis = true;
         cg.set({ viewOnly: true });
-        startAnalysis(6000);
+        startAnalysis(4000);
     }
 }
 
@@ -543,7 +543,13 @@ function playAiMove(cg, chess, delay) {
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
             window.parent.postMessage(state.errorTrack, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
-            cg.set({ viewOnly: true });
+            cg.set({
+                selected: undefined, // Clear any selected square
+                draggable: {
+                    current: undefined // Explicitly clear any currently dragged piece
+                },
+                viewOnly: true
+            });
         }
         drawArrows(cg, chess, true);
     }, delay);
@@ -562,7 +568,13 @@ function playUserCorrectMove(cg, chess, delay) {
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
             window.parent.postMessage(state.errorTrack, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
-            cg.set({ viewOnly: true });
+            cg.set({
+                selected: undefined, // Clear any selected square
+                draggable: {
+                    current: undefined // Explicitly clear any currently dragged piece
+                },
+                viewOnly: true
+            });
         }
     }, delay);
 }

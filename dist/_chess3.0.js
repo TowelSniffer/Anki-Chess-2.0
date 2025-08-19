@@ -14091,7 +14091,7 @@ ${contextLines.join("\n")}`;
           setNavButtonsDisabled(true);
           state.deepAnalysis = true;
           cg.set({ viewOnly: true });
-          startAnalysis(6e3);
+          startAnalysis(4e3);
         }
       }
       function makeMove(cg2, chess2, move3) {
@@ -14134,7 +14134,15 @@ ${contextLines.join("\n")}`;
           if (!state.expectedMove || typeof state.expectedMove === "string") {
             window.parent.postMessage(state.errorTrack, "*");
             document.documentElement.style.setProperty("--border-color", state.solvedColour);
-            cg2.set({ viewOnly: true });
+            cg2.set({
+              selected: void 0,
+              // Clear any selected square
+              draggable: {
+                current: void 0
+                // Explicitly clear any currently dragged piece
+              },
+              viewOnly: true
+            });
           }
           drawArrows(cg2, chess2, true);
         }, delay);
@@ -14149,7 +14157,15 @@ ${contextLines.join("\n")}`;
           if (!state.expectedMove || typeof state.expectedMove === "string") {
             window.parent.postMessage(state.errorTrack, "*");
             document.documentElement.style.setProperty("--border-color", state.solvedColour);
-            cg2.set({ viewOnly: true });
+            cg2.set({
+              selected: void 0,
+              // Clear any selected square
+              draggable: {
+                current: void 0
+                // Explicitly clear any currently dragged piece
+              },
+              viewOnly: true
+            });
           }
         }, delay);
       }
