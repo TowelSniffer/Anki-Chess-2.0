@@ -32,7 +32,7 @@ How to install:
 1. Open Anki and make sure your devices are all synchronised.
 1. In the _File_ menu, select _Import_.
 1. Browse for and select the downloaded file `chess.apkg`.
-1. Download the Media Files.rar folder and extract. Copy the contents of the Media Files folder into you anki collection.media folder
+1. Download the dist.zip folder and extract. Copy the contents of the dist folder into you anki collection.media folder
 
 👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository). Also [Discord server](
 https://discord.gg/YPj4Pz2Qzw). 
