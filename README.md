@@ -13,12 +13,13 @@ An interactive chess template for anki.
 ## Features
 
 - Works with PGN format
-- Support for piece promotions
-- Board auto orientates dpending on first move of given puzzle
-- Works offline and on Ankidroid (Ankidroid verified, IOS)
-- No addons required
-- Analysis board on the backside
-- Backside border colour to indicate mistakes
+- All the amenities, such as promotions, sound effects etc.
+- Stockfish engine (This is a weaker version running as pure js).
+- Board auto orientates dpending on first move of given puzzle.
+- Works offline and on Ankidroid (Ankidroid verified, IOS).
+- No addons required (The companion addon is just to make the installation process easy).
+- Analysis board on the backside.
+- Border indicates mistakes, puzzle completion, and player colour.
 - support for multiple lines. this means you can choose multiple moves to be the correct answer, and the cards will respond with a random move (if multiple lines exist).
 
 
