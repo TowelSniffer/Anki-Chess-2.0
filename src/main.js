@@ -22,17 +22,16 @@ function getUrlParam(name, defaultValue) {
 const config = {
     pgn: getUrlParam("PGN", `[Event "?"]
 [Site "?"]
-[Date "2025.02.17"]
+[Date "2023.02.13"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "r1b1r1k1/2pp1ppp/2p5/B7/N1P4q/P3P1n1/1P2B2P/R2QK2R w KQ - 0 15"]
+[FEN "r4rk1/pppq1ppp/2np1n2/8/3pPP2/P2B1Q1P/1PPB2P1/R4RK1 w - - 1 12"]
 [SetUp "1"]
 
-15. hxg3 Qxh1+ {EV: 99.0%, N: 99.65% of 15.9k} 16. Kd2 {EV: 0.9%, N: 67.79% of
-30.6k} Qxd1+ {EV: 99.7%, N: 83.19% of 85.9k} 17. Bxd1 {EV: 0.4%, N: 56.03% of
-94.1k} Rxa5 {EV: 99.7%, N: 99.92% of 61.0k} *`),
+12. Qg3 d5 {EV: 57.0%} 13. exd5 {EV: 43.0%} (13. e5 {EV: 41.0%} Ne4 {EV: 58.9%}
+) Nxd5 {EV: 57.4%} *`),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
@@ -49,6 +48,8 @@ const config = {
 let state = {
     ankiFen: "",
     boardRotation: "black",
+    playerColour: "white",
+    opponentColour: "black",
     solvedColour: "limegreen",
     errorTrack: getUrlParam("errorTrack", null),
     count: 0,
@@ -160,8 +161,11 @@ if (state.boardRotation === "white") {
     root.style.setProperty('--coord-black', coordWhite);
 }
 
-let boardOrientation = state.boardRotation;
-document.documentElement.style.setProperty('--border-color', boardOrientation);
+state.playerColour = state.boardRotation;
+state.opponentColour = state.boardRotation === "white" ? "black" : "white";
+document.documentElement.style.setProperty('--border-color', state.playerColour);
+document.documentElement.style.setProperty('--player-color', state.playerColour);
+document.documentElement.style.setProperty('--opponent-color', state.opponentColour);
 
 // --- Core Functions ---
 function toDests(chess) {
@@ -246,7 +250,7 @@ function drawArrows(cg, chess, redraw) {
     let count = state.count;
     let parentOfChild;
 
-    if (config.boardMode == 'Puzzle') {
+    if (config.boardMode === 'Puzzle') {
         count--;
         if (count === 0) {
             parentOfChild = findParent(parsedPGN.moves, expectedLine);
@@ -305,7 +309,7 @@ function drawArrows(cg, chess, redraw) {
         state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: 'mainLine', san: mainMoveAttempt.san });
     }
 
-    if (config.boardMode == 'Puzzle' && puzzleMove) {
+    if (config.boardMode === 'Puzzle' && puzzleMove) {
         chess.move(puzzleMove);
     }
     cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -313,6 +317,12 @@ function drawArrows(cg, chess, redraw) {
 
 function updateBoard(cg, chess, move, quite, commentRewrite) { // animate user/ai moves on chessground
     if (!quite) { changeAudio(move) }
+    if (!state.analysisToggledOn) {
+        cgwrap.classList.remove('analysisMode');
+    }
+    if (!state.pgnState) {
+        state.chessGroundShapes = [];
+    }
     if (move.san.includes("=") && state.promoteAnimate) {
         const tempChess = new Chess(chess.fen());
         tempChess.load(chess.fen());
@@ -338,7 +348,7 @@ function updateBoard(cg, chess, move, quite, commentRewrite) { // animate user/a
             dests: toDests(chess),
             // In Puzzle mode, the movable color is fixed to the user's side to allow premoves.
             // In Viewer mode, it follows the current turn.
-            color: config.boardMode === 'Puzzle' ? boardOrientation : toColor(chess),
+            color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
         },
         lastMove: [move.from, move.to]
     });
@@ -366,6 +376,15 @@ function handleStockfishCrash(source) {
     setTimeout(initializeStockfish, 100);
 }
 
+function convertCpToWinPercentage(cp) {
+    const probability = 1 / (1 + Math.pow(10, -cp / 400));
+    let percentage = probability * 100;
+    if (state.playerColour === toColor(chess)) {
+        percentage = 100 - percentage;
+    }
+    return `${percentage.toFixed(1)}%`;
+}
+
 function initializeStockfish() {
     console.log("Initializing Stockfish engine...");
     stockfish = STOCKFISH(); // This creates the JS instance
@@ -378,11 +397,25 @@ function initializeStockfish() {
         if (message.startsWith('info')) {
             const parts = message.split(' ');
             const pvSanIndex = parts.indexOf('pvSan');
+            const cpIndex = parts.indexOf('cp');
+            const mateIndex = parts.indexOf('mate');
             const pvDepthIndex = parts.indexOf('depth');
             if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
                 const firstMove = parts[pvSanIndex + 1];
+                const cp = parts[cpIndex + 1];
+                const mate = parts[mateIndex + 1];
+                let advantage;
+                if (cpIndex === -1) {
+                    advantage = mate < 0 ? 0 : 100;
+                    if (state.playerColour === toColor(chess)) {
+                        advantage = 100 - advantage;
+                    }
+                    advantage = `${advantage.toFixed(1)}%`
+                } else {
+                    advantage = convertCpToWinPercentage(cp);
+                }
                 const pvDepth = parts[pvDepthIndex + 1];
-                console.log(pvDepth);
+                document.documentElement.style.setProperty('--centipawn', advantage);
                 const tempChess = new Chess(chess.fen());
                 const moveObject = tempChess.move(firstMove);
 
@@ -451,10 +484,12 @@ function toggleStockfishAnalysis() {
     toggleButton.classList.toggle('active-toggle', state.analysisToggledOn); // Add/remove class based on state
 
     if (state.analysisToggledOn) {
+        cgwrap.classList.add('analysisMode');
         // Turn analysis ON
         toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>"
         startAnalysis(100);
     } else {
+        cgwrap.classList.remove('analysisMode');
         toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>"
         // Turn analysis OFF
         if (state.isStockfishBusy) {
@@ -494,7 +529,6 @@ function setNavButtonsDisabled(disabled) {
 function deepAnalysis() {
     if (!stockfish) initializeStockfish();
     const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-
     // If deep analysis is already running, clicking the button again will cancel it.
     if (state.deepAnalysis) {
         stockfish.postMessage('stop');
@@ -502,6 +536,7 @@ function deepAnalysis() {
         state.deepAnalysis = false;
 
         deepAnalysisBtn.classList.remove('active-toggle');
+        cgwrap.classList.remove('analysisMode');
         setNavButtonsDisabled(false);
         cg.set({ viewOnly: false });
 
@@ -512,6 +547,7 @@ function deepAnalysis() {
     } else {
         // Otherwise, start a new deep analysis.
         deepAnalysisBtn.classList.add('active-toggle');
+        cgwrap.classList.add('analysisMode');
         setNavButtonsDisabled(true);
         // The button is intentionally NOT disabled, allowing it to be clicked again to cancel.
         state.deepAnalysis = true;
@@ -530,7 +566,7 @@ function makeMove(cg, chess, move) {
 function handleViewerMove(cg, chess, orig, dest) {
     const tempChess = new Chess(chess.fen());
     let move;
-    let promoCheck = false
+    let promoCheck = false;
     if (dest) {
         move = tempChess.move({ from: orig, to: dest, promotion: 'q' });
         promoCheck = true;
@@ -712,7 +748,7 @@ function promotePopup(cg, chess, orig, dest, delay) {
         state.selectState = false;
         toggleDisplay('showHide');
         document.querySelector("cg-board").style.cursor = 'pointer';
-        if (config.boardMode == 'Viewer') {
+        if (config.boardMode === 'Viewer') {
             drawArrows(cg, chess);
         }
     }
@@ -777,20 +813,19 @@ function reload() {
 
     cg = Chessground(board, {
         fen: state.ankiFen,
-        orientation: boardOrientation,
+        orientation: state.playerColour,
         turnColor: toColor(chess),
         events: {
             select: (key) => {
+                // Debounce to prevent rapid firing on touchscreens
+                if (state.debounceTimeout !== null) {
+                    return
+                };
                 if (config.boardMode === 'Puzzle') {
                     drawArrows(cg, chess, true);
                 } else {
                     drawArrows(cg, chess);
                 }
-
-                // Debounce to prevent rapid firing on touchscreens
-                if (state.debounceTimeout !== null) {
-                    return
-                };
                 state.debounceTimeout = setTimeout(() => {
                     state.debounceTimeout = null; // Reset when it fires
                 }, 100);
@@ -808,6 +843,7 @@ function reload() {
                 } else if (state.selectState) {
                     // A piece was selected, and a new square was clicked (the destination).
                     // This is the guard against the 'select' event on the destination square.
+                    state.selectState = false;
                     // Get all legal moves from the selected square
                     const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
                     // Check if the target square (key) is a valid destination for any of these moves
@@ -815,7 +851,6 @@ function reload() {
                     if (isValidMove) {
                         return; // Let the 'after' event handle the move logic.
                     }
-                    state.selectState = false;
                 }
                 // Find the highest-priority arrow pointing to the clicked square. This is more
                 // efficient and readable than iterating through the shapes array multiple times.
@@ -853,11 +888,12 @@ function reload() {
             enabled: true,
         },
         movable: {
-            color: state.boardRotation,
+            color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
             free: false,
             dests: toDests(chess),
             events: {
                 after: (orig, dest) => {
+                    state.selectState = false;
                     if (config.boardMode === 'Puzzle') {
                         puzzlePlay(cg, chess, 300, orig, dest);
                     } else {
@@ -934,7 +970,6 @@ function reload() {
                 },
                 lastMove: [lastMove.from, lastMove.to]
             });
-
             if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
                 state.count--
                 state.expectedMove = state.expectedLine[state.count];
@@ -951,9 +986,14 @@ function reload() {
                     }
                 }
             }
-            if (state.count == 0) {
+            if (state.count === 0 && state.ankiFen !== chess.fen()) {
+                if (state.analysisToggledOn) {
+                    startAnalysis(100);
+                }
+                return;
+            } else if (state.count === 0) {
                 state.pgnState = true; // needed for returning to first move from variation
-            } else if (state.expectedLine[state.count - 1].notation.notation == getLastMove(chess).san) {
+            } else if (state.expectedLine[state.count - 1].notation.notation === getLastMove(chess).san) {
                 state.pgnState = true; // inside PGN
             }
         }
@@ -989,6 +1029,7 @@ function reload() {
     }
     function resetBoard() {
         state.count = 0; // Int so we can track on which move we are.
+        state.chessGroundShapes = [];
         state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
         state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
         state.pgnState = true; // incase outside PGN
@@ -1004,8 +1045,10 @@ function reload() {
                 dests: toDests(chess)
             }
         });
+        if (state.analysisToggledOn) {
+            startAnalysis(100);
+        }
         drawArrows(cg, chess);
-
     }
     function copyFen() { //copy FEN to clipboard
         let textarea = document.createElement("textarea");
@@ -1080,3 +1123,4 @@ async function loadElements() {
 
 
 loadElements();
+const cgwrap = document.getElementsByClassName("cg-wrap")[0];
