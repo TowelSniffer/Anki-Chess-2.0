@@ -22,14 +22,16 @@ function getUrlParam(name, defaultValue) {
 const config = {
     pgn: getUrlParam("PGN", `[Event "?"]
 [Site "?"]
-[Date "2025.08.21"]
+[Date "2023.02.13"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
+[FEN "r4rk1/pppq1ppp/2np1n2/8/3pPP2/P2B1Q1P/1PPB2P1/R4RK1 w - - 1 12"]
+[SetUp "1"]
 
-1. e4 f5 2. exf5 e6 (2... g6 3. fxg6) (2... h6 3. g4 (3. h4) h5) (2... Nf6) *
-`),
+12. Qg3 d5 {EV: 57.0%} 13. exd5 {EV: 43.0%} (13. e5 {EV: 41.0%} Ne4 {EV: 58.9%}
+) Nxd5 {EV: 57.4%} *`),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
@@ -64,7 +66,6 @@ let state = {
     isStockfishBusy: false,
     analysisToggledOn: false,
     deepAnalysis: false,
-    pgnPath: [],
 };
 if (!state.errorTrack) {
     state.errorTrack = false;
@@ -132,25 +133,6 @@ function playSound(soundName) {
 
 chess = new Chess();
 const parsedPGN = parse(config.pgn, { startRule: "game" });
-
-function augmentPgnTree(moves, path = []) {
-    if (!moves) return;
-    for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-        const currentPath = [...path, i];
-        move.pgnPath = currentPath;
-
-        if (move.variations) {
-            move.variations.forEach((variation, varIndex) => {
-                const variationPath = [...currentPath, 'v', varIndex];
-                augmentPgnTree(variation, variationPath);
-            });
-        }
-    }
-}
-
-augmentPgnTree(parsedPGN.moves);
-
 state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 chess.load(state.ankiFen);
 
@@ -213,20 +195,41 @@ function getLastMove(chess) {
     }
 }
 
-function highlightCurrentMove() {
-    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    if (state.pgnPath && state.pgnPath.length > 0) {
-        const pathStr = state.pgnPath.join(',');
-        const el = document.querySelector(`#pgnComment .move[data-path="${pathStr}"]`);
-        if (el) {
-            el.classList.add('current');
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-        }
-    }
-}
 
-function writePgnComments() {
-    highlightCurrentMove();
+function writePgnComments(reWrite) {
+    const pgnCommentEl = document.getElementById('pgnComment');
+    if (!state.pgnState) {
+        pgnCommentEl.innerHTML = "";
+        return
+    }
+    if (reWrite) {
+        return
+    }
+    // --- PGN Comment Display ---
+    const currentMovePgn = state.expectedLine[state.count];
+    const lastMovePgn = state.expectedLine[state.count - 1];
+    const comments = [];
+    // Comment for the move that was just played.
+    if (lastMovePgn?.commentAfter) {
+        const moveColour = lastMovePgn.turn === 'b' ? 'Black' : 'White';
+        comments.push({ player: moveColour, text: lastMovePgn.commentAfter });
+    }
+    // Comment for the upcoming move (less common, but handles pre-move comments).
+    if (currentMovePgn?.commentAfter) {
+        const moveColour = currentMovePgn.turn === 'b' ? 'Black' : 'White';
+        comments.push({ player: moveColour, text: currentMovePgn.commentAfter });
+    }
+
+    // Use a Map to filter out duplicate comments, which can happen with some PGN structures.
+    const uniqueComments = [...new Map(comments.map(item => [item.text, item])).values()];
+
+    let commentHTML = "";
+    if (uniqueComments.length > 0) {
+        const listItems = uniqueComments.map(c => `<li><strong>${c.player}:</strong> ${c.text}</li>`);
+        commentHTML = `<ul>${listItems.join('')}</ul>`;
+    }
+    // Combine the turn information and any comments into the final display.
+    pgnCommentEl.innerHTML = commentHTML;
 }
 
 function drawArrows(cg, chess, redraw) {
@@ -320,14 +323,6 @@ function updateBoard(cg, chess, move, quite, commentRewrite) { // animate user/a
     if (!state.pgnState) {
         state.chessGroundShapes = [];
     }
-
-    if (state.pgnState && state.expectedLine && state.count > 0) {
-        const currentMove = state.expectedLine[state.count - 1];
-        if (currentMove && currentMove.pgnPath) {
-            state.pgnPath = currentMove.pgnPath;
-        }
-    }
-
     if (move.san.includes("=") && state.promoteAnimate) {
         const tempChess = new Chess(chess.fen());
         tempChess.load(chess.fen());
@@ -806,99 +801,6 @@ function findParent(obj, targetChild) {
     return null; // Parent not found in this branch
 };
 
-function buildPgnHtml(moves, path = []) {
-    let html = '';
-    if (!moves || moves.length === 0) return '';
-
-    if (moves[0].turn === 'b' && path.length <= 1) {
-        const moveNumber = Math.floor(moves[0].moveNumber / 2);
-        html += `<span class="move-number">${moveNumber}...</span> `;
-    }
-
-    for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-
-        if (move.turn === 'w') {
-            const moveNumber = Math.floor(move.moveNumber / 2) + 1;
-            html += `<span class="move-number">${moveNumber}.</span> `;
-        }
-
-        html += `<span class="move" data-path="${move.pgnPath.join(',')}">${move.notation.notation}</span> `;
-
-        if (move.commentAfter) {
-            html += `<span class="comment">{ ${move.commentAfter} }</span> `;
-        }
-
-        if (move.variations && move.variations.length > 0) {
-            move.variations.forEach(variation => {
-                html += `( ${buildPgnHtml(variation, variation.pgnPath)} ) `;
-            });
-        }
-    }
-    return html;
-}
-
-function getFullMoveSequenceFromPath(path) {
-    state.count = 0; // Int so we can track on which move we are.
-    state.chessGroundShapes = [];
-    state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
-    state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
-    state.pgnState = true; // incase outside PGN
-    document.querySelector("#navForward").disabled = false;
-    chess.reset();
-    chess.load(state.ankiFen);
-    let branchIndex = null;
-    for ( let i=0; i < path.length; i++) {
-        // [ "3", "v", "1", "2" ] means: at the 3rd mainline move branch into branch[1] and then 2 mainline moves down branch one
-        const pathCount = parseInt(path[i], 10);
-        if (path[i+1] === 'v') {
-            branchIndex = parseInt(path[i+2], 10);
-            i = i + 2 // skip branch move and index after branch
-        }
-        for (let j = 0; j <= pathCount; j++) {
-            if (branchIndex !== null && j === pathCount) {
-                console.log(state.expectedMove, chess.fen())
-                state.count = 0;
-                state.expectedLine = state.expectedMove.variations[branchIndex];
-                state.expectedMove = state.expectedLine[0];
-                console.log("here", i)
-                branchIndex = null;
-            } else {
-                chess.move(state.expectedMove.notation.notation);
-                state.count++;
-                state.expectedMove = state.expectedLine[state.count];
-            }
-        }
-    }
-    cg.set({
-        fen: chess.fen(),
-        check: chess.inCheck(),
-        turnColor: toColor(chess),
-        movable: {
-            color: toColor(chess),
-            dests: toDests(chess)
-        },
-    });
-    return
-}
-
-function onPgnMoveClick(event) {
-    if (!event.target.classList.contains('move')) return;
-
-    const pathStr = event.target.dataset.path;
-    const path = pathStr.split(',');
-    console.log(path);
-    getFullMoveSequenceFromPath(path);
-}
-
-function initPgnViewer() {
-    state.pgnPath = [];
-    const pgnContainer = document.getElementById('pgnComment');
-    pgnContainer.innerHTML = buildPgnHtml(parsedPGN.moves);
-    pgnContainer.addEventListener('click', onPgnMoveClick);
-    highlightCurrentMove();
-}
-
 function reload() {
     state.count = 0;
     state.expectedLine = parsedPGN.moves;
@@ -1017,7 +919,6 @@ function reload() {
                 enabled: false
             }
         });
-        initPgnViewer();
         drawArrows(cg, chess);
     }
     function navBackward() {
@@ -1028,6 +929,7 @@ function reload() {
         const lastMove = chess.undo();
         const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
         if (lastMove) {
+            pgnComment.innerHTML = "";
             if (lastMove.promotion) { // fix promotion animation
                 const tempChess = new Chess(chess.fen()); // new chess instance to no break old one
                 tempChess.load(FENpos);
@@ -1142,7 +1044,6 @@ function reload() {
         if (state.analysisToggledOn) {
             startAnalysis(100);
         }
-        initPgnViewer();
         drawArrows(cg, chess);
     }
     function copyFen() { //copy FEN to clipboard
@@ -1216,6 +1117,6 @@ async function loadElements() {
     }, 200);
 }
 
-console.log(parsedPGN)
+
 loadElements();
 const cgwrap = document.getElementsByClassName("cg-wrap")[0];
