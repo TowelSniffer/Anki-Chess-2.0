@@ -452,8 +452,10 @@ function toggleStockfishAnalysis() {
 
     if (state.analysisToggledOn) {
         // Turn analysis ON
+        toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>"
         startAnalysis(100);
     } else {
+        toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>"
         // Turn analysis OFF
         if (state.isStockfishBusy) {
             stockfish.postMessage('stop'); // Tell the engine to stop thinking
