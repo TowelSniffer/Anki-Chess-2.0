@@ -14171,6 +14171,9 @@ ${contextLines.join("\n")}`;
         } else {
           checkUserMove(cg2, chess2, move3.san, null);
         }
+        if (!state.expectedMove || typeof state.expectedMove === "string") {
+          document.querySelector("#navForward").disabled = true;
+        }
       }
       function playAiMove(cg2, chess2, delay) {
         setTimeout(() => {
@@ -14284,6 +14287,7 @@ ${contextLines.join("\n")}`;
           drawArrows(cg2, chess2, true);
         } else if (!delay) {
           state.pgnState = false;
+          document.querySelector("#navForward").disabled = true;
           makeMove(cg2, chess2, moveAttempt);
         }
         return foundVariation;
@@ -14335,9 +14339,6 @@ ${contextLines.join("\n")}`;
           state.selectState = false;
           toggleDisplay("showHide");
           document.querySelector("cg-board").style.cursor = "pointer";
-          if (config.boardMode === "Viewer") {
-            drawArrows(cg2, chess2);
-          }
         };
         const promoteButtons = document.querySelectorAll("#center > button");
         const overlay = document.querySelector("#overlay");
@@ -14363,7 +14364,6 @@ ${contextLines.join("\n")}`;
           };
         }
         toggleDisplay("showHide");
-        document.querySelector("cg-board").style.cursor = "default";
       }
       function findParent(obj, targetChild) {
         for (const key in obj) {
@@ -14400,11 +14400,6 @@ ${contextLines.join("\n")}`;
                 return;
               }
               ;
-              if (config.boardMode === "Puzzle") {
-                drawArrows(cg, chess, true);
-              } else {
-                drawArrows(cg, chess);
-              }
               state.debounceTimeout = setTimeout(() => {
                 state.debounceTimeout = null;
               }, 100);
@@ -14428,6 +14423,7 @@ ${contextLines.join("\n")}`;
                 if (arrowMove.brush === "stockfish" || arrowMove.brush === "stockfinished") {
                   state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
                   state.pgnState = false;
+                  document.querySelector("#navForward").disabled = true;
                 }
                 if (config.boardMode === "Viewer") {
                   cg.move(arrowMove.orig, arrowMove.dest);
@@ -14467,14 +14463,13 @@ ${contextLines.join("\n")}`;
           },
           highlight: { check: true },
           drawable: {
+            enabled: false,
             brushes: {
               stockfish: { key: "stockfish", color: "indianred", opacity: 1, lineWidth: 8 },
               stockfinished: { key: "stockfinished", color: "red", opacity: 1, lineWidth: 8 },
               mainLine: { key: "mainLine", color: "green", opacity: 0.7, lineWidth: 12 },
               altLine: { key: "altLine", color: "blue", opacity: 0.7, lineWidth: 10 }
-            },
-            // An empty array disables user-drawn shapes via right-click/modifier keys.
-            autoShapes: []
+            }
           }
         });
         if (config.boardMode === "Puzzle") {
@@ -14553,8 +14548,10 @@ ${contextLines.join("\n")}`;
               return;
             } else if (state.count === 0) {
               state.pgnState = true;
+              document.querySelector("#navForward").disabled = false;
             } else if (state.expectedLine[state.count - 1].notation.notation === getLastMove(chess).san) {
               state.pgnState = true;
+              document.querySelector("#navForward").disabled = false;
             }
           }
           drawArrows(cg, chess);
@@ -14572,6 +14569,9 @@ ${contextLines.join("\n")}`;
           const move3 = tempChess.move(state.expectedMove?.notation?.notation);
           if (move3) {
             puzzlePlay(cg, chess, null, move3.from, move3.to);
+          }
+          if (!state.expectedMove || typeof state.expectedMove === "string") {
+            document.querySelector("#navForward").disabled = true;
           }
         }
         function rotateBoard() {
@@ -14591,6 +14591,7 @@ ${contextLines.join("\n")}`;
           state.expectedLine = parsedPGN.moves;
           state.expectedMove = parsedPGN.moves[state.count];
           state.pgnState = true;
+          document.querySelector("#navForward").disabled = false;
           chess.reset();
           chess.load(state.ankiFen);
           cg.set({

@@ -511,11 +511,6 @@ function toggleStockfishAnalysis() {
     }
 }
 
-/**
- * Enables or disables the main navigation and action buttons.
- * This is used to prevent user actions during deep analysis.
- * @param {boolean} disabled - True to disable the buttons, false to enable them.
- */
 function setNavButtonsDisabled(disabled) {
     const buttonIds = ['#resetBoard', '#navBackward', '#navForward', '#rotateBoard', '#copyFen', '#stockfishToggle'];
     buttonIds.forEach(id => {
@@ -577,6 +572,9 @@ function handleViewerMove(cg, chess, orig, dest) {
         promotePopup(cg, chess, orig, dest, null)
     } else {
         checkUserMove(cg, chess, move.san, null);
+    }
+    if (!state.expectedMove || typeof state.expectedMove === 'string') {
+        document.querySelector("#navForward").disabled = true;
     }
 }
 
@@ -697,6 +695,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
         drawArrows(cg, chess, true);
     } else if (!delay) { // no delay passed from viewer mode
         state.pgnState = false;
+        document.querySelector("#navForward").disabled = true;
         makeMove(cg, chess, moveAttempt);
     }
     return foundVariation
@@ -748,9 +747,6 @@ function promotePopup(cg, chess, orig, dest, delay) {
         state.selectState = false;
         toggleDisplay('showHide');
         document.querySelector("cg-board").style.cursor = 'pointer';
-        if (config.boardMode === 'Viewer') {
-            drawArrows(cg, chess);
-        }
     }
     const promoteButtons = document.querySelectorAll("#center > button");
     const overlay = document.querySelector("#overlay");
@@ -776,7 +772,6 @@ function promotePopup(cg, chess, orig, dest, delay) {
         }
     }
     toggleDisplay('showHide');
-    document.querySelector("cg-board").style.cursor = 'default';
 }
 function findParent(obj, targetChild) {
     for (const key in obj) {
@@ -821,11 +816,6 @@ function reload() {
                 if (state.debounceTimeout !== null) {
                     return
                 };
-                if (config.boardMode === 'Puzzle') {
-                    drawArrows(cg, chess, true);
-                } else {
-                    drawArrows(cg, chess);
-                }
                 state.debounceTimeout = setTimeout(() => {
                     state.debounceTimeout = null; // Reset when it fires
                 }, 100);
@@ -864,6 +854,7 @@ function reload() {
                     if (arrowMove.brush === 'stockfish' || arrowMove.brush === 'stockfinished') {
                         state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine');
                         state.pgnState = false;
+                        document.querySelector("#navForward").disabled = true;
                     }
                     if (config.boardMode === 'Viewer') {
                         cg.move(arrowMove.orig, arrowMove.dest);
@@ -905,14 +896,13 @@ function reload() {
         },
         highlight: { check: true },
         drawable: {
+            enabled: false,
             brushes: {
                 stockfish: { key: 'stockfish', color: 'indianred', opacity: 1, lineWidth: 8 },
                 stockfinished: { key: 'stockfinished', color: 'red', opacity: 1, lineWidth: 8 },
                 mainLine: { key: 'mainLine', color: 'green', opacity: 0.7, lineWidth: 12 },
                 altLine: { key: 'altLine', color: 'blue', opacity: 0.7, lineWidth: 10 },
             },
-            // An empty array disables user-drawn shapes via right-click/modifier keys.
-            autoShapes: [],
         },
     });
 
@@ -993,8 +983,10 @@ function reload() {
                 return;
             } else if (state.count === 0) {
                 state.pgnState = true; // needed for returning to first move from variation
+                document.querySelector("#navForward").disabled = false;
             } else if (state.expectedLine[state.count - 1].notation.notation === getLastMove(chess).san) {
                 state.pgnState = true; // inside PGN
+                document.querySelector("#navForward").disabled = false;
             }
         }
         drawArrows(cg, chess);
@@ -1012,6 +1004,9 @@ function reload() {
         const move = tempChess.move(state.expectedMove?.notation?.notation)
         if (move) {
             puzzlePlay(cg, chess, null, move.from, move.to);
+        }
+        if (!state.expectedMove || typeof state.expectedMove === 'string') {
+            document.querySelector("#navForward").disabled = true;
         }
     }
     function rotateBoard() {
@@ -1033,6 +1028,7 @@ function reload() {
         state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
         state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
         state.pgnState = true; // incase outside PGN
+        document.querySelector("#navForward").disabled = false;
         chess.reset();
         chess.load(state.ankiFen);
         cg.set({
