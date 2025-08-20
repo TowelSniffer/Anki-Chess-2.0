@@ -13983,7 +13983,7 @@ ${contextLines.join("\n")}`;
           startAnalysis(100);
         }
       }
-      var stockfish;
+      var stockfish = null;
       function handleStockfishCrash(source) {
         console.error(`Stockfish engine crashed. Source: ${source}.`);
         console.log("Attempting to restart the engine...");
@@ -14059,6 +14059,7 @@ ${contextLines.join("\n")}`;
         stockfish.postMessage(`go movetime ${movetime}`);
       }
       function toggleStockfishAnalysis() {
+        if (!stockfish) initializeStockfish();
         state.analysisToggledOn = !state.analysisToggledOn;
         const toggleButton = document.querySelector("#stockfishToggle");
         toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
@@ -14091,6 +14092,7 @@ ${contextLines.join("\n")}`;
         });
       }
       function deepAnalysis() {
+        if (!stockfish) initializeStockfish();
         const deepAnalysisBtn = document.querySelector("#stockfishCalc");
         if (state.deepAnalysis) {
           stockfish.postMessage("stop");
@@ -14615,9 +14617,6 @@ ${contextLines.join("\n")}`;
       async function loadElements() {
         await reload();
         await resizeBoard();
-        if (config.boardMode === "Viewer") {
-          initializeStockfish();
-        }
         setTimeout(() => {
           positionPromoteOverlay();
         }, 200);

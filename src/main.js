@@ -347,7 +347,7 @@ function updateBoard(cg, chess, move, quite, commentRewrite) { // animate user/a
         startAnalysis(100);
     }
 }
-let stockfish;
+let stockfish = null;
 
 function handleStockfishCrash(source) {
     console.error(`Stockfish engine crashed. Source: ${source}.`);
@@ -444,6 +444,7 @@ function startAnalysis(movetime) {
 }
 
 function toggleStockfishAnalysis() {
+    if (!stockfish) initializeStockfish();
     state.analysisToggledOn = !state.analysisToggledOn; // Toggle the state
 
     const toggleButton = document.querySelector("#stockfishToggle");
@@ -489,6 +490,7 @@ function setNavButtonsDisabled(disabled) {
 }
 
 function deepAnalysis() {
+    if (!stockfish) initializeStockfish();
     const deepAnalysisBtn = document.querySelector("#stockfishCalc");
 
     // If deep analysis is already running, clicking the button again will cancel it.
@@ -1069,9 +1071,6 @@ async function resizeBoard() {
 async function loadElements() {
     await reload();
     await resizeBoard();
-    if (config.boardMode === 'Viewer') {
-        initializeStockfish();
-    }
     setTimeout(() => {
         positionPromoteOverlay();
     }, 200);
