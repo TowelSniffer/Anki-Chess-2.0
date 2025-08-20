@@ -27,11 +27,12 @@ const config = {
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "rnb1kbnr/pppp1p1p/8/4N3/2B1P1pq/6p1/PPPP3P/RNBQK2R w KQkq - 0 7"]
+[FEN "r1b1r1k1/2pp1ppp/2p5/B7/N1P4q/P3P1n1/1P2B2P/R2QK2R w KQ - 0 15"]
 [SetUp "1"]
 
-7. Qxg4 g2+ 8. Qxh4 gxh1=Q+ 9. Kf2 Bc5+ (9... Be7) *
-`),
+15. hxg3 Qxh1+ {EV: 99.0%, N: 99.65% of 15.9k} 16. Kd2 {EV: 0.9%, N: 67.79% of
+30.6k} Qxd1+ {EV: 99.7%, N: 83.19% of 85.9k} 17. Bxd1 {EV: 0.4%, N: 56.03% of
+94.1k} Rxa5 {EV: 99.7%, N: 99.92% of 61.0k} *`),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
@@ -92,7 +93,6 @@ window.addEventListener('error', (event) => {
         event.preventDefault();
         console.warn("Caught a fatal Stockfish crash via global error handler.");
         if (isGenericCrossOriginError) {
-            console.log("Note: The error was reported as a generic 'Script error.' due to browser security policies. Assuming it was Stockfish and attempting a restart.");
         } else {
             console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
         }
