@@ -13972,13 +13972,12 @@ ${contextLines.join("\n")}`;
           turnColor: toColor(chess2),
           movable: {
             dests: toDests(chess2),
-            color: toColor(chess2)
+            // In Puzzle mode, the movable color is fixed to the user's side to allow premoves.
+            // In Viewer mode, it follows the current turn.
+            color: config.boardMode === "Puzzle" ? boardOrientation : toColor(chess2)
           },
           lastMove: [move3.from, move3.to]
         });
-        if (config.boardMode === "Viewer") {
-          cg2.set({ movable: { color: toColor(chess2) } });
-        }
         writePgnComments(commentRewrite);
         if (state.analysisToggledOn) {
           startAnalysis(100);
@@ -14616,7 +14615,9 @@ ${contextLines.join("\n")}`;
       async function loadElements() {
         await reload();
         await resizeBoard();
-        initializeStockfish();
+        if (config.boardMode === "Viewer") {
+          initializeStockfish();
+        }
         setTimeout(() => {
           positionPromoteOverlay();
         }, 200);
