@@ -336,13 +336,12 @@ function updateBoard(cg, chess, move, quite, commentRewrite) { // animate user/a
         turnColor: toColor(chess),
         movable: {
             dests: toDests(chess),
-            color: toColor(chess),
+            // In Puzzle mode, the movable color is fixed to the user's side to allow premoves.
+            // In Viewer mode, it follows the current turn.
+            color: config.boardMode === 'Puzzle' ? boardOrientation : toColor(chess),
         },
         lastMove: [move.from, move.to]
     });
-    if (config.boardMode === 'Viewer') {
-        cg.set({ movable: { color: toColor(chess) } })
-    }
     writePgnComments(commentRewrite);
     if (state.analysisToggledOn) {
         startAnalysis(100);
@@ -847,7 +846,7 @@ function reload() {
             },
         },
         premovable: {
-            enabled: true
+            enabled: true,
         },
         movable: {
             color: state.boardRotation,
@@ -1070,8 +1069,9 @@ async function resizeBoard() {
 async function loadElements() {
     await reload();
     await resizeBoard();
-    initializeStockfish();
-
+    if (config.boardMode === 'Viewer') {
+        initializeStockfish();
+    }
     setTimeout(() => {
         positionPromoteOverlay();
     }, 200);
