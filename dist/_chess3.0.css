@@ -192,8 +192,11 @@ piece.fading {
   --background-color: transparent;
   --board-size: min(max(calc(98vh - 87px), 300px), max(calc(98vw - 12px), 200px), 600px);
   --border-color: #808080;
+  --opponent-color: black;
+  --player-color: white;
   --border-shadow: LightSlateGrey;
-  --max-width: min(100vw, 1000px) ;
+  --max-width: min(100vw, 1000px);
+  --centipawn: 50%;
 }
 ::-webkit-scrollbar {
   display: none;
@@ -224,7 +227,7 @@ body {
   font-family: "Material Icons";
   font-weight: normal;
   font-style: normal;
-  font-size: min(75px, calc(var(--board-size)*0.15));
+  font-size: min(75px, calc(var(--board-size) * 0.15));
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
@@ -236,7 +239,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 .md-small {
-  font-size: min(45px, calc(var(--board-size)*0.09));
+  font-size: min(45px, calc(var(--board-size) * 0.09));
 }
 select {
   font-size: 1.2em;
@@ -314,7 +317,7 @@ button {
 }
 #center {
   position: absolute;
-  height: calc(var(--board-size)*0.25);
+  height: calc(var(--board-size) * 0.25);
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
   width: var(--board-size);
@@ -339,8 +342,8 @@ button.navBtn {
   border-radius: 4px;
   border: 1px solid #333B45;
   box-shadow: 0px 0px 3px 0px black;
-  height: calc(var(--board-size)*0.125);
-  width: calc(var(--board-size)*0.125);
+  height: calc(var(--board-size) * 0.125);
+  width: calc(var(--board-size) * 0.125);
   max-width: 60px;
   max-height: 60px;
   margin: 5px;
@@ -372,15 +375,15 @@ button.promoteBtn {
   align-items: center;
   background-color: #737373;
   box-shadow: 0px 0px 3px 0px black;
-  height: calc(var(--board-size)*0.125);
-  width: calc(var(--board-size)*0.125);
+  height: calc(var(--board-size) * 0.125);
+  width: calc(var(--board-size) * 0.125);
   border: 0px;
   margin: 10px;
 }
 .promotePiece {
   margin: 0;
-  height: calc(var(--board-size)*0.125);
-  width: calc(var(--board-size)*0.125);
+  height: calc(var(--board-size) * 0.125);
+  width: calc(var(--board-size) * 0.125);
 }
 button.promoteBtn:hover {
   background-color: #d6d6d6;
@@ -402,12 +405,30 @@ img {
   width: var(--board-size);
   height: var(--board-size);
   box-shadow: 0px 0px 6px 0px var(--border-color);
-  border: 6px solid var(--border-color);
+  border: 8px solid var(--border-color);
+  border-radius: 4px;
   width: var(--board-size);
   height: var(--board-size);
   position: relative;
   margin: 0 auto;
   display: block;
+}
+.analysisMode {
+  border: 8px solid transparent;
+  box-shadow: 0px 0px 6px 0px grey;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--content-bg, white), var(--content-bg, white)),
+    linear-gradient(
+      to bottom,
+      var(--opponent-color) 0%,
+      var(--opponent-color) calc(var(--centipawn) - 1px),
+      red calc(var(--centipawn) - 1px),
+      red calc(var(--centipawn) + 1px),
+      var(--player-color) calc(var(--centipawn) + 1px),
+      var(--player-color) 100%);
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
 }
 cg-container {
   width: var(--board-size) !important;
