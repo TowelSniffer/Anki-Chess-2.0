@@ -13715,16 +13715,16 @@ ${contextLines.join("\n")}`;
         return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
       }
       var config = {
-        pgn: getUrlParam("PGN", `[Event "?"]
-[Site "?"]
-[Date "2025.08.21"]
+        pgn: getUrlParam("PGN", `[Event "The Opera Game"]
+[Site "Paris Opera House"]
+[Date "1858.11.02"]
 [Round "?"]
-[White "White"]
-[Black "Black"]
-[Result "*"]
+[White "Paul Morphy"]
+[Black "Duke of Brunswick &amp; Count Isouart"]
+[Result "1-0"]
+[ECO "C41"]
 
-1. e4 f5 2. exf5 e6 (2... g6 3. fxg6) (2... h6 3. g4 (3. h4) h5) (2... Nf6) *
-`),
+1. e4 e5 2. Nf3 d6 {This is the Philidor Defence. It's solid but can be passive.} 3. d4 Bg4?! {This pin is a bit premature. A more common and solid move would be 3...exd4.} 4. dxe5 Bxf3 (4... dxe5 5. Qxd8+ Kxd8 6. Nxe5 {White wins a pawn and has a better position.}) 5. Qxf3! {A great move. Morphy is willing to accept doubled pawns to accelerate his development.} 5... dxe5 6. Bc4 {Putting immediate pressure on the weak f7 square.} 6... Nf6 7. Qb3! {A powerful double attack on f7 and b7.} 7... Qe7 {This is the only move to defend both threats, but it places the queen on an awkward square and blocks the f8-bishop.} 8. Nc3 c6 9. Bg5 {Now Black's knight on f6 is pinned and cannot move without the queen being captured.} 9... b5?! {A desperate attempt to kick the bishop and relieve some pressure, but it weakens Black's queenside.} 10. Nxb5! {A brilliant sacrifice! Morphy sees that his attack is worth more than the knight.} 10... cxb5 11. Bxb5+ Nbd7 12. O-O-O {All of White's pieces are now in the attack, while Black's are tangled up and undeveloped.} 12... Rd8 13. Rxd7! {Another fantastic sacrifice to remove the defending knight.} 13... Rxd7 14. Rd1 {Renewing the pin and intensifying the pressure. Black is completely paralyzed.} 14... Qe6 {Trying to trade queens to relieve the pressure, but it's too late.} 15. Bxd7+ Nxd7 (15... Qxd7 16. Qb8+ Ke7 17. Qxe5+ Kd8 18. Bxf6+ {and White wins easily.}) 16. Qb8+! {The stunning final sacrifice! Morphy forces mate by sacrificing his most powerful piece.} 16... Nxb8 17. Rd8# {A beautiful checkmate, delivered with just a rook and bishop.} 1-0`),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         muteAudio: getUrlParam("muteAudio", "false") === "true",
@@ -13818,11 +13818,13 @@ ${contextLines.join("\n")}`;
       state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
       chess.load(state.ankiFen);
       document.documentElement.style.setProperty("--background-color", config.background);
+      var commentBox = document.getElementById("commentBox");
+      commentBox.style.fontSize = `${config.fontSize}px`;
+      commentBox.classList.remove("hidden");
       if (config.ankiText) {
-        const commentBox = document.getElementById("commentBox");
-        commentBox.style.fontSize = `${config.fontSize}px`;
-        commentBox.classList.remove("hidden");
         document.getElementById("textField").innerHTML = config.ankiText;
+      } else {
+        document.getElementById("textField").style.display = "none";
       }
       var fenParts = state.ankiFen.split(" ");
       state.boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
@@ -13863,19 +13865,9 @@ ${contextLines.join("\n")}`;
           return false;
         }
       }
-      function highlightCurrentMove() {
+      function highlightCurrentMove(pgnPath) {
         document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-        if (state.pgnPath && state.pgnPath.length > 0) {
-          const pathStr = state.pgnPath.join(",");
-          const el = document.querySelector(`#pgnComment .move[data-path="${pathStr}"]`);
-          if (el) {
-            el.classList.add("current");
-            el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
-          }
-        }
-      }
-      function writePgnComments() {
-        highlightCurrentMove();
+        document.querySelector(`[data-path="${pgnPath.join(",")}"]`).classList.add("current");
       }
       function drawArrows(cg2, chess2, redraw) {
         state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
@@ -13994,7 +13986,7 @@ ${contextLines.join("\n")}`;
           },
           lastMove: [move3.from, move3.to]
         });
-        writePgnComments(commentRewrite);
+        if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
         if (state.analysisToggledOn) {
           startAnalysis(100);
         }
@@ -14392,27 +14384,38 @@ ${contextLines.join("\n")}`;
         }
         return null;
       }
-      function buildPgnHtml(moves, path = []) {
+      function buildPgnHtml(moves, path = [], altLine) {
         let html = "";
         if (!moves || moves.length === 0) return "";
+        let lineClass;
         if (moves[0].turn === "b" && path.length <= 1) {
-          const moveNumber = Math.floor(moves[0].moveNumber / 2);
-          html += `<span class="move-number">${moveNumber}...</span> `;
+          const moveNumber = moves[0].moveNumber;
+          html += `<span class="move-number">${moveNumber}</span><span class="nullMove">...</span> `;
         }
         for (let i = 0; i < moves.length; i++) {
           const move3 = moves[i];
           if (move3.turn === "w") {
-            const moveNumber = Math.floor(move3.moveNumber / 2) + 1;
+            const moveNumber = move3.moveNumber;
             html += `<span class="move-number">${moveNumber}.</span> `;
           }
           html += `<span class="move" data-path="${move3.pgnPath.join(",")}">${move3.notation.notation}</span> `;
           if (move3.commentAfter) {
-            html += `<span class="comment">{ ${move3.commentAfter} }</span> `;
+            if (move3.turn === "w" && !altLine) html += `<span class="nullMove">|...|</span>`;
+            html += `<span class="comment"> ${move3.commentAfter} </span>`;
+            if (move3.turn === "w" && i < moves.length - 1) html += `<span class="move-number">${move3.moveNumber}.</span><span class="nullMove">|...|</span>`;
           }
           if (move3.variations && move3.variations.length > 0) {
+            if (!altLine) {
+              if (move3.turn === "w" && !altLine) html += `<span class="nullMove">|...|</span>`;
+              html += `<div class="altLine">`;
+            }
             move3.variations.forEach((variation) => {
-              html += `( ${buildPgnHtml(variation, variation.pgnPath)} ) `;
+              html += `(${buildPgnHtml(variation, variation.pgnPath, true)})`;
             });
+            if (!altLine) {
+              html += `</div>`;
+              if (move3.turn === "w") html += `<span class="move-number">${move3.moveNumber}.</span><span class="nullMove">|...|</span>`;
+            }
           }
         }
         return html;
@@ -14435,11 +14438,9 @@ ${contextLines.join("\n")}`;
           }
           for (let j = 0; j <= pathCount; j++) {
             if (branchIndex !== null && j === pathCount) {
-              console.log(state.expectedMove, chess.fen());
               state.count = 0;
               state.expectedLine = state.expectedMove.variations[branchIndex];
               state.expectedMove = state.expectedLine[0];
-              console.log("here", i);
               branchIndex = null;
             } else {
               chess.move(state.expectedMove.notation.notation);
@@ -14448,6 +14449,15 @@ ${contextLines.join("\n")}`;
             }
           }
         }
+        return chess.moves();
+      }
+      function onPgnMoveClick(event2) {
+        if (!event2.target.classList.contains("move")) return;
+        document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+        event2.target.classList.add("current");
+        const pathStr = event2.target.dataset.path;
+        const path = pathStr.split(",");
+        getFullMoveSequenceFromPath(path);
         cg.set({
           fen: chess.fen(),
           check: chess.inCheck(),
@@ -14457,21 +14467,19 @@ ${contextLines.join("\n")}`;
             dests: toDests(chess)
           }
         });
-        return;
-      }
-      function onPgnMoveClick(event2) {
-        if (!event2.target.classList.contains("move")) return;
-        const pathStr = event2.target.dataset.path;
-        const path = pathStr.split(",");
-        console.log(path);
-        getFullMoveSequenceFromPath(path);
+        if (!state.expectedMove || typeof state.expectedMove === "string") {
+          document.querySelector("#navForward").disabled = true;
+        }
+        if (state.analysisToggledOn) {
+          startAnalysis(100);
+        }
+        drawArrows(cg, chess);
       }
       function initPgnViewer() {
         state.pgnPath = [];
         const pgnContainer = document.getElementById("pgnComment");
         pgnContainer.innerHTML = buildPgnHtml(parsedPGN.moves);
         pgnContainer.addEventListener("click", onPgnMoveClick);
-        highlightCurrentMove();
       }
       function reload() {
         state.count = 0;
@@ -14565,6 +14573,7 @@ ${contextLines.join("\n")}`;
           }
           drawArrows(cg, chess);
           document.querySelector("#buttons-container").style.display = "none";
+          document.querySelector("#commentBox").style.display = "none";
         } else {
           cg.set({
             premovable: {
@@ -14642,7 +14651,28 @@ ${contextLines.join("\n")}`;
             }
           }
           drawArrows(cg, chess);
-          writePgnComments();
+          if (config.boardMode === "Viewer") {
+            let expectedMove = state.expectedMove;
+            let expectedLine = state.expectedLine;
+            if (expectedLine[state.count - 1]?.notation?.notation) {
+              expectedMove = expectedLine[state.count - 1];
+              if (state.count === 0) {
+                let parentOfChild = findParent(parsedPGN.moves, expectedLine);
+                if (parentOfChild) {
+                  for (var i = 0; i < 2; i++) {
+                    parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+                  }
+                  ;
+                  expectedLine = parentOfChild.parent;
+                  const count = parentOfChild.key;
+                  expectedMove = expectedLine[count];
+                }
+              }
+              highlightCurrentMove(expectedMove.pgnPath);
+            } else {
+              document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+            }
+          }
           if (state.analysisToggledOn) {
             startAnalysis(100);
           }
@@ -14671,6 +14701,12 @@ ${contextLines.join("\n")}`;
           cg.set({
             orientation: state.boardRotation
           });
+          const flipButton = document.querySelector(".flipBoardIcon");
+          if (flipButton.style.transform.includes("90deg")) {
+            flipButton.style.transform = "rotate(270deg)";
+          } else {
+            flipButton.style.transform = "rotate(90deg)";
+          }
         }
         function resetBoard() {
           state.count = 0;
@@ -14694,7 +14730,6 @@ ${contextLines.join("\n")}`;
           if (state.analysisToggledOn) {
             startAnalysis(100);
           }
-          initPgnViewer();
           drawArrows(cg, chess);
         }
         function copyFen() {
@@ -14758,7 +14793,6 @@ ${contextLines.join("\n")}`;
           positionPromoteOverlay();
         }, 200);
       }
-      console.log(parsedPGN);
       loadElements();
       var cgwrap = document.getElementsByClassName("cg-wrap")[0];
     }
