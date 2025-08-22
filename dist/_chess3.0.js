@@ -13722,13 +13722,16 @@ ${contextLines.join("\n")}`;
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "r3kb1r/ppp1pppp/2n2n2/q7/3PP1b1/2N2N2/PP1B1PPP/R2QKB1R b KQkq - 0 7"]
+[FEN "8/5pkp/1pB3p1/1Pn5/pbR5/5P2/3r2P1/7K w - - 0 45"]
 [SetUp "1"]
 
-7... Nxd4 8. Nd5 {EV: 99.3%} Qc5 {EV: 0.9%} 9. Rc1 {EV: 99.4%} (9. Qa4+ {EV:
-98.6%}) c6 {hello} (9... b6) 10. a3*`),
+45. Rxb4 a3 {EV: 99.8%, N: 43.09% of 91.3k} (45... Rd1+ {EV: 99.6%, N: 6.39% of
+91.3k} 46. Kh2 a3) 46. Rb1 {EV: 0.2%, N: 12.07% of 138k} a2 {EV: 99.8%, N:
+29.82% of 31.0k} 47. Ra1 {EV: 0.3%, N: 14.64% of 18.2k} Nb3 {EV: 99.6%, N:
+40.53% of 24.4k} *`),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
+        frontText: getUrlParam("frontText", "false") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
         handicap: parseInt(getUrlParam("handicap", 1), 10),
         strictScoring: getUrlParam("strictScoring", "false") === "true",
@@ -13822,11 +13825,13 @@ ${contextLines.join("\n")}`;
       document.documentElement.style.setProperty("--background-color", config.background);
       var commentBox = document.getElementById("commentBox");
       commentBox.style.fontSize = `${config.fontSize}px`;
-      commentBox.classList.remove("hidden");
       if (config.ankiText) {
         document.getElementById("textField").innerHTML = config.ankiText;
-      } else {
-        document.getElementById("textField").style.display = "none";
+      }
+      if (config.boardMode === "Puzzle") {
+        document.querySelector("#buttons-container").style.visibility = "hidden";
+        document.getElementById("pgnComment").style.display = "none";
+        if (!config.frontText) commentBox.style.display = "none";
       }
       var fenParts = state.ankiFen.split(" ");
       state.boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
@@ -13872,11 +13877,15 @@ ${contextLines.join("\n")}`;
         document.querySelector(`[data-path="${pgnPath.join(",")}"]`).classList.add("current");
       }
       function drawArrows(cg2, chess2, redraw) {
-        state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
-        if (!state.pgnState || redraw) {
+        if (redraw) {
           cg2.set({ drawable: { shapes: state.chessGroundShapes } });
           return;
         }
+        if (!state.pgnState) {
+          state.chessGroundShapes = [];
+          return;
+        }
+        state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
         if (config.boardMode === "Puzzle" && config.disableArrows) {
           return;
         }
@@ -13988,6 +13997,8 @@ ${contextLines.join("\n")}`;
           },
           lastMove: [move3.from, move3.to]
         });
+        document.querySelector("#navBackward").disabled = false;
+        document.querySelector("#resetBoard").disabled = false;
         if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
         if (state.analysisToggledOn) {
           startAnalysis(100);
@@ -14469,6 +14480,7 @@ ${contextLines.join("\n")}`;
             dests: toDests(chess)
           }
         });
+        document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = false);
         if (!state.expectedMove || typeof state.expectedMove === "string") {
           document.querySelector("#navForward").disabled = true;
         }
@@ -14516,16 +14528,14 @@ ${contextLines.join("\n")}`;
               }
               const priority = ["mainLine", "altLine", "stockfinished", "stockfish"];
               const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
-              if (arrowMove) {
+              if (arrowMove && config.boardMode === "Viewer") {
                 if (arrowMove.brush === "stockfish" || arrowMove.brush === "stockfinished") {
                   state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
                   state.pgnState = false;
                   document.querySelector("#navForward").disabled = true;
                 }
-                if (config.boardMode === "Viewer") {
-                  cg.move(arrowMove.orig, arrowMove.dest);
-                  handleViewerMove(cg, chess, arrowMove.san, null);
-                }
+                cg.move(arrowMove.orig, arrowMove.dest);
+                handleViewerMove(cg, chess, arrowMove.san, null);
               } else {
                 const allMoves = chess.moves({ verbose: true });
                 const movesToSquare = allMoves.filter((move3) => move3.to === key);
@@ -14574,8 +14584,6 @@ ${contextLines.join("\n")}`;
             playAiMove(cg, chess, 300);
           }
           drawArrows(cg, chess);
-          document.querySelector("#buttons-container").style.display = "none";
-          document.querySelector("#commentBox").style.display = "none";
         } else {
           cg.set({
             premovable: {
@@ -14673,6 +14681,7 @@ ${contextLines.join("\n")}`;
               highlightCurrentMove(expectedMove.pgnPath);
             } else {
               document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+              document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = true);
             }
           }
           if (state.analysisToggledOn) {
@@ -14729,6 +14738,9 @@ ${contextLines.join("\n")}`;
               dests: toDests(chess)
             }
           });
+          document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+          document.querySelector("#navBackward").disabled = true;
+          document.querySelector("#resetBoard").disabled = true;
           if (state.analysisToggledOn) {
             startAnalysis(100);
           }
@@ -14797,6 +14809,8 @@ ${contextLines.join("\n")}`;
       }
       loadElements();
       var cgwrap = document.getElementsByClassName("cg-wrap")[0];
+      document.querySelector("#navBackward").disabled = true;
+      document.querySelector("#resetBoard").disabled = true;
     }
   });
   require_main();
