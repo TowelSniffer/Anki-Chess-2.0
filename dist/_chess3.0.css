@@ -221,6 +221,7 @@ body {
   height: 100vh;
   width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -280,7 +281,7 @@ button {
   margin-bottom: 5px;
   width: calc(var(--max-width) - var(--board-size) - 30px);
   box-shadow: 0px 0px 3px 0px black;
-  background: #242424;
+  background: #1A1A1E;
   color: #D7DEE9;
   border-radius: 4px;
   max-height: calc(var(--board-size) + 14px);
@@ -315,11 +316,17 @@ button {
     padding-left: 0px;
   }
 }
+.userTextContainer {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  background: #242424;
+  color: #D7DEE9;
+  border-bottom: 1px solid black;
+}
 #textField {
   padding: 0.5em;
-}
-#pgnComment {
-  font-size: 1.3em;
 }
 .altLine {
   border: 1px solid black;
@@ -329,9 +336,10 @@ button {
   padding: 0.3em;
 }
 #pgnComment {
+  font-size: 1.2em;
+  background: #1A1A1E;
   display: grid;
   grid-template-columns: auto 1fr 1fr;
-  align-items: center;
 }
 .move-number {
   height: 1.5em;
@@ -415,9 +423,6 @@ button {
 .hidden {
   display: none !important;
 }
-p {
-  display: none;
-}
 button.navBtn {
   z-index: 20;
   display: flex;
@@ -437,7 +442,7 @@ button.navBtn {
 }
 button.navBtn:hover {
   background-color: #d6d6d6;
-  box-shadow: 0px 0px 6px 0px grey;
+  box-shadow: 0px 0px 3px 0px grey;
   color: #333;
 }
 button.navBtn:active {
@@ -476,7 +481,7 @@ button.promoteBtn {
 }
 button.promoteBtn:hover {
   background-color: #d6d6d6;
-  box-shadow: 0px 0px 6px 0px grey;
+  box-shadow: 0px 0px 3px 0px grey;
   color: #333;
 }
 button.promoteBtn:active {
@@ -493,7 +498,7 @@ img {
 .cg-wrap {
   width: var(--board-size);
   height: var(--board-size);
-  box-shadow: 0px 0px 6px 0px var(--border-color);
+  box-shadow: 0px 0px 3px 0px grey;
   border: 8px solid var(--border-color);
   border-radius: 4px;
   width: var(--board-size);
@@ -504,7 +509,7 @@ img {
 }
 .analysisMode {
   border: 8px solid transparent;
-  box-shadow: 0px 0px 6px 0px grey;
+  box-shadow: 0px 0px 3px 0px grey;
   background-repeat: no-repeat;
   background-image:
     linear-gradient(var(--content-bg, white), var(--content-bg, white)),

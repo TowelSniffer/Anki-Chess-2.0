@@ -1,13 +1,14 @@
 <script>
     // User Variables
     var userConfig = {
-        muteAudio: false,
+        muteAudio: false, // set true to suck the joy out of life.
         handicap: 1, // number of wrong attempts before puzzle advances automatically.
         fontSize: 18,
-        strictScoring: false, // puzzle is marked wrong depending on your handicap value
+        strictScoring: false, // puzzle is marked wrong with any mistake.
         acceptVariations: true, // allows for multiple lines for both sides.
         flip: false, // sets whether Puzzle begins from First or second move of PGN
-        disableArrows: false,
+        disableArrows: false, // Disables arrows on front side.
+        frontText: false, // show userText on front side.
     }
 
     // v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/cd2ca88e019dc3b8f32dad623932c1eabdba7e21/script.js
@@ -29,7 +30,7 @@
         PGN = encodeURIComponent(PGN);
         var iframe = document.getElementById("Board");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&boardMode=Puzzle`;
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&boardMode=Puzzle`;
         var errorTrack;
         if (Persistence.isAvailable()) {
             Persistence.clear();
