@@ -13827,11 +13827,13 @@ ${contextLines.join("\n")}`;
       commentBox.style.fontSize = `${config.fontSize}px`;
       if (config.ankiText) {
         document.getElementById("textField").innerHTML = config.ankiText;
+      } else {
+        document.getElementById("textField").style.display = "none";
       }
       if (config.boardMode === "Puzzle") {
         document.querySelector("#buttons-container").style.visibility = "hidden";
         document.getElementById("pgnComment").style.display = "none";
-        if (!config.frontText) commentBox.style.display = "none";
+        if (!config.frontText || !config.ankiText) commentBox.style.display = "none";
       }
       var fenParts = state.ankiFen.split(" ");
       state.boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
