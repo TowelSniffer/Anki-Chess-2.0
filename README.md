@@ -37,10 +37,13 @@ https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
 [See here](documentation/userConfig.md)
 
 
-## Compatability Issue
+## Compatability Issues
 
 [See here](documentation/compatability.md)
 
+## Shared decks
+
+[Joins the community on discord](https://discord.gg/hEhzRH7pMG)
 
 ## Apps that use this:
 
