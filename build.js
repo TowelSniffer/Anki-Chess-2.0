@@ -16,7 +16,6 @@ function postBuildTasks() {
     let htmlContent = fs.readFileSync(path.join(srcDir, 'index.html'), 'utf-8');
     htmlContent = htmlContent.replace('<link rel="stylesheet" href="dist/bundle.css">', '<link rel="stylesheet" href="_chess3.0.css">');
     htmlContent = htmlContent.replace('<script src="dist/bundle.js"></script>', '<script src="_chess3.0.js"></script>');
-    htmlContent = htmlContent.replace('<script src="dist/stockfish.js"></script>', '<script src="_stockfish.js"></script>');
     fs.writeFileSync(htmlPath, htmlContent);
     // Copy media files
     fs.readdirSync(mediaDir).forEach(file => {
@@ -24,7 +23,7 @@ function postBuildTasks() {
     });
 
     // Copy dependencies from node_modules
-    fs.copyFileSync(path.join(srcDir, 'node_modules', 'stockfish', 'src', 'stockfish.js'), path.join(distDir, '_stockfish.js'));
+    // fs.copyFileSync(path.join(srcDir, 'node_modules', 'stockfish', 'src', 'stockfish.js'), path.join(distDir, '_stockfish.js'));
 
     console.log(`${isDev ? new Date().toLocaleTimeString() + ':' : ''} Build finished successfully.`);
 }
@@ -46,6 +45,7 @@ fs.mkdirSync(distDir);
             '.woff2': 'file',
             '.svg': 'file'
         },
+        external: ['stockfish'],
     };
 
     try {

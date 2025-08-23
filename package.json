@@ -17,7 +17,7 @@
     "@mliebelt/pgn-parser": "^1.4.18",
     "chess.js": "^1.4.0",
     "chessground": "^9.2.1",
-    "stockfish": "^8.0.0"
+    "stockfish": "^17.1.0"
   },
   "devDependencies": {
     "esbuild": "^0.25.9"

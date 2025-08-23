@@ -67,19 +67,14 @@ let state = {
     debounceTimeout: null,
     navTimeout: null,
     isStockfishBusy: false,
+    analysisFen: null,
     analysisToggledOn: false,
-    deepAnalysis: false,
     pgnPath: [],
 };
 if (!state.errorTrack) {
     state.errorTrack = false;
 }
 
-/**
- * This is a last-resort safety net to catch the fatal "abort" error from the
- * pure JS version of Stockfish. This can happen under high CPU load and
- * crashes the script instance, often bypassing its internal .onerror handler.
- */
 window.addEventListener('error', (event) => {
     const message = event.message || '';
     const filename = event.filename || '';
@@ -366,10 +361,10 @@ function updateBoard(cg, chess, move, quite, commentRewrite) { // animate user/a
     document.querySelector("#resetBoard").disabled = false;
     if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
     if (state.analysisToggledOn) {
-        startAnalysis(100);
+        startAnalysis(4000);
     }
 }
-let stockfish = null;
+var stockfish = null;
 
 function handleStockfishCrash(source) {
     console.error(`Stockfish engine crashed. Source: ${source}.`);
@@ -377,13 +372,6 @@ function handleStockfishCrash(source) {
 
     // Reset any state that might be stuck because of the crash
     state.isStockfishBusy = false;
-    if (state.deepAnalysis) {
-        state.deepAnalysis = false;
-        const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-        setNavButtonsDisabled(false);
-        deepAnalysisBtn.classList.remove('active-toggle');
-    }
-
     // Re-initialize a fresh instance after a short delay to let the browser recover.
     setTimeout(initializeStockfish, 100);
 }
@@ -397,23 +385,48 @@ function convertCpToWinPercentage(cp) {
     return `${percentage.toFixed(1)}%`;
 }
 
+// A more robust, async version
 function initializeStockfish() {
-    console.log("Initializing Stockfish engine...");
-    stockfish = STOCKFISH(); // This creates the JS instance
+    return new Promise((resolve) => {
+        console.log("Initializing Stockfish engine...");
+        stockfish = new Worker('_stockfish.js');
 
+        stockfish.onmessage = (event) => {
+            const message = event.data ? event.data : event;
+            if (typeof message !== 'string') return;
+
+            // Resolve the promise once the engine is ready
+            if (message === 'uciok') {
+                console.log("Stockfish engine ready.");
+                // Re-assign the handler to process game-related messages
+                stockfish.onmessage = handleStockfishMessages;
+                resolve();
+            }
+        };
+
+        stockfish.onerror = (error) => {
+            handleStockfishCrash("stockfish.onerror");
+            // You might want to reject the promise here too
+        };
+
+        stockfish.postMessage('uci');
+    });
+}
+
+function handleStockfishMessages(event) {
+    const message = event.data ? event.data : event;
     // Set the message handler for the new instance
     stockfish.onmessage = (event) => {
         const message = event.data ? event.data : event;
         if (typeof message !== 'string') return;
-
         if (message.startsWith('info')) {
             const parts = message.split(' ');
-            const pvSanIndex = parts.indexOf('pvSan');
+            const pvIndex = parts.indexOf('pv');
             const cpIndex = parts.indexOf('cp');
             const mateIndex = parts.indexOf('mate');
             const pvDepthIndex = parts.indexOf('depth');
-            if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
-                const firstMove = parts[pvSanIndex + 1];
+            if (pvIndex > -1 && parts.length > pvIndex + 1) {
+                const firstMove = parts[pvIndex + 1];
                 const cp = parts[cpIndex + 1];
                 const mate = parts[mateIndex + 1];
                 let advantage;
@@ -427,43 +440,47 @@ function initializeStockfish() {
                     advantage = convertCpToWinPercentage(cp);
                 }
                 const pvDepth = parts[pvDepthIndex + 1];
-                document.documentElement.style.setProperty('--centipawn', advantage);
-                const tempChess = new Chess(chess.fen());
-                const moveObject = tempChess.move(firstMove);
-
-                if (moveObject) {
-                    state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
-                    state.chessGroundShapes.push({
-                        orig: moveObject.from,
-                        dest: moveObject.to,
-                        brush: 'stockfish',
-                        san: moveObject.san,
-                    });
-                    cg.set({ drawable: { shapes: state.chessGroundShapes } });
+                if (state.analysisFen !== 'none') document.documentElement.style.setProperty('--centipawn', advantage);
+                if (state.analysisFen === chess.fen()) {
+                    const tempChess = new Chess(state.analysisFen);
+                    const moveObject = tempChess.move(firstMove);
+                    if (moveObject) {
+                        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
+                        state.chessGroundShapes.push({
+                            orig: moveObject.from,
+                            dest: moveObject.to,
+                            brush: 'stockfish',
+                            san: moveObject.san,
+                        });
+                        cg.set({drawable: {shapes: state.chessGroundShapes}});
+                    }
                 }
             }
         } else if (message.startsWith('bestmove')) {
-            cg.set({ viewOnly: false });
+            cg.set({viewOnly: false});
             state.isStockfishBusy = false;
-            if (state.deepAnalysis) {
-                state.deepAnalysis = false;
-                const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-                setNavButtonsDisabled(false);
-                deepAnalysisBtn.classList.remove('active-toggle');
+            if (state.analysisFen === 'none') {
+                state.analysisFen = true;
+                startAnalysis(4000);
             }
             const bestMoveUci = message.split(' ')[1];
-            const tempChess = new Chess(chess.fen());
-            const moveObject = tempChess.move(bestMoveUci);
-
-            if (moveObject) {
-                state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
-                state.chessGroundShapes.push({
-                    orig: moveObject.from,
-                    dest: moveObject.to,
-                    brush: 'stockfinished',
-                    san: moveObject.san,
-                });
-                cg.set({ drawable: { shapes: state.chessGroundShapes } });
+            if (state.analysisFen === chess.fen()) {
+                try {
+                    const tempChess = new Chess(state.analysisFen);
+                    const moveObject = tempChess.move(bestMoveUci);
+                    if (moveObject) {
+                        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
+                        state.chessGroundShapes.push({
+                            orig: moveObject.from,
+                            dest: moveObject.to,
+                            brush: 'stockfinished',
+                            san: moveObject.san,
+                        });
+                        cg.set({drawable: {shapes: state.chessGroundShapes}});
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
             }
         }
     };
@@ -472,15 +489,27 @@ function initializeStockfish() {
     stockfish.onerror = (error) => {
         handleStockfishCrash("stockfish.onerror");
     };
-
     // Send the initial 'uci' command to confirm the engine is ready.
     stockfish.postMessage('uci');
 }
 function startAnalysis(movetime) {
-    if (chess.moves().length === 0 || state.isStockfishBusy) return;
+    if (chess.moves().length === 0 || state.analysisFen === 'none') {
+        return;
+    }
+    if (state.isStockfishBusy) {
+        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
+        state.isStockfishBusy = false;
+        stockfish.postMessage('stop');
+        state.analysisFen = 'none';
+        return;
+    }
+    state.analysisFen = chess.fen();
     state.isStockfishBusy = true;
-    stockfish.postMessage(`position fen ${chess.fen()}`);
-    stockfish.postMessage(`go movetime ${movetime}`);
+    setTimeout(function() {
+        stockfish.postMessage(`position fen ${state.analysisFen}`);
+        stockfish.postMessage(`go movetime ${movetime}`);
+    }, 200);
+
 }
 
 function toggleStockfishAnalysis() {
@@ -494,20 +523,13 @@ function toggleStockfishAnalysis() {
         cgwrap.classList.add('analysisMode');
         // Turn analysis ON
         toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>"
-        startAnalysis(100);
+        startAnalysis(4000);
     } else {
         cgwrap.classList.remove('analysisMode');
         toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>"
         // Turn analysis OFF
         if (state.isStockfishBusy) {
             stockfish.postMessage('stop'); // Tell the engine to stop thinking
-            state.isStockfishBusy = false;
-            if (state.deepAnalysis) {
-                state.deepAnalysis = false;
-                const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-                setNavButtonsDisabled(false);
-                deepAnalysisBtn.classList.remove('active-toggle');
-            }
         }
         // Filter out the analysis arrows
         state.chessGroundShapes = state.chessGroundShapes.filter(
@@ -526,36 +548,6 @@ function setNavButtonsDisabled(disabled) {
             button.disabled = disabled;
         }
     });
-}
-
-function deepAnalysis() {
-    if (!stockfish) initializeStockfish();
-    const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-    // If deep analysis is already running, clicking the button again will cancel it.
-    if (state.deepAnalysis) {
-        stockfish.postMessage('stop');
-        state.isStockfishBusy = false;
-        state.deepAnalysis = false;
-
-        deepAnalysisBtn.classList.remove('active-toggle');
-        cgwrap.classList.remove('analysisMode');
-        setNavButtonsDisabled(false);
-        cg.set({ viewOnly: false });
-
-        // If regular analysis is toggled on, restart it with its normal, shallow depth.
-        if (state.analysisToggledOn) {
-            startAnalysis(100);
-        }
-    } else {
-        // Otherwise, start a new deep analysis.
-        deepAnalysisBtn.classList.add('active-toggle');
-        cgwrap.classList.add('analysisMode');
-        setNavButtonsDisabled(true);
-        // The button is intentionally NOT disabled, allowing it to be clicked again to cancel.
-        state.deepAnalysis = true;
-        cg.set({ viewOnly: true });
-        startAnalysis(4000);
-    }
 }
 
 function makeMove(cg, chess, move) {
@@ -906,7 +898,7 @@ function onPgnMoveClick(event) {
         document.querySelector("#navForward").disabled = true;
     }
     if (state.analysisToggledOn) {
-        startAnalysis(100);
+        startAnalysis(4000);
     }
     drawArrows(cg, chess)
 }
@@ -1013,10 +1005,10 @@ function reload() {
         drawable: {
             enabled: false,
             brushes: {
-                stockfish: { key: 'stockfish', color: 'indianred', opacity: 1, lineWidth: 8 },
-                stockfinished: { key: 'stockfinished', color: 'red', opacity: 1, lineWidth: 8 },
-                mainLine: { key: 'mainLine', color: 'green', opacity: 0.7, lineWidth: 12 },
-                altLine: { key: 'altLine', color: 'blue', opacity: 0.7, lineWidth: 10 },
+                stockfish: { key: 'stockfish', color: 'red', opacity: 0.85, lineWidth: 8 },
+                stockfinished: { key: 'stockfinished', color: 'red', opacity: 1, lineWidth: 9 },
+                mainLine: { key: 'mainLine', color: 'green', opacity: 0.8, lineWidth: 12 },
+                altLine: { key: 'altLine', color: 'blue', opacity: 0.8, lineWidth: 10 },
             },
         },
     });
@@ -1037,10 +1029,7 @@ function reload() {
         drawArrows(cg, chess);
     }
     function navBackward() {
-        if (state.deepAnalysis || config.boardMode === 'Puzzle' || state.navTimeout !== null) return;
-        state.navTimeout = setTimeout(() => {
-            state.navTimeout = null; // Reset when it fires
-        }, 200);
+        if (config.boardMode === 'Puzzle') return;
         const lastMove = chess.undo();
         const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
         if (lastMove) {
@@ -1092,7 +1081,7 @@ function reload() {
             }
             if (state.count === 0 && state.ankiFen !== chess.fen()) {
                 if (state.analysisToggledOn) {
-                    startAnalysis(100);
+                    startAnalysis(4000);
                 }
                 return;
             } else if (state.count === 0) {
@@ -1128,14 +1117,11 @@ function reload() {
             }
         }
         if (state.analysisToggledOn) {
-            startAnalysis(100);
+            startAnalysis(4000);
         }
     }
     function navForward() {
-        if (state.deepAnalysis || config.boardMode === 'Puzzle' || !state.pgnState || !state.expectedMove?.notation || state.navTimeout !== null) return;
-        state.navTimeout = setTimeout(() => {
-            state.navTimeout = null; // Reset when it fires
-        }, 200);
+        if (config.boardMode === 'Puzzle' || !state.pgnState || !state.expectedMove?.notation) return;
         const tempChess = new Chess(chess.fen());
         const move = tempChess.move(state.expectedMove?.notation?.notation)
         if (move) {
@@ -1187,7 +1173,7 @@ function reload() {
         document.querySelector("#navBackward").disabled = true;
         document.querySelector("#resetBoard").disabled = true;
         if (state.analysisToggledOn) {
-            startAnalysis(100);
+            startAnalysis(4000);
         }
         drawArrows(cg, chess);
     }
@@ -1217,7 +1203,6 @@ function reload() {
     document.querySelector("#rotateBoard").addEventListener('click', rotateBoard);
     document.querySelector("#copyFen").addEventListener('click', copyFen);
     document.querySelector("#stockfishToggle").addEventListener('click', toggleStockfishAnalysis);
-    document.querySelector("#stockfishCalc").addEventListener('click', deepAnalysis);
     board.addEventListener('wheel', (event) => { // scroll Navigation
         event.preventDefault();
         if (event.deltaY < 0) {

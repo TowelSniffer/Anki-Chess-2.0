@@ -13760,8 +13760,8 @@ ${contextLines.join("\n")}`;
         debounceTimeout: null,
         navTimeout: null,
         isStockfishBusy: false,
+        analysisFen: null,
         analysisToggledOn: false,
-        deepAnalysis: false,
         pgnPath: []
       };
       if (!state.errorTrack) {
@@ -14003,7 +14003,7 @@ ${contextLines.join("\n")}`;
         document.querySelector("#resetBoard").disabled = false;
         if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
         if (state.analysisToggledOn) {
-          startAnalysis(100);
+          startAnalysis(4e3);
         }
       }
       var stockfish = null;
@@ -14011,12 +14011,6 @@ ${contextLines.join("\n")}`;
         console.error(`Stockfish engine crashed. Source: ${source}.`);
         console.log("Attempting to restart the engine...");
         state.isStockfishBusy = false;
-        if (state.deepAnalysis) {
-          state.deepAnalysis = false;
-          const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-          setNavButtonsDisabled(false);
-          deepAnalysisBtn.classList.remove("active-toggle");
-        }
         setTimeout(initializeStockfish, 100);
       }
       function convertCpToWinPercentage(cp) {
@@ -14028,19 +14022,37 @@ ${contextLines.join("\n")}`;
         return `${percentage.toFixed(1)}%`;
       }
       function initializeStockfish() {
-        console.log("Initializing Stockfish engine...");
-        stockfish = STOCKFISH();
-        stockfish.onmessage = (event2) => {
-          const message = event2.data ? event2.data : event2;
-          if (typeof message !== "string") return;
-          if (message.startsWith("info")) {
-            const parts = message.split(" ");
-            const pvSanIndex = parts.indexOf("pvSan");
+        return new Promise((resolve) => {
+          console.log("Initializing Stockfish engine...");
+          stockfish = new Worker("_stockfish.js");
+          stockfish.onmessage = (event2) => {
+            const message = event2.data ? event2.data : event2;
+            if (typeof message !== "string") return;
+            if (message === "uciok") {
+              console.log("Stockfish engine ready.");
+              stockfish.onmessage = handleStockfishMessages;
+              resolve();
+            }
+          };
+          stockfish.onerror = (error) => {
+            handleStockfishCrash("stockfish.onerror");
+          };
+          stockfish.postMessage("uci");
+        });
+      }
+      function handleStockfishMessages(event2) {
+        const message = event2.data ? event2.data : event2;
+        stockfish.onmessage = (event3) => {
+          const message2 = event3.data ? event3.data : event3;
+          if (typeof message2 !== "string") return;
+          if (message2.startsWith("info")) {
+            const parts = message2.split(" ");
+            const pvIndex = parts.indexOf("pv");
             const cpIndex = parts.indexOf("cp");
             const mateIndex = parts.indexOf("mate");
             const pvDepthIndex = parts.indexOf("depth");
-            if (pvSanIndex > -1 && parts.length > pvSanIndex + 1) {
-              const firstMove = parts[pvSanIndex + 1];
+            if (pvIndex > -1 && parts.length > pvIndex + 1) {
+              const firstMove = parts[pvIndex + 1];
               const cp = parts[cpIndex + 1];
               const mate = parts[mateIndex + 1];
               let advantage;
@@ -14054,41 +14066,47 @@ ${contextLines.join("\n")}`;
                 advantage = convertCpToWinPercentage(cp);
               }
               const pvDepth = parts[pvDepthIndex + 1];
-              document.documentElement.style.setProperty("--centipawn", advantage);
-              const tempChess = new Chess(chess.fen());
-              const moveObject = tempChess.move(firstMove);
-              if (moveObject) {
-                state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
-                state.chessGroundShapes.push({
-                  orig: moveObject.from,
-                  dest: moveObject.to,
-                  brush: "stockfish",
-                  san: moveObject.san
-                });
-                cg.set({ drawable: { shapes: state.chessGroundShapes } });
+              if (state.analysisFen !== "none") document.documentElement.style.setProperty("--centipawn", advantage);
+              if (state.analysisFen === chess.fen()) {
+                const tempChess = new Chess(state.analysisFen);
+                const moveObject = tempChess.move(firstMove);
+                if (moveObject) {
+                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+                  state.chessGroundShapes.push({
+                    orig: moveObject.from,
+                    dest: moveObject.to,
+                    brush: "stockfish",
+                    san: moveObject.san
+                  });
+                  cg.set({ drawable: { shapes: state.chessGroundShapes } });
+                }
               }
             }
-          } else if (message.startsWith("bestmove")) {
+          } else if (message2.startsWith("bestmove")) {
             cg.set({ viewOnly: false });
             state.isStockfishBusy = false;
-            if (state.deepAnalysis) {
-              state.deepAnalysis = false;
-              const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-              setNavButtonsDisabled(false);
-              deepAnalysisBtn.classList.remove("active-toggle");
+            if (state.analysisFen === "none") {
+              state.analysisFen = true;
+              startAnalysis(4e3);
             }
-            const bestMoveUci = message.split(" ")[1];
-            const tempChess = new Chess(chess.fen());
-            const moveObject = tempChess.move(bestMoveUci);
-            if (moveObject) {
-              state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
-              state.chessGroundShapes.push({
-                orig: moveObject.from,
-                dest: moveObject.to,
-                brush: "stockfinished",
-                san: moveObject.san
-              });
-              cg.set({ drawable: { shapes: state.chessGroundShapes } });
+            const bestMoveUci = message2.split(" ")[1];
+            if (state.analysisFen === chess.fen()) {
+              try {
+                const tempChess = new Chess(state.analysisFen);
+                const moveObject = tempChess.move(bestMoveUci);
+                if (moveObject) {
+                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+                  state.chessGroundShapes.push({
+                    orig: moveObject.from,
+                    dest: moveObject.to,
+                    brush: "stockfinished",
+                    san: moveObject.san
+                  });
+                  cg.set({ drawable: { shapes: state.chessGroundShapes } });
+                }
+              } catch (e) {
+                console.log(e);
+              }
             }
           }
         };
@@ -14098,10 +14116,22 @@ ${contextLines.join("\n")}`;
         stockfish.postMessage("uci");
       }
       function startAnalysis(movetime) {
-        if (chess.moves().length === 0 || state.isStockfishBusy) return;
+        if (chess.moves().length === 0 || state.analysisFen === "none") {
+          return;
+        }
+        if (state.isStockfishBusy) {
+          state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+          state.isStockfishBusy = false;
+          stockfish.postMessage("stop");
+          state.analysisFen = "none";
+          return;
+        }
+        state.analysisFen = chess.fen();
         state.isStockfishBusy = true;
-        stockfish.postMessage(`position fen ${chess.fen()}`);
-        stockfish.postMessage(`go movetime ${movetime}`);
+        setTimeout(function() {
+          stockfish.postMessage(`position fen ${state.analysisFen}`);
+          stockfish.postMessage(`go movetime ${movetime}`);
+        }, 200);
       }
       function toggleStockfishAnalysis() {
         if (!stockfish) initializeStockfish();
@@ -14111,56 +14141,17 @@ ${contextLines.join("\n")}`;
         if (state.analysisToggledOn) {
           cgwrap.classList.add("analysisMode");
           toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>";
-          startAnalysis(100);
+          startAnalysis(4e3);
         } else {
           cgwrap.classList.remove("analysisMode");
           toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>";
           if (state.isStockfishBusy) {
             stockfish.postMessage("stop");
-            state.isStockfishBusy = false;
-            if (state.deepAnalysis) {
-              state.deepAnalysis = false;
-              const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-              setNavButtonsDisabled(false);
-              deepAnalysisBtn.classList.remove("active-toggle");
-            }
           }
           state.chessGroundShapes = state.chessGroundShapes.filter(
             (shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished"
           );
           cg.set({ drawable: { shapes: state.chessGroundShapes } });
-        }
-      }
-      function setNavButtonsDisabled(disabled) {
-        const buttonIds = ["#resetBoard", "#navBackward", "#navForward", "#rotateBoard", "#copyFen", "#stockfishToggle"];
-        buttonIds.forEach((id) => {
-          const button = document.querySelector(id);
-          if (button) {
-            button.disabled = disabled;
-          }
-        });
-      }
-      function deepAnalysis() {
-        if (!stockfish) initializeStockfish();
-        const deepAnalysisBtn = document.querySelector("#stockfishCalc");
-        if (state.deepAnalysis) {
-          stockfish.postMessage("stop");
-          state.isStockfishBusy = false;
-          state.deepAnalysis = false;
-          deepAnalysisBtn.classList.remove("active-toggle");
-          cgwrap.classList.remove("analysisMode");
-          setNavButtonsDisabled(false);
-          cg.set({ viewOnly: false });
-          if (state.analysisToggledOn) {
-            startAnalysis(100);
-          }
-        } else {
-          deepAnalysisBtn.classList.add("active-toggle");
-          cgwrap.classList.add("analysisMode");
-          setNavButtonsDisabled(true);
-          state.deepAnalysis = true;
-          cg.set({ viewOnly: true });
-          startAnalysis(4e3);
         }
       }
       function makeMove(cg2, chess2, move3) {
@@ -14487,7 +14478,7 @@ ${contextLines.join("\n")}`;
           document.querySelector("#navForward").disabled = true;
         }
         if (state.analysisToggledOn) {
-          startAnalysis(100);
+          startAnalysis(4e3);
         }
         drawArrows(cg, chess);
       }
@@ -14574,10 +14565,10 @@ ${contextLines.join("\n")}`;
           drawable: {
             enabled: false,
             brushes: {
-              stockfish: { key: "stockfish", color: "indianred", opacity: 1, lineWidth: 8 },
-              stockfinished: { key: "stockfinished", color: "red", opacity: 1, lineWidth: 8 },
-              mainLine: { key: "mainLine", color: "green", opacity: 0.7, lineWidth: 12 },
-              altLine: { key: "altLine", color: "blue", opacity: 0.7, lineWidth: 10 }
+              stockfish: { key: "stockfish", color: "red", opacity: 0.85, lineWidth: 8 },
+              stockfinished: { key: "stockfinished", color: "red", opacity: 1, lineWidth: 9 },
+              mainLine: { key: "mainLine", color: "green", opacity: 0.8, lineWidth: 12 },
+              altLine: { key: "altLine", color: "blue", opacity: 0.8, lineWidth: 10 }
             }
           }
         });
@@ -14596,10 +14587,7 @@ ${contextLines.join("\n")}`;
           drawArrows(cg, chess);
         }
         function navBackward() {
-          if (state.deepAnalysis || config.boardMode === "Puzzle" || state.navTimeout !== null) return;
-          state.navTimeout = setTimeout(() => {
-            state.navTimeout = null;
-          }, 200);
+          if (config.boardMode === "Puzzle") return;
           const lastMove = chess.undo();
           const FENpos = chess.fen();
           if (lastMove) {
@@ -14651,7 +14639,7 @@ ${contextLines.join("\n")}`;
             }
             if (state.count === 0 && state.ankiFen !== chess.fen()) {
               if (state.analysisToggledOn) {
-                startAnalysis(100);
+                startAnalysis(4e3);
               }
               return;
             } else if (state.count === 0) {
@@ -14687,14 +14675,11 @@ ${contextLines.join("\n")}`;
             }
           }
           if (state.analysisToggledOn) {
-            startAnalysis(100);
+            startAnalysis(4e3);
           }
         }
         function navForward() {
-          if (state.deepAnalysis || config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation || state.navTimeout !== null) return;
-          state.navTimeout = setTimeout(() => {
-            state.navTimeout = null;
-          }, 200);
+          if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
           const tempChess = new Chess(chess.fen());
           const move3 = tempChess.move(state.expectedMove?.notation?.notation);
           if (move3) {
@@ -14744,7 +14729,7 @@ ${contextLines.join("\n")}`;
           document.querySelector("#navBackward").disabled = true;
           document.querySelector("#resetBoard").disabled = true;
           if (state.analysisToggledOn) {
-            startAnalysis(100);
+            startAnalysis(4e3);
           }
           drawArrows(cg, chess);
         }
@@ -14773,7 +14758,6 @@ ${contextLines.join("\n")}`;
         document.querySelector("#rotateBoard").addEventListener("click", rotateBoard);
         document.querySelector("#copyFen").addEventListener("click", copyFen);
         document.querySelector("#stockfishToggle").addEventListener("click", toggleStockfishAnalysis);
-        document.querySelector("#stockfishCalc").addEventListener("click", deepAnalysis);
         board.addEventListener("wheel", (event2) => {
           event2.preventDefault();
           if (event2.deltaY < 0) {
