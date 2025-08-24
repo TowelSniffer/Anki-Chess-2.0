@@ -7,7 +7,6 @@ import './custom.css';
 function toggleDisplay(className) {
     document.querySelectorAll('.' + className).forEach(el => el.classList.toggle('hidden'));
 }
-
 const urlVars = {};
 window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
     // The value from the regex is raw, so it needs to be decoded only once.
@@ -234,7 +233,7 @@ function drawArrows(cg, chess, redraw) {
         return
     }
     state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine');
-    if ((config.boardMode === 'Puzzle') && config.disableArrows) {
+    if (config.boardMode === 'Puzzle' && config.disableArrows) {
         return;
     }
     if (!state.analysisToggledOn) {
@@ -369,7 +368,7 @@ var stockfish = null;
 function handleStockfishCrash(source) {
     console.error(`Stockfish engine crashed. Source: ${source}.`);
     console.log("Attempting to restart the engine...");
-
+    if (!state.analysisToggledOn) return;
     // Reset any state that might be stuck because of the crash
     state.isStockfishBusy = false;
     // Re-initialize a fresh instance after a short delay to let the browser recover.
@@ -388,7 +387,6 @@ function convertCpToWinPercentage(cp) {
 // A more robust, async version
 function initializeStockfish() {
     return new Promise((resolve) => {
-        console.log("Initializing Stockfish engine...");
         stockfish = new Worker('_stockfish.js');
 
         stockfish.onmessage = (event) => {
@@ -397,7 +395,6 @@ function initializeStockfish() {
 
             // Resolve the promise once the engine is ready
             if (message === 'uciok') {
-                console.log("Stockfish engine ready.");
                 // Re-assign the handler to process game-related messages
                 stockfish.onmessage = handleStockfishMessages;
                 resolve();
@@ -444,7 +441,7 @@ function handleStockfishMessages(event) {
                 if (state.analysisFen === chess.fen()) {
                     const tempChess = new Chess(state.analysisFen);
                     const moveObject = tempChess.move(firstMove);
-                    if (moveObject) {
+                    if (moveObject && state.analysisToggledOn) {
                         state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
                         state.chessGroundShapes.push({
                             orig: moveObject.from,
@@ -468,7 +465,7 @@ function handleStockfishMessages(event) {
                 try {
                     const tempChess = new Chess(state.analysisFen);
                     const moveObject = tempChess.move(bestMoveUci);
-                    if (moveObject) {
+                    if (moveObject && state.analysisToggledOn) {
                         state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
                         state.chessGroundShapes.push({
                             orig: moveObject.from,
@@ -515,7 +512,6 @@ function startAnalysis(movetime) {
 function toggleStockfishAnalysis() {
     if (!stockfish) initializeStockfish();
     state.analysisToggledOn = !state.analysisToggledOn; // Toggle the state
-
     const toggleButton = document.querySelector("#stockfishToggle");
     toggleButton.classList.toggle('active-toggle', state.analysisToggledOn); // Add/remove class based on state
 
@@ -531,12 +527,7 @@ function toggleStockfishAnalysis() {
         if (state.isStockfishBusy) {
             stockfish.postMessage('stop'); // Tell the engine to stop thinking
         }
-        // Filter out the analysis arrows
-        state.chessGroundShapes = state.chessGroundShapes.filter(
-            shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished'
-        );
-        // Update the board to remove the arrows
-        cg.set({ drawable: { shapes: state.chessGroundShapes } });
+        drawArrows(cg, chess);
     }
 }
 
@@ -658,7 +649,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
     if (!moveAttempt) return;
 
     let foundVariation = false;
-    if ((state.expectedMove?.notation.notation === moveAttempt.san) && state.pgnState) {
+    if (state.expectedMove?.notation.notation === moveAttempt.san && state.pgnState) {
         foundVariation = true;
     } else if (state.expectedMove?.variations && config.acceptVariations && state.pgnState) {
         for (let i = 0; i < state.expectedMove.variations.length; i++) {
@@ -921,6 +912,11 @@ function reload() {
         turnColor: toColor(chess),
         events: {
             select: (key) => {
+                const arrowCheck = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
+                if (arrowCheck.length > 0) {
+                    state.chessGroundShapes = state.chessGroundShapes.filter(element => !arrowCheck.includes(element));
+                }
+                cg.set({drawable: {shapes: state.chessGroundShapes}});
                 // Debounce to prevent rapid firing on touchscreens
                 if (state.debounceTimeout !== null) {
                     return
@@ -942,11 +938,11 @@ function reload() {
                 } else if (state.selectState) {
                     // A piece was selected, and a new square was clicked (the destination).
                     // This is the guard against the 'select' event on the destination square.
-                    state.selectState = false;
                     // Get all legal moves from the selected square
                     const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
                     // Check if the target square (key) is a valid destination for any of these moves
                     const isValidMove = legalMovesFromSelected.some(move => move.to === key);
+                    state.selectState = false;
                     if (isValidMove) {
                         return; // Let the 'after' event handle the move logic.
                     }
@@ -1003,12 +999,12 @@ function reload() {
         },
         highlight: { check: true },
         drawable: {
-            enabled: false,
+            enabled: true,
             brushes: {
-                stockfish: { key: 'stockfish', color: 'red', opacity: 0.85, lineWidth: 8 },
-                stockfinished: { key: 'stockfinished', color: 'red', opacity: 1, lineWidth: 9 },
-                mainLine: { key: 'mainLine', color: 'green', opacity: 0.8, lineWidth: 12 },
-                altLine: { key: 'altLine', color: 'blue', opacity: 0.8, lineWidth: 10 },
+                stockfish: { key: 'stockfish', color: '#FF0035', opacity: 1, lineWidth: 6 },
+                stockfinished: { key: 'stockfinished', color: '#FF0035', opacity: 1, lineWidth: 7 },
+                mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
+                altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
             },
         },
     });
@@ -1219,9 +1215,9 @@ document.querySelector('#promoteB').src = "_"+state.boardRotation[0]+"B.svg";
 document.querySelector('#promoteN').src = "_"+state.boardRotation[0]+"N.svg";
 document.querySelector('#promoteR').src = "_"+state.boardRotation[0]+"R.svg";
 
-if ((state.errorTrack === 'true') && (config.boardMode === 'Viewer')) {
+if (state.errorTrack === 'true' && config.boardMode === 'Viewer') {
     document.documentElement.style.setProperty('--border-color', "#b31010");
-} else if ((state.errorTrack === 'false') && (config.boardMode === 'Viewer')) {
+} else if (!state.errorTrack && config.boardMode === 'Viewer') {
     document.documentElement.style.setProperty('--border-color', "limegreen");
 }
 
@@ -1229,8 +1225,8 @@ function positionPromoteOverlay() {
     const promoteOverlay = document.getElementById('center');
     const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
     // Set the position of the promote element
-    promoteOverlay.style.top = (rect.top + 6) + 'px';
-    promoteOverlay.style.left = (rect.left + 6) + 'px';
+    promoteOverlay.style.top = (rect.top + 8) + 'px';
+    promoteOverlay.style.left = (rect.left + 8) + 'px';
     window.addEventListener('resize', resizeBoard);
 }
 

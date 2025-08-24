@@ -14010,6 +14010,7 @@ ${contextLines.join("\n")}`;
       function handleStockfishCrash(source) {
         console.error(`Stockfish engine crashed. Source: ${source}.`);
         console.log("Attempting to restart the engine...");
+        if (!state.analysisToggledOn) return;
         state.isStockfishBusy = false;
         setTimeout(initializeStockfish, 100);
       }
@@ -14023,13 +14024,11 @@ ${contextLines.join("\n")}`;
       }
       function initializeStockfish() {
         return new Promise((resolve) => {
-          console.log("Initializing Stockfish engine...");
           stockfish = new Worker("_stockfish.js");
           stockfish.onmessage = (event2) => {
             const message = event2.data ? event2.data : event2;
             if (typeof message !== "string") return;
             if (message === "uciok") {
-              console.log("Stockfish engine ready.");
               stockfish.onmessage = handleStockfishMessages;
               resolve();
             }
@@ -14070,7 +14069,7 @@ ${contextLines.join("\n")}`;
               if (state.analysisFen === chess.fen()) {
                 const tempChess = new Chess(state.analysisFen);
                 const moveObject = tempChess.move(firstMove);
-                if (moveObject) {
+                if (moveObject && state.analysisToggledOn) {
                   state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
                   state.chessGroundShapes.push({
                     orig: moveObject.from,
@@ -14094,7 +14093,7 @@ ${contextLines.join("\n")}`;
               try {
                 const tempChess = new Chess(state.analysisFen);
                 const moveObject = tempChess.move(bestMoveUci);
-                if (moveObject) {
+                if (moveObject && state.analysisToggledOn) {
                   state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
                   state.chessGroundShapes.push({
                     orig: moveObject.from,
@@ -14148,10 +14147,7 @@ ${contextLines.join("\n")}`;
           if (state.isStockfishBusy) {
             stockfish.postMessage("stop");
           }
-          state.chessGroundShapes = state.chessGroundShapes.filter(
-            (shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished"
-          );
-          cg.set({ drawable: { shapes: state.chessGroundShapes } });
+          drawArrows(cg, chess);
         }
       }
       function makeMove(cg2, chess2, move3) {
@@ -14498,6 +14494,11 @@ ${contextLines.join("\n")}`;
           turnColor: toColor(chess),
           events: {
             select: (key) => {
+              const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+              if (arrowCheck.length > 0) {
+                state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
+              }
+              cg.set({ drawable: { shapes: state.chessGroundShapes } });
               if (state.debounceTimeout !== null) {
                 return;
               }
@@ -14512,9 +14513,9 @@ ${contextLines.join("\n")}`;
                 state.selectState = key;
                 return;
               } else if (state.selectState) {
-                state.selectState = false;
                 const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
                 const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
+                state.selectState = false;
                 if (isValidMove) {
                   return;
                 }
@@ -14563,12 +14564,12 @@ ${contextLines.join("\n")}`;
           },
           highlight: { check: true },
           drawable: {
-            enabled: false,
+            enabled: true,
             brushes: {
-              stockfish: { key: "stockfish", color: "red", opacity: 0.85, lineWidth: 8 },
-              stockfinished: { key: "stockfinished", color: "red", opacity: 1, lineWidth: 9 },
-              mainLine: { key: "mainLine", color: "green", opacity: 0.8, lineWidth: 12 },
-              altLine: { key: "altLine", color: "blue", opacity: 0.8, lineWidth: 10 }
+              stockfish: { key: "stockfish", color: "#FF0035", opacity: 1, lineWidth: 6 },
+              stockfinished: { key: "stockfinished", color: "#FF0035", opacity: 1, lineWidth: 7 },
+              mainLine: { key: "mainLine", color: "#66AA66", opacity: 1, lineWidth: 9 },
+              altLine: { key: "altLine", color: "#66AAAA", opacity: 1, lineWidth: 9 }
             }
           }
         });
@@ -14773,14 +14774,14 @@ ${contextLines.join("\n")}`;
       document.querySelector("#promoteR").src = "_" + state.boardRotation[0] + "R.svg";
       if (state.errorTrack === "true" && config.boardMode === "Viewer") {
         document.documentElement.style.setProperty("--border-color", "#b31010");
-      } else if (state.errorTrack === "false" && config.boardMode === "Viewer") {
+      } else if (!state.errorTrack && config.boardMode === "Viewer") {
         document.documentElement.style.setProperty("--border-color", "limegreen");
       }
       function positionPromoteOverlay() {
         const promoteOverlay = document.getElementById("center");
         const rect = document.querySelector(".cg-wrap").getBoundingClientRect();
-        promoteOverlay.style.top = rect.top + 6 + "px";
-        promoteOverlay.style.left = rect.left + 6 + "px";
+        promoteOverlay.style.top = rect.top + 8 + "px";
+        promoteOverlay.style.left = rect.left + 8 + "px";
         window.addEventListener("resize", resizeBoard);
       }
       async function resizeBoard() {

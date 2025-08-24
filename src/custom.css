@@ -2,7 +2,7 @@
     --coord-white: rgba(255, 255, 255, 0.8);
     --coord-black: rgba(72, 72, 72, 0.8);
     --background-color: transparent;
-    --board-size: min(max(calc(98vh - 87px), 300px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
+    --board-size: min(max(calc(98vh - 12px), 300px), max(calc(98vw - 12px), 200px), 600px); /*have to account for 6px border*/
     --border-color: #808080;
     --opponent-color: black;
     --player-color: white;
@@ -74,12 +74,11 @@ select {
     font-size: 1.2em;
 }
 
-button {
+button.promoteBtn {
     position: relative;
     top: 0.07em;
     font-size: 1.4em;
     background-color: #f5f5f5;
-    color: #333B45 !important;
     border: 1px solid #dcdcdc;
     border-radius: 2px;
     box-shadow: 0px 0px 3px 1px black;
@@ -89,28 +88,24 @@ button {
 
 #container {
     margin-right: 15px;
-    gap: 6px;
+    gap: 4px;
     /*   height: max(100%, var(--board-size)); */
     width: var(--max-width);
     grid-template-areas:
-    "one two"
-    "one three";
+    "one two";
     display: grid;
     grid-template-columns: auto auto;
     grid-template-rows: auto auto;
     justify-content: center;
-    /*   align-items: center; */
 }
 
 #commentBox {
-    /* No width or grow property needed. 'auto' in the parent will handle it. */
     grid-area: one;
     padding: 0px;
     font-family: serif;
-    margin-bottom: 5px;
     width: calc(var(--max-width) - var(--board-size) - 30px);
     box-shadow: 0px 0px 3px 0px black;
-    background: #1A1A1E;
+    background: #242424;
     color: #D7DEE9;
     border-radius: 4px;
     max-height: calc(var(--board-size) + 14px);
@@ -125,10 +120,10 @@ button {
 }
 
 #buttons-container {
-    margin-top: -3px;
-    grid-area: three;
-    padding-left: 12px;
+    border-bottom: 1px solid black;
+    background: #2C2C2C;
     display: flex;
+    padding: 4px;
     justify-content: center;
     align-items: center;
 }
@@ -139,26 +134,22 @@ button {
         margin-right: 0px;
         grid-template-areas:
     "two"
-    "three"
     "one";
         grid-template-columns: auto;
     }
     #commentBox {
         width: calc(var(--board-size) + 12px);
-        height: calc(100vh - var(--board-size) - 80px);
+        height: calc(100vh - var(--board-size) - 34px);
         margin-left: 1px;
     }
 
-    #buttons-container {
-        padding-left: 0px;
-    }
 }
 .userTextContainer {
     display: flex;
     width: 100%;
     justify-content: center;
     align-items: center;
-    background: #242424;
+    background: #2C2C2C;
     color: #D7DEE9;
     border-bottom: 1px solid black;
 }
@@ -175,7 +166,7 @@ button {
 
 #pgnComment {
     font-size: 1.2em;
-    background: #1A1A1E;
+    background: #242424;
     display: grid;
     grid-template-columns: auto 1fr 1fr; /* 3-column layout */
 }
@@ -184,7 +175,7 @@ button {
 .move-number {
     height: 1.5em;
     padding-left: 0.2em;
-    background-color: #1A1A1E; /* For visualization */
+    background-color: #242424; /* For visualization */
     border-right: 1px solid black;
     text-align: center;
 }
@@ -192,7 +183,7 @@ button {
 /* The two spans that should fill space */
 .move, .nullMove {
     height: 1.5em;
-    background-color: #1A1A1E;
+    background-color: #242424;
     text-align: center;
 }
 .nullMove {
@@ -205,7 +196,7 @@ button {
     background: #404040;
 }
 .altLine .move:hover, .altLine .move.current {
-    background: #1A1A1E;
+    background: #242424;
 }
 .move.current {
     border: 1px solid black;
@@ -277,15 +268,18 @@ button.navBtn {
     justify-content: center;
     align-items: center;
     border-radius: 4px;
-    border: 1px solid #333B45;
+    border: 1px solid black;
+    background-color: #242424;
+    color: #D7DEE9;
     box-shadow: 0px 0px 3px 0px black;
     height: calc(var(--board-size) * 0.1);
     width: calc(var(--board-size) * 0.1);
     max-width: 50px;
     max-height: 50px;
-    margin: 5px;
+    margin: 3px;
     margin-top: 0;
-    margin-bottom: 0;
+    margin-bottom: 0px;
+    cursor: pointer;
 }
 
 button.navBtn:hover {
@@ -302,6 +296,7 @@ button.navBtn:active {
 button.navBtn.active-toggle {
     background-color: #a5d6a7; /* A light green to indicate 'on' */
     box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+    color: #2C2C2C;
 }
 
 button.navBtn:focus {
@@ -357,7 +352,9 @@ html, img {
 }
 
 /* --- Chesground --- */
-
+.cg-shapes {
+    opacity: 1 !important;
+}
 .cg-wrap {
     width: var(--board-size);
     height: var(--board-size);

@@ -1,10 +1,14 @@
 const esbuild = require('esbuild');
 const path = require('path');
 const fs = require('fs');
+const { globSync } = require('glob');
 
 const srcDir = __dirname;
 const distDir = path.join(__dirname, 'dist');
 const mediaDir = path.join(__dirname, 'media');
+const sourceGlob = 'node_modules/stockfish/src/stockfish-17.1-single-a496a04*';
+const renameFrom = 'stockfish-17.1-single-a496a04';
+const renameTo = '_stockfish';
 
 // Check for dev/watch mode
 const isDev = process.argv.includes('--dev');
@@ -21,11 +25,19 @@ function postBuildTasks() {
     fs.readdirSync(mediaDir).forEach(file => {
         fs.copyFileSync(path.join(mediaDir, file), path.join(distDir, file));
     });
+    const files = globSync(sourceGlob);
+    files.forEach(sourcePath => {
+        const originalFilename = path.basename(sourcePath);
 
-    // Copy dependencies from node_modules
-    // fs.copyFileSync(path.join(srcDir, 'node_modules', 'stockfish', 'src', 'stockfish.js'), path.join(distDir, '_stockfish.js'));
+        // 3. Create the new filename by replacing the version string
+        const newFilename = originalFilename.replace(renameFrom, renameTo);
 
-    console.log(`${isDev ? new Date().toLocaleTimeString() + ':' : ''} Build finished successfully.`);
+        const destPath = path.join(distDir, newFilename);
+
+        fs.copyFileSync(sourcePath, destPath);
+    });
+
+console.log(`${isDev ? new Date().toLocaleTimeString() + ':' : ''} Build finished successfully.`);
 }
 
 // Clean dist directory
