@@ -20,6 +20,7 @@
     "stockfish": "^17.1.0"
   },
   "devDependencies": {
-    "esbuild": "^0.25.9"
+    "esbuild": "^0.25.9",
+    "glob": "^11.0.3"
   }
 }
