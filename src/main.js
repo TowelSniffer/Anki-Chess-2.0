@@ -476,7 +476,7 @@ function handleStockfishMessages(event) {
                         cg.set({drawable: {shapes: state.chessGroundShapes}});
                     }
                 } catch (e) {
-                    console.log(e)
+                    // console.log(e)
                 }
             }
         }
