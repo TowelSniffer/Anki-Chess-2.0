@@ -14774,7 +14774,7 @@ ${contextLines.join("\n")}`;
       document.querySelector("#promoteR").src = "_" + state.boardRotation[0] + "R.svg";
       if (state.errorTrack === "true" && config.boardMode === "Viewer") {
         document.documentElement.style.setProperty("--border-color", "#b31010");
-      } else if (!state.errorTrack && config.boardMode === "Viewer") {
+      } else if (state.errorTrack === "false" && config.boardMode === "Viewer") {
         document.documentElement.style.setProperty("--border-color", "limegreen");
       }
       function positionPromoteOverlay() {
