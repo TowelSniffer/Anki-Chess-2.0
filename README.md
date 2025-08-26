@@ -49,6 +49,7 @@ https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
 
 - [AnkifyPGN](https://github.com/ThoughtfulSenpai/AnkifyPGN): A GUI to batch create flashcards. Now also an anki addon: [
 addon](https://ankiweb.net/shared/info/569467423)
+- [Chessli2](https://github.com/pwenker/chessli2/tree/main): A tool that can import tactics and msitakes from your Lichess games
 - Share your own?
 
 ## With thanks to...
