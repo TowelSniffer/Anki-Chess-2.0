@@ -3,6 +3,7 @@ import { Chessground } from 'chessground';
 import { parse } from '@mliebelt/pgn-parser';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
+import * as mirror from './mirror.js';
 
 function toggleDisplay(className) {
     document.querySelectorAll('.' + className).forEach(el => el.classList.toggle('hidden'));
@@ -35,6 +36,7 @@ const config = {
     flipBoard: getUrlParam("flip", 'true') === 'true',
     boardMode: getUrlParam("boardMode", 'Viewer'),
     background: getUrlParam("background", "#2C2C2C"),
+    mirror: getUrlParam("mirror", 'true') === 'true',
 };
 
 // --- Global State ---
@@ -60,6 +62,7 @@ let state = {
     analysisFen: null,
     analysisToggledOn: false,
     pgnPath: [],
+    mirrorState: getUrlParam("mirrorState", []),
 };
 if (!state.errorTrack) {
     state.errorTrack = false;
@@ -123,6 +126,11 @@ function playSound(soundName) {
 chess = new Chess();
 const parsedPGN = parse(config.pgn, { startRule: "game" });
 
+if (config.mirror) {
+    if (!state.mirrorState.length) state.mirrorState = mirror.assignMirrorState(config.pgn);
+    mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+}
+
 function augmentPgnTree(moves, path = []) {
     if (!moves) return;
     for (let i = 0; i < moves.length; i++) {
@@ -142,6 +150,11 @@ function augmentPgnTree(moves, path = []) {
 augmentPgnTree(parsedPGN.moves);
 
 state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+if (config.mirror) {
+    state.ankiFen = mirror.mirrorFen(state.ankiFen, state.mirrorState);
+}
+
 chess.load(state.ankiFen);
 
 // --- UI Initialization ---

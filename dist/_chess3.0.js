@@ -13696,6 +13696,85 @@ ${contextLines.join("\n")}`;
     }
   });
 
+  // src/mirror.js
+  function assignMirrorState(pgn2) {
+    var mirrorState = [];
+    const mirrorRandom = Math.floor(Math.random() * (3 - 0 + 1) + 0);
+    if (mirrorRandom == 3) {
+      mirrorState = "invert_mirror";
+    } else if (mirrorRandom == 2) {
+      mirrorState = "invert";
+    } else if (mirrorRandom == 1) {
+      mirrorState = "original_mirror";
+    } else {
+      mirrorState = "original";
+    }
+    if (pgn2.search("O-O") != -1) mirrorState.replace("_mirror", "");
+    return mirrorState;
+  }
+  function mirrorFenRow(row) {
+    let result = row.split("").reverse().join("");
+    return result;
+  }
+  function mirrorFen(fullFen, mirrorState) {
+    const fenParts = fullFen.split(" ");
+    const fenBoard = fenParts[0];
+    const fenColor = fenParts[1];
+    const fenRest = fenParts.slice(2).join(" ");
+    const fenRows = fenBoard.split("/");
+    const fenBoardInverted = swapCase(fenBoard.split("").reverse().join(""));
+    const fenBoardMirrored = fenRows.map(mirrorFenRow).join("/");
+    const fenBoardMirroredInverted = swapCase(fenBoardMirrored.split("").reverse().join(""));
+    const fenColorSwapped = fenColor === "w" ? "b" : "w";
+    if (mirrorState == "invert_mirror") {
+      return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
+    } else if (mirrorState == "invert") {
+      return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
+    } else if (mirrorState == "original_mirror") {
+      return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
+    } else {
+      return fullFen;
+    }
+  }
+  function swapCase(str) {
+    return str.split("").map(
+      (ch) => ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
+    ).join("");
+  }
+  function mirrorMove(move3, mirrorState) {
+    var notations = {};
+    if (mirrorState == "invert_mirror") {
+      notations = { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", 1: "8", 2: "7", 3: "6", 4: "5", 5: "4", 6: "3", 7: "2", 8: "1" };
+    } else if (mirrorState == "invert") {
+      notations = { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", 1: "8", 2: "7", 3: "6", 4: "5", 5: "4", 6: "3", 7: "2", 8: "1" };
+    } else if (mirrorState == "original_mirror") {
+      notations = { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8" };
+    } else {
+      notations = { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8" };
+    }
+    const notationMap = notations || notations.m;
+    if (move3.notation.disc) move3.notation.disc = move3.notation.disc.split("").map((char) => notationMap[char] || char).join("");
+    if (move3.notation.col) move3.notation.col = move3.notation.col.split("").map((char) => notationMap[char] || char).join("");
+    if (move3.notation.row) move3.notation.row = move3.notation.row.split("").map((char) => notationMap[char] || char).join("");
+    move3.notation.notation = move3.notation.notation.split("").map((char) => notationMap[char] || char).join("");
+  }
+  function mirrorPgnTree(moves, mirrorState) {
+    if (!moves) return;
+    for (let i = 0; i < moves.length; i++) {
+      const move3 = moves[i];
+      mirrorMove(move3, mirrorState);
+      if (move3.variations) {
+        move3.variations.forEach((variation, varIndex) => {
+          mirrorPgnTree(variation, mirrorState);
+        });
+      }
+    }
+  }
+  var init_mirror = __esm({
+    "src/mirror.js"() {
+    }
+  });
+
   // src/main.js
   var require_main = __commonJS({
     "src/main.js"() {
@@ -13704,6 +13783,7 @@ ${contextLines.join("\n")}`;
       var import_pgn_parser = __toESM(require_index_umd());
       init_chessground_base();
       init_custom();
+      init_mirror();
       function toggleDisplay(className) {
         document.querySelectorAll("." + className).forEach((el) => el.classList.toggle("hidden"));
       }
@@ -13730,7 +13810,8 @@ ${contextLines.join("\n")}`;
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
         boardMode: getUrlParam("boardMode", "Viewer"),
-        background: getUrlParam("background", "#2C2C2C")
+        background: getUrlParam("background", "#2C2C2C"),
+        mirror: getUrlParam("mirror", "true") === "true"
       };
       var state = {
         ankiFen: "",
@@ -13753,7 +13834,8 @@ ${contextLines.join("\n")}`;
         isStockfishBusy: false,
         analysisFen: null,
         analysisToggledOn: false,
-        pgnPath: []
+        pgnPath: [],
+        mirrorState: getUrlParam("mirrorState", [])
       };
       if (!state.errorTrack) {
         state.errorTrack = false;
@@ -13796,6 +13878,10 @@ ${contextLines.join("\n")}`;
       }
       chess = new Chess();
       var parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
+      if (config.mirror) {
+        if (!state.mirrorState.length) state.mirrorState = assignMirrorState(config.pgn);
+        mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+      }
       function augmentPgnTree(moves, path = []) {
         if (!moves) return;
         for (let i = 0; i < moves.length; i++) {
@@ -13812,6 +13898,9 @@ ${contextLines.join("\n")}`;
       }
       augmentPgnTree(parsedPGN.moves);
       state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      if (config.mirror) {
+        state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
+      }
       chess.load(state.ankiFen);
       document.documentElement.style.setProperty("--background-color", config.background);
       var commentBox = document.getElementById("commentBox");
@@ -14814,7 +14903,6 @@ ${contextLines.join("\n")}`;
       }
       loadElements();
       var cgwrap = document.getElementsByClassName("cg-wrap")[0];
-      document.querySelector("#container").focus();
       document.querySelector("#navBackward").disabled = true;
       document.querySelector("#resetBoard").disabled = true;
     }
