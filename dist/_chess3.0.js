@@ -13715,20 +13715,11 @@ ${contextLines.join("\n")}`;
         return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
       }
       var config = {
-        pgn: getUrlParam("PGN", `[Event "?"]
-[Site "?"]
-[Date "2023.02.13"]
-[Round "?"]
-[White "White"]
-[Black "Black"]
-[Result "*"]
-[FEN "8/5pkp/1pB3p1/1Pn5/pbR5/5P2/3r2P1/7K w - - 0 45"]
-[SetUp "1"]
-
-45. Rxb4 a3 {EV: 99.8%, N: 43.09% of 91.3k} (45... Rd1+ {EV: 99.6%, N: 6.39% of
-91.3k} 46. Kh2 a3) 46. Rb1 {EV: 0.2%, N: 12.07% of 138k} a2 {EV: 99.8%, N:
-29.82% of 31.0k} 47. Ra1 {EV: 0.3%, N: 14.64% of 18.2k} Nb3 {EV: 99.6%, N:
-40.53% of 24.4k} *`),
+        pgn: getUrlParam("PGN", `[Event "Puzzle"]
+[Site "https://www.lichess.org/training/qXllP"]
+[Themes "opening fork long crushing"]
+[FEN "rnbqk2r/pp3ppp/2pb1n2/3p4/3P4/1P2PN2/P4PPP/RNBQKB1R w KQkq - 1 7"]
+[SetUp "1"] { Puzzle qXllP with themes: opening fork long crushing } 7. Ba3 Bxa3 8. Nxa3 Qa5+ 9. Nd2 Qxa3 *`),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -13879,6 +13870,7 @@ ${contextLines.join("\n")}`;
         document.querySelector(`[data-path="${pgnPath.join(",")}"]`).classList.add("current");
       }
       function drawArrows(cg2, chess2, redraw) {
+        state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish");
         if (redraw) {
           cg2.set({ drawable: { shapes: state.chessGroundShapes } });
           return;
@@ -13890,9 +13882,6 @@ ${contextLines.join("\n")}`;
         state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
         if (config.boardMode === "Puzzle" && config.disableArrows) {
           return;
-        }
-        if (!state.analysisToggledOn) {
-          state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish");
         }
         let expectedMove = state.expectedMove;
         let expectedLine = state.expectedLine;
@@ -13985,6 +13974,12 @@ ${contextLines.join("\n")}`;
             });
             cg2.set({ animation: { enabled: true } });
           }, 200);
+        } else if (move3.flags.includes("e")) {
+          cg2.set({ animation: { enabled: false } });
+          cg2.set({
+            fen: chess2.fen()
+          });
+          cg2.set({ animation: { enabled: true } });
         } else {
           cg2.set({ fen: chess2.fen() });
         }
@@ -14070,7 +14065,7 @@ ${contextLines.join("\n")}`;
                 const tempChess = new Chess(state.analysisFen);
                 const moveObject = tempChess.move(firstMove);
                 if (moveObject && state.analysisToggledOn) {
-                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.brush !== "stockfishShadow");
                   state.chessGroundShapes.push({
                     orig: moveObject.from,
                     dest: moveObject.to,
@@ -14104,7 +14099,6 @@ ${contextLines.join("\n")}`;
                   cg.set({ drawable: { shapes: state.chessGroundShapes } });
                 }
               } catch (e) {
-                console.log(e);
               }
             }
           }
@@ -14147,8 +14141,8 @@ ${contextLines.join("\n")}`;
           if (state.isStockfishBusy) {
             stockfish.postMessage("stop");
           }
-          drawArrows(cg, chess);
         }
+        drawArrows(cg, chess);
       }
       function makeMove(cg2, chess2, move3) {
         const moveResult = chess2.move(move3);
@@ -14566,10 +14560,14 @@ ${contextLines.join("\n")}`;
           drawable: {
             enabled: true,
             brushes: {
-              stockfish: { key: "stockfish", color: "#FF0035", opacity: 1, lineWidth: 6 },
-              stockfinished: { key: "stockfinished", color: "#FF0035", opacity: 1, lineWidth: 7 },
+              stockfish: { key: "stockfish", color: "#e5e5e5", opacity: 1, lineWidth: 7 },
+              stockfinished: { key: "stockfinished", color: "white", opacity: 1, lineWidth: 7 },
               mainLine: { key: "mainLine", color: "#66AA66", opacity: 1, lineWidth: 9 },
-              altLine: { key: "altLine", color: "#66AAAA", opacity: 1, lineWidth: 9 }
+              altLine: { key: "altLine", color: "#66AAAA", opacity: 1, lineWidth: 9 },
+              green: { opacity: 0.7, lineWidth: 9 },
+              red: { opacity: 0.7, lineWidth: 9 },
+              blue: { opacity: 0.7, lineWidth: 9 },
+              yellow: { opacity: 0.7, lineWidth: 9 }
             }
           }
         });
@@ -14683,9 +14681,19 @@ ${contextLines.join("\n")}`;
           if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
           const tempChess = new Chess(chess.fen());
           const move3 = tempChess.move(state.expectedMove?.notation?.notation);
-          if (move3) {
+          if (move3.flags.includes("e")) {
+            chess.move(move3.san);
+            cg.set({
+              fen: chess.fen()
+            });
+            state.count++;
+            state.expectedMove = state.expectedLine[state.count];
+            drawArrows(cg, chess);
+          } else if (move3) {
             puzzlePlay(cg, chess, null, move3.from, move3.to);
           }
+          document.querySelector("#navBackward").disabled = false;
+          document.querySelector("#resetBoard").disabled = false;
           if (!state.expectedMove || typeof state.expectedMove === "string") {
             document.querySelector("#navForward").disabled = true;
           }
@@ -14767,6 +14775,16 @@ ${contextLines.join("\n")}`;
             navForward();
           }
         });
+        document.addEventListener("keydown", (event2) => {
+          event2.preventDefault();
+          if (event2.key === "ArrowLeft") {
+            navBackward();
+          } else if (event2.key === "ArrowRight") {
+            navForward();
+          } else if (event2.key === "ArrowDown") {
+            resetBoard();
+          }
+        });
       }
       document.querySelector("#promoteQ").src = "_" + state.boardRotation[0] + "Q.svg";
       document.querySelector("#promoteB").src = "_" + state.boardRotation[0] + "B.svg";
@@ -14796,6 +14814,7 @@ ${contextLines.join("\n")}`;
       }
       loadElements();
       var cgwrap = document.getElementsByClassName("cg-wrap")[0];
+      document.querySelector("#container").focus();
       document.querySelector("#navBackward").disabled = true;
       document.querySelector("#resetBoard").disabled = true;
     }
