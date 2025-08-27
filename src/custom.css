@@ -354,7 +354,9 @@ html, img {
 /* --- Chesground --- */
 .cg-shapes {
     opacity: 1 !important;
+    filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.6));
 }
+
 .cg-wrap {
     width: var(--board-size);
     height: var(--board-size);
