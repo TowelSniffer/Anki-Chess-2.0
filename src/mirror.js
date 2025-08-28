@@ -1,19 +1,10 @@
 export function assignMirrorState(pgn) {
-  var mirrorState = [];
-  const mirrorRandom = Math.floor(Math.random() * (3 - 0 + 1) + 0);
-
-  if (mirrorRandom == 3 ) {
-    mirrorState = "invert_mirror";
-  } else if (mirrorRandom == 2) {
-    mirrorState = "invert";
-  } else if (mirrorRandom == 1) {
-    mirrorState = "original_mirror";
-  } else {
-    mirrorState = "original";
-  }
+  const states = ["original","original_mirror", "invert", "invert_mirror"];
+  const mirrorRandom = Math.floor(Math.random() * states.length);
+  let mirrorState = states[mirrorRandom];
 
   // remove invalid mirrored states (left-to-right) when pgn contains castling
-  if(pgn.search("O-O") != -1) mirrorState.replace("_mirror","");
+  if(pgn.includes("O-O")) mirrorState = mirrorState.replace("_mirror","");
 
   return mirrorState;
 }
@@ -58,17 +49,14 @@ export function swapCase(str) {
 export function mirrorMove(move, mirrorState) {
   var notations = {}
 
-  if ( mirrorState == "invert_mirror" ) {
-    notations = { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', 1: '8', 2: '7', 3: '6', 4: '5', 5: '4', 6: '3', 7: '2', 8: '1' };
-  } else if (mirrorState == "invert" ) {
-    notations = { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', 1: '8', 2: '7', 3: '6', 4: '5', 5: '4', 6: '3', 7: '2', 8: '1' };
-  } else if (mirrorState == "original_mirror" ) {
-    notations = { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8' };
-  } else {
-    notations = { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8' };
+  const notationMaps = {
+    "invert_mirror": { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', 1: '8', 2: '7', 3: '6', 4: '5', 5: '4', 6: '3', 7: '2', 8: '1' },
+    "invert": { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', 1: '8', 2: '7', 3: '6', 4: '5', 5: '4', 6: '3', 7: '2', 8: '1' },
+    "original_mirror": { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8' },
+    "original": { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8' }
   }
 
-  const notationMap = notations  || notations.m;
+  const notationMap = notationMaps[mirrorState] || notationMaps.original;
 
   if (move.notation.disc) move.notation.disc = move.notation.disc.split('').map(char => notationMap[char] || char).join('');
   if (move.notation.col) move.notation.col = move.notation.col.split('').map(char => notationMap[char] || char).join('');
