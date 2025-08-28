@@ -14688,6 +14688,7 @@ ${contextLines.join("\n")}`;
             });
             state.count++;
             state.expectedMove = state.expectedLine[state.count];
+            changeAudio(move3);
             drawArrows(cg, chess);
           } else if (move3) {
             puzzlePlay(cg, chess, null, move3.from, move3.to);
@@ -14814,7 +14815,6 @@ ${contextLines.join("\n")}`;
       }
       loadElements();
       var cgwrap = document.getElementsByClassName("cg-wrap")[0];
-      document.querySelector("#container").focus();
       document.querySelector("#navBackward").disabled = true;
       document.querySelector("#resetBoard").disabled = true;
     }
