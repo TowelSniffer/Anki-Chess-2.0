@@ -35,6 +35,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
         iframe.onload = function() { iframe.style.visibility = "visible"; }
         iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&boardMode=Puzzle`;
         var errorTrack;
+        var mirrorState;
         if (Persistence.isAvailable()) {
             Persistence.clear();
             if (typeof window.addEventListener != 'undefined') {
