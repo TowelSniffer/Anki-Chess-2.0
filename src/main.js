@@ -593,7 +593,7 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            window.parent.postMessage(state.errorTrack, '*');
+            window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -618,7 +618,7 @@ function playUserCorrectMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            window.parent.postMessage(state.errorTrack, '*');
+            window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -638,7 +638,7 @@ function handleWrongMove(cg, chess, move) {
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
     if (isFailed) {
         state.errorTrack = true;
-        window.parent.postMessage(state.errorTrack, '*');
+        window.parent.postMessage(state, '*');
         state.solvedColour = "#b31010";
     }
     updateBoard(cg, chess, move, true, true);
@@ -677,7 +677,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
-            window.parent.postMessage(state.errorTrack, '*');
+            window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square

@@ -13835,7 +13835,7 @@ ${contextLines.join("\n")}`;
         analysisFen: null,
         analysisToggledOn: false,
         pgnPath: [],
-        mirrorState: getUrlParam("mirrorState", "")
+        mirrorState: getUrlParam("mirrorState", null)
       };
       if (!state.errorTrack) {
         state.errorTrack = false;
@@ -13879,7 +13879,7 @@ ${contextLines.join("\n")}`;
       chess = new Chess();
       var parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
       if (config.mirror) {
-        if (!state.mirrorState.length) state.mirrorState = assignMirrorState(config.pgn);
+        if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
         mirrorPgnTree(parsedPGN.moves, state.mirrorState);
       }
       function augmentPgnTree(moves, path = []) {
@@ -14274,7 +14274,7 @@ ${contextLines.join("\n")}`;
           state.count++;
           state.expectedMove = state.expectedLine[state.count];
           if (!state.expectedMove || typeof state.expectedMove === "string") {
-            window.parent.postMessage(state.errorTrack, "*");
+            window.parent.postMessage(state, "*");
             document.documentElement.style.setProperty("--border-color", state.solvedColour);
             cg2.set({
               selected: void 0,
@@ -14297,7 +14297,7 @@ ${contextLines.join("\n")}`;
           state.count++;
           state.expectedMove = state.expectedLine[state.count];
           if (!state.expectedMove || typeof state.expectedMove === "string") {
-            window.parent.postMessage(state.errorTrack, "*");
+            window.parent.postMessage(state, "*");
             document.documentElement.style.setProperty("--border-color", state.solvedColour);
             cg2.set({
               selected: void 0,
@@ -14317,7 +14317,7 @@ ${contextLines.join("\n")}`;
         const isFailed = config.strictScoring || state.errorCount > config.handicap;
         if (isFailed) {
           state.errorTrack = true;
-          window.parent.postMessage(true, "*");
+          window.parent.postMessage(state, "*");
           state.solvedColour = "#b31010";
         }
         updateBoard(cg2, chess2, move3, true, true);
@@ -14352,7 +14352,7 @@ ${contextLines.join("\n")}`;
           if (state.expectedMove && delay) {
             playAiMove(cg2, chess2, delay);
           } else if (delay) {
-            window.parent.postMessage(state.errorTrack, "*");
+            window.parent.postMessage(state, "*");
             document.documentElement.style.setProperty("--border-color", state.solvedColour);
             cg2.set({
               selected: void 0,
