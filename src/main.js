@@ -36,7 +36,7 @@ const config = {
     flipBoard: getUrlParam("flip", 'true') === 'true',
     boardMode: getUrlParam("boardMode", 'Viewer'),
     background: getUrlParam("background", "#2C2C2C"),
-    mirror: getUrlParam("mirror", 'true') === 'true',
+    mirror: getUrlParam("mirror", 'false') === 'true',
 };
 
 // --- Global State ---
