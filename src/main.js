@@ -1139,6 +1139,7 @@ function reload() {
             });
             state.count++;
             state.expectedMove = state.expectedLine[state.count];
+            changeAudio(move);
             drawArrows(cg, chess)
         } else if (move) {
             puzzlePlay(cg, chess, null, move.from, move.to);
