@@ -190,7 +190,7 @@ if (state.boardRotation === "white") {
 
 state.playerColour = state.boardRotation;
 state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-document.documentElement.style.setProperty('--border-color', config.mirror ? "white" : state.playerColour);
+document.documentElement.style.setProperty('--border-color', state.playerColour);
 document.documentElement.style.setProperty('--player-color', state.playerColour);
 document.documentElement.style.setProperty('--opponent-color', state.opponentColour);
 
@@ -916,7 +916,7 @@ function reload() {
 
     cg = Chessground(board, {
         fen: state.ankiFen,
-        orientation: config.mirror ? "white" : state.playerColour,
+        orientation: state.playerColour,
         turnColor: toColor(chess),
         events: {
             select: (key) => {
