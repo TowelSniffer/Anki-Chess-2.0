@@ -14766,6 +14766,7 @@ ${contextLines.join("\n")}`;
             });
             state.count++;
             state.expectedMove = state.expectedLine[state.count];
+            changeAudio(move3);
             drawArrows(cg, chess);
           } else if (move3) {
             puzzlePlay(cg, chess, null, move3.from, move3.to);
