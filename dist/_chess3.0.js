@@ -13835,7 +13835,7 @@ ${contextLines.join("\n")}`;
         analysisFen: null,
         analysisToggledOn: false,
         pgnPath: [],
-        mirrorState: getUrlParam("mirrorState", [])
+        mirrorState: getUrlParam("mirrorState", "")
       };
       if (!state.errorTrack) {
         state.errorTrack = false;
@@ -13929,7 +13929,7 @@ ${contextLines.join("\n")}`;
       }
       state.playerColour = state.boardRotation;
       state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-      document.documentElement.style.setProperty("--border-color", state.playerColour);
+      document.documentElement.style.setProperty("--border-color", config.mirror ? "white" : state.playerColour);
       document.documentElement.style.setProperty("--player-color", state.playerColour);
       document.documentElement.style.setProperty("--opponent-color", state.opponentColour);
       function toDests(chess2) {
@@ -14573,7 +14573,7 @@ ${contextLines.join("\n")}`;
         state.expectedMove = state.expectedLine[0];
         cg = Chessground(board, {
           fen: state.ankiFen,
-          orientation: state.playerColour,
+          orientation: config.mirror ? "white" : state.playerColour,
           turnColor: toColor(chess),
           events: {
             select: (key) => {

@@ -62,7 +62,7 @@ let state = {
     analysisFen: null,
     analysisToggledOn: false,
     pgnPath: [],
-    mirrorState: getUrlParam("mirrorState", []),
+    mirrorState: getUrlParam("mirrorState", null),
 };
 if (!state.errorTrack) {
     state.errorTrack = false;
@@ -127,7 +127,7 @@ chess = new Chess();
 const parsedPGN = parse(config.pgn, { startRule: "game" });
 
 if (config.mirror) {
-    if (!state.mirrorState.length) state.mirrorState = mirror.assignMirrorState(config.pgn);
+    if (!state.mirrorState) state.mirrorState = mirror.assignMirrorState(config.pgn);
     mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
 }
 
@@ -190,7 +190,7 @@ if (state.boardRotation === "white") {
 
 state.playerColour = state.boardRotation;
 state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-document.documentElement.style.setProperty('--border-color', state.playerColour);
+document.documentElement.style.setProperty('--border-color', config.mirror ? "white" : state.playerColour);
 document.documentElement.style.setProperty('--player-color', state.playerColour);
 document.documentElement.style.setProperty('--opponent-color', state.opponentColour);
 
@@ -638,7 +638,7 @@ function handleWrongMove(cg, chess, move) {
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
     if (isFailed) {
         state.errorTrack = true;
-        window.parent.postMessage(true, '*');
+        window.parent.postMessage(state.errorTrack, '*');
         state.solvedColour = "#b31010";
     }
     updateBoard(cg, chess, move, true, true);
@@ -916,7 +916,7 @@ function reload() {
 
     cg = Chessground(board, {
         fen: state.ankiFen,
-        orientation: state.playerColour,
+        orientation: config.mirror ? "white" : state.playerColour,
         turnColor: toColor(chess),
         events: {
             select: (key) => {
