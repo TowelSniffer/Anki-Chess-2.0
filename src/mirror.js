@@ -3,9 +3,6 @@ export function assignMirrorState(pgn) {
   const mirrorRandom = Math.floor(Math.random() * states.length);
   let mirrorState = states[mirrorRandom];
 
-  // remove invalid mirrored states (left-to-right) when pgn contains castling
-  if(pgn.includes("O-O")) mirrorState = mirrorState.replace("_mirror","");
-
   return mirrorState;
 }
 
