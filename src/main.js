@@ -3,6 +3,7 @@ import { Chessground } from 'chessground';
 import { parse } from '@mliebelt/pgn-parser';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
+import * as mirror from './mirror.js';
 
 function toggleDisplay(className) {
     document.querySelectorAll('.' + className).forEach(el => el.classList.toggle('hidden'));
@@ -35,6 +36,7 @@ const config = {
     flipBoard: getUrlParam("flip", 'true') === 'true',
     boardMode: getUrlParam("boardMode", 'Viewer'),
     background: getUrlParam("background", "#2C2C2C"),
+    mirror: getUrlParam("mirror", 'false') === 'true',
 };
 
 // --- Global State ---
@@ -60,6 +62,7 @@ let state = {
     analysisFen: null,
     analysisToggledOn: false,
     pgnPath: [],
+    mirrorState: getUrlParam("mirrorState", null),
 };
 if (!state.errorTrack) {
     state.errorTrack = false;
@@ -123,6 +126,11 @@ function playSound(soundName) {
 chess = new Chess();
 const parsedPGN = parse(config.pgn, { startRule: "game" });
 
+if (config.mirror) {
+    if (!state.mirrorState) state.mirrorState = mirror.assignMirrorState(config.pgn);
+    mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+}
+
 function augmentPgnTree(moves, path = []) {
     if (!moves) return;
     for (let i = 0; i < moves.length; i++) {
@@ -142,6 +150,11 @@ function augmentPgnTree(moves, path = []) {
 augmentPgnTree(parsedPGN.moves);
 
 state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+if (config.mirror) {
+    state.ankiFen = mirror.mirrorFen(state.ankiFen, state.mirrorState);
+}
+
 chess.load(state.ankiFen);
 
 // --- UI Initialization ---
@@ -580,7 +593,7 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            window.parent.postMessage(state.errorTrack, '*');
+            window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -605,7 +618,7 @@ function playUserCorrectMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            window.parent.postMessage(state.errorTrack, '*');
+            window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -625,7 +638,7 @@ function handleWrongMove(cg, chess, move) {
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
     if (isFailed) {
         state.errorTrack = true;
-        window.parent.postMessage(true, '*');
+        window.parent.postMessage(state, '*');
         state.solvedColour = "#b31010";
     }
     updateBoard(cg, chess, move, true, true);
@@ -664,7 +677,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
-            window.parent.postMessage(state.errorTrack, '*');
+            window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
