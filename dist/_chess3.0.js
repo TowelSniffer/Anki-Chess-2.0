@@ -13701,7 +13701,6 @@ ${contextLines.join("\n")}`;
     const states = ["original", "original_mirror", "invert", "invert_mirror"];
     const mirrorRandom = Math.floor(Math.random() * states.length);
     let mirrorState = states[mirrorRandom];
-    if (pgn2.includes("O-O")) mirrorState = mirrorState.replace("_mirror", "");
     return mirrorState;
   }
   function mirrorFenRow(row) {
@@ -13784,11 +13783,18 @@ ${contextLines.join("\n")}`;
         return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
       }
       var config = {
-        pgn: getUrlParam("PGN", `[Event "Puzzle"]
-[Site "https://www.lichess.org/training/qXllP"]
-[Themes "opening fork long crushing"]
-[FEN "rnbqk2r/pp3ppp/2pb1n2/3p4/3P4/1P2PN2/P4PPP/RNBQKB1R w KQkq - 1 7"]
-[SetUp "1"] { Puzzle qXllP with themes: opening fork long crushing } 7. Ba3 Bxa3 8. Nxa3 Qa5+ 9. Nd2 Qxa3 *`),
+        pgn: getUrlParam("PGN", `[Event "?"]
+    [Site "?"]
+    [Date "2025.08.30"]
+    [Round "?"]
+    [White "White"]
+    [Black "Black"]
+    [Result "1-0"]
+    [FEN "r4k2/pppb1Pp1/2np3p/2b5/2B2Bnq/2N5/PP2Q1PP/4RR1K w - - 0 17"]
+    [SetUp "1"]
+
+    17. Qe8+ (17. Qf2?? Bxf2) Rxe8 18. fxe8=Q+ Bxe8 19. Bxd6# 1-0
+    `),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -13798,9 +13804,9 @@ ${contextLines.join("\n")}`;
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Viewer"),
+        boardMode: getUrlParam("boardMode", "Puzzle"),
         background: getUrlParam("background", "#2C2C2C"),
-        mirror: getUrlParam("mirror", "false") === "true"
+        mirror: getUrlParam("mirror", "true") === "true"
       };
       var state = {
         ankiFen: "",
@@ -13867,9 +13873,16 @@ ${contextLines.join("\n")}`;
       }
       chess = new Chess();
       var parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
-      if (config.mirror) {
+      state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      function checkCastleRights(fen) {
+        const castlingPart = fen.split(" ")[2];
+        console.log(castlingPart);
+        return castlingPart !== "-";
+      }
+      if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === "Puzzle") {
         if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
         mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+        state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
       }
       function augmentPgnTree(moves, path = []) {
         if (!moves) return;
@@ -13886,10 +13899,6 @@ ${contextLines.join("\n")}`;
         }
       }
       augmentPgnTree(parsedPGN.moves);
-      state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-      if (config.mirror) {
-        state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
-      }
       chess.load(state.ankiFen);
       document.documentElement.style.setProperty("--background-color", config.background);
       var commentBox = document.getElementById("commentBox");
@@ -13918,7 +13927,7 @@ ${contextLines.join("\n")}`;
       }
       state.playerColour = state.boardRotation;
       state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-      document.documentElement.style.setProperty("--border-color", config.mirror ? "white" : state.playerColour);
+      document.documentElement.style.setProperty("--border-color", state.playerColour);
       document.documentElement.style.setProperty("--player-color", state.playerColour);
       document.documentElement.style.setProperty("--opponent-color", state.opponentColour);
       function toDests(chess2) {
@@ -14021,7 +14030,7 @@ ${contextLines.join("\n")}`;
         }
         cg2.set({ drawable: { shapes: state.chessGroundShapes } });
       }
-      function updateBoard(cg2, chess2, move3, quite, commentRewrite) {
+      function updateBoard(cg2, chess2, move3, quite) {
         if (!quite) {
           changeAudio(move3);
         }
@@ -14053,11 +14062,16 @@ ${contextLines.join("\n")}`;
             cg2.set({ animation: { enabled: true } });
           }, 200);
         } else if (move3.flags.includes("e")) {
+          chess2.undo();
           cg2.set({ animation: { enabled: false } });
           cg2.set({
             fen: chess2.fen()
           });
           cg2.set({ animation: { enabled: true } });
+          chess2.move(move3.san);
+          cg2.set({
+            fen: chess2.fen()
+          });
         } else {
           cg2.set({ fen: chess2.fen() });
         }
@@ -14236,10 +14250,10 @@ ${contextLines.join("\n")}`;
           move3 = tempChess.move({ from: orig, to: dest, promotion: "q" });
           promoCheck = true;
         } else {
-          move3 = tempChess.move(orig);
+          move3 = tempChess.move(orig.san);
         }
         if (move3.san.includes("=") && promoCheck) {
-          promotePopup(cg2, chess2, orig, dest, null);
+          promotePopup(cg2, chess2, orig.san, dest, null);
         } else {
           checkUserMove(cg2, chess2, move3.san, null);
         }
@@ -14334,7 +14348,26 @@ ${contextLines.join("\n")}`;
             }
           }
         }
+        console.log(moveAttempt);
         if (foundVariation) {
+          const blunderNags = ["$2", "$4", "$6", "$9"];
+          const goodMoveNags = ["$1", "$3"];
+          const isBlunder = state.expectedMove.nag?.some((nags) => blunderNags.includes(nags));
+          if (isBlunder) {
+            state.errorTrack = true;
+            window.parent.postMessage(state, "*");
+            state.solvedColour = "#b31010";
+            state.chessGroundShapes.push({
+              orig: moveAttempt.from,
+              // The square to anchor the image to
+              customSvg: {
+                html: '<image href="_blunder.webp" width="100" height="100" />',
+                center: "orig"
+                // Center the SVG on the origin square
+              }
+            });
+          }
+          ;
           makeMove(cg2, chess2, moveAttempt);
           state.count++;
           state.expectedMove = state.expectedLine[state.count];
@@ -14388,7 +14421,7 @@ ${contextLines.join("\n")}`;
         if (dest) {
           tempMove = tempChess.move({ from: orig, to: dest, promotion: "q" });
         } else {
-          tempMove = tempChess.move(orig);
+          tempMove = tempChess.move(orig.san);
         }
         if (!tempMove) return;
         if (tempMove.san.includes("=") && delay && dest) {
@@ -14422,9 +14455,9 @@ ${contextLines.join("\n")}`;
             const tempChess = new Chess(chess2.fen());
             const move3 = tempChess.move({ from: orig, to: dest, promotion: state.promoteChoice });
             if (config.boardMode === "Puzzle") {
-              puzzlePlay(cg2, chess2, 300, move3.san, null);
+              puzzlePlay(cg2, chess2, 300, move3, null);
             } else if (config.boardMode === "Viewer") {
-              handleViewerMove(cg2, chess2, move3.san, null);
+              handleViewerMove(cg2, chess2, move3, null);
             }
             cancelPopup();
             document.querySelector(".cg-wrap").style.filter = "none";
@@ -14562,7 +14595,7 @@ ${contextLines.join("\n")}`;
         state.expectedMove = state.expectedLine[0];
         cg = Chessground(board, {
           fen: state.ankiFen,
-          orientation: config.mirror ? "white" : state.playerColour,
+          orientation: state.playerColour,
           turnColor: toColor(chess),
           events: {
             select: (key) => {
@@ -14601,16 +14634,16 @@ ${contextLines.join("\n")}`;
                   document.querySelector("#navForward").disabled = true;
                 }
                 cg.move(arrowMove.orig, arrowMove.dest);
-                handleViewerMove(cg, chess, arrowMove.san, null);
+                handleViewerMove(cg, chess, arrowMove, null);
               } else {
                 const allMoves = chess.moves({ verbose: true });
                 const movesToSquare = allMoves.filter((move3) => move3.to === key);
                 if (movesToSquare.length === 1) {
                   cg.move(movesToSquare[0].from, movesToSquare[0].to);
                   if (config.boardMode === "Puzzle") {
-                    puzzlePlay(cg, chess, 300, movesToSquare[0].san, null);
+                    puzzlePlay(cg, chess, 300, movesToSquare[0], null);
                   } else if (config.boardMode === "Viewer") {
-                    handleViewerMove(cg, chess, movesToSquare[0].san, null);
+                    handleViewerMove(cg, chess, movesToSquare[0], null);
                   }
                 }
               }
@@ -14646,7 +14679,15 @@ ${contextLines.join("\n")}`;
               red: { opacity: 0.7, lineWidth: 9 },
               blue: { opacity: 0.7, lineWidth: 9 },
               yellow: { opacity: 0.7, lineWidth: 9 }
-            }
+            },
+            svgs: [
+              {
+                orig: "f1",
+                // The square to draw on
+                // An SVG <image> element
+                content: '<image href="_blunder.webp" x="50%" y="50%" width="50%" height="50%"/>'
+              }
+            ]
           }
         });
         if (config.boardMode === "Puzzle") {
@@ -14722,7 +14763,7 @@ ${contextLines.join("\n")}`;
             } else if (state.count === 0) {
               state.pgnState = true;
               document.querySelector("#navForward").disabled = false;
-            } else if (state.expectedLine[state.count - 1].notation.notation === getLastMove(chess).san) {
+            } else if (state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
               state.pgnState = true;
               document.querySelector("#navForward").disabled = false;
             }
@@ -14759,16 +14800,7 @@ ${contextLines.join("\n")}`;
           if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
           const tempChess = new Chess(chess.fen());
           const move3 = tempChess.move(state.expectedMove?.notation?.notation);
-          if (move3.flags.includes("e")) {
-            chess.move(move3.san);
-            cg.set({
-              fen: chess.fen()
-            });
-            state.count++;
-            state.expectedMove = state.expectedLine[state.count];
-            changeAudio(move3);
-            drawArrows(cg, chess);
-          } else if (move3) {
+          if (move3) {
             puzzlePlay(cg, chess, null, move3.from, move3.to);
           }
           document.querySelector("#navBackward").disabled = false;
