@@ -4,6 +4,7 @@
         muteAudio: false,
         fontSize: 18,
         flip: false, // sets whether Puzzle begins from First or second move of PGN
+        mirror: true, // card will randomly show up in a mirrored and/or inverted orientation        
     }
 </script>
 <script>
@@ -21,9 +22,11 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     userText = encodeURIComponent(userText)
     {{/textField}}
 
-        var errorCheck
+        var errorTrack;
+        var mirrorState;
         if (Persistence.isAvailable()) {
             errorTrack = Persistence.getItem("errorTrack");
+            mirrorState = Persistence.getItem("mirrorState");
             Persistence.clear();
         }
 </script>
@@ -33,6 +36,6 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     var PGN = encodeURIComponent(PGNtext);
     var iframe = document.getElementById("analysisBoard");
     iframe.onload = function() { iframe.style.visibility = "visible"; }
-    iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&background=`+background+`&fontSize=`+userConfig.fontSize+`&boardMode=Viewer&muteAudio=`+userConfig.muteAudio+`&errorTrack=`+errorTrack+``;
+    iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&background=`+background+`&fontSize=`+userConfig.fontSize+`&boardMode=Viewer&muteAudio=`+userConfig.muteAudio+`&errorTrack=`+errorTrack+`&mirror=`+userConfig.mirror+`&mirrorState=`+mirrorState+``;
 document.querySelector("#analysisBoard").contentWindow.focus();
 </script>
