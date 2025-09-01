@@ -13784,20 +13784,18 @@ ${contextLines.join("\n")}`;
       }
       var config = {
         pgn: getUrlParam("PGN", `[Event "?"]
-[Site "?"]
-[Date "2023.02.13"]
-[Round "?"]
-[White "White"]
-[Black "Black"]
-[Result "*"]
-[FEN "r3r1k1/p4pp1/1q1p3p/3Pn3/P1p1n3/N4P2/1PB1R1PP/RQ4K1 w - - 0 26"]
-[SetUp "1"]
+    [Site "?"]
+    [Date "2023.02.13"]
+    [Round "?"]
+    [White "White"]
+    [Black "Black"]
+    [Result "*"]
+    [FEN "r1bq1rk1/ppp1bppp/2pn4/8/8/8/PPPP1PPP/RNBQRBK1 w - - 2 9"]
+    [SetUp "1"]
 
-26. Kh1! Nf2+!! $32 {EV: 98.3%, N: 99.00% of 16.8k} 27. Kg1 {EV: 1.2%, N: 77.28% of
-61.2k} Nxf3+ $32 {EV: 99.6%, N: 85.99% of 82.7k} 28. gxf3 $22 {EV: 0.5%, N: 82.43% of
-78.4k} Rxe2 {EV: 99.8%, N: 82.41% of 121k} (28... Nd3+ {EV: 99.6%, N: 2.24% of
-121k}) (28... Nh3+ $23 $22 {EV: 99.2%, N: 12.71% of 121k}) (28... Ng4+ {EV: 99.6%, N:
-2.20% of 121k}) *`),
+    9. d4 Re8 {EV: 46.6%, N: 60.04% of 177k} (9... Nf5 {EV: 46.7%, N: 25.55% of
+        177k}) (9... Bg5 {EV: 45.5%, N: 3.91% of 177k}) (9... Bf5 {EV: 44.9%, N: 2.86%
+            of 177k}) (9... a5 {EV: 45.4%, N: 2.51% of 177k}) *`),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -13820,7 +13818,6 @@ ${contextLines.join("\n")}`;
         solvedColour: "limegreen",
         errorTrack: getUrlParam("errorTrack", null),
         count: 0,
-        selectState: false,
         pgnState: true,
         chessGroundShapes: [],
         expectedLine: [],
@@ -14494,7 +14491,6 @@ ${contextLines.join("\n")}`;
               dests: toDests(chess2)
             }
           });
-          state.selectState = false;
           toggleDisplay("showHide");
           document.querySelector("cg-board").style.cursor = "pointer";
           drawArrows(cg2, chess2);
@@ -14661,56 +14657,42 @@ ${contextLines.join("\n")}`;
           turnColor: toColor(chess),
           events: {
             select: (key) => {
-              setTimeout(() => {
-                if (!cg.state.selected) {
-                  state.selectState = false;
+              cg.set({ drawable: { shapes: state.chessGroundShapes } });
+              const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
+              if (arrowCheck.length > 0) {
+                state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
+              }
+              if (!cg.state.selectState) {
+                const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
+                const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
+                state.selectState = false;
+                if (isValidMove) {
+                  state.debounceTimeout = true;
                 }
-                const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
-                if (arrowCheck.length > 0) {
-                  state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
+              }
+              const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
+              const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
+              if (arrowMove.length === 1 && config.boardMode === "Viewer") {
+                if (arrowMove[0].brush === "stockfish" || arrowMove[0].brush === "stockfinished") {
+                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine");
+                  state.pgnState = false;
+                  document.querySelector("#navForward").disabled = true;
                 }
-                cg.set({ drawable: { shapes: state.chessGroundShapes } });
-                if (state.debounceTimeout !== null) {
-                  return;
-                }
-                ;
-                state.debounceTimeout = setTimeout(() => {
-                  state.debounceTimeout = null;
-                }, 100);
-                if (state.selectState !== key && key === cg.state.selected) {
-                  state.selectState = key;
-                  return;
-                } else if (state.selectState) {
-                  const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
-                  const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
-                  state.selectState = false;
-                  if (isValidMove) {
-                    return;
+                handleViewerMove(cg, chess, arrowMove[0], null);
+              } else {
+                const allMoves = chess.moves({ verbose: true });
+                const movesToSquare = allMoves.filter((move3) => move3.to === key);
+                if (movesToSquare.length === 1) {
+                  cg.move(movesToSquare[0].from, movesToSquare[0].to);
+                  if (config.boardMode === "Puzzle") {
+                    puzzlePlay(cg, chess, 300, movesToSquare[0], null);
+                  } else if (config.boardMode === "Viewer") {
+                    handleViewerMove(cg, chess, movesToSquare[0], null);
                   }
-                }
-                const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
-                const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
-                if (arrowMove && config.boardMode === "Viewer") {
-                  if (arrowMove.brush === "stockfish" || arrowMove.brush === "stockfinished") {
-                    state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine");
-                    state.pgnState = false;
-                    document.querySelector("#navForward").disabled = true;
-                  }
-                  cg.move(arrowMove.orig, arrowMove.dest);
-                  handleViewerMove(cg, chess, arrowMove, null);
                 } else {
-                  const allMoves = chess.moves({ verbose: true });
-                  const movesToSquare = allMoves.filter((move3) => move3.to === key);
-                  if (movesToSquare.length === 1) {
-                    cg.move(movesToSquare[0].from, movesToSquare[0].to);
-                    if (config.boardMode === "Puzzle") {
-                      puzzlePlay(cg, chess, 300, movesToSquare[0], null);
-                    } else if (config.boardMode === "Viewer") {
-                      handleViewerMove(cg, chess, movesToSquare[0], null);
-                    }
-                  }
+                  state.debounceTimeout = false;
                 }
-              }, 0);
+              }
             }
           },
           premovable: {
@@ -14723,12 +14705,15 @@ ${contextLines.join("\n")}`;
             dests: toDests(chess),
             events: {
               after: (orig, dest) => {
+                if (state.debounceTimeout) {
+                  state.debounceTimeout = false;
+                  return;
+                }
                 if (config.boardMode === "Puzzle") {
                   puzzlePlay(cg, chess, 300, orig, dest);
                 } else {
                   handleViewerMove(cg, chess, orig, dest);
                 }
-                state.selectState = false;
               }
             }
           },
