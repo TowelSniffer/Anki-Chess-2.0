@@ -13838,8 +13838,19 @@ ${contextLines.join("\n")}`;
         "$2": ["mistake", "?"],
         "$3": ["brilliant", "!!"],
         "$4": ["blunder", "??"],
+        "$5": ["speculative", "!?"]
         "$6": ["dubious", "?!"],
-        "$9": ["blunder", "??"]
+        "$9": ["blunder", "??"],
+        "$10": ["even", "="],
+        "$13": ["unclear", "∞"],
+        "$14": ["White slight advantage", "+/="], // alt: ⩲
+        "$15": ["Black slight advantage", "=/+"], // alt: ⩱
+        "$16": ["White moderate advantage", "+/-"], // alt: ±
+        "$17": ["Black moderate advantage", "-/+"], // alt: ∓
+        "$18": ["White decisive advantage", "+-"],
+        "$19": ["Black decisive advantage", "-+"],
+        "$22": ["White in zugzwang", "⨀"],
+        "$23": ["Black in zugzwang", "⨀"],
       };
       var blunderNags = ["$2", "$4", "$6", "$9"];
       if (!state.errorTrack) {
