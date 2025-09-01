@@ -1002,48 +1002,41 @@ function reload() {
         turnColor: toColor(chess),
         events: {
             select: (key) => {
-                cg.set({drawable: {shapes: state.chessGroundShapes}});
-                const arrowCheck = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine' && shape.brush !== 'stockfish' && shape.brush !== 'stockfinished' && shape.customSvg?.brush !== 'moveType');
-                if (arrowCheck.length > 0) {
-                    state.chessGroundShapes = state.chessGroundShapes.filter(element => !arrowCheck.includes(element));
-                }
-               if (!cg.state.selectState) {
-                    const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
-                    // Check if the target square (key) is a valid destination for any of these moves
-                    const isValidMove = legalMovesFromSelected.some(move => move.to === key);
-                    state.selectState = false;
-                    if (isValidMove) {
-                        state.debounceTimeout = true;
+                state.debounceTimeout = false;
+                setTimeout(() => {
+                    if (state.debounceTimeout) return;
+                    cg.set({drawable: {shapes: state.chessGroundShapes}});
+                    const arrowCheck = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine' && shape.brush !== 'stockfish' && shape.brush !== 'stockfinished' && shape.customSvg?.brush !== 'moveType');
+                    if (arrowCheck.length > 0) {
+                        state.chessGroundShapes = state.chessGroundShapes.filter(element => !arrowCheck.includes(element));
                     }
-                }
 
-                const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
-                const arrowMove = state.chessGroundShapes
-                    .filter(shape => shape.dest === key && priority.includes(shape.brush))
-                    .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
-                if (arrowMove.length === 1 && config.boardMode === 'Viewer') {
-                    // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
-                    if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
-                        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine');
-                        state.pgnState = false;
-                        document.querySelector("#navForward").disabled = true;
-                    }
-                    handleViewerMove(cg, chess, arrowMove[0], null);
-                } else { // No arrow was clicked, check if there's only one legal play to this square.
-                    const allMoves = chess.moves({ verbose: true });
-                    const movesToSquare = allMoves.filter(move => move.to === key);
-                    if (movesToSquare.length === 1) {
-                        // If only one piece can move to this square, play that move.
-                        cg.move(movesToSquare[0].from, movesToSquare[0].to);
-                        if (config.boardMode === 'Puzzle') {
-                            puzzlePlay(cg, chess, 300, movesToSquare[0], null);
-                        } else if (config.boardMode === 'Viewer') {
-                            handleViewerMove(cg, chess, movesToSquare[0], null);
+                    const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
+                    const arrowMove = state.chessGroundShapes
+                        .filter(shape => shape.dest === key && priority.includes(shape.brush))
+                        .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
+                    if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
+                        // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
+                        if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
+                            state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine');
+                            state.pgnState = false;
+                            document.querySelector("#navForward").disabled = true;
                         }
-                    } else {
-                        state.debounceTimeout = false;
+                        handleViewerMove(cg, chess, arrowMove[0], null);
+                    } else { // No arrow was clicked, check if there's only one legal play to this square.
+                        const allMoves = chess.moves({ verbose: true });
+                        const movesToSquare = allMoves.filter(move => move.to === key);
+                        if (movesToSquare.length === 1) {
+                            // If only one piece can move to this square, play that move.
+                            cg.move(movesToSquare[0].from, movesToSquare[0].to);
+                            if (config.boardMode === 'Puzzle') {
+                                puzzlePlay(cg, chess, 300, movesToSquare[0], null);
+                            } else if (config.boardMode === 'Viewer') {
+                                handleViewerMove(cg, chess, movesToSquare[0], null);
+                            }
+                        }
                     }
-                }
+                }, 0);
             },
         },
         premovable: {
@@ -1056,10 +1049,7 @@ function reload() {
             dests: toDests(chess),
             events: {
                 after: (orig, dest) => {
-                    if (state.debounceTimeout) {
-                        state.debounceTimeout = false
-                        return
-                    }
+                    state.debounceTimeout = true;
                     if (config.boardMode === 'Puzzle') {
                         puzzlePlay(cg, chess, 300, orig, dest);
                     } else {
