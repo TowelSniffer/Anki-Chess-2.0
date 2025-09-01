@@ -21,17 +21,20 @@ function getUrlParam(name, defaultValue) {
 // --- Configuration ---
 const config = {
     pgn: getUrlParam("PGN", `[Event "?"]
-    [Site "?"]
-    [Date "2025.09.01"]
-    [Round "?"]
-    [White "White"]
-    [Black "Black"]
-    [Result "*"]
-    [FEN "r1b1kbnN/p1pp3p/2n5/8/4Ppp1/3P4/PP3qPP/RNBQ1K1R w q - 1 11"]
-    [SetUp "1"]
+[Site "?"]
+[Date "2023.02.13"]
+[Round "?"]
+[White "White"]
+[Black "Black"]
+[Result "*"]
+[FEN "r3r1k1/p4pp1/1q1p3p/3Pn3/P1p1n3/N4P2/1PB1R1PP/RQ4K1 w - - 0 26"]
+[SetUp "1"]
 
-    11. Kxf2 *
-    `),
+26. Kh1! Nf2+ $32 {EV: 98.3%, N: 99.00% of 16.8k} 27. Kg1 {EV: 1.2%, N: 77.28% of
+61.2k} Nxf3+ {EV: 99.6%, N: 85.99% of 82.7k} 28. gxf3 $22 {EV: 0.5%, N: 82.43% of
+78.4k} Rxe2 {EV: 99.8%, N: 82.41% of 121k} (28... Nd3+ {EV: 99.6%, N: 2.24% of
+121k}) (28... Nh3+ $23 $22 {EV: 99.2%, N: 12.71% of 121k}) (28... Ng4+ {EV: 99.6%, N:
+2.20% of 121k}) *`),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'false') === 'true',
@@ -74,12 +77,31 @@ let state = {
 };
 
 const nags = {
-    '$1': ['good', '!'],
-    '$2': ['mistake', '?'],
-    '$3': ['brilliant', '!!'],
-    '$4': ['blunder', '??'],
-    '$6': ['dubious', '?!'],
-    '$9': ['blunder', '??']
+    "$1": ["good", "!"],
+    "$2": ["mistake", "?"],
+    "$3": ["brilliant", "!!"],
+    "$4": ["blunder", "??"],
+    "$5":  ["speculative", "!?"],
+    "$6": ["dubious", "?!"],
+    "$9": ["blunder", "??"],
+    "$10": ["even", "="],
+    "$13": ["unclear", "∞"],
+    "$14": ["White slight advantage", "+/="], // alt: ⩲
+    "$15": ["Black slight advantage", "=/+"], // alt: ⩱
+    "$16": ["White moderate advantage", "+/-"], // alt: ±
+    "$17": ["Black moderate advantage", "-/+"], // alt: ∓
+    "$18": ["White decisive advantage", "+-"],
+    "$19": ["Black decisive advantage", "-+"],
+    "$20": ["White crushing advantage (resign)", ""],
+    "$21": ["Black crushing advantage (resign)", ""],
+    "$22": ["White in zugzwang", "⨀"],
+    "$23": ["Black in zugzwang", "⨀"],
+    "$26": ["White moderate space advantage", "○"],
+    "$27": ["Black moderate space advantage", "○"],
+    "$32": ["White moderate development advantage", "⟳"],
+    "$33": ["Black moderate development advantage", "⟳"],
+    "$36": ["White has the initiative", "↑"],
+    "$37": ["Black has the initiative", "↑"]
 };
 const blunderNags = ['$2', '$4', '$6', '$9'];
 
@@ -390,7 +412,6 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
             drawArrows(cg, chess);
         }, 200)
     } else if (move.flags.includes("e") && !state.selectState) {
-        console.log(state.selectState);
         chess.undo();
         cg.set({ animation: { enabled: false} })
         cg.set({
@@ -872,9 +893,15 @@ function buildPgnHtml(moves, path = [], altLine) {
             const moveNumber = move.moveNumber;
             html += `<span class="move-number">${moveNumber}.</span> `;
         }
-        let nagCheck = "";
-        if (move.nag) nagCheck = nags[move.nag.find(key => key in nags)][1];
-        html += `<span class="move" data-path="${move.pgnPath.join(',')}">${move.notation.notation +  nagCheck}</span> `;
+        let nagCheck = '';
+        let nagTitle = null;
+        if (move.nag) {
+            const foundNagKey = move.nag?.find(key => key in nags);
+            nagCheck = nags[foundNagKey]?.[1] ?? '';
+            nagTitle = nags[foundNagKey]?.[0] ?? '';
+        }
+        nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : '';
+        html += `<span class="move" data-path="${move.pgnPath.join(',')}">${nagTitle}${move.notation.notation} ${nagCheck}</span>`;
 
         if (move.commentAfter) {
             if (move.turn === 'w' && !altLine) html += `<span class="nullMove">|...|</span>`;
@@ -978,67 +1005,69 @@ function reload() {
         turnColor: toColor(chess),
         events: {
             select: (key) => {
-                const arrowCheck = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine' && shape.brush !== 'stockfish' && shape.brush !== 'stockfinished' && shape.customSvg?.brush !== 'moveType');
-                if (arrowCheck.length > 0) {
-                    state.chessGroundShapes = state.chessGroundShapes.filter(element => !arrowCheck.includes(element));
-                }
-                cg.set({drawable: {shapes: state.chessGroundShapes}});
-                // Debounce to prevent rapid firing on touchscreens
-                if (state.debounceTimeout !== null) {
-                    return
-                };
-                state.debounceTimeout = setTimeout(() => {
-                    state.debounceTimeout = null; // Reset when it fires
-                }, 100);
-
-                // This logic correctly handles the state for two-click moves to prevent double event execution.
-                if (cg.state.selected === state.selectState && state.selectState === key) {
-                    // clicking on same piece again to unselect
-                    state.selectState = false;
-                    return
-                } else if (state.selectState !== key && key === cg.state.selected) {
-                    // A piece is selected (either the first, or a new one).
-                    state.selectState = key;
-                    // In Viewer mode, if the selected piece has only one legal move, play it automatically.
-                    return
-                } else if (state.selectState) {
-                    // A piece was selected, and a new square was clicked (the destination).
-                    // This is the guard against the 'select' event on the destination square.
-                    const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
-                    // Check if the target square (key) is a valid destination for any of these moves
-                    const isValidMove = legalMovesFromSelected.some(move => move.to === key);
-                    state.selectState = false;
-                    if (isValidMove) {
-                        return; // Let the 'after' event handle the move logic.
+                setTimeout(() => { // timout required toget updated selectState value
+                    if (!cg.state.selected) {
+                        state.selectState = false;
                     }
-                }
-                const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
-                const arrowMove = state.chessGroundShapes
-                    .filter(shape => shape.dest === key && priority.includes(shape.brush))
-                    .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
-
-                if (arrowMove && config.boardMode === 'Viewer') {
-                    // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
-                    if (arrowMove.brush === 'stockfish' || arrowMove.brush === 'stockfinished') {
-                        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine');
-                        state.pgnState = false;
-                        document.querySelector("#navForward").disabled = true;
+                    const arrowCheck = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine' && shape.brush !== 'stockfish' && shape.brush !== 'stockfinished' && shape.customSvg?.brush !== 'moveType');
+                    if (arrowCheck.length > 0) {
+                        state.chessGroundShapes = state.chessGroundShapes.filter(element => !arrowCheck.includes(element));
                     }
-                    cg.move(arrowMove.orig, arrowMove.dest);
-                    handleViewerMove(cg, chess, arrowMove, null);
-                } else { // No arrow was clicked, check if there's only one legal play to this square.
-                    const allMoves = chess.moves({ verbose: true });
-                    const movesToSquare = allMoves.filter(move => move.to === key);
-                    if (movesToSquare.length === 1) {
-                        // If only one piece can move to this square, play that move.
-                        cg.move(movesToSquare[0].from, movesToSquare[0].to);
-                        if (config.boardMode === 'Puzzle') {
-                            puzzlePlay(cg, chess, 300, movesToSquare[0], null);
-                        } else if (config.boardMode === 'Viewer') {
-                            handleViewerMove(cg, chess, movesToSquare[0], null);
+                    cg.set({drawable: {shapes: state.chessGroundShapes}});
+                    // Debounce to prevent rapid firing on touchscreens
+                    if (state.debounceTimeout !== null) {
+                        return
+                    };
+                    state.debounceTimeout = setTimeout(() => {
+                        state.debounceTimeout = null; // Reset when it fires
+                    }, 100);
+
+                    // This logic correctly handles the state for two-click moves to prevent double event execution.
+                    if (state.selectState !== key && key === cg.state.selected) {
+                        // A piece is selected (either the first, or a new one).
+                        state.selectState = key;
+                        // In Viewer mode, if the selected piece has only one legal move, play it automatically.
+                        return
+                    } else if (state.selectState) {
+                        // A piece was selected, and a new square was clicked (the destination).
+                        // This is the guard against the 'select' event on the destination square.
+                        const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
+                        // Check if the target square (key) is a valid destination for any of these moves
+                        const isValidMove = legalMovesFromSelected.some(move => move.to === key);
+                        state.selectState = false;
+                        // cg.set({ selected: undefined });
+                        if (isValidMove) {
+                            return; // Let the 'after' event handle the move logic.
                         }
                     }
-                }
+                    const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
+                    const arrowMove = state.chessGroundShapes
+                        .filter(shape => shape.dest === key && priority.includes(shape.brush))
+                        .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
+
+                    if (arrowMove && config.boardMode === 'Viewer') {
+                        // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
+                        if (arrowMove.brush === 'stockfish' || arrowMove.brush === 'stockfinished') {
+                            state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine');
+                            state.pgnState = false;
+                            document.querySelector("#navForward").disabled = true;
+                        }
+                        cg.move(arrowMove.orig, arrowMove.dest);
+                        handleViewerMove(cg, chess, arrowMove, null);
+                    } else { // No arrow was clicked, check if there's only one legal play to this square.
+                        const allMoves = chess.moves({ verbose: true });
+                        const movesToSquare = allMoves.filter(move => move.to === key);
+                        if (movesToSquare.length === 1) {
+                            // If only one piece can move to this square, play that move.
+                            cg.move(movesToSquare[0].from, movesToSquare[0].to);
+                            if (config.boardMode === 'Puzzle') {
+                                puzzlePlay(cg, chess, 300, movesToSquare[0], null);
+                            } else if (config.boardMode === 'Viewer') {
+                                handleViewerMove(cg, chess, movesToSquare[0], null);
+                            }
+                        }
+                    }
+                }, 0); // Run this logic after the state update
             },
         },
         premovable: {

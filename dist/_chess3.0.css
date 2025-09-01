@@ -354,10 +354,29 @@ button.promoteBtn {
 }
 .move {
   cursor: pointer;
+  position: relative;
+  display: inline-block;
 }
 .move:hover,
 .move.current {
   background: #404040;
+}
+.nagTooltip {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 104%;
+  left: 50%;
+  font-size: 0.8em;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: #282828;
+  box-shadow: 0px 0px 2px 0px black;
+  padding: 0.2em;
+  border-radius: 4px;
+  border: 1px solid black;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 .altLine .move:hover,
 .altLine .move.current {
