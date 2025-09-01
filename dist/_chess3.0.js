@@ -13793,8 +13793,8 @@ ${contextLines.join("\n")}`;
 [FEN "r3r1k1/p4pp1/1q1p3p/3Pn3/P1p1n3/N4P2/1PB1R1PP/RQ4K1 w - - 0 26"]
 [SetUp "1"]
 
-26. Kh1! Nf2+ $32 {EV: 98.3%, N: 99.00% of 16.8k} 27. Kg1 {EV: 1.2%, N: 77.28% of
-61.2k} Nxf3+ {EV: 99.6%, N: 85.99% of 82.7k} 28. gxf3 $22 {EV: 0.5%, N: 82.43% of
+26. Kh1! Nf2+!! $32 {EV: 98.3%, N: 99.00% of 16.8k} 27. Kg1 {EV: 1.2%, N: 77.28% of
+61.2k} Nxf3+ $32 {EV: 99.6%, N: 85.99% of 82.7k} 28. gxf3 $22 {EV: 0.5%, N: 82.43% of
 78.4k} Rxe2 {EV: 99.8%, N: 82.41% of 121k} (28... Nd3+ {EV: 99.6%, N: 2.24% of
 121k}) (28... Nh3+ $23 $22 {EV: 99.2%, N: 12.71% of 121k}) (28... Ng4+ {EV: 99.6%, N:
 2.20% of 121k}) *`),
@@ -13837,15 +13837,16 @@ ${contextLines.join("\n")}`;
         mirrorState: getUrlParam("mirrorState", null)
       };
       var nags = {
-        "$1": ["good", "!"],
-        "$2": ["mistake", "?"],
-        "$3": ["brilliant", "!!"],
-        "$4": ["blunder", "??"],
-        "$5": ["speculative", "!?"],
-        "$6": ["dubious", "?!"],
-        "$9": ["blunder", "??"],
-        "$10": ["even", "="],
-        "$13": ["unclear", "\u221E"],
+        "$1": ["Good move", "!", "_good.webp"],
+        "$2": ["Poor move", "?", "_mistake.webp"],
+        "$3": ["Excellent move!", "!!", "_brilliant.webp"],
+        "$4": ["Blunder", "??", "_blunder.webp"],
+        "$5": ["Interesting move", "!?"],
+        "$6": ["Dubious move", "?!", "_dubious.webp"],
+        "$9": ["Worst move", "???", "_blunder.webp"],
+        "$10": ["Equal chances, quiet position", "="],
+        "$11": ["Equal chances, active position", "=\u2020"],
+        "$13": ["Unclear position", "\u221E"],
         "$14": ["White slight advantage", "+/="],
         // alt: ⩲
         "$15": ["Black slight advantage", "=/+"],
@@ -14053,12 +14054,12 @@ ${contextLines.join("\n")}`;
               });
             } else if (variation[0].nag && alternateMove.san === puzzleMove) {
               const foundNag = variation[0].nag?.find((key) => key in nags);
-              if (variation[0].nag) {
+              if (foundNag && nags[foundNag] && nags[foundNag][2]) {
                 state.chessGroundShapes.push({
                   orig: alternateMove.to,
                   // The square to anchor the image to
                   customSvg: {
-                    html: `<image href="_${nags[foundNag][0]}.webp" width="40" height="40" />'`,
+                    html: `<image href="${nags[foundNag][2]}" width="40" height="40" />'`,
                     brush: "moveType"
                   }
                 });
@@ -14077,14 +14078,16 @@ ${contextLines.join("\n")}`;
           state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: "mainLine", san: mainMoveAttempt.san });
         } else if (expectedMove.nag && mainMoveAttempt && mainMoveAttempt.san === puzzleMove) {
           const foundNag = expectedMove.nag?.find((key) => key in nags);
-          state.chessGroundShapes.push({
-            orig: mainMoveAttempt.to,
-            // The square to anchor the image to
-            customSvg: {
-              html: `<image href="_${nags[foundNag][0]}.webp" width="40" height="40" />'`,
-              brush: "moveType"
-            }
-          });
+          if (foundNag && nags[foundNag] && nags[foundNag][2]) {
+            state.chessGroundShapes.push({
+              orig: mainMoveAttempt.to,
+              // The square to anchor the image to
+              customSvg: {
+                html: `<image href="${nags[foundNag][2]}" width="40" height="40" />'`,
+                brush: "moveType"
+              }
+            });
+          }
         }
         if (config.boardMode === "Puzzle" && puzzleMove) {
           chess2.move(puzzleMove);
@@ -14358,6 +14361,7 @@ ${contextLines.join("\n")}`;
         setTimeout(() => {
           cg2.set({ viewOnly: false });
           if (!state.expectedMove || typeof state.expectedMove === "string") return;
+          state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.customSvg?.brush !== "moveType");
           makeMove(cg2, chess2, state.expectedMove.notation.notation);
           state.count++;
           state.expectedMove = state.expectedLine[state.count];
@@ -14983,6 +14987,34 @@ ${contextLines.join("\n")}`;
       var cgwrap = document.getElementsByClassName("cg-wrap")[0];
       document.querySelector("#navBackward").disabled = true;
       document.querySelector("#resetBoard").disabled = true;
+      document.querySelectorAll(".move").forEach((item) => {
+        item.addEventListener("mouseover", function(e) {
+          const commentBox2 = document.getElementById("commentBox");
+          const tooltip = this.querySelector(".nagTooltip");
+          if (!tooltip || !tooltip.textContent.trim()) {
+            return;
+          }
+          const itemRect = this.getBoundingClientRect();
+          const tooltipWidth = tooltip.offsetWidth;
+          const commentBoxRect = commentBox2.getBoundingClientRect();
+          let tooltipLeft = itemRect.left + itemRect.width / 2 - tooltipWidth / 2;
+          if (tooltipLeft < commentBoxRect.left) {
+            tooltipLeft = commentBoxRect.left;
+          } else if (tooltipLeft + tooltipWidth > commentBoxRect.right) {
+            tooltipLeft = commentBoxRect.right - tooltipWidth;
+          }
+          tooltip.style.left = `${tooltipLeft}px`;
+          tooltip.style.top = `${itemRect.top - tooltip.offsetHeight - 3}px`;
+          tooltip.style.display = "block";
+          tooltip.style.visibility = "visible";
+        });
+        item.addEventListener("mouseout", function() {
+          const tooltip = this.querySelector(".nagTooltip");
+          if (tooltip) {
+            tooltip.style.visibility = "hidden";
+          }
+        });
+      });
     }
   });
   require_main();

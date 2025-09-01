@@ -362,21 +362,23 @@ button.promoteBtn {
   background: #404040;
 }
 .nagTooltip {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 104%;
-  left: 50%;
+  position: fixed;
   font-size: 0.8em;
-  transform: translateX(-50%);
+  font-style: italic;
+  white-space: nowrap;
   z-index: 100;
   background: #282828;
   box-shadow: 0px 0px 2px 0px black;
   padding: 0.2em;
   border-radius: 4px;
   border: 1px solid black;
-  white-space: nowrap;
-  opacity: 1;
+  visibility: hidden;
+  opacity: 0;
   transition: opacity 0.3s ease;
+}
+.move:hover > .nagTooltip {
+  visibility: visible;
+  opacity: 1;
 }
 .altLine .move:hover,
 .altLine .move.current {
