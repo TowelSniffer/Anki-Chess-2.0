@@ -13785,26 +13785,27 @@ ${contextLines.join("\n")}`;
       var config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.08.30"]
+    [Date "2025.09.01"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
-    [Result "1-0"]
-    [FEN "r4k2/pppb1Pp1/2np3p/2b5/2B2Bnq/2N5/PP2Q1PP/4RR1K w - - 0 17"]
+    [Result "*"]
+    [FEN "r1b1kbnN/p1pp3p/2n5/8/4Ppp1/3P4/PP3qPP/RNBQ1K1R w q - 1 11"]
     [SetUp "1"]
 
-    17. Qe8+ (17. Qf2?? Bxf2) Rxe8 18. fxe8=Q+ Bxe8 19. Bxd6# 1-0
+    11. Kxf2 *
     `),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
+        showDests: getUrlParam("showDests", "true") === "true",
         handicap: parseInt(getUrlParam("handicap", 1), 10),
         strictScoring: getUrlParam("strictScoring", "false") === "true",
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
-        flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Puzzle"),
+        flipBoard: getUrlParam("flip", "false") === "true",
+        boardMode: getUrlParam("boardMode", "Viewer"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true"
       };
@@ -13832,6 +13833,15 @@ ${contextLines.join("\n")}`;
         pgnPath: [],
         mirrorState: getUrlParam("mirrorState", null)
       };
+      var nags = {
+        "$1": ["good", "!"],
+        "$2": ["mistake", "?"],
+        "$3": ["brilliant", "!!"],
+        "$4": ["blunder", "??"],
+        "$6": ["dubious", "?!"],
+        "$9": ["blunder", "??"]
+      };
+      var blunderNags = ["$2", "$4", "$6", "$9"];
       if (!state.errorTrack) {
         state.errorTrack = false;
       }
@@ -13876,7 +13886,6 @@ ${contextLines.join("\n")}`;
       state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
       function checkCastleRights(fen) {
         const castlingPart = fen.split(" ")[2];
-        console.log(castlingPart);
         return castlingPart !== "-";
       }
       if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === "Puzzle") {
@@ -13966,7 +13975,7 @@ ${contextLines.join("\n")}`;
           state.chessGroundShapes = [];
           return;
         }
-        state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
+        state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.customSvg?.brush !== "moveType");
         if (config.boardMode === "Puzzle" && config.disableArrows) {
           return;
         }
@@ -14005,13 +14014,29 @@ ${contextLines.join("\n")}`;
         if (expectedMove?.variations) {
           for (const variation of expectedMove.variations) {
             const alternateMove = tempChess.move(variation[0].notation.notation);
-            if (alternateMove && alternateMove.san !== puzzleMove) {
+            const isBlunder = variation[0].nag?.some((nags2) => blunderNags.includes(nags2));
+            let brushType = "altLine";
+            if (isBlunder) brushType = "blunderLine";
+            if (isBlunder && config.boardMode === "Puzzle") brushType = null;
+            if (alternateMove && alternateMove.san !== puzzleMove && brushType) {
               state.chessGroundShapes.push({
                 orig: alternateMove.from,
                 dest: alternateMove.to,
-                brush: "altLine",
+                brush: brushType,
                 san: alternateMove.san
               });
+            } else if (variation[0].nag && alternateMove.san === puzzleMove) {
+              const foundNag = variation[0].nag?.find((key) => key in nags);
+              if (variation[0].nag) {
+                state.chessGroundShapes.push({
+                  orig: alternateMove.to,
+                  // The square to anchor the image to
+                  customSvg: {
+                    html: `<image href="_${nags[foundNag][0]}.webp" width="40" height="40" />'`,
+                    brush: "moveType"
+                  }
+                });
+              }
             }
             tempChess.undo();
           }
@@ -14024,6 +14049,16 @@ ${contextLines.join("\n")}`;
         }
         if (mainMoveAttempt && mainMoveAttempt.san !== puzzleMove) {
           state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: "mainLine", san: mainMoveAttempt.san });
+        } else if (expectedMove.nag && mainMoveAttempt && mainMoveAttempt.san === puzzleMove) {
+          const foundNag = expectedMove.nag?.find((key) => key in nags);
+          state.chessGroundShapes.push({
+            orig: mainMoveAttempt.to,
+            // The square to anchor the image to
+            customSvg: {
+              html: `<image href="_${nags[foundNag][0]}.webp" width="40" height="40" />'`,
+              brush: "moveType"
+            }
+          });
         }
         if (config.boardMode === "Puzzle" && puzzleMove) {
           chess2.move(puzzleMove);
@@ -14046,7 +14081,7 @@ ${contextLines.join("\n")}`;
             state.pgnPath = currentMove.pgnPath;
           }
         }
-        if (move3.san.includes("=") && state.promoteAnimate) {
+        if (move3.flags.includes("p") && state.promoteAnimate) {
           const tempChess = new Chess(chess2.fen());
           tempChess.load(chess2.fen());
           tempChess.remove(move3.from);
@@ -14060,8 +14095,10 @@ ${contextLines.join("\n")}`;
               fen: chess2.fen()
             });
             cg2.set({ animation: { enabled: true } });
+            drawArrows(cg2, chess2);
           }, 200);
-        } else if (move3.flags.includes("e")) {
+        } else if (move3.flags.includes("e") && !state.selectState) {
+          console.log(state.selectState);
           chess2.undo();
           cg2.set({ animation: { enabled: false } });
           cg2.set({
@@ -14157,7 +14194,7 @@ ${contextLines.join("\n")}`;
                 const tempChess = new Chess(state.analysisFen);
                 const moveObject = tempChess.move(firstMove);
                 if (moveObject && state.analysisToggledOn) {
-                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.brush !== "stockfishShadow");
+                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
                   state.chessGroundShapes.push({
                     orig: moveObject.from,
                     dest: moveObject.to,
@@ -14252,8 +14289,8 @@ ${contextLines.join("\n")}`;
         } else {
           move3 = tempChess.move(orig.san);
         }
-        if (move3.san.includes("=") && promoCheck) {
-          promotePopup(cg2, chess2, orig.san, dest, null);
+        if (move3.flags.includes("p") && promoCheck) {
+          promotePopup(cg2, chess2, move3.from, move3.to, null);
         } else {
           checkUserMove(cg2, chess2, move3.san, null);
         }
@@ -14348,26 +14385,13 @@ ${contextLines.join("\n")}`;
             }
           }
         }
-        console.log(moveAttempt);
         if (foundVariation) {
-          const blunderNags = ["$2", "$4", "$6", "$9"];
-          const goodMoveNags = ["$1", "$3"];
-          const isBlunder = state.expectedMove.nag?.some((nags) => blunderNags.includes(nags));
+          const isBlunder = state.expectedMove.nag?.some((nags2) => blunderNags.includes(nags2));
           if (isBlunder) {
             state.errorTrack = true;
             window.parent.postMessage(state, "*");
             state.solvedColour = "#b31010";
-            state.chessGroundShapes.push({
-              orig: moveAttempt.from,
-              // The square to anchor the image to
-              customSvg: {
-                html: '<image href="_blunder.webp" width="100" height="100" />',
-                center: "orig"
-                // Center the SVG on the origin square
-              }
-            });
           }
-          ;
           makeMove(cg2, chess2, moveAttempt);
           state.count++;
           state.expectedMove = state.expectedLine[state.count];
@@ -14424,7 +14448,7 @@ ${contextLines.join("\n")}`;
           tempMove = tempChess.move(orig.san);
         }
         if (!tempMove) return;
-        if (tempMove.san.includes("=") && delay && dest) {
+        if (tempMove.flags.includes("p") && delay && dest) {
           promotePopup(cg2, chess2, orig, dest, delay);
         } else {
           checkUserMove(cg2, chess2, tempMove.san, delay);
@@ -14444,6 +14468,7 @@ ${contextLines.join("\n")}`;
           state.selectState = false;
           toggleDisplay("showHide");
           document.querySelector("cg-board").style.cursor = "pointer";
+          drawArrows(cg2, chess2);
         };
         const promoteButtons = document.querySelectorAll("#center > button");
         const overlay = document.querySelector("#overlay");
@@ -14505,7 +14530,9 @@ ${contextLines.join("\n")}`;
             const moveNumber = move3.moveNumber;
             html += `<span class="move-number">${moveNumber}.</span> `;
           }
-          html += `<span class="move" data-path="${move3.pgnPath.join(",")}">${move3.notation.notation}</span> `;
+          let nagCheck = "";
+          if (move3.nag) nagCheck = nags[move3.nag.find((key) => key in nags)][1];
+          html += `<span class="move" data-path="${move3.pgnPath.join(",")}">${move3.notation.notation + nagCheck}</span> `;
           if (move3.commentAfter) {
             if (move3.turn === "w" && !altLine) html += `<span class="nullMove">|...|</span>`;
             html += `<span class="comment"> ${move3.commentAfter} </span>`;
@@ -14599,7 +14626,7 @@ ${contextLines.join("\n")}`;
           turnColor: toColor(chess),
           events: {
             select: (key) => {
-              const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+              const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
               if (arrowCheck.length > 0) {
                 state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
               }
@@ -14625,11 +14652,11 @@ ${contextLines.join("\n")}`;
                   return;
                 }
               }
-              const priority = ["mainLine", "altLine", "stockfinished", "stockfish"];
+              const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
               const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
               if (arrowMove && config.boardMode === "Viewer") {
                 if (arrowMove.brush === "stockfish" || arrowMove.brush === "stockfinished") {
-                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine");
+                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine");
                   state.pgnState = false;
                   document.querySelector("#navForward").disabled = true;
                 }
@@ -14655,18 +14682,20 @@ ${contextLines.join("\n")}`;
           movable: {
             color: config.boardMode === "Puzzle" ? state.playerColour : toColor(chess),
             free: false,
+            showDests: config.showDests,
             dests: toDests(chess),
             events: {
               after: (orig, dest) => {
-                state.selectState = false;
                 if (config.boardMode === "Puzzle") {
                   puzzlePlay(cg, chess, 300, orig, dest);
                 } else {
                   handleViewerMove(cg, chess, orig, dest);
                 }
+                state.selectState = false;
               }
             }
           },
+          check: chess.inCheck(),
           highlight: { check: true },
           drawable: {
             enabled: true,
@@ -14675,19 +14704,12 @@ ${contextLines.join("\n")}`;
               stockfinished: { key: "stockfinished", color: "white", opacity: 1, lineWidth: 7 },
               mainLine: { key: "mainLine", color: "#66AA66", opacity: 1, lineWidth: 9 },
               altLine: { key: "altLine", color: "#66AAAA", opacity: 1, lineWidth: 9 },
+              blunderLine: { key: "blunderLine", color: "#b31010", opacity: 1, lineWidth: 9 },
               green: { opacity: 0.7, lineWidth: 9 },
               red: { opacity: 0.7, lineWidth: 9 },
               blue: { opacity: 0.7, lineWidth: 9 },
               yellow: { opacity: 0.7, lineWidth: 9 }
-            },
-            svgs: [
-              {
-                orig: "f1",
-                // The square to draw on
-                // An SVG <image> element
-                content: '<image href="_blunder.webp" x="50%" y="50%" width="50%" height="50%"/>'
-              }
-            ]
+            }
           }
         });
         if (config.boardMode === "Puzzle") {
@@ -14768,6 +14790,7 @@ ${contextLines.join("\n")}`;
               document.querySelector("#navForward").disabled = false;
             }
           }
+          state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.customSvg?.brush !== "moveType");
           drawArrows(cg, chess);
           if (config.boardMode === "Viewer") {
             let expectedMove = state.expectedMove;
