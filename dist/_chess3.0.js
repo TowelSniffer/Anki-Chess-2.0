@@ -13784,17 +13784,20 @@ ${contextLines.join("\n")}`;
       }
       var config = {
         pgn: getUrlParam("PGN", `[Event "?"]
-    [Site "?"]
-    [Date "2025.09.01"]
-    [Round "?"]
-    [White "White"]
-    [Black "Black"]
-    [Result "*"]
-    [FEN "r1b1kbnN/p1pp3p/2n5/8/4Ppp1/3P4/PP3qPP/RNBQ1K1R w q - 1 11"]
-    [SetUp "1"]
+[Site "?"]
+[Date "2023.02.13"]
+[Round "?"]
+[White "White"]
+[Black "Black"]
+[Result "*"]
+[FEN "r3r1k1/p4pp1/1q1p3p/3Pn3/P1p1n3/N4P2/1PB1R1PP/RQ4K1 w - - 0 26"]
+[SetUp "1"]
 
-    11. Kxf2 *
-    `),
+26. Kh1! Nf2+ $32 {EV: 98.3%, N: 99.00% of 16.8k} 27. Kg1 {EV: 1.2%, N: 77.28% of
+61.2k} Nxf3+ {EV: 99.6%, N: 85.99% of 82.7k} 28. gxf3 $22 {EV: 0.5%, N: 82.43% of
+78.4k} Rxe2 {EV: 99.8%, N: 82.41% of 121k} (28... Nd3+ {EV: 99.6%, N: 2.24% of
+121k}) (28... Nh3+ $23 $22 {EV: 99.2%, N: 12.71% of 121k}) (28... Ng4+ {EV: 99.6%, N:
+2.20% of 121k}) *`),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -13838,8 +13841,31 @@ ${contextLines.join("\n")}`;
         "$2": ["mistake", "?"],
         "$3": ["brilliant", "!!"],
         "$4": ["blunder", "??"],
+        "$5": ["speculative", "!?"],
         "$6": ["dubious", "?!"],
-        "$9": ["blunder", "??"]
+        "$9": ["blunder", "??"],
+        "$10": ["even", "="],
+        "$13": ["unclear", "\u221E"],
+        "$14": ["White slight advantage", "+/="],
+        // alt: ⩲
+        "$15": ["Black slight advantage", "=/+"],
+        // alt: ⩱
+        "$16": ["White moderate advantage", "+/-"],
+        // alt: ±
+        "$17": ["Black moderate advantage", "-/+"],
+        // alt: ∓
+        "$18": ["White decisive advantage", "+-"],
+        "$19": ["Black decisive advantage", "-+"],
+        "$20": ["White crushing advantage (resign)", ""],
+        "$21": ["Black crushing advantage (resign)", ""],
+        "$22": ["White in zugzwang", "\u2A00"],
+        "$23": ["Black in zugzwang", "\u2A00"],
+        "$26": ["White moderate space advantage", "\u25CB"],
+        "$27": ["Black moderate space advantage", "\u25CB"],
+        "$32": ["White moderate development advantage", "\u27F3"],
+        "$33": ["Black moderate development advantage", "\u27F3"],
+        "$36": ["White has the initiative", "\u2191"],
+        "$37": ["Black has the initiative", "\u2191"]
       };
       var blunderNags = ["$2", "$4", "$6", "$9"];
       if (!state.errorTrack) {
@@ -14098,7 +14124,6 @@ ${contextLines.join("\n")}`;
             drawArrows(cg2, chess2);
           }, 200);
         } else if (move3.flags.includes("e") && !state.selectState) {
-          console.log(state.selectState);
           chess2.undo();
           cg2.set({ animation: { enabled: false } });
           cg2.set({
@@ -14531,8 +14556,14 @@ ${contextLines.join("\n")}`;
             html += `<span class="move-number">${moveNumber}.</span> `;
           }
           let nagCheck = "";
-          if (move3.nag) nagCheck = nags[move3.nag.find((key) => key in nags)][1];
-          html += `<span class="move" data-path="${move3.pgnPath.join(",")}">${move3.notation.notation + nagCheck}</span> `;
+          let nagTitle = null;
+          if (move3.nag) {
+            const foundNagKey = move3.nag?.find((key) => key in nags);
+            nagCheck = nags[foundNagKey]?.[1] ?? "";
+            nagTitle = nags[foundNagKey]?.[0] ?? "";
+          }
+          nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : "";
+          html += `<span class="move" data-path="${move3.pgnPath.join(",")}">${nagTitle}${move3.notation.notation} ${nagCheck}</span>`;
           if (move3.commentAfter) {
             if (move3.turn === "w" && !altLine) html += `<span class="nullMove">|...|</span>`;
             html += `<span class="comment"> ${move3.commentAfter} </span>`;
@@ -14626,54 +14657,56 @@ ${contextLines.join("\n")}`;
           turnColor: toColor(chess),
           events: {
             select: (key) => {
-              const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
-              if (arrowCheck.length > 0) {
-                state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
-              }
-              cg.set({ drawable: { shapes: state.chessGroundShapes } });
-              if (state.debounceTimeout !== null) {
-                return;
-              }
-              ;
-              state.debounceTimeout = setTimeout(() => {
-                state.debounceTimeout = null;
-              }, 100);
-              if (cg.state.selected === state.selectState && state.selectState === key) {
-                state.selectState = false;
-                return;
-              } else if (state.selectState !== key && key === cg.state.selected) {
-                state.selectState = key;
-                return;
-              } else if (state.selectState) {
-                const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
-                const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
-                state.selectState = false;
-                if (isValidMove) {
+              setTimeout(() => {
+                if (!cg.state.selected) {
+                  state.selectState = false;
+                }
+                const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
+                if (arrowCheck.length > 0) {
+                  state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
+                }
+                cg.set({ drawable: { shapes: state.chessGroundShapes } });
+                if (state.debounceTimeout !== null) {
                   return;
                 }
-              }
-              const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
-              const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
-              if (arrowMove && config.boardMode === "Viewer") {
-                if (arrowMove.brush === "stockfish" || arrowMove.brush === "stockfinished") {
-                  state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine");
-                  state.pgnState = false;
-                  document.querySelector("#navForward").disabled = true;
-                }
-                cg.move(arrowMove.orig, arrowMove.dest);
-                handleViewerMove(cg, chess, arrowMove, null);
-              } else {
-                const allMoves = chess.moves({ verbose: true });
-                const movesToSquare = allMoves.filter((move3) => move3.to === key);
-                if (movesToSquare.length === 1) {
-                  cg.move(movesToSquare[0].from, movesToSquare[0].to);
-                  if (config.boardMode === "Puzzle") {
-                    puzzlePlay(cg, chess, 300, movesToSquare[0], null);
-                  } else if (config.boardMode === "Viewer") {
-                    handleViewerMove(cg, chess, movesToSquare[0], null);
+                ;
+                state.debounceTimeout = setTimeout(() => {
+                  state.debounceTimeout = null;
+                }, 100);
+                if (state.selectState !== key && key === cg.state.selected) {
+                  state.selectState = key;
+                  return;
+                } else if (state.selectState) {
+                  const legalMovesFromSelected = chess.moves({ square: state.selectState, verbose: true });
+                  const isValidMove = legalMovesFromSelected.some((move3) => move3.to === key);
+                  state.selectState = false;
+                  if (isValidMove) {
+                    return;
                   }
                 }
-              }
+                const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
+                const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush))[0];
+                if (arrowMove && config.boardMode === "Viewer") {
+                  if (arrowMove.brush === "stockfish" || arrowMove.brush === "stockfinished") {
+                    state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine");
+                    state.pgnState = false;
+                    document.querySelector("#navForward").disabled = true;
+                  }
+                  cg.move(arrowMove.orig, arrowMove.dest);
+                  handleViewerMove(cg, chess, arrowMove, null);
+                } else {
+                  const allMoves = chess.moves({ verbose: true });
+                  const movesToSquare = allMoves.filter((move3) => move3.to === key);
+                  if (movesToSquare.length === 1) {
+                    cg.move(movesToSquare[0].from, movesToSquare[0].to);
+                    if (config.boardMode === "Puzzle") {
+                      puzzlePlay(cg, chess, 300, movesToSquare[0], null);
+                    } else if (config.boardMode === "Viewer") {
+                      handleViewerMove(cg, chess, movesToSquare[0], null);
+                    }
+                  }
+                }
+              }, 0);
             }
           },
           premovable: {
