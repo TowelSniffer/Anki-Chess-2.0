@@ -13838,8 +13838,27 @@ ${contextLines.join("\n")}`;
         "$2": ["mistake", "?"],
         "$3": ["brilliant", "!!"],
         "$4": ["blunder", "??"],
+        "$5":  ["speculative", "!?"],
         "$6": ["dubious", "?!"],
-        "$9": ["blunder", "??"]
+        "$9": ["blunder", "??"],
+        "$10": ["even", "="],
+        "$13": ["unclear", "∞"],
+        "$14": ["White slight advantage", "+/="], // alt: ⩲
+        "$15": ["Black slight advantage", "=/+"], // alt: ⩱
+        "$16": ["White moderate advantage", "+/-"], // alt: ±
+        "$17": ["Black moderate advantage", "-/+"], // alt: ∓
+        "$18": ["White decisive advantage", "+-"],
+        "$19": ["Black decisive advantage", "-+"],
+        "$20": ["White crushing advantage (resign)", ""],
+        "$21": ["Black crushing advantage (resign)", ""],
+        "$22": ["White in zugzwang", "⨀"],
+        "$23": ["Black in zugzwang", "⨀"],
+        "$26": ["White moderate space advantage", "○"],
+        "$27": ["Black moderate space advantage", "○"],
+        "$32": ["White moderate development advantage", "⟳"],
+        "$33": ["Black moderate development advantage", "⟳"],
+        "$36": ["White has the initiative", "↑"],
+        "$37": ["Black has the initiative", "↑"]
       };
       var blunderNags = ["$2", "$4", "$6", "$9"];
       if (!state.errorTrack) {
