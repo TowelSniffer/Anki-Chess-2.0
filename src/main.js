@@ -20,19 +20,9 @@ function getUrlParam(name, defaultValue) {
 
 // --- Configuration ---
 const config = {
-    pgn: getUrlParam("PGN", `[Event "?"]
-    [Site "?"]
-    [Date "2023.02.13"]
-    [Round "?"]
-    [White "White"]
-    [Black "Black"]
-    [Result "*"]
-    [FEN "r1bq1rk1/ppp1bppp/2pn4/8/8/8/PPPP1PPP/RNBQRBK1 w - - 2 9"]
-    [SetUp "1"]
+    pgn: getUrlParam("PGN", `[FEN "rn2k2r/ppp3pp/5q2/3p4/1b1pnP2/3B1Q2/PPPN2PP/R1B1K2R w KQkq - 0 11"]
 
-    9. d4 Re8 {EV: 46.6%, N: 60.04% of 177k} (9... Nf5 {EV: 46.7%, N: 25.55% of
-        177k}) (9... Bg5 {EV: 45.5%, N: 3.91% of 177k}) (9... Bf5 {EV: 44.9%, N: 2.86%
-            of 177k}) (9... a5 {EV: 45.4%, N: 2.51% of 177k}) *`),
+    11. O-O Nxd2! { fd hhs  shh } 12. Bxd2 (12. Qxd5 Nxf1) 12... Bxd2`),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'false') === 'true',
@@ -898,7 +888,7 @@ function buildPgnHtml(moves, path = [], altLine) {
             nagTitle = nags[foundNagKey]?.[0] ?? '';
         }
         nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : '';
-        html += `<span class="move" data-path="${move.pgnPath.join(',')}">${nagTitle}${move.notation.notation} ${nagCheck}</span>`;
+        html += ` <span class="move" data-path="${move.pgnPath.join(',')}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
 
         if (move.commentAfter) {
             if (move.turn === 'w' && !altLine) html += `<span class="nullMove">|...|</span>`;
