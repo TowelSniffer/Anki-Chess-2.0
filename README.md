@@ -28,7 +28,7 @@ https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
 
 ## Getting started
 
-(walktrough Video)[https://youtu.be/UpNYGrnCmEE?si=QHdeiV7oE8pgA6pC]
+[walktrough Video](https://youtu.be/UpNYGrnCmEE?si=QHdeiV7oE8pgA6pC)
 
 ### How to install/update
 
