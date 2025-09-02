@@ -32,6 +32,10 @@ https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
 
 [See here](documentation/installation.md)
 
+### Card Creation
+
+[See here](documentation/cardCreation.md)
+
 ### Customization
 
 [See here](documentation/userConfig.md)
