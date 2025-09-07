@@ -294,6 +294,9 @@ button.promoteBtn {
 #buttons-container {
   border-bottom: 1px solid black;
   background: #2C2C2C;
+  position: sticky;
+  top: 0;
+  z-index: 25;
   display: flex;
   padding: 4px;
   justify-content: center;

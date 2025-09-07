@@ -13783,9 +13783,17 @@ ${contextLines.join("\n")}`;
         return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
       }
       var config = {
-        pgn: getUrlParam("PGN", `[FEN "rn2k2r/ppp3pp/5q2/3p4/1b1pnP2/3B1Q2/PPPN2PP/R1B1K2R w KQkq - 0 11"]
+        pgn: getUrlParam("PGN", `[Event "The Opera Game"]
+    [Site "Paris Opera House"]
+    [Date "1858.11.02"]
+    [Round "?"]
+    [White "Paul Morphy"]
+    [Black "Duke of Brunswick &amp; Count Isouart"]
+    [Result "1-0"]
+    [ECO "C41"]
 
-    11. O-O Nxd2! { fd hhs  shh } 12. Bxd2 (12. Qxd5 Nxf1) 12... Bxd2`),
+    1. e4 e5 2. Nf3 d6 {This is the Philidor Defence. It's solid but can be passive.} 3. d4 Bg4?! {This pin is a bit premature. A more common and solid move would be 3...exd4.} 4. dxe5 Bxf3 (4... dxe5 5. Qxd8+ Kxd8 6. Nxe5 {White wins a pawn and has a better position.}) 5. Qxf3! {A great move. Morphy is willing to accept doubled pawns to accelerate his development.} 5... dxe5 6. Bc4 {Putting immediate pressure on the weak f7 square.} 6... Nf6 7. Qb3! {A powerful double attack on f7 and b7.} 7... Qe7 {This is the only move to defend both threats, but it places the queen on an awkward square and blocks the f8-bishop.} 8. Nc3 c6 9. Bg5 {Now Black's knight on f6 is pinned and cannot move without the queen being captured.} 9... b5?! {A desperate attempt to kick the bishop and relieve some pressure, but it weakens Black's queenside.} 10. Nxb5! {A brilliant sacrifice! Morphy sees that his attack is worth more than the knight.} 10... cxb5 11. Bxb5+ Nbd7 12. O-O-O {All of White's pieces are now in the attack, while Black's are tangled up and undeveloped.} 12... Rd8 13. Rxd7! {Another fantastic sacrifice to remove the defending knight.} 13... Rxd7 14. Rd1 {Renewing the pin and intensifying the pressure. Black is completely paralyzed.} 14... Qe6 {Trying to trade queens to relieve the pressure, but it's too late.} 15. Bxd7+ Nxd7 (15... Qxd7 16. Qb8+ Ke7 17. Qxe5+ Kd8 18. Bxf6+ {and White wins easily.}) 16. Qb8+! {The stunning final sacrifice! Morphy forces mate by sacrificing his most powerful piece.} 16... Nxb8 17. Rd8# {A beautiful checkmate, delivered with just a rook and bishop.} 1-0
+    `),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -13795,7 +13803,7 @@ ${contextLines.join("\n")}`;
         strictScoring: getUrlParam("strictScoring", "false") === "true",
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
-        flipBoard: getUrlParam("flip", "false") === "true",
+        flipBoard: getUrlParam("flip", "true") === "true",
         boardMode: getUrlParam("boardMode", "Viewer"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true"
@@ -13826,34 +13834,143 @@ ${contextLines.join("\n")}`;
       var nags = {
         "$1": ["Good move", "!", "_good.webp"],
         "$2": ["Poor move", "?", "_mistake.webp"],
-        "$3": ["Excellent move!", "!!", "_brilliant.webp"],
+        "$3": ["Excellent move", "!!", "_brilliant.webp"],
         "$4": ["Blunder", "??", "_blunder.webp"],
         "$5": ["Interesting move", "!?"],
         "$6": ["Dubious move", "?!", "_dubious.webp"],
+        "$7": ["Forced move", "+"],
+        "$8": ["The only move", "\u25A1"],
         "$9": ["Worst move", "???", "_blunder.webp"],
-        "$10": ["Equal chances, quiet position", "="],
-        "$11": ["Equal chances, active position", "=\u2020"],
+        "$10": ["Drawish position", "="],
+        "$11": ["Equal chances, quiet position", "="],
+        "$12": ["Equal chances, active position", "\u2189"],
         "$13": ["Unclear position", "\u221E"],
-        "$14": ["White slight advantage", "+/="],
-        // alt: ⩲
-        "$15": ["Black slight advantage", "=/+"],
-        // alt: ⩱
-        "$16": ["White moderate advantage", "+/-"],
-        // alt: ±
-        "$17": ["Black moderate advantage", "-/+"],
-        // alt: ∓
-        "$18": ["White decisive advantage", "+-"],
-        "$19": ["Black decisive advantage", "-+"],
-        "$20": ["White crushing advantage (resign)", ""],
-        "$21": ["Black crushing advantage (resign)", ""],
-        "$22": ["White in zugzwang", "\u2A00"],
-        "$23": ["Black in zugzwang", "\u2A00"],
-        "$26": ["White moderate space advantage", "\u25CB"],
-        "$27": ["Black moderate space advantage", "\u25CB"],
-        "$32": ["White moderate development advantage", "\u27F3"],
-        "$33": ["Black moderate development advantage", "\u27F3"],
+        "$14": ["White has a slight advantage", "\u2A72"],
+        "$15": ["Black has a slight advantage", "\u2A71"],
+        "$16": ["White has a moderate advantage", "\xB1"],
+        "$17": ["Black has a moderate advantage", "\u2213"],
+        "$18": ["White has a decisive advantage", "+-"],
+        "$19": ["Black has a decisive advantage", "-+"],
+        "$20": ["White has a crushing advantage", "+--"],
+        "$21": ["Black has a crushing advantage", "--+"],
+        "$22": ["White is in zugzwang", "\u2A00"],
+        "$23": ["Black is in zugzwang", "\u2A00"],
+        "$24": ["White has a slight space advantage", "\u25CB"],
+        "$25": ["Black has a slight space advantage", "\u25CB"],
+        "$26": ["White has a moderate space advantage", "\u25CB\u25CB"],
+        "$27": ["Black has a moderate space advantage", "\u25CB\u25CB"],
+        "$28": ["White has a decisive space advantage", "\u25CB\u25CB\u25CB"],
+        "$29": ["Black has a decisive space advantage", "\u25CB\u25CB\u25CB"],
+        "$30": ["White has a slight development advantage", "\u21BB"],
+        "$31": ["Black has a slight development advantage", "\u21BA"],
+        "$32": ["White has a moderate development advantage", "\u27F3"],
+        "$33": ["Black has a moderate development advantage", "\u27F3"],
+        "$34": ["White has a decisive development advantage", "\u21BB\u21BB\u21BB"],
+        "$35": ["Black has a decisive development advantage", "\u21BA\u21BA\u21BA"],
         "$36": ["White has the initiative", "\u2191"],
-        "$37": ["Black has the initiative", "\u2191"]
+        "$37": ["Black has the initiative", "\u2193"],
+        "$38": ["White has a lasting initiative", "\u21D1"],
+        "$39": ["Black has a lasting initiative", "\u21D3"],
+        "$40": ["White has the attack", "\u2192"],
+        "$41": ["Black has the attack", "\u2190"],
+        "$42": ["White has insufficient compensation", "\u2BDA"],
+        "$43": ["Black has insufficient compensation", "\u2BDA"],
+        "$44": ["White has sufficient compensation", "=/="],
+        "$45": ["Black has sufficient compensation", "=/="],
+        "$46": ["White has more than adequate compensation", "$"],
+        "$47": ["Black has more than adequate compensation", "$"],
+        "$48": ["White has a slight center control advantage", "\u229E"],
+        "$49": ["Black has a slight center control advantage", "\u229E"],
+        "$50": ["White has a moderate center control advantage", "\u229E\u229E"],
+        "$51": ["Black has a moderate center control advantage", "\u229E\u229E"],
+        "$52": ["White has a decisive center control advantage", "\u229E\u229E\u229E"],
+        "$53": ["Black has a decisive center control advantage", "\u229E\u229E\u229E"],
+        "$54": ["White has a slight kingside control advantage", "\u29E9"],
+        "$55": ["Black has a slight kingside control advantage", "\u29E9"],
+        "$56": ["White has a moderate kingside control advantage", "\u29EB"],
+        "$57": ["Black has a moderate kingside control advantage", "\u29EB"],
+        "$58": ["White has a decisive kingside control advantage", "\u22D9"],
+        "$59": ["Black has a decisive kingside control advantage", "\u22D9"],
+        "$60": ["White has a slight queenside control advantage", "\u29E8"],
+        "$61": ["Black has a slight queenside control advantage", "\u29E8"],
+        "$62": ["White has a moderate queenside control advantage", "\u29EA"],
+        "$63": ["Black has a moderate queenside control advantage", "\u29EA"],
+        "$64": ["White has a decisive queenside control advantage", "\u22D8"],
+        "$65": ["Black has a decisive queenside control advantage", "\u22D8"],
+        "$66": ["White has a vulnerable first rank", "+"],
+        "$67": ["Black has a vulnerable first rank", "+"],
+        "$68": ["White has a well protected first rank", "+"],
+        "$69": ["Black has a well protected first rank", "+"],
+        "$70": ["White has a poorly protected king", "+"],
+        "$71": ["Black has a poorly protected king", "+"],
+        "$72": ["White has a well protected king", "+"],
+        "$73": ["Black has a well protected king", "+"],
+        "$74": ["White has a poorly placed king", "+"],
+        "$75": ["Black has a poorly placed king", "+"],
+        "$76": ["White has a well placed king", "+"],
+        "$77": ["Black has a well placed king", "+"],
+        "$78": ["White has a very weak pawn structure", "+"],
+        "$79": ["Black has a very weak pawn structure", "+"],
+        "$80": ["White has a moderately weak pawn structure", "+"],
+        "$81": ["Black has a moderately weak pawn structure", "+"],
+        "$82": ["White has a moderately strong pawn structure", "+"],
+        "$83": ["Black has a moderately strong pawn structure", "+"],
+        "$84": ["White has a very strong pawn structure", "+"],
+        "$85": ["Black has a very strong pawn structure", "+"],
+        "$86": ["White has poor knight placement", "+"],
+        "$87": ["Black has poor knight placement", "+"],
+        "$88": ["White has good knight placement", "+"],
+        "$89": ["Black has good knight placement", "+"],
+        "$90": ["White has poor bishop placement", "+"],
+        "$91": ["Black has poor bishop placement", "+"],
+        "$92": ["White has good bishop placement", "\u2197"],
+        "$93": ["Black has good bishop placement", "\u2196"],
+        "$94": ["White has poor rook placement", "+"],
+        "$95": ["Black has poor rook placement", "+"],
+        "$96": ["White has good rook placement", "\u21C8"],
+        "$97": ["Black has good rook placement", "\u21CA"],
+        "$98": ["White has poor queen placement", "+"],
+        "$99": ["Black has poor queen placement", "+"],
+        "$100": ["White has good queen placement", "+"],
+        "$101": ["Black has good queen placement", "+"],
+        "$102": ["White has poor piece coordination", "+"],
+        "$103": ["Black has poor piece coordination", "+"],
+        "$104": ["White has good piece coordination", "+"],
+        "$105": ["Black has good piece coordination", "+"],
+        "$106": ["White has played the opening very poorly", "+"],
+        "$107": ["Black has played the opening very poorly", "+"],
+        "$108": ["White has played the opening poorly", "+"],
+        "$109": ["Black has played the opening poorly", "+"],
+        "$110": ["White has played the opening well", "+"],
+        "$111": ["Black has played the opening well", "+"],
+        "$112": ["White has played the opening very well", "+"],
+        "$113": ["Black has played the opening very well", "+"],
+        "$114": ["White has played the middlegame very poorly", "+"],
+        "$115": ["Black has played the middlegame very poorly", "+"],
+        "$116": ["White has played the middlegame poorly", "+"],
+        "$117": ["Black has played the middlegame poorly", "+"],
+        "$118": ["White has played the middlegame well", "+"],
+        "$119": ["Black has played the middlegame well", "+"],
+        "$120": ["White has played the middlegame very well", "+"],
+        "$121": ["Black has played the middlegame very well", "+"],
+        "$122": ["White has played the ending very poorly", "+"],
+        "$123": ["Black has played the ending very poorly", "+"],
+        "$124": ["White has played the ending poorly", "+"],
+        "$125": ["Black has played the ending poorly", "+"],
+        "$126": ["White has played the ending well", "+"],
+        "$127": ["Black has played the ending well", "+"],
+        "$128": ["White has played the ending very well", "+"],
+        "$129": ["Black has played the ending very well", "+"],
+        "$130": ["White has slight counterplay", "\u21C4"],
+        "$131": ["Black has slight counterplay", "\u21C4"],
+        "$132": ["White has moderate counterplay", "\u21C4\u21C4"],
+        "$133": ["Black has moderate counterplay", "\u21C4\u21C4"],
+        "$134": ["White has decisive counterplay", "\u21C4\u21C4\u21C4"],
+        "$135": ["Black has decisive counterplay", "\u21C4\u21C4\u21C4"],
+        "$136": ["White has moderate time control pressure", "\u2295"],
+        "$137": ["Black has moderate time control pressure", "\u2296"],
+        "$138": ["White has severe time control pressure", "\u2295\u2295"],
+        "$139": ["Black has severe time control pressure", "\u2296\u2296"]
       };
       var blunderNags = ["$2", "$4", "$6", "$9"];
       if (!state.errorTrack) {
@@ -14113,14 +14230,12 @@ ${contextLines.join("\n")}`;
             cg2.set({ animation: { enabled: true } });
             drawArrows(cg2, chess2);
           }, 200);
-        } else if (move3.flags.includes("e") && !state.selectState) {
-          chess2.undo();
+        } else if (move3.flags.includes("e") && state.debounceTimeout) {
           cg2.set({ animation: { enabled: false } });
           cg2.set({
             fen: chess2.fen()
           });
           cg2.set({ animation: { enabled: true } });
-          chess2.move(move3.san);
           cg2.set({
             fen: chess2.fen()
           });
@@ -14342,6 +14457,7 @@ ${contextLines.join("\n")}`;
             });
           }
           drawArrows(cg2, chess2, true);
+          state.debounceTimeout = false;
         }, delay);
       }
       function playUserCorrectMove(cg2, chess2, delay) {
@@ -14381,6 +14497,10 @@ ${contextLines.join("\n")}`;
           cg2.set({ viewOnly: true });
           playUserCorrectMove(cg2, chess2, 300);
           playAiMove(cg2, chess2, 600);
+        } else {
+          setTimeout(() => {
+            state.debounceTimeout = false;
+          }, 0);
         }
       }
       function checkUserMove(cg2, chess2, moveSan, delay) {
@@ -14463,7 +14583,13 @@ ${contextLines.join("\n")}`;
         } else {
           tempMove = tempChess.move(orig.san);
         }
-        if (!tempMove) return;
+        if (!tempMove) {
+          setTimeout(() => {
+            state.debounceTimeout = false;
+          }, 0);
+          return;
+        }
+        ;
         if (tempMove.flags.includes("p") && delay && dest) {
           promotePopup(cg2, chess2, orig, dest, delay);
         } else {
@@ -14506,6 +14632,9 @@ ${contextLines.join("\n")}`;
           overlay.onclick = function() {
             cancelPopup();
             playSound("Move");
+            setTimeout(() => {
+              state.debounceTimeout = false;
+            }, 0);
           };
         }
         toggleDisplay("showHide");
@@ -14647,7 +14776,6 @@ ${contextLines.join("\n")}`;
           turnColor: toColor(chess),
           events: {
             select: (key) => {
-              state.debounceTimeout = false;
               setTimeout(() => {
                 if (state.debounceTimeout) return;
                 cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -14694,6 +14822,9 @@ ${contextLines.join("\n")}`;
                   puzzlePlay(cg, chess, 300, orig, dest);
                 } else {
                   handleViewerMove(cg, chess, orig, dest);
+                  setTimeout(() => {
+                    state.debounceTimeout = false;
+                  }, 0);
                 }
               }
             }
