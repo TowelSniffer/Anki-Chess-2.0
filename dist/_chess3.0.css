@@ -610,7 +610,6 @@ cg-board {
   user-select: none;
   line-height: 0;
   background-size: cover;
-  cursor: pointer;
 }
 cg-board square {
   position: absolute;

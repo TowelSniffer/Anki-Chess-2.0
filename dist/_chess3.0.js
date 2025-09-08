@@ -13805,7 +13805,7 @@ ${contextLines.join("\n")}`;
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Puzzle"),
+        boardMode: getUrlParam("boardMode", "Viewer"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true"
       };
@@ -14777,13 +14777,13 @@ ${contextLines.join("\n")}`;
           turnColor: toColor(chess),
           events: {
             select: (key) => {
+              const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
+              if (arrowCheck.length > 0) {
+                state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
+              }
+              cg.set({ drawable: { shapes: state.chessGroundShapes } });
               setTimeout(() => {
                 if (state.debounceTimeout) return;
-                cg.set({ drawable: { shapes: state.chessGroundShapes } });
-                const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
-                if (arrowCheck.length > 0) {
-                  state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
-                }
                 const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
                 const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
                 if (arrowMove.length > 0 && config.boardMode === "Viewer") {
