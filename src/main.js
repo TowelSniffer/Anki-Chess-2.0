@@ -365,7 +365,6 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
     }
 }
 
-
 function makeMove(cg, chess, move) {
     const moveResult = chess.move(move);
     if (!moveResult) return null;
@@ -1022,4 +1021,4 @@ document.querySelectorAll('.move').forEach(item => {
         }
     });
 });
-export { cg, chess, state, parsedPGN, nags, cgwrap };
+export { cg, chess, state, parsedPGN, nags, cgwrap }
