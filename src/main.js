@@ -3,7 +3,10 @@ import { Chessground } from 'chessground';
 import { parse } from '@mliebelt/pgn-parser';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
-import * as mirror from './mirror.js';
+import * as mirror from './js/mirror.js';
+import * as pgnViewer from './js/pgnViewer.js';
+import * as handleStockfish from './js/handleStockfish.js';
+import nags from './nags.json' assert { type: 'json' };
 
 function toggleDisplay(className) {
     document.querySelectorAll('.' + className).forEach(el => el.classList.toggle('hidden'));
@@ -22,15 +25,14 @@ function getUrlParam(name, defaultValue) {
 const config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.02.22"]
+    [Date "2025.09.10"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "r1b1kbnN/p1pp3p/2n5/8/2p1Pppq/8/PPPP2PP/RNBQ1K1R w q - 0 9"]
-    [SetUp "1"]
 
-    9. d4 cxd3 {EV: 98.2%, N: 94.60% of 49.0k} *
+    1. e4 d5! (1... e5) 2. exd5 Qxd5 $32 3. Qg4 Qg5 (3... e5 4. Qxc8+ Ke7) 4. Qxg5 (4.
+    Qxc8#) *
     `),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
@@ -70,181 +72,16 @@ let state = {
     analysisToggledOn: false,
     pgnPath: [],
     mirrorState: getUrlParam("mirrorState", null),
+    blunderNags: ['$2', '$4', '$6', '$9'],
 };
-
-const nags = {
-    "$1": ["Good move", "!", "_good.webp"],
-    "$2": ["Poor move", "?", "_mistake.webp"],
-    "$3": ["Excellent move", "!!", "_brilliant.webp"],
-    "$4": ["Blunder", "??", "_blunder.webp"],
-    "$5": ["Interesting move", "!?"],
-    "$6": ["Dubious move", "?!", "_dubious.webp"],
-    "$7": ["Forced move", "+"],
-    "$8": ["The only move", "□"],
-    "$9": ["Worst move", "???", "_blunder.webp"],
-    "$10": ["Drawish position", "="],
-    "$11": ["Equal chances, quiet position", "="],
-    "$12": ["Equal chances, active position", "↉"],
-    "$13": ["Unclear position", "∞"],
-    "$14": ["White has a slight advantage", "⩲"],
-    "$15": ["Black has a slight advantage", "⩱"],
-    "$16": ["White has a moderate advantage", "±"],
-    "$17": ["Black has a moderate advantage", "∓"],
-    "$18": ["White has a decisive advantage", "+-"],
-    "$19": ["Black has a decisive advantage", "-+"],
-    "$20": ["White has a crushing advantage", "+--"],
-    "$21": ["Black has a crushing advantage", "--+"],
-    "$22": ["White is in zugzwang", "⨀"],
-    "$23": ["Black is in zugzwang", "⨀"],
-    "$24": ["White has a slight space advantage", "○"],
-    "$25": ["Black has a slight space advantage", "○"],
-    "$26": ["White has a moderate space advantage", "○○"],
-    "$27": ["Black has a moderate space advantage", "○○"],
-    "$28": ["White has a decisive space advantage", "○○○"],
-    "$29": ["Black has a decisive space advantage", "○○○"],
-    "$30": ["White has a slight development advantage", "↻"],
-    "$31": ["Black has a slight development advantage", "↺"],
-    "$32": ["White has a moderate development advantage", "⟳"],
-    "$33": ["Black has a moderate development advantage", "⟳"],
-    "$34": ["White has a decisive development advantage", "↻↻↻"],
-    "$35": ["Black has a decisive development advantage", "↺↺↺"],
-    "$36": ["White has the initiative", "↑"],
-    "$37": ["Black has the initiative", "↓"],
-    "$38": ["White has a lasting initiative", "⇑"],
-    "$39": ["Black has a lasting initiative", "⇓"],
-    "$40": ["White has the attack", "→"],
-    "$41": ["Black has the attack", "←"],
-    "$42": ["White has insufficient compensation", "⯚"],
-    "$43": ["Black has insufficient compensation", "⯚"],
-    "$44": ["White has sufficient compensation", "=/="],
-    "$45": ["Black has sufficient compensation", "=/="],
-    "$46": ["White has more than adequate compensation", "$"],
-    "$47": ["Black has more than adequate compensation", "$"],
-    "$48": ["White has a slight center control advantage", "⊞"],
-    "$49": ["Black has a slight center control advantage", "⊞"],
-    "$50": ["White has a moderate center control advantage", "⊞⊞"],
-    "$51": ["Black has a moderate center control advantage", "⊞⊞"],
-    "$52": ["White has a decisive center control advantage", "⊞⊞⊞"],
-    "$53": ["Black has a decisive center control advantage", "⊞⊞⊞"],
-    "$54": ["White has a slight kingside control advantage", "⧩"],
-    "$55": ["Black has a slight kingside control advantage", "⧩"],
-    "$56": ["White has a moderate kingside control advantage", "⧫"],
-    "$57": ["Black has a moderate kingside control advantage", "⧫"],
-    "$58": ["White has a decisive kingside control advantage", "⋙"],
-    "$59": ["Black has a decisive kingside control advantage", "⋙"],
-    "$60": ["White has a slight queenside control advantage", "⧨"],
-    "$61": ["Black has a slight queenside control advantage", "⧨"],
-    "$62": ["White has a moderate queenside control advantage", "⧪"],
-    "$63": ["Black has a moderate queenside control advantage", "⧪"],
-    "$64": ["White has a decisive queenside control advantage", "⋘"],
-    "$65": ["Black has a decisive queenside control advantage", "⋘"],
-    "$66": ["White has a vulnerable first rank", "+"],
-    "$67": ["Black has a vulnerable first rank", "+"],
-    "$68": ["White has a well protected first rank", "+"],
-    "$69": ["Black has a well protected first rank", "+"],
-    "$70": ["White has a poorly protected king", "+"],
-    "$71": ["Black has a poorly protected king", "+"],
-    "$72": ["White has a well protected king", "+"],
-    "$73": ["Black has a well protected king", "+"],
-    "$74": ["White has a poorly placed king", "+"],
-    "$75": ["Black has a poorly placed king", "+"],
-    "$76": ["White has a well placed king", "+"],
-    "$77": ["Black has a well placed king", "+"],
-    "$78": ["White has a very weak pawn structure", "+"],
-    "$79": ["Black has a very weak pawn structure", "+"],
-    "$80": ["White has a moderately weak pawn structure", "+"],
-    "$81": ["Black has a moderately weak pawn structure", "+"],
-    "$82": ["White has a moderately strong pawn structure", "+"],
-    "$83": ["Black has a moderately strong pawn structure", "+"],
-    "$84": ["White has a very strong pawn structure", "+"],
-    "$85": ["Black has a very strong pawn structure", "+"],
-    "$86": ["White has poor knight placement", "+"],
-    "$87": ["Black has poor knight placement", "+"],
-    "$88": ["White has good knight placement", "+"],
-    "$89": ["Black has good knight placement", "+"],
-    "$90": ["White has poor bishop placement", "+"],
-    "$91": ["Black has poor bishop placement", "+"],
-    "$92": ["White has good bishop placement", "↗"],
-    "$93": ["Black has good bishop placement", "↖"],
-    "$94": ["White has poor rook placement", "+"],
-    "$95": ["Black has poor rook placement", "+"],
-    "$96": ["White has good rook placement", "⇈"],
-    "$97": ["Black has good rook placement", "⇊"],
-    "$98": ["White has poor queen placement", "+"],
-    "$99": ["Black has poor queen placement", "+"],
-    "$100": ["White has good queen placement", "+"],
-    "$101": ["Black has good queen placement", "+"],
-    "$102": ["White has poor piece coordination", "+"],
-    "$103": ["Black has poor piece coordination", "+"],
-    "$104": ["White has good piece coordination", "+"],
-    "$105": ["Black has good piece coordination", "+"],
-    "$106": ["White has played the opening very poorly", "+"],
-    "$107": ["Black has played the opening very poorly", "+"],
-    "$108": ["White has played the opening poorly", "+"],
-    "$109": ["Black has played the opening poorly", "+"],
-    "$110": ["White has played the opening well", "+"],
-    "$111": ["Black has played the opening well", "+"],
-    "$112": ["White has played the opening very well", "+"],
-    "$113": ["Black has played the opening very well", "+"],
-    "$114": ["White has played the middlegame very poorly", "+"],
-    "$115": ["Black has played the middlegame very poorly", "+"],
-    "$116": ["White has played the middlegame poorly", "+"],
-    "$117": ["Black has played the middlegame poorly", "+"],
-    "$118": ["White has played the middlegame well", "+"],
-    "$119": ["Black has played the middlegame well", "+"],
-    "$120": ["White has played the middlegame very well", "+"],
-    "$121": ["Black has played the middlegame very well", "+"],
-    "$122": ["White has played the ending very poorly", "+"],
-    "$123": ["Black has played the ending very poorly", "+"],
-    "$124": ["White has played the ending poorly", "+"],
-    "$125": ["Black has played the ending poorly", "+"],
-    "$126": ["White has played the ending well", "+"],
-    "$127": ["Black has played the ending well", "+"],
-    "$128": ["White has played the ending very well", "+"],
-    "$129": ["Black has played the ending very well", "+"],
-    "$130": ["White has slight counterplay", "⇄"],
-    "$131": ["Black has slight counterplay", "⇄"],
-    "$132": ["White has moderate counterplay", "⇄⇄"],
-    "$133": ["Black has moderate counterplay", "⇄⇄"],
-    "$134": ["White has decisive counterplay", "⇄⇄⇄"],
-    "$135": ["Black has decisive counterplay", "⇄⇄⇄"],
-    "$136": ["White has moderate time control pressure", "⊕"],
-    "$137": ["Black has moderate time control pressure", "⊖"],
-    "$138": ["White has severe time control pressure", "⊕⊕"],
-    "$139": ["Black has severe time control pressure", "⊖⊖"]
-};
-
-const blunderNags = ['$2', '$4', '$6', '$9'];
 
 if (!state.errorTrack) {
     state.errorTrack = false;
 }
 
-window.addEventListener('error', (event) => {
-    const message = event.message || '';
-    const filename = event.filename || '';
-
-    // Condition 1: A detailed error message that we can identify.
-    const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
-
-    // Condition 2: A generic "Script error."
-    const isGenericCrossOriginError = message === 'Script error.';
-
-    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
-        // Prevent the default browser error console message since we are handling it
-        event.preventDefault();
-        console.warn("Caught a fatal Stockfish crash via global error handler.");
-        if (isGenericCrossOriginError) {
-        } else {
-            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
-        }
-        handleStockfishCrash("window.onerror");
-    }
-});
-
 // --- Stockfish Analysis State ---
 let cg = null;
-let chess = null;
+let chess = new Chess();
 
 // --- Audio Handling ---
 // Pre-load all audio files to prevent playback delays and race conditions.
@@ -271,8 +108,6 @@ function playSound(soundName) {
         audio.cloneNode().play().catch(e => console.error(`Could not play sound: ${soundName}`, e));
     }
 }
-
-chess = new Chess();
 const parsedPGN = parse(config.pgn, { startRule: "game" });
 
 state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -288,25 +123,7 @@ if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === '
     mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
     state.ankiFen = mirror.mirrorFen(state.ankiFen, state.mirrorState);
 }
-
-function augmentPgnTree(moves, path = []) {
-    if (!moves) return;
-    for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-        const currentPath = [...path, i];
-        move.pgnPath = currentPath;
-
-        if (move.variations) {
-            move.variations.forEach((variation, varIndex) => {
-                const variationPath = [...currentPath, 'v', varIndex];
-                augmentPgnTree(variation, variationPath);
-            });
-        }
-    }
-}
-
-augmentPgnTree(parsedPGN.moves);
-
+pgnViewer.augmentPgnTree(parsedPGN.moves);
 chess.load(state.ankiFen);
 
 // --- UI Initialization ---
@@ -347,7 +164,7 @@ document.documentElement.style.setProperty('--player-color', state.playerColour)
 document.documentElement.style.setProperty('--opponent-color', state.opponentColour);
 
 // --- Core Functions ---
-function toDests(chess) {
+export function toDests(chess) {
     const dests = new Map();
     SQUARES.forEach(s => {
         const ms = chess.moves({ square: s, verbose: true });
@@ -356,7 +173,7 @@ function toDests(chess) {
     return dests;
 }
 
-function toColor(chess) {
+export function toColor(chess) {
     return chess.turn() === 'w' ? 'white' : 'black';
 }
 
@@ -374,12 +191,7 @@ function getLastMove(chess) {
     }
 }
 
-function highlightCurrentMove(pgnPath) {
-    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    document.querySelector(`[data-path="${pgnPath.join(',')}"]`).classList.add("current");
-}
-
-function drawArrows(cg, chess, redraw) {
+export function drawArrows(cg, chess, redraw) {
     state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfinished' && shape.brush !== 'stockfish');
     if (redraw) {
         cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -434,7 +246,7 @@ function drawArrows(cg, chess, redraw) {
     if (expectedMove?.variations) {
         for (const variation of expectedMove.variations) {
             const alternateMove = tempChess.move(variation[0].notation.notation);
-            const isBlunder = variation[0].nag?.some(nags => blunderNags.includes(nags));
+            const isBlunder = variation[0].nag?.some(nags => state.blunderNags.includes(nags));
             let brushType = 'altLine';
             if (isBlunder) brushType = 'blunderLine';
             if (isBlunder && config.boardMode === 'Puzzle') brushType = null;
@@ -522,6 +334,7 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
             drawArrows(cg, chess);
         }, 200)
     } else if (move.flags.includes("e") && state.debounceTimeout) {
+        console.log("here")
         cg.set({ animation: { enabled: false} })
         cg.set({
             fen: chess.fen(),
@@ -546,194 +359,39 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
     });
     document.querySelector("#navBackward").disabled = false;
     document.querySelector("#resetBoard").disabled = false;
-    if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
+    if (config.boardMode === "Viewer" && state.pgnState) pgnViewer.highlightCurrentMove(state.expectedMove.pgnPath);
     if (state.analysisToggledOn) {
-        startAnalysis(4000);
+        handleStockfish.startAnalysis(4000);
     }
 }
-var stockfish = null;
 
-function handleStockfishCrash(source) {
-    console.error(`Stockfish engine crashed. Source: ${source}.`);
-    console.log("Attempting to restart the engine...");
-    if (!state.analysisToggledOn) return;
-    // Reset any state that might be stuck because of the crash
-    state.isStockfishBusy = false;
-    // Re-initialize a fresh instance after a short delay to let the browser recover.
-    setTimeout(initializeStockfish, 100);
-}
-
-function convertCpToWinPercentage(cp) {
-    const probability = 1 / (1 + Math.pow(10, -cp / 400));
-    let percentage = probability * 100;
-    if (state.playerColour === toColor(chess)) {
-        percentage = 100 - percentage;
-    }
-    return `${percentage.toFixed(1)}%`;
-}
-
-// A more robust, async version
-function initializeStockfish() {
-    return new Promise((resolve) => {
-        stockfish = new Worker('_stockfish.js');
-
-        stockfish.onmessage = (event) => {
-            const message = event.data ? event.data : event;
-            if (typeof message !== 'string') return;
-
-            // Resolve the promise once the engine is ready
-            if (message === 'uciok') {
-                // Re-assign the handler to process game-related messages
-                stockfish.onmessage = handleStockfishMessages;
-                resolve();
-            }
-        };
-
-        stockfish.onerror = (error) => {
-            handleStockfishCrash("stockfish.onerror");
-            // You might want to reject the promise here too
-        };
-
-        stockfish.postMessage('uci');
-    });
-}
-
-function handleStockfishMessages(event) {
-    const message = event.data ? event.data : event;
-    // Set the message handler for the new instance
-    stockfish.onmessage = (event) => {
-        const message = event.data ? event.data : event;
-        if (typeof message !== 'string') return;
-        if (message.startsWith('info')) {
-            const parts = message.split(' ');
-            const pvIndex = parts.indexOf('pv');
-            const cpIndex = parts.indexOf('cp');
-            const mateIndex = parts.indexOf('mate');
-            const pvDepthIndex = parts.indexOf('depth');
-            if (pvIndex > -1 && parts.length > pvIndex + 1) {
-                const firstMove = parts[pvIndex + 1];
-                const cp = parts[cpIndex + 1];
-                const mate = parts[mateIndex + 1];
-                let advantage;
-                if (cpIndex === -1) {
-                    advantage = mate < 0 ? 0 : 100;
-                    if (state.playerColour === toColor(chess)) {
-                        advantage = 100 - advantage;
-                    }
-                    advantage = `${advantage.toFixed(1)}%`
-                } else {
-                    advantage = convertCpToWinPercentage(cp);
-                }
-                const pvDepth = parts[pvDepthIndex + 1];
-                if (state.analysisFen !== 'none') document.documentElement.style.setProperty('--centipawn', advantage);
-                if (state.analysisFen === chess.fen()) {
-                    const tempChess = new Chess(state.analysisFen);
-                    const moveObject = tempChess.move(firstMove);
-                    if (moveObject && state.analysisToggledOn) {
-                        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
-                        state.chessGroundShapes.push({
-                                orig: moveObject.from,
-                                dest: moveObject.to,
-                                brush: 'stockfish',
-                                san: moveObject.san,
-                            });
-                        cg.set({drawable: {shapes: state.chessGroundShapes}});
-                    }
-                }
-            }
-        } else if (message.startsWith('bestmove')) {
-            cg.set({viewOnly: false});
-            state.isStockfishBusy = false;
-            if (state.analysisFen === 'none') {
-                state.analysisFen = true;
-                startAnalysis(4000);
-            }
-            const bestMoveUci = message.split(' ')[1];
-            if (state.analysisFen === chess.fen()) {
-                try {
-                    const tempChess = new Chess(state.analysisFen);
-                    const moveObject = tempChess.move(bestMoveUci);
-                    if (moveObject && state.analysisToggledOn) {
-                        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
-                        state.chessGroundShapes.push({
-                            orig: moveObject.from,
-                            dest: moveObject.to,
-                            brush: 'stockfinished',
-                            san: moveObject.san,
-                        });
-                        cg.set({drawable: {shapes: state.chessGroundShapes}});
-                    }
-                } catch (e) {
-                    // console.log(e)
-                }
-            }
-        }
-    };
-
-    // Set the error handler to restart the engine on crash
-    stockfish.onerror = (error) => {
-        handleStockfishCrash("stockfish.onerror");
-    };
-    // Send the initial 'uci' command to confirm the engine is ready.
-    stockfish.postMessage('uci');
-}
-function startAnalysis(movetime) {
-    if (chess.moves().length === 0 || state.analysisFen === 'none') {
-        return;
-    }
-    if (state.isStockfishBusy) {
-        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
-        state.isStockfishBusy = false;
-        stockfish.postMessage('stop');
-        state.analysisFen = 'none';
-        return;
-    }
-    state.analysisFen = chess.fen();
-    state.isStockfishBusy = true;
-    setTimeout(function() {
-        stockfish.postMessage(`position fen ${state.analysisFen}`);
-        stockfish.postMessage(`go movetime ${movetime}`);
-    }, 200);
-
-}
-
-function toggleStockfishAnalysis() {
-    if (!stockfish) initializeStockfish();
-    state.analysisToggledOn = !state.analysisToggledOn; // Toggle the state
-    const toggleButton = document.querySelector("#stockfishToggle");
-    toggleButton.classList.toggle('active-toggle', state.analysisToggledOn); // Add/remove class based on state
-
-    if (state.analysisToggledOn) {
-        cgwrap.classList.add('analysisMode');
-        // Turn analysis ON
-        toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>"
-        startAnalysis(4000);
-    } else {
-        cgwrap.classList.remove('analysisMode');
-        toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>"
-        // Turn analysis OFF
-        if (state.isStockfishBusy) {
-            stockfish.postMessage('stop'); // Tell the engine to stop thinking
-        }
-    }
-    drawArrows(cg, chess);
-}
-
-function setNavButtonsDisabled(disabled) {
-    const buttonIds = ['#resetBoard', '#navBackward', '#navForward', '#rotateBoard', '#copyFen', '#stockfishToggle'];
-    buttonIds.forEach(id => {
-        const button = document.querySelector(id);
-        if (button) {
-            button.disabled = disabled;
-        }
-    });
-}
 
 function makeMove(cg, chess, move) {
     const moveResult = chess.move(move);
     if (!moveResult) return null;
     updateBoard(cg, chess, moveResult);
     return moveResult;
+}
+
+function puzzlePlay(cg, chess, delay, orig, dest) {
+    const tempChess = new Chess(chess.fen());
+    let tempMove = false;
+    if (dest) {
+        tempMove = tempChess.move({ from: orig, to: dest, promotion: 'q' });
+    } else {
+        tempMove = tempChess.move(orig.san);
+    }
+    if (!tempMove) {
+        setTimeout(() => { // que after select: event
+            state.debounceTimeout = false;
+        }, 0);
+        return
+    };
+    if (tempMove.flags.includes("p") && delay && dest) {
+        promotePopup(cg, chess, orig, dest, delay);
+    } else {
+        checkUserMove(cg, chess, tempMove.san, delay);
+    }
 }
 
 function handleViewerMove(cg, chess, orig, dest) {
@@ -814,6 +472,8 @@ function playUserCorrectMove(cg, chess, delay) {
 
 function handleWrongMove(cg, chess, move) {
     state.errorCount++;
+    console.log(move)
+    cg.move(move.from, move.to)
     playSound("Error");
     // A puzzle is "failed" for scoring purposes if strict mode is on, or the handicap is exceeded.
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
@@ -825,6 +485,7 @@ function handleWrongMove(cg, chess, move) {
     updateBoard(cg, chess, move, true, true);
     // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
     if (state.errorCount > config.handicap) {
+        state.debounceTimeout = false;
         cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
         playUserCorrectMove(cg, chess, 300); // Show the correct user move
         playAiMove(cg, chess, 600); // Then play the AI's response
@@ -856,7 +517,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
         }
     }
     if (foundVariation) {
-        const isBlunder = state.expectedMove.nag?.some(nags => blunderNags.includes(nags));
+        const isBlunder = state.expectedMove.nag?.some(nags => state.blunderNags.includes(nags));
         if (isBlunder) {
             state.errorTrack = true;
             window.parent.postMessage(state, '*');
@@ -905,27 +566,6 @@ function changeAudio(gameState) {
     playSound(sound);
 }
 
-function puzzlePlay(cg, chess, delay, orig, dest) {
-    const tempChess = new Chess(chess.fen());
-    let tempMove = false;
-    if (dest) {
-        tempMove = tempChess.move({ from: orig, to: dest, promotion: 'q' });
-    } else {
-        tempMove = tempChess.move(orig.san);
-    }
-    if (!tempMove) {
-        setTimeout(() => { // que after select: event
-            state.debounceTimeout = false;
-        }, 0);
-        return
-    };
-    if (tempMove.flags.includes("p") && delay && dest) {
-        promotePopup(cg, chess, orig, dest, delay);
-    } else {
-        checkUserMove(cg, chess, tempMove.san, delay);
-    }
-}
-
 function promotePopup(cg, chess, orig, dest, delay) {
     const cancelPopup = function(){
         state.promoteAnimate = true;
@@ -961,7 +601,6 @@ function promotePopup(cg, chess, orig, dest, delay) {
         }
         overlay.onclick = function() {
             cancelPopup();
-            playSound("Move");
             setTimeout(() => { // que after select: event
                 state.debounceTimeout = false;
             }, 0);
@@ -969,150 +608,27 @@ function promotePopup(cg, chess, orig, dest, delay) {
     }
     toggleDisplay('showHide');
 }
-function findParent(obj, targetChild) {
+function findParent(obj, targetChild) { // used to find previous line in PGN
     for (const key in obj) {
-        // Ensure we're only looking at own properties to avoid prototype chain issues
         if (obj.hasOwnProperty(key)) {
             const value = obj[key];
 
             if (typeof value === 'object' && value !== null) {
-                // If the current value is the targetChild, then 'obj' is its immediate parent
                 if (value === targetChild) {
                     return {
                         key: key,
                         parent: obj // This is the direct parent
                     };
                 }
-
-                // If not the child, recurse into the current value (object or array)
                 const foundParent = findParent(value, targetChild);
-
-                // If the child was found in a deeper level, propagate that result directly
                 if (foundParent) {
-                    return foundParent; // Return the actual parent found deeper, not wrapped again
+                    return foundParent;
                 }
             }
         }
     }
-    return null; // Parent not found in this branch
+    return null;
 };
-
-function buildPgnHtml(moves, path = [], altLine) {
-    let html = '';
-    if (!moves || moves.length === 0) return '';
-    let lineClass
-    if (moves[0].turn === 'b' && path.length <= 1) {
-        const moveNumber = moves[0].moveNumber;
-        html += `<span class="move-number">${moveNumber}</span><span class="nullMove">...</span> `;
-    }
-
-    for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-
-        if (move.turn === 'w') {
-            const moveNumber = move.moveNumber;
-            html += `<span class="move-number">${moveNumber}.</span> `;
-        }
-        let nagCheck = '';
-        let nagTitle = null;
-        if (move.nag) {
-            const foundNagKey = move.nag?.find(key => key in nags);
-            nagCheck = nags[foundNagKey]?.[1] ?? '';
-            nagTitle = nags[foundNagKey]?.[0] ?? '';
-        }
-        nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : '';
-        html += ` <span class="move" data-path="${move.pgnPath.join(',')}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
-
-        if (move.commentAfter) {
-            if (move.turn === 'w' && !altLine) html += `<span class="nullMove">|...|</span>`;
-            html += `<span class="comment"> ${move.commentAfter} </span>`;
-            if (move.turn === 'w' && i < moves.length - 1 && !altLine && !move.variations?.length) html += `<span class="move-number">${move.moveNumber}.</span><span class="nullMove">|...|</span>`;
-        }
-
-        if (move.variations && move.variations.length > 0) {
-            if (!altLine) {
-                if (move.turn === 'w' && !altLine && !move.commentAfter) html += `<span class="nullMove">|...|</span>`;
-                html += `<div class="altLine">`;
-            }
-            move.variations.forEach(variation => {
-                html += `(${buildPgnHtml(variation, variation.pgnPath, true)})`;
-            });
-            if (!altLine) {
-                html += `</div>`;
-                if (move.turn === 'w' && i < moves.length - 1) html += `<span class="move-number">${move.moveNumber}.</span><span class="nullMove">|...|</span>`;
-            }
-        }
-    }
-    return html;
-}
-
-function getFullMoveSequenceFromPath(path) {
-    state.count = 0; // Int so we can track on which move we are.
-    state.chessGroundShapes = [];
-    state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
-    state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
-    state.pgnState = true; // incase outside PGN
-    document.querySelector("#navForward").disabled = false;
-    chess.reset();
-    chess.load(state.ankiFen);
-    let branchIndex = null;
-    for ( let i=0; i < path.length; i++) {
-        // [ "3", "v", "1", "2" ] means: at the 3rd mainline move branch into branch[1] and then 2 mainline moves down branch one
-        const pathCount = parseInt(path[i], 10);
-        if (path[i+1] === 'v') {
-            branchIndex = parseInt(path[i+2], 10);
-            i = i + 2 // skip branch move and index after branch
-        }
-        for (let j = 0; j <= pathCount; j++) {
-            if (branchIndex !== null && j === pathCount) {
-                state.count = 0;
-                state.expectedLine = state.expectedMove.variations[branchIndex];
-                state.expectedMove = state.expectedLine[0];
-                branchIndex = null;
-            } else {
-                chess.move(state.expectedMove.notation.notation);
-                state.count++;
-                state.expectedMove = state.expectedLine[state.count];
-            }
-        }
-    }
-
-    return chess.moves()
-}
-
-function onPgnMoveClick(event) {
-    if (!event.target.classList.contains('move')) return;
-    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    event.target.classList.add('current');
-    const pathStr = event.target.dataset.path;
-    const path = pathStr.split(',');
-    getFullMoveSequenceFromPath(path);
-    cg.set({
-        fen: chess.fen(),
-        check: chess.inCheck(),
-        turnColor: toColor(chess),
-        movable: {
-            color: toColor(chess),
-            dests: toDests(chess)
-        },
-    });
-    document.querySelectorAll('#navBackward, #resetBoard')
-        .forEach(el => el.disabled = false);
-    if (!state.expectedMove || typeof state.expectedMove === 'string') {
-        document.querySelector("#navForward").disabled = true;
-    }
-    if (state.analysisToggledOn) {
-        startAnalysis(4000);
-    }
-    drawArrows(cg, chess)
-}
-
-function initPgnViewer() {
-    state.pgnPath = [];
-    const pgnContainer = document.getElementById('pgnComment');
-    pgnContainer.innerHTML = buildPgnHtml(parsedPGN.moves);
-    pgnContainer.addEventListener('click', onPgnMoveClick);
-}
 
 function reload() {
     state.count = 0;
@@ -1214,7 +730,7 @@ function reload() {
                 enabled: false
             }
         });
-        initPgnViewer();
+        pgnViewer.initPgnViewer();
         drawArrows(cg, chess);
     }
     function navBackward() {
@@ -1270,7 +786,7 @@ function reload() {
             }
             if (state.count === 0 && state.ankiFen !== chess.fen()) {
                 if (state.analysisToggledOn) {
-                    startAnalysis(4000);
+                    handleStockfish.startAnalysis(4000);
                 }
                 return;
             } else if (state.count === 0) {
@@ -1300,14 +816,14 @@ function reload() {
                         expectedMove = expectedLine[count];
                     }
                 }
-                highlightCurrentMove(expectedMove.pgnPath);
+                pgnViewer.highlightCurrentMove(expectedMove.pgnPath);
             } else { // no moves played clear highlight
                 document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
                 document.querySelectorAll('#navBackward, #resetBoard').forEach(el => el.disabled = true);
             }
         }
         if (state.analysisToggledOn) {
-            startAnalysis(4000);
+            handleStockfish.startAnalysis(4000);
         }
     }
     function navForward() {
@@ -1365,7 +881,7 @@ function reload() {
         document.querySelector("#navBackward").disabled = true;
         document.querySelector("#resetBoard").disabled = true;
         if (state.analysisToggledOn) {
-            startAnalysis(4000);
+            handleStockfish.startAnalysis(4000);
         }
         drawArrows(cg, chess);
     }
@@ -1394,7 +910,7 @@ function reload() {
     document.querySelector("#navForward").addEventListener('click', navForward);
     document.querySelector("#rotateBoard").addEventListener('click', rotateBoard);
     document.querySelector("#copyFen").addEventListener('click', copyFen);
-    document.querySelector("#stockfishToggle").addEventListener('click', toggleStockfishAnalysis);
+    document.querySelector("#stockfishToggle").addEventListener('click', handleStockfish.toggleStockfishAnalysis);
     board.addEventListener('wheel', (event) => { // scroll Navigation
         event.preventDefault();
         if (event.deltaY < 0) {
@@ -1421,6 +937,29 @@ document.querySelector('#promoteB').src = "_"+state.boardRotation[0]+"B.svg";
 document.querySelector('#promoteN').src = "_"+state.boardRotation[0]+"N.svg";
 document.querySelector('#promoteR').src = "_"+state.boardRotation[0]+"R.svg";
 
+window.addEventListener('error', (event) => {
+    const message = event.message || '';
+    const filename = event.filename || '';
+
+    // stockfish js crash error message.
+    const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
+
+    // generic "Script error."
+    const isGenericCrossOriginError = message === 'Script error.';
+
+    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
+        // Prevent the default browser error console message since we are handling it
+        event.preventDefault();
+        console.warn("Caught a fatal Stockfish crash via global error handler.");
+        if (isGenericCrossOriginError) {
+            console.log("generic message:", message)
+        } else {
+            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+        }
+        handleStockfishCrash("window.onerror");
+    }
+});
+
 if (state.errorTrack === 'true' && config.boardMode === 'Viewer') {
     document.documentElement.style.setProperty('--border-color', "#b31010");
 } else if (state.errorTrack === 'false' && config.boardMode === 'Viewer') {
@@ -1433,23 +972,19 @@ function positionPromoteOverlay() {
     // Set the position of the promote element
     promoteOverlay.style.top = (rect.top + 8) + 'px';
     promoteOverlay.style.left = (rect.left + 8) + 'px';
-    window.addEventListener('resize', resizeBoard);
+    window.addEventListener('resize', positionPromoteOverlay);
 }
-
-async function resizeBoard() {
-    positionPromoteOverlay();
-}
-
 
 async function loadElements() {
     await reload();
-    await resizeBoard();
+    await positionPromoteOverlay();
     setTimeout(() => {
         positionPromoteOverlay();
     }, 200);
 }
 loadElements();
 const cgwrap = document.getElementsByClassName("cg-wrap")[0];
+
 document.querySelector("#navBackward").disabled = true;
 document.querySelector("#resetBoard").disabled = true;
 document.querySelectorAll('.move').forEach(item => {
@@ -1487,3 +1022,4 @@ document.querySelectorAll('.move').forEach(item => {
         }
     });
 });
+export { cg, chess, state, parsedPGN, nags, cgwrap };
