@@ -64,7 +64,6 @@ export function mirrorMove(move, mirrorState) {
 
 export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
   if (!moves || moves.length === 0) return;
-
   for (const move of moves) {
     if (move.variations) {
       move.variations.forEach(variation => {
@@ -73,16 +72,12 @@ export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
     }
   }
   const isInverted = mirrorState === 'invert' || mirrorState === 'invert_mirror';
-
+  let lastValidMoveNumber;
   if (isInverted) {
     const startsWithWhite = moves[0].turn === 'w';
-    let lastValidMoveNumber;
-
     if (startsWithWhite) {
-      // Case A: Sequence starts with White (e.g., "5. Na3 b5 6. Nxb5")
-      // Becomes: "5... Na3 6. b5 Nxb5"
-      lastValidMoveNumber = moves[0].moveNumber;
-
+      // Case A: Sequence starts with White (e.g., "3. exd4 c4")
+      // Becomes: "3... exd4 4. c4"
       for (const move of moves) {
         mirrorMove(move, mirrorState);
         const originalTurn = move.turn;
@@ -90,6 +85,8 @@ export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
         if (originalTurn === 'w') {
           move.turn = 'b';
           if (move === moves[0]) {
+            console.log(move, move.moveNumber)
+            move.moveNumber--;
             lastValidMoveNumber = move.moveNumber;
           } else {
             move.moveNumber = null;
@@ -97,15 +94,14 @@ export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
         } else {
           move.turn = 'w';
           move.moveNumber = lastValidMoveNumber + 1;
+          lastValidMoveNumber = move.moveNumber;
         }
       }
     } else {
       // Case B: Sequence starts with Black (e.g., "3... exd4 4. c4")
       // Becomes: "3. exd4 c4"
-      console.log(parentMove)
       if (parentMove) {
-        console.log("here")
-        lastValidMoveNumber = parentMove.moveNumber - 1;
+        lastValidMoveNumber = parentMove.moveNumber;
       } else {
         lastValidMoveNumber = moves[0].moveNumber;
       }

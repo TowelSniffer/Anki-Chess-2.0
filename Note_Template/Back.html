@@ -4,6 +4,7 @@
         muteAudio: false,
         fontSize: 18,
         flip: false, // sets whether Puzzle begins from First or second move of PGN
+        mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
         showDests: true, // Indicate legal moves for clicked piece.
     }
 </script>
@@ -21,7 +22,6 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     var userText = `{{textField}}`
     userText = encodeURIComponent(userText)
     {{/textField}}
-
         var errorTrack;
         var mirrorState;
         if (Persistence.isAvailable()) {
