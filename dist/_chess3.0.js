@@ -14124,7 +14124,7 @@ ${contextLines.join("\n")}`;
     strictScoring: getUrlParam("strictScoring", "false") === "true",
     acceptVariations: getUrlParam("acceptVariations", "true") === "true",
     disableArrows: getUrlParam("disableArrows", "false") === "true",
-    flipBoard: getUrlParam("flip", "true") === "true",
+    flipBoard: getUrlParam("flip", "false") === "true",
     boardMode: getUrlParam("boardMode", "Viewer"),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", "true") === "true"
@@ -14746,20 +14746,18 @@ ${contextLines.join("\n")}`;
         }
       }
     });
-    if (config.boardMode === "Puzzle") {
-      if (!chess.isGameOver() && config.flipBoard) {
-        playAiMove(cg, chess, 300);
-      }
-      drawArrows(cg, chess);
-    } else {
+    if (config.boardMode === "Viewer") {
       cg.set({
         premovable: {
           enabled: false
         }
       });
       initPgnViewer();
-      drawArrows(cg, chess);
     }
+    if (!chess.isGameOver() && config.flipBoard) {
+      playAiMove(cg, chess, 300);
+    }
+    drawArrows(cg, chess);
     function navBackward() {
       if (config.boardMode === "Puzzle") return;
       const lastMove = chess.undo();
