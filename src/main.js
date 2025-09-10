@@ -435,7 +435,7 @@ function playAiMove(cg, chess, delay) {
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
 	    // set state.errorTrack to false (as opposed to null) on correct answer
             if (!state.errorTrack) state.errorTrack = false;
-            window.parent.postMessage(state, '*');
+            setTimeout(() => { window.parent.postMessage(state, '*');}, 200);
             /*document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -538,7 +538,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
         } else if (delay) {
 	    // set state.errorTrack to false (as opposed to null) on correct answer
             if (!state.errorTrack) state.errorTrack = false;
-            window.parent.postMessage(state, '*');
+            setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
             /*document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
