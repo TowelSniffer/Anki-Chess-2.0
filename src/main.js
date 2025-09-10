@@ -47,7 +47,7 @@ const config = {
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'false') === 'true',
-    boardMode: getUrlParam("boardMode", 'Viewer'),
+    boardMode: getUrlParam("boardMode", 'Puzzle'),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
 };
@@ -338,7 +338,6 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
             drawArrows(cg, chess);
         }, 200)
     } else if (move.flags.includes("e") && state.debounceTimeout) {
-        console.log("here")
         cg.set({ animation: { enabled: false} })
         cg.set({
             fen: chess.fen(),
@@ -475,7 +474,6 @@ function playUserCorrectMove(cg, chess, delay) {
 
 function handleWrongMove(cg, chess, move) {
     state.errorCount++;
-    console.log(move)
     cg.move(move.from, move.to)
     playSound("Error");
     // A puzzle is "failed" for scoring purposes if strict mode is on, or the handicap is exceeded.
@@ -488,10 +486,12 @@ function handleWrongMove(cg, chess, move) {
     updateBoard(cg, chess, move, true, true);
     // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
     if (state.errorCount > config.handicap) {
-        state.debounceTimeout = false;
         cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
         playUserCorrectMove(cg, chess, 300); // Show the correct user move
         playAiMove(cg, chess, 600); // Then play the AI's response
+        setTimeout(() => { // que after select: event
+            state.debounceTimeout = false;
+        }, 0);
     } else {
         setTimeout(() => { // que after select: event
             state.debounceTimeout = false;
@@ -730,7 +730,13 @@ function reload() {
         pgnViewer.initPgnViewer();
     }
     if (!chess.isGameOver() && config.flipBoard) {
-        playAiMove(cg, chess, 300);
+        if (config.boardMode === 'Viewer') {
+            setTimeout(() => {
+                navForward()
+            }, 200);
+        } else {
+            playAiMove(cg, chess, 300);
+        }
     }
     drawArrows(cg, chess);
     function navBackward() {

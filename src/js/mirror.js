@@ -85,7 +85,6 @@ export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
         if (originalTurn === 'w') {
           move.turn = 'b';
           if (move === moves[0]) {
-            console.log(move, move.moveNumber)
             move.moveNumber--;
             lastValidMoveNumber = move.moveNumber;
           } else {
