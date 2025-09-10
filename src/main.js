@@ -25,14 +25,16 @@ function getUrlParam(name, defaultValue) {
 const config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.09.10"]
+    [Date "2023.02.13"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
+    [FEN "rnbq1bnr/ppppkppp/8/4p3/3PP3/8/PPP1KPPP/RNBQ1BNR b - - 0 3"]
+    [SetUp "1"]
 
-    1. e4 d5! (1... e5) 2. exd5 Qxd5 $32 3. Qg4 Qg5 (3... e5 4. Qxc8+ Ke7) 4. Qxg5 (4.
-    Qxc8#) *
+    3... exd4 4. c4 dxc3 5. Nxc3 (5. Na3 b5 6. Nxb5 c5 7. Nd6 (7. Nf3 f5)) d5 6.
+    Nxd5+ Ke8 *
     `),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
@@ -118,7 +120,7 @@ function checkCastleRights(fen) {
     return castlingPart !== '-';
 }
 
-if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === 'Puzzle') {
+if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === 'Viewer') {
     if (!state.mirrorState) state.mirrorState = mirror.assignMirrorState(config.pgn);
     mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
     state.ankiFen = mirror.mirrorFen(state.ankiFen, state.mirrorState);

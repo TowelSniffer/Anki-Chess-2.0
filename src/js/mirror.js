@@ -62,17 +62,81 @@ export function mirrorMove(move, mirrorState) {
 
 }
 
-export function mirrorPgnTree(moves, mirrorState) {
-    if (!moves) return;
-    for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-        mirrorMove(move, mirrorState);
+export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
+  if (!moves || moves.length === 0) return;
 
-        if (move.variations) {
-            move.variations.forEach((variation, varIndex) => {
-                mirrorPgnTree(variation, mirrorState);
-            });
-        }
+  for (const move of moves) {
+    if (move.variations) {
+      move.variations.forEach(variation => {
+        mirrorPgnTree(variation, mirrorState, move);
+      });
     }
+  }
+  const isInverted = mirrorState === 'invert' || mirrorState === 'invert_mirror';
+
+  if (isInverted) {
+    const startsWithWhite = moves[0].turn === 'w';
+    let lastValidMoveNumber;
+
+    if (startsWithWhite) {
+      // Case A: Sequence starts with White (e.g., "5. Na3 b5 6. Nxb5")
+      // Becomes: "5... Na3 6. b5 Nxb5"
+      lastValidMoveNumber = moves[0].moveNumber;
+
+      for (const move of moves) {
+        mirrorMove(move, mirrorState);
+        const originalTurn = move.turn;
+
+        if (originalTurn === 'w') {
+          move.turn = 'b';
+          if (move === moves[0]) {
+            lastValidMoveNumber = move.moveNumber;
+          } else {
+            move.moveNumber = null;
+          }
+        } else {
+          move.turn = 'w';
+          move.moveNumber = lastValidMoveNumber + 1;
+        }
+      }
+    } else {
+      // Case B: Sequence starts with Black (e.g., "3... exd4 4. c4")
+      // Becomes: "3. exd4 c4"
+      console.log(parentMove)
+      if (parentMove) {
+        console.log("here")
+        lastValidMoveNumber = parentMove.moveNumber - 1;
+      } else {
+        lastValidMoveNumber = moves[0].moveNumber;
+      }
+
+      for (const move of moves) {
+        mirrorMove(move, mirrorState);
+        const originalTurn = move.turn;
+
+        if (originalTurn === 'b') {
+          move.turn = 'w';
+          if (move.moveNumber) {
+            lastValidMoveNumber = move.moveNumber;
+          } else {
+            if (move === moves[0]) {
+              move.moveNumber = lastValidMoveNumber;
+            } else {
+              move.moveNumber = lastValidMoveNumber + 1;
+              lastValidMoveNumber = move.moveNumber;
+            }
+          }
+        } else {
+          move.turn = 'b';
+          move.moveNumber = null;
+        }
+      }
+    }
+  } else {
+    // If not a full color inversion, just mirror coordinates.
+    for (const move of moves) {
+      mirrorMove(move, mirrorState);
+    }
+  }
 }
 
