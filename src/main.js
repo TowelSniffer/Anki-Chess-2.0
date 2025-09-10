@@ -30,12 +30,13 @@ const config = {
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "rnbq1bnr/ppppkppp/8/4p3/3PP3/8/PPP1KPPP/RNBQ1BNR b - - 0 3"]
+    [FEN "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3"]
     [SetUp "1"]
 
-    3... exd4 4. c4 dxc3 5. Nxc3 (5. Na3 b5 6. Nxb5 c5 7. Nd6 (7. Nf3 f5)) d5 6.
-    Nxd5+ Ke8 *
-    `),
+    3. d4 exd4 4. c4 dxc3 5. Qc2 cxb2 (5... d5 6. exd5 c5 7. d6+ Kf6 8. Kd1 Qxd6+ (
+        8... Bxd6 9. Qd3 Nc6)) 6. Qc4 Nc6 7. e5 d6 8. exd6+ (8. e6 Ke8 9. Qd5) cxd6 9.
+        Qd5 Be6 *
+        `),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'false') === 'true',
@@ -120,8 +121,9 @@ function checkCastleRights(fen) {
     return castlingPart !== '-';
 }
 
-if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === 'Viewer') {
+if (config.mirror && !checkCastleRights(state.ankiFen)) {
     if (!state.mirrorState) state.mirrorState = mirror.assignMirrorState(config.pgn);
+    window.parent.postMessage(state, '*');
     mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
     state.ankiFen = mirror.mirrorFen(state.ankiFen, state.mirrorState);
 }
