@@ -133,6 +133,10 @@ export function highlightCurrentMove(pgnPath) {
 export function initPgnViewer() {
     state.pgnPath = [];
     const pgnContainer = document.getElementById('pgnComment');
-    pgnContainer.innerHTML = buildPgnHtml(parsedPGN.moves);
+    pgnContainer.innerHTML = '';
+    if (parsedPGN.gameComment) {
+        pgnContainer.innerHTML += `<span class="comment"> ${parsedPGN.gameComment.comment} </span>`;
+    }
+    pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
     pgnContainer.addEventListener('click', onPgnMoveClick);
 }
