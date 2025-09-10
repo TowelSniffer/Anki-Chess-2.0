@@ -13590,15 +13590,68 @@ ${contextLines.join("\n")}`;
     if (move3.notation.row) move3.notation.row = move3.notation.row.split("").map((char) => notationMap[char] || char).join("");
     move3.notation.notation = move3.notation.notation.split("").map((char) => notationMap[char] || char).join("");
   }
-  function mirrorPgnTree(moves, mirrorState) {
-    if (!moves) return;
-    for (let i = 0; i < moves.length; i++) {
-      const move3 = moves[i];
-      mirrorMove(move3, mirrorState);
+  function mirrorPgnTree(moves, mirrorState, parentMove = null) {
+    if (!moves || moves.length === 0) return;
+    for (const move3 of moves) {
       if (move3.variations) {
-        move3.variations.forEach((variation, varIndex) => {
-          mirrorPgnTree(variation, mirrorState);
+        move3.variations.forEach((variation) => {
+          mirrorPgnTree(variation, mirrorState, move3);
         });
+      }
+    }
+    const isInverted = mirrorState === "invert" || mirrorState === "invert_mirror";
+    if (isInverted) {
+      const startsWithWhite = moves[0].turn === "w";
+      let lastValidMoveNumber;
+      if (startsWithWhite) {
+        lastValidMoveNumber = moves[0].moveNumber;
+        for (const move3 of moves) {
+          mirrorMove(move3, mirrorState);
+          const originalTurn = move3.turn;
+          if (originalTurn === "w") {
+            move3.turn = "b";
+            if (move3 === moves[0]) {
+              lastValidMoveNumber = move3.moveNumber;
+            } else {
+              move3.moveNumber = null;
+            }
+          } else {
+            move3.turn = "w";
+            move3.moveNumber = lastValidMoveNumber + 1;
+          }
+        }
+      } else {
+        console.log(parentMove);
+        if (parentMove) {
+          console.log("here");
+          lastValidMoveNumber = parentMove.moveNumber - 1;
+        } else {
+          lastValidMoveNumber = moves[0].moveNumber;
+        }
+        for (const move3 of moves) {
+          mirrorMove(move3, mirrorState);
+          const originalTurn = move3.turn;
+          if (originalTurn === "b") {
+            move3.turn = "w";
+            if (move3.moveNumber) {
+              lastValidMoveNumber = move3.moveNumber;
+            } else {
+              if (move3 === moves[0]) {
+                move3.moveNumber = lastValidMoveNumber;
+              } else {
+                move3.moveNumber = lastValidMoveNumber + 1;
+                lastValidMoveNumber = move3.moveNumber;
+              }
+            }
+          } else {
+            move3.turn = "b";
+            move3.moveNumber = null;
+          }
+        }
+      }
+    } else {
+      for (const move3 of moves) {
+        mirrorMove(move3, mirrorState);
       }
     }
   }
@@ -13725,7 +13778,11 @@ ${contextLines.join("\n")}`;
   function initPgnViewer() {
     state.pgnPath = [];
     const pgnContainer = document.getElementById("pgnComment");
-    pgnContainer.innerHTML = buildPgnHtml(parsedPGN.moves);
+    pgnContainer.innerHTML = "";
+    if (parsedPGN.gameComment) {
+      pgnContainer.innerHTML += `<span class="comment"> ${parsedPGN.gameComment.comment} </span>`;
+    }
+    pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
     pgnContainer.addEventListener("click", onPgnMoveClick);
   }
 
@@ -14046,14 +14103,16 @@ ${contextLines.join("\n")}`;
   var config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.09.10"]
+    [Date "2023.02.13"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
+    [FEN "rnbq1bnr/ppppkppp/8/4p3/3PP3/8/PPP1KPPP/RNBQ1BNR b - - 0 3"]
+    [SetUp "1"]
 
-    1. e4 d5! (1... e5) 2. exd5 Qxd5 $32 3. Qg4 Qg5 (3... e5 4. Qxc8+ Ke7) 4. Qxg5 (4.
-    Qxc8#) *
+    3... exd4 4. c4 dxc3 5. Nxc3 (5. Na3 b5 6. Nxb5 c5 7. Nd6 (7. Nf3 f5)) d5 6.
+    Nxd5+ Ke8 *
     `),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
@@ -14123,7 +14182,7 @@ ${contextLines.join("\n")}`;
     const castlingPart = fen.split(" ")[2];
     return castlingPart !== "-";
   }
-  if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === "Puzzle") {
+  if (config.mirror && !checkCastleRights(state.ankiFen) && config.boardMode === "Viewer") {
     if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
     mirrorPgnTree(parsedPGN.moves, state.mirrorState);
     state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
