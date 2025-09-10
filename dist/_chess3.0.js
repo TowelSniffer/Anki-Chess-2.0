@@ -13610,7 +13610,6 @@ ${contextLines.join("\n")}`;
           if (originalTurn === "w") {
             move3.turn = "b";
             if (move3 === moves[0]) {
-              console.log(move3, move3.moveNumber);
               move3.moveNumber--;
               lastValidMoveNumber = move3.moveNumber;
             } else {
@@ -14125,7 +14124,7 @@ ${contextLines.join("\n")}`;
     acceptVariations: getUrlParam("acceptVariations", "true") === "true",
     disableArrows: getUrlParam("disableArrows", "false") === "true",
     flipBoard: getUrlParam("flip", "false") === "true",
-    boardMode: getUrlParam("boardMode", "Viewer"),
+    boardMode: getUrlParam("boardMode", "Puzzle"),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", "true") === "true"
   };
@@ -14378,7 +14377,6 @@ ${contextLines.join("\n")}`;
         drawArrows(cg2, chess2);
       }, 200);
     } else if (move3.flags.includes("e") && state.debounceTimeout) {
-      console.log("here");
       cg2.set({ animation: { enabled: false } });
       cg2.set({
         fen: chess2.fen()
@@ -14511,7 +14509,6 @@ ${contextLines.join("\n")}`;
   }
   function handleWrongMove(cg2, chess2, move3) {
     state.errorCount++;
-    console.log(move3);
     cg2.move(move3.from, move3.to);
     playSound("Error");
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
@@ -14522,10 +14519,12 @@ ${contextLines.join("\n")}`;
     }
     updateBoard(cg2, chess2, move3, true, true);
     if (state.errorCount > config.handicap) {
-      state.debounceTimeout = false;
       cg2.set({ viewOnly: true });
       playUserCorrectMove(cg2, chess2, 300);
       playAiMove(cg2, chess2, 600);
+      setTimeout(() => {
+        state.debounceTimeout = false;
+      }, 0);
     } else {
       setTimeout(() => {
         state.debounceTimeout = false;
@@ -14755,7 +14754,13 @@ ${contextLines.join("\n")}`;
       initPgnViewer();
     }
     if (!chess.isGameOver() && config.flipBoard) {
-      playAiMove(cg, chess, 300);
+      if (config.boardMode === "Viewer") {
+        setTimeout(() => {
+          navForward();
+        }, 200);
+      } else {
+        playAiMove(cg, chess, 300);
+      }
     }
     drawArrows(cg, chess);
     function navBackward() {
