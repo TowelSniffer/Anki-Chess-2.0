@@ -45,6 +45,14 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                     mirrorState = e.data.mirrorState;
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
+		    // errorTrack false (as distinct from null) indicates a successfully solved puzzle
+                    if (errorTrack === false) {
+                        try { // AnkiDroid
+                            showAnswer();
+                        } catch { // Anki
+                            pycmd("ans");
+                        }
+                    }
                 }, false);
             }
         }

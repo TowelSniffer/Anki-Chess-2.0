@@ -78,9 +78,9 @@ let state = {
     blunderNags: ['$2', '$4', '$6', '$9'],
 };
 
-if (!state.errorTrack) {
-    state.errorTrack = false;
-}
+//if (!state.errorTrack) {
+//    state.errorTrack = false;
+//}
 
 // --- Stockfish Analysis State ---
 let cg = null;
@@ -433,17 +433,21 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
+	    // set state.errorTrack to false (as opposed to null) on correct answer
+            if (!state.errorTrack) state.errorTrack = false;
             window.parent.postMessage(state, '*');
-            document.documentElement.style.setProperty('--border-color', state.solvedColour);
+            /*document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
                 draggable: {
                     current: undefined // Explicitly clear any currently dragged piece
                 },
                 viewOnly: true
-            });
+            });*/
         }
-        drawArrows(cg, chess, true);
+	if (!(state.errorTrack === false)) {
+            drawArrows(cg, chess, true);
+	}
         state.debounceTimeout = false;
     }, delay);
 }
@@ -532,15 +536,17 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
+	    // set state.errorTrack to false (as opposed to null) on correct answer
+            if (!state.errorTrack) state.errorTrack = false;
             window.parent.postMessage(state, '*');
-            document.documentElement.style.setProperty('--border-color', state.solvedColour);
+            /*document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
                 draggable: {
                     current: undefined // Explicitly clear any currently dragged piece
                 },
                 viewOnly: true
-            });
+            });*/
         }
         drawArrows(cg, chess);
     } else if (delay) {
