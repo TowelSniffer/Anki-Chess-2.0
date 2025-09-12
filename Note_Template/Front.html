@@ -39,8 +39,8 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
         var mirrorState;
         if (Persistence.isAvailable()) {
             Persistence.clear();
-            if (typeof window.addEventListener != 'undefined' and !window.hasChessListener) {
-		console.log("Adding chess listener");
+            // checking window.hasChessListener prevents the event listener from being added multiple times
+            if (typeof window.addEventListener != 'undefined' && !window.hasChessListener) {
 		window.hasChessListener = true;
                 window.addEventListener('message', function(e) {
                     errorTrack = e.data.errorTrack;
@@ -56,9 +56,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                         }
                     }
                 }, false);
-	    } else {
-                console.log("Chess listener already added, skipping...");
-            }
+	    }
         }
 
 </script>
