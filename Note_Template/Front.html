@@ -39,6 +39,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&boardMode=Puzzle`;
     var errorTrack = null;
     var mirrorState = null;
+    var errorCount = null;
     if (Persistence.isAvailable()) {
         Persistence.clear();
         // checking window.hasChessListener prevents the event listener from being added multiple times
@@ -46,11 +47,12 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
             window.hasChessListener = true;
             window.addEventListener('message', function(e) {
                 errorTrack = e.data.errorTrack;
-                mirrorState = e.data.mirrorState;
+                errorCount = e.data.errorCount;
+		mirrorState = e.data.mirrorState;
                 Persistence.setItem("errorTrack", errorTrack);
                 Persistence.setItem("mirrorState", mirrorState);
 	        // errorTrack false (as distinct from null) indicates a successfully solved puzzle
-		if (userConfig.autoAdvance === true && errorTrack === false) try { showAnswer(); } catch { pycmd("ans"); 
+		if (userConfig.autoAdvance === true && (errorTrack === false || errorCount > userConfig.handicap)) try { showAnswer(); } catch { pycmd("ans"); 
                 }
             }, false);
 	} // end window.addEventListener
