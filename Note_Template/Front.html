@@ -11,6 +11,7 @@
         frontText: true, // show userText on front side.
         mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
         showDests: true, // Indicate legal moves for clicked piece.
+        timer: 15000, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
     }
 
 </script>
@@ -27,36 +28,44 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     userText = encodeURIComponent(userText)
     {{/textField}}
 
-        // note must use var here as variables are remembered when loading new cards/backside
-        var background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
-        var PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, '').replace("[%", "[ %");
-        ; //compatability with chess.com puzzles
-        PGN = encodeURIComponent(PGN);
-        var iframe = document.getElementById("Board");
-        iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&boardMode=Puzzle`;
-        var errorTrack;
-        var mirrorState;
-        if (Persistence.isAvailable()) {
-            Persistence.clear();
-            // checking window.hasChessListener prevents the event listener from being added multiple times
-            if (typeof window.addEventListener != 'undefined' && !window.hasChessListener) {
-		window.hasChessListener = true;
-                window.addEventListener('message', function(e) {
-                    errorTrack = e.data.errorTrack;
-                    mirrorState = e.data.mirrorState;
-                    Persistence.setItem("errorTrack", errorTrack);
-                    Persistence.setItem("mirrorState", mirrorState);
-		    // errorTrack false (as distinct from null) indicates a successfully solved puzzle
-                    if (errorTrack === false) {
-                        try { // AnkiDroid
-                            showAnswer();
-                        } catch { // Anki
-                            pycmd("ans");
-                        }
-                    }
-                }, false);
-	    }
+    // note must use var here as variables are remembered when loading new cards/backside
+    var background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
+    var PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, '').replace("[%", "[ %");
+    ; //compatability with chess.com puzzles
+    PGN = encodeURIComponent(PGN);
+    var iframe = document.getElementById("Board");
+    iframe.onload = function() { iframe.style.visibility = "visible"; }
+    iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&boardMode=Puzzle`;
+    var errorTrack;
+    var mirrorState;
+    if (Persistence.isAvailable()) {
+        Persistence.clear();
+        // checking window.hasChessListener prevents the event listener from being added multiple times
+        if (typeof window.addEventListener != 'undefined' && !window.hasChessListener) {
+            window.hasChessListener = true;
+            window.addEventListener('message', function(e) {
+                errorTrack = e.data.errorTrack;
+                mirrorState = e.data.mirrorState;
+                Persistence.setItem("errorTrack", errorTrack);
+                Persistence.setItem("mirrorState", mirrorState);
+	        // errorTrack false (as distinct from null) indicates a successfully solved puzzle
+                if (errorTrack === false) try { showAnswer(); } catch { pycmd("ans"); 
+                }
+            }, false);
+	} // end window.addEventListener
+    
+	if (userConfig.timer > 0) {
+            const timeoutId = setTimeout(handleExpiredTimer(errorTrack), userConfig.timer);
+            Persistence.setItem("timeoutId", timeoutId);
         }
+
+        function handleExpiredTimer(errorTrack) {
+	    if (errorTrack != null) return; //
+            errorTrack = true;
+            Persistence.setItem("errorTrack", errorTrack);
+            try { showAnswer(); } catch { pycmd("ans"); }
+        }
+
+    } // end if Persistence.isAvailable
 
 </script>
