@@ -60,7 +60,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
         }
 
         function handleExpiredTimer(errorTrack) {
-	    if (errorTrack != null) return; //
+	    if (errorTrack !== null) return; //
             errorTrack = true;
             Persistence.setItem("errorTrack", errorTrack);
             try { showAnswer(); } catch { pycmd("ans"); }
