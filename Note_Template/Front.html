@@ -12,6 +12,7 @@
         mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
         showDests: true, // Indicate legal moves for clicked piece.
         timer: 15000, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
+	autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly
     }
 
 </script>
@@ -49,7 +50,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                 Persistence.setItem("errorTrack", errorTrack);
                 Persistence.setItem("mirrorState", mirrorState);
 	        // errorTrack false (as distinct from null) indicates a successfully solved puzzle
-                if (errorTrack === false) try { showAnswer(); } catch { pycmd("ans"); 
+		if (userConfig.autoAdvance === true && errorTrack === false) try { showAnswer(); } catch { pycmd("ans"); 
                 }
             }, false);
 	} // end window.addEventListener
