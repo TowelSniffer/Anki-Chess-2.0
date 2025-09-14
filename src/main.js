@@ -77,7 +77,7 @@ let state = {
     pgnPath: [],
     mirrorState: getUrlParam("mirrorState", null),
     blunderNags: ['$2', '$4', '$6', '$9'],
-    puzzleComplete = false,
+    puzzleComplete: false,
 };
 
 //if (!state.errorTrack) {
