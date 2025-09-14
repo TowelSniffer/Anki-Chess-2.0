@@ -50,6 +50,7 @@ const config = {
     boardMode: getUrlParam("boardMode", 'Puzzle'),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
+    autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
 };
 
 // --- Global State ---
@@ -433,18 +434,22 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-	    // set state.errorTrack to false (as opposed to null) on correct answer
-            if (!state.errorTrack) state.errorTrack = false;
-            setTimeout(() => { window.parent.postMessage(state, '*');}, 200);
-            /*document.documentElement.style.setProperty('--border-color', state.solvedColour);
-            cg.set({
-                selected: undefined, // Clear any selected square
-                draggable: {
-                    current: undefined // Explicitly clear any currently dragged piece
-                },
-                viewOnly: true
-            });*/
+            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
+            if (state.errorTrack === null) state.errorTrack = false;
+	    if (config.autoAdvance) {
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
+            } else {
+                document.documentElement.style.setProperty('--border-color', state.solvedColour);
+                cg.set({
+                    selected: undefined, // Clear any selected square
+                    draggable: {
+                        current: undefined // Explicitly clear any currently dragged piece
+                    },
+                    viewOnly: true
+                });
+            }
         }
+	// prevent arrows from flashing up on screen momentarily before switch to back card
 	if (!(state.errorTrack === false)) {
             drawArrows(cg, chess, true);
 	}
@@ -536,17 +541,20 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
-	    // set state.errorTrack to false (as opposed to null) on correct answer
-            if (!state.errorTrack) state.errorTrack = false;
-            setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
-            /*document.documentElement.style.setProperty('--border-color', state.solvedColour);
-            cg.set({
-                selected: undefined, // Clear any selected square
-                draggable: {
-                    current: undefined // Explicitly clear any currently dragged piece
-                },
-                viewOnly: true
-            });*/
+	    // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
+            if (state.errorTrack === null) state.errorTrack = false;
+	    if (config.autoAdvance) {
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
+            } else {
+                document.documentElement.style.setProperty('--border-color', state.solvedColour);
+                cg.set({
+                    selected: undefined, // Clear any selected square
+                    draggable: {
+                        current: undefined // Explicitly clear any currently dragged piece
+                    },
+                    viewOnly: true
+                });
+	    }
         }
         drawArrows(cg, chess);
     } else if (delay) {
