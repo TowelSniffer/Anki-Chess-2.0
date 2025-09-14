@@ -49,10 +49,12 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                 errorTrack = e.data.errorTrack;
                 errorCount = e.data.errorCount;
 		mirrorState = e.data.mirrorState;
+		puzzleComplete = e.data.puzzleComplete;
                 Persistence.setItem("errorTrack", errorTrack);
                 Persistence.setItem("mirrorState", mirrorState);
 	        // errorTrack false (as distinct from null) indicates a successfully solved puzzle
-		if (userConfig.autoAdvance === true && (errorTrack === false || errorCount > userConfig.handicap)) try { showAnswer(); } catch { pycmd("ans"); 
+                if (userConfig.autoAdvance === true && puzzleComplete === true) try { showAnswer(); } catch { pycmd("ans");
+		//if (userConfig.autoAdvance === true && (errorTrack === false || errorCount > userConfig.handicap)) try { showAnswer(); } catch { pycmd("ans"); 
                 }
             }, false);
 	} // end window.addEventListener

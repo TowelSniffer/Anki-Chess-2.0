@@ -77,6 +77,7 @@ let state = {
     pgnPath: [],
     mirrorState: getUrlParam("mirrorState", null),
     blunderNags: ['$2', '$4', '$6', '$9'],
+    puzzleComplete = false;
 };
 
 //if (!state.errorTrack) {
@@ -436,6 +437,7 @@ function playAiMove(cg, chess, delay) {
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
             // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
             if (state.errorTrack === null) state.errorTrack = false;
+	    state.puzzleComplete = true;
 	    if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
             } else {
@@ -543,6 +545,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
         } else if (delay) {
 	    // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
             if (state.errorTrack === null) state.errorTrack = false;
+            state.puzzleComplete = true;
 	    if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
             } else {
