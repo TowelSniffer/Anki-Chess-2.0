@@ -27,8 +27,10 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
         if (Persistence.isAvailable()) {
             errorTrack = Persistence.getItem("errorTrack");
             mirrorState = Persistence.getItem("mirrorState");
+            timeoutId = Persistence.getItem("timeoutId");
             Persistence.clear();
         }
+    clearTimeout(timeoutId);
 </script>
 
 <script>
