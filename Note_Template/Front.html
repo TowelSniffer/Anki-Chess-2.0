@@ -12,7 +12,7 @@
         mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
         showDests: true, // Indicate legal moves for clicked piece.
         timer: 15000, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
-	autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly
+        autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly
     }
 
 </script>
@@ -53,18 +53,28 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
 		    puzzleComplete = e.data.puzzleComplete;
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
-                    if (userConfig.autoAdvance === true && (puzzleComplete === true || errorCount > userConfig.handicap)) try { showAnswer(); } catch { pycmd("ans"); }
+                    if (userConfig.autoAdvance === true && (puzzleComplete === true || errorCount > userConfig.handicap)) {
+                        if (typeof showAnswer === 'function') {
+                            showAnswer();
+                        } else if (typeof pycmd === 'function') {
+                            pycmd("ans");
+                        }
+                    }
                 }, false);
             }
-	    function handleExpiredTimer() {
-		if (puzzleComplete === false) {
+            function handleExpiredTimer() {
+                if (puzzleComplete === false) {
                     errorTrack = true;
                     Persistence.setItem("errorTrack", errorTrack);
-	        }
-                try { showAnswer(); } catch { pycmd("ans"); }
+                }
+                if (typeof showAnswer === 'function') {
+                    showAnswer();
+                } else if (typeof pycmd === 'function') {
+                    pycmd("ans");
+                }
             }
     
-	    if (userConfig.timer > 0) {
+            if (userConfig.timer > 0) {
                 var timeoutId = setTimeout(handleExpiredTimer, userConfig.timer);
                 Persistence.setItem("timeoutId", timeoutId);
             }
