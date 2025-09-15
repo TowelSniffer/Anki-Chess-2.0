@@ -80,9 +80,9 @@ let state = {
     puzzleComplete: false,
 };
 
-//if (!state.errorTrack) {
-//    state.errorTrack = false;
-//}
+if (!state.errorTrack) {
+    state.errorTrack = false;
+}
 
 // --- Stockfish Analysis State ---
 let cg = null;
@@ -435,8 +435,6 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-            if (state.errorTrack === null) state.errorTrack = false;
 	    state.puzzleComplete = true;
 	    if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
@@ -451,10 +449,7 @@ function playAiMove(cg, chess, delay) {
                 });
             }
         }
-	// prevent arrows from flashing up on screen momentarily before switch to back card
-	if (!(state.errorTrack === false)) {
-            drawArrows(cg, chess, true);
-	}
+        drawArrows(cg, chess, true);
         state.debounceTimeout = false;
     }, delay);
 }
@@ -543,8 +538,6 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
-	    // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-            if (state.errorTrack === null) state.errorTrack = false;
             state.puzzleComplete = true;
 	    if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
