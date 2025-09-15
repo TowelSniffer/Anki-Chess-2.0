@@ -11,6 +11,8 @@
         frontText: true, // show userText on front side.
         mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
         showDests: true, // Indicate legal moves for clicked piece.
+        timer: 15000, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
+	autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly
     }
 
 </script>
@@ -34,18 +36,37 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
         PGN = encodeURIComponent(PGN);
         var iframe = document.getElementById("Board");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&boardMode=Puzzle`;
-        var errorTrack = null;
-        var mirrorState = null;
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&autoAdvance=`+userConfig.autoAdvance+`&strictScoring=`+userConfig.strictScoring+`&boardMode=Puzzle`;
+        var errorTrack;
+        var mirrorState;
+        var errorCount = null;
+        var puzzleComplete = null;
         if (Persistence.isAvailable()) {
             Persistence.clear();
-            if (typeof window.addEventListener != 'undefined') {
+            // checking window.hasChessListener prevents the event listener from being added multiple times
+            if (typeof window.addEventListener != 'undefined' && !window.hasChessListener) {
+                window.hasChessListener = true;
                 window.addEventListener('message', function(e) {
                     errorTrack = e.data.errorTrack;
                     mirrorState = e.data.mirrorState;
+                    errorCount = e.data.errorCount;
+		    puzzleComplete = e.data.puzzleComplete;
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
+                    if (userConfig.autoAdvance === true && (puzzleComplete === true || errorCount > userConfig.handicap)) try { showAnswer(); } catch { pycmd("ans"); }
                 }, false);
+            }
+	    function handleExpiredTimer() {
+		if (puzzleComplete === false) {
+                    errorTrack = true;
+                    Persistence.setItem("errorTrack", errorTrack);
+	        }
+                try { showAnswer(); } catch { pycmd("ans"); }
+            }
+    
+	    if (userConfig.timer > 0) {
+                var timeoutId = setTimeout(handleExpiredTimer, userConfig.timer);
+                Persistence.setItem("timeoutId", timeoutId);
             }
         }
 

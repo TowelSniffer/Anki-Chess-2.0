@@ -50,6 +50,7 @@ const config = {
     boardMode: getUrlParam("boardMode", 'Puzzle'),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
+    autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
 };
 
 // --- Global State ---
@@ -76,6 +77,7 @@ let state = {
     pgnPath: [],
     mirrorState: getUrlParam("mirrorState", null),
     blunderNags: ['$2', '$4', '$6', '$9'],
+    puzzleComplete: false,
 };
 
 
@@ -430,17 +432,20 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-            if (state.errorTrack === null) state.errorTrack = false;
-            window.parent.postMessage(state, '*');
-            document.documentElement.style.setProperty('--border-color', state.solvedColour);
-            cg.set({
-                selected: undefined, // Clear any selected square
-                draggable: {
-                    current: undefined // Explicitly clear any currently dragged piece
-                },
-                viewOnly: true
-            });
+	    state.puzzleComplete = true;
+	    if (config.autoAdvance) {
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
+            } else {
+		  window.parent.postMessage(state, '*');
+                document.documentElement.style.setProperty('--border-color', state.solvedColour);
+                cg.set({
+                    selected: undefined, // Clear any selected square
+                    draggable: {
+                        current: undefined // Explicitly clear any currently dragged piece
+                    },
+                    viewOnly: true
+                });
+            }
         }
         drawArrows(cg, chess, true);
         state.debounceTimeout = false;
@@ -531,9 +536,11 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
-            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-            if (state.errorTrack === null) state.errorTrack = false;
-            window.parent.postMessage(state, '*');
+            state.puzzleComplete = true;
+	          if (config.autoAdvance) {
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
+            } else {
+		        window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -543,7 +550,10 @@ function checkUserMove(cg, chess, moveSan, delay) {
                 viewOnly: true
             });
         }
-        drawArrows(cg, chess);
+     }
+	if (!(config.autoAdvance && state.puzzleComplete)) {
+            drawArrows(cg, chess);
+	}
     } else if (delay) {
         handleWrongMove(cg, chess, moveAttempt);
         drawArrows(cg, chess, true);
