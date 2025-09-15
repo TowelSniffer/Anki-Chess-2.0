@@ -57,9 +57,10 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                 }, false);
             }
 	    function handleExpiredTimer() {
-                if (errorTrack !== null) return;
-                errorTrack = true;
-                Persistence.setItem("errorTrack", errorTrack);
+		if (puzzleComplete === false) {
+                    errorTrack = true;
+                    Persistence.setItem("errorTrack", errorTrack);
+	        }
                 try { showAnswer(); } catch { pycmd("ans"); }
             }
     
