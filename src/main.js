@@ -80,9 +80,6 @@ let state = {
     puzzleComplete: false,
 };
 
-if (!state.errorTrack) {
-    state.errorTrack = false;
-}
 
 // --- Stockfish Analysis State ---
 let cg = null;
@@ -439,7 +436,7 @@ function playAiMove(cg, chess, delay) {
 	    if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
             } else {
-		window.parent.postMessage(state, '*');
+		  window.parent.postMessage(state, '*');
                 document.documentElement.style.setProperty('--border-color', state.solvedColour);
                 cg.set({
                     selected: undefined, // Clear any selected square
@@ -540,20 +537,20 @@ function checkUserMove(cg, chess, moveSan, delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
             state.puzzleComplete = true;
-	    if (config.autoAdvance) {
+	          if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
             } else {
-		window.parent.postMessage(state, '*');
-                document.documentElement.style.setProperty('--border-color', state.solvedColour);
-                cg.set({
-                    selected: undefined, // Clear any selected square
-                    draggable: {
-                        current: undefined // Explicitly clear any currently dragged piece
-                    },
-                    viewOnly: true
-                });
-	    }
+		        window.parent.postMessage(state, '*');
+            document.documentElement.style.setProperty('--border-color', state.solvedColour);
+            cg.set({
+                selected: undefined, // Clear any selected square
+                draggable: {
+                    current: undefined // Explicitly clear any currently dragged piece
+                },
+                viewOnly: true
+            });
         }
+     }
 	if (!(config.autoAdvance && state.puzzleComplete)) {
             drawArrows(cg, chess);
 	}
