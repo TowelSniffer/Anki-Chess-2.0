@@ -14126,7 +14126,8 @@ ${contextLines.join("\n")}`;
     flipBoard: getUrlParam("flip", "false") === "true",
     boardMode: getUrlParam("boardMode", "Puzzle"),
     background: getUrlParam("background", "#2C2C2C"),
-    mirror: getUrlParam("mirror", "true") === "true"
+    mirror: getUrlParam("mirror", "true") === "true",
+    autoAdvance: getUrlParam("autoAdvance", "false") === "true"
   };
   var state = {
     ankiFen: "",
@@ -14150,11 +14151,9 @@ ${contextLines.join("\n")}`;
     analysisToggledOn: false,
     pgnPath: [],
     mirrorState: getUrlParam("mirrorState", null),
-    blunderNags: ["$2", "$4", "$6", "$9"]
+    blunderNags: ["$2", "$4", "$6", "$9"],
+    puzzleComplete: false
   };
-  if (!state.errorTrack) {
-    state.errorTrack = false;
-  }
   var cg = null;
   var chess = new Chess();
   function initAudio(mute) {
@@ -14468,17 +14467,24 @@ ${contextLines.join("\n")}`;
       state.count++;
       state.expectedMove = state.expectedLine[state.count];
       if (!state.expectedMove || typeof state.expectedMove === "string") {
-        window.parent.postMessage(state, "*");
-        document.documentElement.style.setProperty("--border-color", state.solvedColour);
-        cg2.set({
-          selected: void 0,
-          // Clear any selected square
-          draggable: {
-            current: void 0
-            // Explicitly clear any currently dragged piece
-          },
-          viewOnly: true
-        });
+        state.puzzleComplete = true;
+        if (config.autoAdvance) {
+          setTimeout(() => {
+            window.parent.postMessage(state, "*");
+          }, 200);
+        } else {
+          window.parent.postMessage(state, "*");
+          document.documentElement.style.setProperty("--border-color", state.solvedColour);
+          cg2.set({
+            selected: void 0,
+            // Clear any selected square
+            draggable: {
+              current: void 0
+              // Explicitly clear any currently dragged piece
+            },
+            viewOnly: true
+          });
+        }
       }
       drawArrows(cg2, chess2, true);
       state.debounceTimeout = false;
@@ -14562,19 +14568,28 @@ ${contextLines.join("\n")}`;
       if (state.expectedMove && delay) {
         playAiMove(cg2, chess2, delay);
       } else if (delay) {
-        window.parent.postMessage(state, "*");
-        document.documentElement.style.setProperty("--border-color", state.solvedColour);
-        cg2.set({
-          selected: void 0,
-          // Clear any selected square
-          draggable: {
-            current: void 0
-            // Explicitly clear any currently dragged piece
-          },
-          viewOnly: true
-        });
+        state.puzzleComplete = true;
+        if (config.autoAdvance) {
+          setTimeout(() => {
+            window.parent.postMessage(state, "*");
+          }, 200);
+        } else {
+          window.parent.postMessage(state, "*");
+          document.documentElement.style.setProperty("--border-color", state.solvedColour);
+          cg2.set({
+            selected: void 0,
+            // Clear any selected square
+            draggable: {
+              current: void 0
+              // Explicitly clear any currently dragged piece
+            },
+            viewOnly: true
+          });
+        }
       }
-      drawArrows(cg2, chess2);
+      if (!(config.autoAdvance && state.puzzleComplete)) {
+        drawArrows(cg2, chess2);
+      }
     } else if (delay) {
       handleWrongMove(cg2, chess2, moveAttempt);
       drawArrows(cg2, chess2, true);
