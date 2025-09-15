@@ -78,9 +78,6 @@ let state = {
     blunderNags: ['$2', '$4', '$6', '$9'],
 };
 
-if (!state.errorTrack) {
-    state.errorTrack = false;
-}
 
 // --- Stockfish Analysis State ---
 let cg = null;
@@ -433,6 +430,8 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
+            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
+            if (state.errorTrack === null) state.errorTrack = false;
             window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
@@ -532,6 +531,8 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
+            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
+            if (state.errorTrack === null) state.errorTrack = false;
             window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
