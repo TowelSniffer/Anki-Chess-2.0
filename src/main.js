@@ -432,6 +432,8 @@ function playAiMove(cg, chess, delay) {
         state.expectedMove = state.expectedLine[state.count];
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
+            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
+            if (state.errorTrack === null) state.errorTrack = false;
 	    state.puzzleComplete = true;
 	    if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
@@ -536,8 +538,10 @@ function checkUserMove(cg, chess, moveSan, delay) {
         if (state.expectedMove && delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
+            // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
+            if (state.errorTrack === null) state.errorTrack = false;
             state.puzzleComplete = true;
-	          if (config.autoAdvance) {
+	    if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
             } else {
 		        window.parent.postMessage(state, '*');
