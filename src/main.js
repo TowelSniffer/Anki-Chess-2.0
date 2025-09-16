@@ -195,6 +195,7 @@ if (config.mirror && !checkCastleRights(state.ankiFen)) {
     if (!state.mirrorState) state.mirrorState = mirror.assignMirrorState(config.pgn);
     window.parent.postMessage(state, '*');
     mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+    mirror.mirrorGameCommentArrows(parsedPGN, state.mirrorState);
     state.ankiFen = mirror.mirrorFen(state.ankiFen, state.mirrorState);
 }
 pgnViewer.augmentPgnTree(parsedPGN.moves);
@@ -275,7 +276,8 @@ export function drawArrows(cg, chess, redraw) {
         state.chessGroundShapes = [];
         return
     }
-    state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine' && shape.customSvg?.brush !== 'moveType');
+    let excludedBrushes = [ 'mainLine', 'altLine', 'blunderLine', 'red', 'yellow', 'green', 'blue' ];
+    state.chessGroundShapes = state.chessGroundShapes.filter(shape => !excludedBrushes.includes(shape.brush) && shape.customSvg?.brush !== 'moveType');
     if (config.boardMode === 'Puzzle' && config.disableArrows) {
         return;
     }
@@ -315,6 +317,42 @@ export function drawArrows(cg, chess, redraw) {
         return;
     }
     // --- Arrow Drawing Logic ---
+
+    // get any arrows from the pgn
+    let pgnArrows = [];
+    const pgnArrowsParent = findParent(parsedPGN.moves, expectedLine);
+
+    if (count === 0 && pgnArrowsParent === null) {
+        pgnArrows = parsedPGN.gameComment?.colorArrows;
+    } else if (pgnArrowsParent === null) {
+        pgnArrows = expectedLine[count - 1]?.commentDiag?.colorArrows;
+    } else {
+        pgnArrows = pgnArrowsParent.parent[0][count - 1]?.commentDiag?.colorArrows;
+    }
+
+    if (pgnArrows !== undefined) {
+        const arrowColors = {
+                'G': 'green',
+                'R': 'red',
+                'B': 'blue',
+                'Y': 'yellow',
+        }
+        for (const pgnArrow of pgnArrows) {
+            const parsedArrow = {
+                color: pgnArrow[0],
+                from: pgnArrow.slice(1, 3),
+                to: pgnArrow.slice(3, 5)
+            };
+            let brushType = arrowColors[parsedArrow.color];
+            state.chessGroundShapes.push({
+                orig: parsedArrow.from,
+                dest: parsedArrow.to,
+                brush: brushType,
+                san: null
+            });
+        }
+    }
+
     const tempChess = new Chess(chess.fen());
     // Draw blue arrows for all variations
     if (expectedMove?.variations) {
@@ -373,6 +411,11 @@ export function drawArrows(cg, chess, redraw) {
     if (config.boardMode === 'Puzzle' && puzzleMove) {
         chess.move(puzzleMove);
     }
+
+    // set overlay priorty for shapes (last in array is drawn last and so on top) 
+    const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish','blue','green','yellow','red'];
+    state.chessGroundShapes.sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
+
     cg.set({ drawable: { shapes: state.chessGroundShapes } });
 }
 
@@ -730,7 +773,8 @@ function reload() {
         turnColor: toColor(chess),
         events: {
             select: (key) => {
-                const arrowCheck = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine' && shape.brush !== 'stockfish' && shape.brush !== 'stockfinished' && shape.customSvg?.brush !== 'moveType');
+                let excludedBrushes = [ 'mainLine', 'altLine', 'blunderLine', 'stockfish', 'stockfinished', 'red', 'yellow', 'green', 'blue' ];
+                const arrowCheck = state.chessGroundShapes.filter(shape => !excludedBrushes.includes(shape.brush) && shape.customSvg?.brush !== 'moveType');
                 if (arrowCheck.length > 0) {
                     state.chessGroundShapes = state.chessGroundShapes.filter(element => !arrowCheck.includes(element));
                 }
@@ -739,14 +783,15 @@ function reload() {
                     if (state.debounceTimeout) return;
 
 
-                    const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
+                    const priority = ['red', 'green', 'blue', 'yellow', 'mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
                     const arrowMove = state.chessGroundShapes
                         .filter(shape => shape.dest === key && priority.includes(shape.brush))
                         .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
                     if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
                         // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
                         if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
-                            state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine');
+			    let excludedBrushes = [ 'mainLine', 'altLine', 'blunderLine', 'red', 'yellow', 'green', 'blue' ];
+                            state.chessGroundShapes = state.chessGroundShapes.filter(shape => !excludedBrushes.includes(shape.brush));
                             state.pgnState = false;
                             document.querySelector("#navForward").disabled = true;
                         }
