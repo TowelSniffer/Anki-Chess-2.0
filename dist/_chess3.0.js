@@ -14122,7 +14122,9 @@ ${contextLines.join("\n")}`;
     boardMode: getUrlParam("boardMode", "Puzzle"),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", "true") === "true",
-    autoAdvance: getUrlParam("autoAdvance", "false") === "true"
+    autoAdvance: getUrlParam("autoAdvance", "false") === "true",
+    timer: parseInt(getUrlParam("timer", 0), 10),
+    increment: parseInt(getUrlParam("increment", 0), 10)
   };
   var state = {
     ankiFen: "",
@@ -14152,6 +14154,61 @@ ${contextLines.join("\n")}`;
   };
   var cg = null;
   var chess = new Chess();
+  var puzzleTimeout;
+  var puzzleIncrement;
+  var startTime;
+  var totalTime;
+  var remainingTime;
+  var handleOutOfTime = function() {
+    state.errorTrack = true;
+    state.puzzleComplete = true;
+    window.parent.postMessage(state, "*");
+    puzzleTimeout = null;
+    clearInterval(puzzleIncrement);
+    document.documentElement.style.setProperty("--remainingTime", "100%");
+  };
+  function extendPuzzleTime(additionalTime) {
+    if (puzzleTimeout) {
+      clearTimeout(puzzleTimeout);
+      clearInterval(puzzleIncrement);
+      let elapsedTime = Date.now() - startTime;
+      let newDelay = remainingTime + additionalTime;
+      console.log(newDelay);
+      if (newDelay >= 0) {
+        startPuzzleTimeout(newDelay);
+      }
+    }
+  }
+  function startPuzzleTimeout(delay) {
+    document.getElementsByClassName("cg-wrap")[0].classList.add("timerMode");
+    puzzleTimeout = setTimeout(handleOutOfTime, delay);
+    totalTime = config.timer;
+    let usedTime = config.timer - delay;
+    if (usedTime < 0) {
+      totalTime -= usedTime;
+      usedTime = 0;
+    }
+    startTime = Date.now();
+    puzzleIncrement = setInterval(() => {
+      if (state.puzzleComplete) {
+        clearTimeout(puzzleTimeout);
+        clearInterval(puzzleIncrement);
+      }
+      let elapsedTime = Date.now() - startTime;
+      remainingTime = totalTime - elapsedTime - usedTime;
+      if (remainingTime < 0) {
+        remainingTime = 0;
+      }
+      if (state.playerColour !== cg.state.turnColor) {
+        extendPuzzleTime(10);
+      }
+      let percentage = 100 - remainingTime / totalTime * 100;
+      document.documentElement.style.setProperty("--remainingTime", `${percentage.toFixed(2)}%`);
+      if (remainingTime === 0) {
+        clearInterval(puzzleIncrement);
+      }
+    }, 10);
+  }
   function initAudio(mute) {
     const sounds = ["Move", "checkmate", "move-check", "Capture", "castle", "promote", "Error", "computer-mouse-click"];
     const audioMap2 = /* @__PURE__ */ new Map();
@@ -14558,6 +14615,7 @@ ${contextLines.join("\n")}`;
         window.parent.postMessage(state, "*");
         state.solvedColour = "#b31010";
       }
+      if (config.boardMode === "Puzzle" && config.timer) extendPuzzleTime(config.increment);
       makeMove(cg2, chess2, moveAttempt);
       state.count++;
       state.expectedMove = state.expectedLine[state.count];
@@ -14757,6 +14815,9 @@ ${contextLines.join("\n")}`;
         }
       }
     });
+    if (config.boardMode === "Puzzle" && config.timer) {
+      startPuzzleTimeout(config.timer);
+    }
     if (config.boardMode === "Viewer") {
       cg.set({
         premovable: {
@@ -14764,12 +14825,9 @@ ${contextLines.join("\n")}`;
         }
       });
       initPgnViewer();
-    }
-    if (config.boardMode === "Viewer") {
       document.querySelector("#navBackward").disabled = true;
       document.querySelector("#resetBoard").disabled = true;
       if (state.pgnPath && state.pgnPath !== "null") {
-        console.log(state.pgnPath);
         cg.set({ animation: { enabled: false } });
         getFullMoveSequenceFromPath(state.pgnPath.split(","));
         highlightCurrentMove(state.pgnPath.split(","));

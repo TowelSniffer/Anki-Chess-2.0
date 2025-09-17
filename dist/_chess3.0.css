@@ -195,8 +195,10 @@ piece.fading {
   --opponent-color: black;
   --player-color: white;
   --border-shadow: LightSlateGrey;
+  --incorrect-color: #b31010;
   --max-width: min(100vw, 1000px);
   --centipawn: 50%;
+  --remainingTime: 0%;
 }
 ::-webkit-scrollbar {
   display: none;
@@ -547,6 +549,21 @@ img {
       red calc(var(--centipawn) - 1px),
       red calc(var(--centipawn) + 1px),
       var(--player-color) calc(var(--centipawn) + 1px),
+      var(--player-color) 100%);
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+}
+.timerMode {
+  border: 8px solid transparent;
+  box-shadow: 0px 0px 3px 0px grey;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--content-bg, white), var(--content-bg, white)),
+    linear-gradient(
+      to bottom,
+      var(--incorrect-color) 0%,
+      var(--incorrect-color) var(--remainingTime),
+      var(--player-color) var(--remainingTime),
       var(--player-color) 100%);
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
