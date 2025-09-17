@@ -14122,9 +14122,13 @@ ${contextLines.join("\n")}`;
     boardMode: getUrlParam("boardMode", "Puzzle"),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", "true") === "true",
+    randomOrientation: getUrlParam("randomOrientation", "false") === "true",
     autoAdvance: getUrlParam("autoAdvance", "false") === "true",
-    timer: parseInt(getUrlParam("timer", 0), 10),
-    increment: parseInt(getUrlParam("increment", 0), 10)
+    handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
+    timer: parseInt(getUrlParam("timer", 0), 10) * 1e3,
+    increment: parseInt(getUrlParam("increment", 0), 10) * 1e3,
+    timerAdvance: getUrlParam("timerAdvance", "true") === "true",
+    timerScore: getUrlParam("timerScore", "true") === "true"
   };
   var state = {
     ankiFen: "",
@@ -14160,8 +14164,8 @@ ${contextLines.join("\n")}`;
   var totalTime;
   var remainingTime;
   var handleOutOfTime = function() {
-    state.errorTrack = true;
-    state.puzzleComplete = true;
+    if (config.timerScore) state.errorTrack = true;
+    if (config.timerAdvance) state.puzzleComplete = true;
     window.parent.postMessage(state, "*");
     puzzleTimeout = null;
     clearInterval(puzzleIncrement);
@@ -14269,7 +14273,7 @@ ${contextLines.join("\n")}`;
   }
   state.playerColour = state.boardRotation;
   state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-  document.documentElement.style.setProperty("--border-color", state.playerColour);
+  document.documentElement.style.setProperty("--border-color", config.randomOrientation ? "grey" : state.playerColour);
   document.documentElement.style.setProperty("--player-color", state.playerColour);
   document.documentElement.style.setProperty("--opponent-color", state.opponentColour);
   function toDests(chess2) {
@@ -14578,12 +14582,19 @@ ${contextLines.join("\n")}`;
     }
     updateBoard(cg2, chess2, move3, true, true);
     if (state.errorCount > config.handicap) {
-      cg2.set({ viewOnly: true });
-      playUserCorrectMove(cg2, chess2, 300);
-      playAiMove(cg2, chess2, 600);
-      setTimeout(() => {
-        state.debounceTimeout = false;
-      }, 0);
+      if (config.autoAdvance && config.handicapAdvance) {
+        state.puzzleComplete = true;
+        setTimeout(() => {
+          window.parent.postMessage(state, "*");
+        }, 300);
+      } else {
+        cg2.set({ viewOnly: true });
+        playUserCorrectMove(cg2, chess2, 300);
+        playAiMove(cg2, chess2, 600);
+        setTimeout(() => {
+          state.debounceTimeout = false;
+        }, 0);
+      }
     } else {
       setTimeout(() => {
         state.debounceTimeout = false;
@@ -14742,7 +14753,7 @@ ${contextLines.join("\n")}`;
     state.expectedMove = state.expectedLine[0];
     cg = Chessground(board, {
       fen: state.ankiFen,
-      orientation: state.playerColour,
+      orientation: config.randomOrientation ? ["black", "white"][Math.floor(Math.random() * 2)] : state.playerColour,
       turnColor: toColor(chess),
       events: {
         select: (key) => {

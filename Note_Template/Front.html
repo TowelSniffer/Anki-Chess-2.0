@@ -6,7 +6,7 @@
         muteAudio: false,
         puzzleSettings: {
             _title: "Puzzle Settings",
-            _collapsed: false, // Set to false to have it open by default
+            _collapsed: false,
             flip: false, // Sets whether Puzzle begins from First or second move of PGN.
             handicap: 1, // Number of wrong attempts before puzzle advances automatically.
             strictScoring: false, // Puzzle is marked wrong with any mistake.
@@ -14,24 +14,29 @@
         },
         boardSettings: {
             _title: "Board Settings",
-            _collapsed: true, // This section will be closed by default
+            _collapsed: true,
             disableArrows: false, // Disables arrows on front side.
             showDests: true, // Indicate legal moves for clicked piece.
         },
         mirrorSettings: {
             _title: "Mirror Settings",
-            _collapsed: true, // This section will be closed by default
+            _collapsed: true,
             mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+            randomOrientation: false, // Sets a grey border and random board rotation.
         },
         timerSettings: {
             _title: "Timer Settings",
-            _collapsed: true, // This section will be closed by default
-            timer: 0, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+            _collapsed: true,
+            timer: 0, // Max solve time in seconds. Set to 0 to diable.
+            increment: 0, // Increase Max time with each move.
+            timerAdvance: true, // Automatically show answer when timer runs out.
+            timerScore: true, // Mark puzzle incorrect when out of time.
         },
         autoAdvanceSettings: {
             _title: "autoAdvance Settings",
             _collapsed: true, // This section will be closed by default
-            autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly.
+            autoAdvance: true, // Automatically show answer when player reaches end of line.
+            handicapAdvance: false, // Also show answer when handicap is reached.
         },
     }
 </script>
@@ -52,7 +57,7 @@
         PGN = encodeURIComponent(PGN);
         const iframe = document.getElementById("Board");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.puzzleSettings.flip+`&handicap=`+userConfig.puzzleSettings.handicap+`&background=`+background+`&acceptVariations=`+userConfig.puzzleSettings.acceptVariations+`&disableArrows=`+userConfig.boardSettings.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirrorSettings.mirror+`&showDests=`+userConfig.boardSettings.showDests+`&autoAdvance=`+userConfig.autoAdvanceSettings.autoAdvance+`&strictScoring=`+userConfig.puzzleSettings.strictScoring+`&boardMode=Puzzle`;
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.puzzleSettings.flip+`&timer=`+userConfig.timerSettings.timer+`&increment=`+userConfig.timerSettings.increment+`&timerAdvance=`+userConfig.timerSettings.timerAdvance+`&timerScore=`+userConfig.timerSettings.timerScore+`&handicap=`+userConfig.puzzleSettings.handicap+`&background=`+background+`&acceptVariations=`+userConfig.puzzleSettings.acceptVariations+`&disableArrows=`+userConfig.boardSettings.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirrorSettings.mirror+`&randomOrientation=`+userConfig.mirrorSettings.randomOrientation+`&showDests=`+userConfig.boardSettings.showDests+`&autoAdvance=`+userConfig.autoAdvanceSettings.autoAdvance+`&handicapAdvance=`+userConfig.autoAdvanceSettings.handicapAdvance+`&strictScoring=`+userConfig.puzzleSettings.strictScoring+`&boardMode=Puzzle`;
         let errorTrack;
         let mirrorState;
         let pgnPath = null;
@@ -72,7 +77,7 @@
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
                     Persistence.setItem("pgnPath", pgnPath);
-                    if (userConfig.autoAdvanceSettings.autoAdvance === true && puzzleComplete === true) {
+                    if (userConfig.autoAdvanceSettings.autoAdvance && puzzleComplete === true) {
                         if (typeof showAnswer === 'function') {
                             showAnswer();
                         } else if (typeof pycmd === 'function') {
@@ -80,22 +85,6 @@
                         }
                     }
                 }, false);
-            }
-            function handleExpiredTimer() {
-                if (puzzleComplete === false) {
-                    errorTrack = true;
-                    Persistence.setItem("errorTrack", errorTrack);
-                }
-                if (typeof showAnswer === 'function') {
-                    showAnswer();
-                } else if (typeof pycmd === 'function') {
-                    pycmd("ans");
-                }
-            }
-
-            if (userConfig.timerSettings.timer > 0) {
-                const timeoutId = setTimeout(handleExpiredTimer, userConfig.timerSettings.timer);
-                Persistence.setItem("timeoutId", timeoutId);
             }
         }
     })();

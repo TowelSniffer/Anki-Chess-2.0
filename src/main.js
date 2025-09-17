@@ -46,9 +46,13 @@ const config = {
     boardMode: getUrlParam("boardMode", 'Puzzle'),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
+    randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
-    timer: parseInt(getUrlParam("timer", 0), 10),
-    increment: parseInt(getUrlParam("increment", 0), 10),
+    handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
+    timer: parseInt(getUrlParam("timer", 0), 10) * 1000,
+    increment: parseInt(getUrlParam("increment", 0), 10) * 1000,
+    timerAdvance: getUrlParam("timerAdvance", 'true') === 'true',
+    timerScore: getUrlParam("timerScore", 'true') === 'true',
 };
 
 // --- Global State ---
@@ -90,8 +94,8 @@ let totalTime;
 let remainingTime;
 
 let handleOutOfTime = function() {
-    state.errorTrack = true;
-    state.puzzleComplete = true;
+    if (config.timerScore) state.errorTrack = true;
+    if (config.timerAdvance) state.puzzleComplete = true;
     window.parent.postMessage(state, '*');
     puzzleTimeout = null;
     clearInterval(puzzleIncrement);
@@ -226,7 +230,7 @@ if (state.boardRotation === "white") {
 
 state.playerColour = state.boardRotation;
 state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-document.documentElement.style.setProperty('--border-color', state.playerColour);
+document.documentElement.style.setProperty('--border-color', config.randomOrientation ? "grey" : state.playerColour);
 document.documentElement.style.setProperty('--player-color', state.playerColour);
 document.documentElement.style.setProperty('--opponent-color', state.opponentColour);
 
@@ -553,12 +557,17 @@ function handleWrongMove(cg, chess, move) {
     updateBoard(cg, chess, move, true, true);
     // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
     if (state.errorCount > config.handicap) {
-        cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
-        playUserCorrectMove(cg, chess, 300); // Show the correct user move
-        playAiMove(cg, chess, 600); // Then play the AI's response
-        setTimeout(() => { // que after select: event
-            state.debounceTimeout = false;
-        }, 0);
+        if (config.autoAdvance && config.handicapAdvance) {
+            state.puzzleComplete = true;
+            setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+        } else {
+            cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
+            playUserCorrectMove(cg, chess, 300); // Show the correct user move
+            playAiMove(cg, chess, 600); // Then play the AI's response
+            setTimeout(() => { // que after select: event
+                state.debounceTimeout = false;
+            }, 0);
+        }
     } else {
         setTimeout(() => { // que after select: event
             state.debounceTimeout = false;
@@ -717,7 +726,7 @@ function reload() {
 
     cg = Chessground(board, {
         fen: state.ankiFen,
-        orientation: state.playerColour,
+        orientation: config.randomOrientation ? ['black', 'white'][Math.floor(Math.random() * 2)] : state.playerColour,
         turnColor: toColor(chess),
         events: {
             select: (key) => {
