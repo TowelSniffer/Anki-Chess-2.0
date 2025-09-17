@@ -1,6 +1,6 @@
 <script>
     // User Variables
-    const userConfig = {
+    var userConfig = {
         muteAudio: false,
         fontSize: 18,
         flip: false, // sets whether Puzzle begins from First or second move of PGN
@@ -18,20 +18,22 @@
         let userText = `{{textField}}`
         userText = encodeURIComponent(userText)
         {{/textField}}
-            let errorTrack;
-            let mirrorState;
-            if (Persistence.isAvailable()) {
-                errorTrack = Persistence.getItem("errorTrack");
-                mirrorState = Persistence.getItem("mirrorState");
-                timeoutId = Persistence.getItem("timeoutId");
-                Persistence.clear();
-            }
+        let errorTrack;
+        let mirrorState;
+        let pgnPath = null;
+        if (Persistence.isAvailable()) {
+            errorTrack = Persistence.getItem("errorTrack");
+            mirrorState = Persistence.getItem("mirrorState");
+            timeoutId = Persistence.getItem("timeoutId");
+            pgnPath = Persistence.getItem("pgnPath");
+            Persistence.clear();
+        }
         clearTimeout(timeoutId);
         let PGN = `{{text:PGN}}`.replace("[%eval", "[ %eval");
         PGN = encodeURIComponent(PGN);
         const iframe = document.getElementById("analysisBoard");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&background=`+background+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&errorTrack=`+errorTrack+`&mirror=`+userConfig.mirror+`&mirrorState=`+mirrorState+`&showDests=`+userConfig.showDests+`&boardMode=Viewer`;
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.flip+`&background=`+background+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&errorTrack=`+errorTrack+`&mirror=`+userConfig.mirror+`&mirrorState=`+mirrorState+`&showDests=`+userConfig.showDests+`&pgnPath=`+pgnPath+`&boardMode=Viewer`;
         document.querySelector("#analysisBoard").contentWindow.focus();
     })();
 </script>
