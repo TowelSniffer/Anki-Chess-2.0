@@ -51,8 +51,8 @@ const config = {
     handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
     timer: parseInt(getUrlParam("timer", 0), 10) * 1000,
     increment: parseInt(getUrlParam("increment", 0), 10) * 1000,
-    timerAdvance: getUrlParam("timerAdvance", 'true') === 'true',
-    timerScore: getUrlParam("timerScore", 'true') === 'true',
+    timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
+    timerScore: getUrlParam("timerScore", 'false') === 'true',
 };
 
 // --- Global State ---
@@ -117,6 +117,7 @@ function extendPuzzleTime(additionalTime) {
 }
 
 function startPuzzleTimeout(delay) {
+    if (!config.timerScore) document.documentElement.style.setProperty('--timer-color', config.randomOrientation ? "#66AAAA" : state.opponentColour);
     document.getElementsByClassName("cg-wrap")[0].classList.add('timerMode');
     puzzleTimeout = setTimeout(handleOutOfTime, delay);
     totalTime = config.timer; // Set initial total time only once
@@ -231,7 +232,7 @@ if (state.boardRotation === "white") {
 state.playerColour = state.boardRotation;
 state.opponentColour = state.boardRotation === "white" ? "black" : "white";
 document.documentElement.style.setProperty('--border-color', config.randomOrientation ? "grey" : state.playerColour);
-document.documentElement.style.setProperty('--player-color', state.playerColour);
+document.documentElement.style.setProperty('--player-color', config.randomOrientation ? "grey" : state.playerColour);
 document.documentElement.style.setProperty('--opponent-color', state.opponentColour);
 
 // --- Core Functions ---

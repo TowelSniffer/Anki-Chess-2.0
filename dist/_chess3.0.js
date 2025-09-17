@@ -14127,8 +14127,8 @@ ${contextLines.join("\n")}`;
     handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
     timer: parseInt(getUrlParam("timer", 0), 10) * 1e3,
     increment: parseInt(getUrlParam("increment", 0), 10) * 1e3,
-    timerAdvance: getUrlParam("timerAdvance", "true") === "true",
-    timerScore: getUrlParam("timerScore", "true") === "true"
+    timerAdvance: getUrlParam("timerAdvance", "false") === "true",
+    timerScore: getUrlParam("timerScore", "false") === "true"
   };
   var state = {
     ankiFen: "",
@@ -14184,6 +14184,7 @@ ${contextLines.join("\n")}`;
     }
   }
   function startPuzzleTimeout(delay) {
+    if (!config.timerScore) document.documentElement.style.setProperty("--timer-color", config.randomOrientation ? "#66AAAA" : state.opponentColour);
     document.getElementsByClassName("cg-wrap")[0].classList.add("timerMode");
     puzzleTimeout = setTimeout(handleOutOfTime, delay);
     totalTime = config.timer;
@@ -14274,7 +14275,7 @@ ${contextLines.join("\n")}`;
   state.playerColour = state.boardRotation;
   state.opponentColour = state.boardRotation === "white" ? "black" : "white";
   document.documentElement.style.setProperty("--border-color", config.randomOrientation ? "grey" : state.playerColour);
-  document.documentElement.style.setProperty("--player-color", state.playerColour);
+  document.documentElement.style.setProperty("--player-color", config.randomOrientation ? "grey" : state.playerColour);
   document.documentElement.style.setProperty("--opponent-color", state.opponentColour);
   function toDests(chess2) {
     const dests = /* @__PURE__ */ new Map();

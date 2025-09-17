@@ -7,7 +7,7 @@
     --opponent-color: black;
     --player-color: white;
     --border-shadow: LightSlateGrey;
-    --incorrect-color: #b31010;
+    --timer-color: #b31010;
     --max-width: min(100vw, 1000px);
     --centipawn: 50%;
     --remainingTime: 0%;
@@ -427,8 +427,8 @@ html, img {
     linear-gradient(var(--content-bg, white), var(--content-bg, white)),
     linear-gradient(
         to bottom,
-        var(--incorrect-color) 0%,
-        var(--incorrect-color) var(--remainingTime),
+        var(--timer-color) 0%,
+        var(--timer-color) var(--remainingTime),
         var(--player-color) var(--remainingTime),
         var(--player-color) 100%
     );
