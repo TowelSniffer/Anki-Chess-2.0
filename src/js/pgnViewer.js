@@ -48,7 +48,7 @@ function buildPgnHtml(moves, path = [], altLine) {
     return html;
 }
 
-function getFullMoveSequenceFromPath(path) {
+export function getFullMoveSequenceFromPath(path) {
     state.count = 0; // Int so we can track on which move we are.
     state.chessGroundShapes = [];
     state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
@@ -78,17 +78,6 @@ function getFullMoveSequenceFromPath(path) {
             }
         }
     }
-
-    return chess.moves()
-}
-
-function onPgnMoveClick(event) {
-    if (!event.target.classList.contains('move')) return;
-    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    event.target.classList.add('current');
-    const pathStr = event.target.dataset.path;
-    const path = pathStr.split(',');
-    getFullMoveSequenceFromPath(path);
     cg.set({
         fen: chess.fen(),
            check: chess.inCheck(),
@@ -107,6 +96,16 @@ function onPgnMoveClick(event) {
         handleStockfish.startAnalysis(4000);
     }
     drawArrows(cg, chess)
+    return chess.moves()
+}
+
+function onPgnMoveClick(event) {
+    if (!event.target.classList.contains('move')) return;
+    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
+    event.target.classList.add('current');
+    const pathStr = event.target.dataset.path;
+    const path = pathStr.split(',');
+    getFullMoveSequenceFromPath(path);
 }
 
 export function augmentPgnTree(moves, path = []) {

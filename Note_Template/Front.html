@@ -11,36 +11,32 @@
         frontText: true, // show userText on front side.
         mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
         showDests: true, // Indicate legal moves for clicked piece.
-        timer: 15000, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
-        autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly
+        timer: 0, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
+        autoAdvance: false, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly
     }
-
 </script>
-<script>
-// v1.1.8 - https://github.com/SimonLammer/anki-persistence/blob/584396fea9dea0921011671a47a0fdda19265e62/script.js
-if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/",t="_default";if(window.Persistence_sessionStorage=function(){var i=!1;try{"object"==typeof window.sessionStorage&&(i=!0,this.clear=function(){for(var t=0;t<sessionStorage.length;t++){var i=sessionStorage.key(t);0==i.indexOf(e)&&(sessionStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),sessionStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(sessionStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),sessionStorage.removeItem(e+i)},this.getAllKeys=function(){for(var t=[],i=Object.keys(sessionStorage),n=0;n<i.length;n++){var s=i[n];0==s.indexOf(e)&&t.push(s.substring(e.length,s.length))}return t.sort()})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_windowKey=function(i){var n=window[i],s=!1;"object"==typeof n&&(s=!0,this.clear=function(){n[e]={}},this.setItem=function(i,s){void 0==s&&(s=i,i=t),n[e][i]=s},this.getItem=function(i){return void 0==i&&(i=t),void 0==n[e][i]?null:n[e][i]},this.removeItem=function(i){void 0==i&&(i=t),delete n[e][i]},this.getAllKeys=function(){return Object.keys(n[e])},void 0==n[e]&&this.clear()),this.isAvailable=function(){return s}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var i=window.location.toString().indexOf("title"),n=window.location.toString().indexOf("main",i);i>0&&n>0&&n-i<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
-</script>
+<script src="_persistence.js"></script>
 <iframe id="Board" style="visibility: hidden"></iframe>
 <script>
+    (function initIframe() {
+        {{#textField}}
+        // optional user text
+        let userText = `{{textField}}`
+        userText = encodeURIComponent(userText)
+        {{/textField}}
 
-    {{#textField}}
-    // optional user text
-    var userText = `{{textField}}`
-    userText = encodeURIComponent(userText)
-    {{/textField}}
-
-        // note must use var here as variables are remembered when loading new cards/backside
-        var background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
-        var PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, '').replace("[%", "[ %");
+        // note must use const here as variables are remembered when loading new cards/backside
+        const background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
+        let PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, '').replace("[%", "[ %");
         ; //compatability with chess.com puzzles
         PGN = encodeURIComponent(PGN);
-        var iframe = document.getElementById("Board");
+        const iframe = document.getElementById("Board");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
         iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&autoAdvance=`+userConfig.autoAdvance+`&strictScoring=`+userConfig.strictScoring+`&boardMode=Puzzle`;
-        var errorTrack;
-        var mirrorState;
-        var errorCount = null;
-        var puzzleComplete = null;
+        let errorTrack;
+        let mirrorState;
+        let errorCount = null;
+        let puzzleComplete = null;
         if (Persistence.isAvailable()) {
             Persistence.clear();
             // checking window.hasChessListener prevents the event listener from being added multiple times
@@ -50,7 +46,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                     errorTrack = e.data.errorTrack;
                     mirrorState = e.data.mirrorState;
                     errorCount = e.data.errorCount;
-		    puzzleComplete = e.data.puzzleComplete;
+                    puzzleComplete = e.data.puzzleComplete;
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
                     if (userConfig.autoAdvance === true && (puzzleComplete === true || errorCount > userConfig.handicap)) {
@@ -73,11 +69,11 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                     pycmd("ans");
                 }
             }
-    
+
             if (userConfig.timer > 0) {
-                var timeoutId = setTimeout(handleExpiredTimer, userConfig.timer);
+                const timeoutId = setTimeout(handleExpiredTimer, userConfig.timer);
                 Persistence.setItem("timeoutId", timeoutId);
             }
         }
-
+    })();
 </script>

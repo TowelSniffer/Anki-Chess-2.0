@@ -1,6 +1,6 @@
 <script>
     // User Variables
-    var userConfig = {
+    const userConfig = {
         muteAudio: false,
         fontSize: 18,
         flip: false, // sets whether Puzzle begins from First or second move of PGN
@@ -8,36 +8,30 @@
         showDests: true, // Indicate legal moves for clicked piece.
     }
 </script>
-<script>
-// v1.1.8 - https://github.com/SimonLammer/anki-persistence/blob/584396fea9dea0921011671a47a0fdda19265e62/script.js
-if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/",t="_default";if(window.Persistence_sessionStorage=function(){var i=!1;try{"object"==typeof window.sessionStorage&&(i=!0,this.clear=function(){for(var t=0;t<sessionStorage.length;t++){var i=sessionStorage.key(t);0==i.indexOf(e)&&(sessionStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),sessionStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(sessionStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),sessionStorage.removeItem(e+i)},this.getAllKeys=function(){for(var t=[],i=Object.keys(sessionStorage),n=0;n<i.length;n++){var s=i[n];0==s.indexOf(e)&&t.push(s.substring(e.length,s.length))}return t.sort()})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_windowKey=function(i){var n=window[i],s=!1;"object"==typeof n&&(s=!0,this.clear=function(){n[e]={}},this.setItem=function(i,s){void 0==s&&(s=i,i=t),n[e][i]=s},this.getItem=function(i){return void 0==i&&(i=t),void 0==n[e][i]?null:n[e][i]},this.removeItem=function(i){void 0==i&&(i=t),delete n[e][i]},this.getAllKeys=function(){return Object.keys(n[e])},void 0==n[e]&&this.clear()),this.isAvailable=function(){return s}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var i=window.location.toString().indexOf("title"),n=window.location.toString().indexOf("main",i);i>0&&n>0&&n-i<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
-</script>
-
+<script src="_persistence.js"></script>
 <iframe id="analysisBoard" style="visibility: hidden"></iframe>
-
-<script data-name="injectScript" data-version="v0.1">
-    var background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
-    {{#textField}}
-    // optional user text
-    var userText = `{{textField}}`
-    userText = encodeURIComponent(userText)
-    {{/textField}}
-        var errorTrack;
-        var mirrorState;
-        if (Persistence.isAvailable()) {
-            errorTrack = Persistence.getItem("errorTrack");
-            mirrorState = Persistence.getItem("mirrorState");
-            timeoutId = Persistence.getItem("timeoutId");
-            Persistence.clear();
-        }
-    clearTimeout(timeoutId);
-</script>
-
 <script>
-    var PGNtext = `{{text:PGN}}`.replace("[%eval", "[ %eval");
-    var PGN = encodeURIComponent(PGNtext);
-    var iframe = document.getElementById("analysisBoard");
-    iframe.onload = function() { iframe.style.visibility = "visible"; }
-    iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&background=`+background+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&errorTrack=`+errorTrack+`&mirror=`+userConfig.mirror+`&mirrorState=`+mirrorState+`&showDests=`+userConfig.showDests+`&boardMode=Viewer`;
-document.querySelector("#analysisBoard").contentWindow.focus();
+    (function initIframe() {
+        const background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
+        {{#textField}}
+        // optional user text
+        let userText = `{{textField}}`
+        userText = encodeURIComponent(userText)
+        {{/textField}}
+            let errorTrack;
+            let mirrorState;
+            if (Persistence.isAvailable()) {
+                errorTrack = Persistence.getItem("errorTrack");
+                mirrorState = Persistence.getItem("mirrorState");
+                timeoutId = Persistence.getItem("timeoutId");
+                Persistence.clear();
+            }
+        clearTimeout(timeoutId);
+        let PGN = `{{text:PGN}}`.replace("[%eval", "[ %eval");
+        PGN = encodeURIComponent(PGN);
+        const iframe = document.getElementById("analysisBoard");
+        iframe.onload = function() { iframe.style.visibility = "visible"; }
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&background=`+background+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&errorTrack=`+errorTrack+`&mirror=`+userConfig.mirror+`&mirrorState=`+mirrorState+`&showDests=`+userConfig.showDests+`&boardMode=Viewer`;
+        document.querySelector("#analysisBoard").contentWindow.focus();
+    })();
 </script>

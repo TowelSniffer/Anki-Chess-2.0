@@ -25,18 +25,14 @@ function getUrlParam(name, defaultValue) {
 const config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2023.02.13"]
+    [Date "2025.09.17"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3"]
-    [SetUp "1"]
 
-    3. d4 exd4 4. c4 dxc3 5. Qc2 cxb2 (5... d5 6. exd5 c5 7. d6+ Kf6 8. Kd1 Qxd6+ (
-        8... Bxd6 9. Qd3 Nc6)) 6. Qc4 Nc6 7. e5 d6 8. exd6+ (8. e6 Ke8 9. Qd5) cxd6 9.
-        Qd5 Be6 *
-        `),
+    1. e4 e5 (1... f5 2. exf5 Nf6) 2. f4 exf4 *
+    `),
     fontSize: getUrlParam("fontSize", 16),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'false') === 'true',
@@ -47,7 +43,7 @@ const config = {
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'false') === 'true',
-    boardMode: getUrlParam("boardMode", 'Puzzle'),
+    boardMode: getUrlParam("boardMode", 'Viewer'),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
@@ -365,6 +361,7 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
     if (state.analysisToggledOn) {
         handleStockfish.startAnalysis(4000);
     }
+    console.log(chess.history(), state.pgnPath)
 }
 
 function makeMove(cg, chess, move) {
@@ -436,7 +433,7 @@ function playAiMove(cg, chess, delay) {
             if (state.errorTrack === null) state.errorTrack = false;
 	    state.puzzleComplete = true;
 	    if (config.autoAdvance) {
-                setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 400);
             } else {
 		  window.parent.postMessage(state, '*');
                 document.documentElement.style.setProperty('--border-color', state.solvedColour);
@@ -542,7 +539,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
             if (state.errorTrack === null) state.errorTrack = false;
             state.puzzleComplete = true;
 	    if (config.autoAdvance) {
-                setTimeout(() => { window.parent.postMessage(state, '*'); }, 200);
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 400);
             } else {
 		        window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
@@ -744,14 +741,11 @@ function reload() {
         });
         pgnViewer.initPgnViewer();
     }
-    if (!chess.isGameOver() && config.flipBoard) {
-        if (config.boardMode === 'Viewer') {
-            setTimeout(() => {
-                navForward()
-            }, 200);
-        } else {
-            playAiMove(cg, chess, 300);
-        }
+    if (config.boardMode === 'Viewer') {
+        const pgnPath = [ 1, "v", 0, 2 ];
+        pgnViewer.getFullMoveSequenceFromPath(pgnPath);
+    } else if (!chess.isGameOver() && config.flipBoard) {
+        playAiMove(cg, chess, 300);
     }
     drawArrows(cg, chess);
     function navBackward() {
@@ -1005,9 +999,6 @@ async function loadElements() {
 }
 loadElements();
 const cgwrap = document.getElementsByClassName("cg-wrap")[0];
-
-document.querySelector("#navBackward").disabled = true;
-document.querySelector("#resetBoard").disabled = true;
 document.querySelectorAll('.move').forEach(item => {
     // Position nag tooltips and keep withing comment box
     item.addEventListener('mouseover', function(e) {
