@@ -29,7 +29,6 @@
             _collapsed: true,
             timer: 0, // Max solve time in seconds. Set to 0 to diable.
             increment: 0, // Increase Max time with each move.
-            timerAdvance: true, // Automatically show answer when timer runs out.
             timerScore: true, // Mark puzzle incorrect when out of time.
         },
         autoAdvanceSettings: {
@@ -37,6 +36,7 @@
             _collapsed: true, // This section will be closed by default
             autoAdvance: false, // Automatically show answer when player reaches end of line. Anki mobile not supported.
             handicapAdvance: false, // Also show answer when handicap is reached.
+            timerAdvance: true, // Also show answer when timer runs out.
         },
     }
 </script>
@@ -57,7 +57,7 @@
         PGN = encodeURIComponent(PGN);
         const iframe = document.getElementById("Board");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.puzzleSettings.flip+`&timer=`+userConfig.timerSettings.timer+`&increment=`+userConfig.timerSettings.increment+`&timerAdvance=`+userConfig.timerSettings.timerAdvance+`&timerScore=`+userConfig.timerSettings.timerScore+`&handicap=`+userConfig.puzzleSettings.handicap+`&background=`+background+`&acceptVariations=`+userConfig.puzzleSettings.acceptVariations+`&disableArrows=`+userConfig.boardSettings.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirrorSettings.mirror+`&randomOrientation=`+userConfig.mirrorSettings.randomOrientation+`&showDests=`+userConfig.boardSettings.showDests+`&autoAdvance=`+userConfig.autoAdvanceSettings.autoAdvance+`&handicapAdvance=`+userConfig.autoAdvanceSettings.handicapAdvance+`&strictScoring=`+userConfig.puzzleSettings.strictScoring+`&boardMode=Puzzle`;
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.puzzleSettings.flip+`&timer=`+userConfig.timerSettings.timer+`&increment=`+userConfig.timerSettings.increment+`&timerAdvance=`+userConfig.autoAdvanceSettings.timerAdvance+`&timerScore=`+userConfig.timerSettings.timerScore+`&handicap=`+userConfig.puzzleSettings.handicap+`&background=`+background+`&acceptVariations=`+userConfig.puzzleSettings.acceptVariations+`&disableArrows=`+userConfig.boardSettings.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirrorSettings.mirror+`&randomOrientation=`+userConfig.mirrorSettings.randomOrientation+`&showDests=`+userConfig.boardSettings.showDests+`&autoAdvance=`+userConfig.autoAdvanceSettings.autoAdvance+`&handicapAdvance=`+userConfig.autoAdvanceSettings.handicapAdvance+`&strictScoring=`+userConfig.puzzleSettings.strictScoring+`&boardMode=Puzzle`;
         let errorTrack;
         let mirrorState;
         let pgnPath = null;
