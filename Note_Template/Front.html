@@ -1,18 +1,35 @@
 <script>
     // User Variables
     var userConfig = {
-        muteAudio: false, // set true to suck the joy out of life.
-        handicap: 1, // number of wrong attempts before puzzle advances automatically.
-        fontSize: 18,
-        strictScoring: false, // puzzle is marked wrong with any mistake.
-        acceptVariations: true, // allows for multiple lines for both sides.
-        flip: false, // sets whether Puzzle begins from First or second move of PGN
-        disableArrows: false, // Disables arrows on front side.
-        frontText: true, // show userText on front side.
-        mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
-        showDests: true, // Indicate legal moves for clicked piece.
-        timer: 0, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
-        autoAdvance: false, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly
+        // General Settings (not in a section)
+        fontSize: 18, // The font size for the puzzle text.
+        frontText: true, // Show userText on front side.
+        muteAudio: false,
+
+        // Puzzle Settings Section
+        puzzleSettings: {
+            _title: "Puzzle Settings", // This will be the dropdown title
+            _collapsed: false, // Set to false to have it open by default
+            flip: true, // Sets whether Puzzle begins from First or second move of PGN.
+            handicap: 1, // Number of wrong attempts before puzzle advances automatically.
+            strictScoring: false, // Puzzle is marked wrong with any mistake.
+            acceptVariations: true, // Allows for multiple lines for both sides.
+            timer: 0, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
+            autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly.
+        },
+
+        // Board Settings Section
+        boardSettings: {
+            _title: "Board Settings",
+            _collapsed: true, // This section will be closed by default
+            disableArrows: false, // Disables arrows on front side.
+            showDests: true, // Indicate legal moves for clicked piece.
+            mirrorSettings: {
+                _title: "Mirror Settings",
+                _collapsed: true, // This section will be closed by default
+                mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+            },
+        }
     }
 </script>
 <script src="_persistence.js"></script>
