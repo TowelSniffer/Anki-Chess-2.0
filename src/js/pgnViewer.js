@@ -130,7 +130,6 @@ export function highlightCurrentMove(pgnPath) {
 
 
 export function initPgnViewer() {
-    state.pgnPath = [];
     const pgnContainer = document.getElementById('pgnComment');
     pgnContainer.innerHTML = '';
     if (parsedPGN.gameComment) {

@@ -32,9 +32,10 @@
         PGN = encodeURIComponent(PGN);
         const iframe = document.getElementById("Board");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=` + PGN + `&flip=`+userConfig.flip+`&handicap=` + userConfig.handicap + `&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&autoAdvance=`+userConfig.autoAdvance+`&strictScoring=`+userConfig.strictScoring+`&boardMode=Puzzle`;
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.flip+`&handicap=`+userConfig.handicap+`&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&autoAdvance=`+userConfig.autoAdvance+`&strictScoring=`+userConfig.strictScoring+`&boardMode=Puzzle`;
         let errorTrack;
         let mirrorState;
+        let pgnPath = null;
         let errorCount = null;
         let puzzleComplete = null;
         if (Persistence.isAvailable()) {
@@ -47,9 +48,11 @@
                     mirrorState = e.data.mirrorState;
                     errorCount = e.data.errorCount;
                     puzzleComplete = e.data.puzzleComplete;
+                    pgnPath = e.data.pgnPath;
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
-                    if (userConfig.autoAdvance === true && (puzzleComplete === true || errorCount > userConfig.handicap)) {
+                    Persistence.setItem("pgnPath", pgnPath);
+                    if (userConfig.autoAdvance === true && puzzleComplete === true) {
                         if (typeof showAnswer === 'function') {
                             showAnswer();
                         } else if (typeof pycmd === 'function') {

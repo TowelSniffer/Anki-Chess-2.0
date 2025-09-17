@@ -43,7 +43,7 @@ const config = {
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'false') === 'true',
-    boardMode: getUrlParam("boardMode", 'Viewer'),
+    boardMode: getUrlParam("boardMode", 'Puzzle'),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
@@ -62,6 +62,7 @@ let state = {
     chessGroundShapes: [],
     expectedLine: [],
     expectedMove: null,
+    lastMove: null,
     errorCount: 0,
     promoteChoice: 'q',
     promoteAnimate: true,
@@ -70,13 +71,11 @@ let state = {
     isStockfishBusy: false,
     analysisFen: null,
     analysisToggledOn: false,
-    pgnPath: [],
+    pgnPath: getUrlParam("pgnPath", null),
     mirrorState: getUrlParam("mirrorState", null),
     blunderNags: ['$2', '$4', '$6', '$9'],
     puzzleComplete: false,
 };
-
-
 // --- Stockfish Analysis State ---
 let cg = null;
 let chess = new Chess();
@@ -309,13 +308,11 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
     if (!state.pgnState) {
         state.chessGroundShapes = [];
     }
-    if (state.pgnState && state.expectedLine && state.count > 0) {
-        const currentMove = state.expectedLine[state.count - 1];
-        if (currentMove && currentMove.pgnPath) {
-            state.pgnPath = currentMove.pgnPath;
-        }
+    state.lastMove = getLastMove(chess).san;
+    if (state.pgnState && state.lastMove === state.expectedMove.notation.notation ) {
+        state.pgnPath = state.expectedMove.pgnPath;
+        window.parent.postMessage(state, '*');
     }
-
     if (move.flags.includes("p") && state.promoteAnimate) {
         const tempChess = new Chess(chess.fen());
         tempChess.load(chess.fen());
@@ -361,7 +358,6 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
     if (state.analysisToggledOn) {
         handleStockfish.startAnalysis(4000);
     }
-    console.log(chess.history(), state.pgnPath)
 }
 
 function makeMove(cg, chess, move) {
@@ -431,11 +427,11 @@ function playAiMove(cg, chess, delay) {
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
             // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
             if (state.errorTrack === null) state.errorTrack = false;
-	    state.puzzleComplete = true;
-	    if (config.autoAdvance) {
-                setTimeout(() => { window.parent.postMessage(state, '*'); }, 400);
+            state.puzzleComplete = true;
+            if (config.autoAdvance) {
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
             } else {
-		  window.parent.postMessage(state, '*');
+                window.parent.postMessage(state, '*');
                 document.documentElement.style.setProperty('--border-color', state.solvedColour);
                 cg.set({
                     selected: undefined, // Clear any selected square
@@ -460,7 +456,6 @@ function playUserCorrectMove(cg, chess, delay) {
         makeMove(cg, chess, state.expectedMove.notation.notation);
         state.count++;
         state.expectedMove = state.expectedLine[state.count];
-
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
             window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
@@ -539,9 +534,9 @@ function checkUserMove(cg, chess, moveSan, delay) {
             if (state.errorTrack === null) state.errorTrack = false;
             state.puzzleComplete = true;
 	    if (config.autoAdvance) {
-                setTimeout(() => { window.parent.postMessage(state, '*'); }, 400);
-            } else {
-		        window.parent.postMessage(state, '*');
+            setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+        } else {
+            window.parent.postMessage(state, '*');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -742,8 +737,15 @@ function reload() {
         pgnViewer.initPgnViewer();
     }
     if (config.boardMode === 'Viewer') {
-        const pgnPath = [ 1, "v", 0, 2 ];
-        pgnViewer.getFullMoveSequenceFromPath(pgnPath);
+        document.querySelector("#navBackward").disabled = true;
+        document.querySelector("#resetBoard").disabled = true;
+        if (state.pgnPath && state.pgnPath !== 'null') {
+            console.log(state.pgnPath)
+            cg.set({ animation: { enabled: false} })
+            pgnViewer.getFullMoveSequenceFromPath(state.pgnPath.split(','));
+            pgnViewer.highlightCurrentMove(state.pgnPath.split(','));
+            cg.set({ animation: { enabled: true} })
+        }
     } else if (!chess.isGameOver() && config.flipBoard) {
         playAiMove(cg, chess, 300);
     }

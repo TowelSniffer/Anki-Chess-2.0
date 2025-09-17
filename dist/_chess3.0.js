@@ -13775,7 +13775,6 @@ ${contextLines.join("\n")}`;
     document.querySelector(`[data-path="${pgnPath.join(",")}"]`).classList.add("current");
   }
   function initPgnViewer() {
-    state.pgnPath = [];
     const pgnContainer = document.getElementById("pgnComment");
     pgnContainer.innerHTML = "";
     if (parsedPGN.gameComment) {
@@ -14120,7 +14119,7 @@ ${contextLines.join("\n")}`;
     acceptVariations: getUrlParam("acceptVariations", "true") === "true",
     disableArrows: getUrlParam("disableArrows", "false") === "true",
     flipBoard: getUrlParam("flip", "false") === "true",
-    boardMode: getUrlParam("boardMode", "Viewer"),
+    boardMode: getUrlParam("boardMode", "Puzzle"),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", "true") === "true",
     autoAdvance: getUrlParam("autoAdvance", "false") === "true"
@@ -14137,6 +14136,7 @@ ${contextLines.join("\n")}`;
     chessGroundShapes: [],
     expectedLine: [],
     expectedMove: null,
+    lastMove: null,
     errorCount: 0,
     promoteChoice: "q",
     promoteAnimate: true,
@@ -14145,7 +14145,7 @@ ${contextLines.join("\n")}`;
     isStockfishBusy: false,
     analysisFen: null,
     analysisToggledOn: false,
-    pgnPath: [],
+    pgnPath: getUrlParam("pgnPath", null),
     mirrorState: getUrlParam("mirrorState", null),
     blunderNags: ["$2", "$4", "$6", "$9"],
     puzzleComplete: false
@@ -14349,11 +14349,10 @@ ${contextLines.join("\n")}`;
     if (!state.pgnState) {
       state.chessGroundShapes = [];
     }
-    if (state.pgnState && state.expectedLine && state.count > 0) {
-      const currentMove = state.expectedLine[state.count - 1];
-      if (currentMove && currentMove.pgnPath) {
-        state.pgnPath = currentMove.pgnPath;
-      }
+    state.lastMove = getLastMove(chess2).san;
+    if (state.pgnState && state.lastMove === state.expectedMove.notation.notation) {
+      state.pgnPath = state.expectedMove.pgnPath;
+      window.parent.postMessage(state, "*");
     }
     if (move3.flags.includes("p") && state.promoteAnimate) {
       const tempChess = new Chess(chess2.fen());
@@ -14400,7 +14399,6 @@ ${contextLines.join("\n")}`;
     if (state.analysisToggledOn) {
       startAnalysis(4e3);
     }
-    console.log(chess2.history(), state.pgnPath);
   }
   function makeMove(cg2, chess2, move3) {
     const moveResult = chess2.move(move3);
@@ -14469,7 +14467,7 @@ ${contextLines.join("\n")}`;
         if (config.autoAdvance) {
           setTimeout(() => {
             window.parent.postMessage(state, "*");
-          }, 400);
+          }, 300);
         } else {
           window.parent.postMessage(state, "*");
           document.documentElement.style.setProperty("--border-color", state.solvedColour);
@@ -14571,7 +14569,7 @@ ${contextLines.join("\n")}`;
         if (config.autoAdvance) {
           setTimeout(() => {
             window.parent.postMessage(state, "*");
-          }, 400);
+          }, 300);
         } else {
           window.parent.postMessage(state, "*");
           document.documentElement.style.setProperty("--border-color", state.solvedColour);
@@ -14768,8 +14766,15 @@ ${contextLines.join("\n")}`;
       initPgnViewer();
     }
     if (config.boardMode === "Viewer") {
-      const pgnPath = [1, "v", 0, 2];
-      getFullMoveSequenceFromPath(pgnPath);
+      document.querySelector("#navBackward").disabled = true;
+      document.querySelector("#resetBoard").disabled = true;
+      if (state.pgnPath && state.pgnPath !== "null") {
+        console.log(state.pgnPath);
+        cg.set({ animation: { enabled: false } });
+        getFullMoveSequenceFromPath(state.pgnPath.split(","));
+        highlightCurrentMove(state.pgnPath.split(","));
+        cg.set({ animation: { enabled: true } });
+      }
     } else if (!chess.isGameOver() && config.flipBoard) {
       playAiMove(cg, chess, 300);
     }
