@@ -108,7 +108,6 @@ function extendPuzzleTime(additionalTime) {
         clearInterval(puzzleIncrement);
         let elapsedTime = Date.now() - startTime;
         let newDelay = remainingTime + additionalTime;
-        console.log(newDelay)
         // Ensure the new delay is not negative
         if (newDelay >= 0) {
             startPuzzleTimeout(newDelay);
@@ -129,8 +128,10 @@ function startPuzzleTimeout(delay) {
     startTime = Date.now();
     puzzleIncrement = setInterval(() => {
         if (state.puzzleComplete) {
+            document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
             clearTimeout(puzzleTimeout);
             clearInterval(puzzleIncrement);
+            return
         }
         let elapsedTime = Date.now() - startTime;
         remainingTime = totalTime - elapsedTime - usedTime;
@@ -141,6 +142,7 @@ function startPuzzleTimeout(delay) {
         }
         if (state.playerColour !== cg.state.turnColor) {
             extendPuzzleTime(10)
+            return
         }
         // Calculate the percentage of remaining time
         let percentage = 100 - ((remainingTime / totalTime) * 100)
@@ -504,17 +506,17 @@ function playAiMove(cg, chess, delay) {
             state.puzzleComplete = true;
             if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-            } else {
-                window.parent.postMessage(state, '*');
-                document.documentElement.style.setProperty('--border-color', state.solvedColour);
-                cg.set({
-                    selected: undefined, // Clear any selected square
-                    draggable: {
-                        current: undefined // Explicitly clear any currently dragged piece
-                    },
-                    viewOnly: true
-                });
             }
+            document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
+            window.parent.postMessage(state, '*');
+            document.documentElement.style.setProperty('--border-color', state.solvedColour);
+            cg.set({
+                selected: undefined, // Clear any selected square
+                draggable: {
+                    current: undefined // Explicitly clear any currently dragged piece
+                },
+                viewOnly: true
+            });
         }
         drawArrows(cg, chess, true);
         state.debounceTimeout = false;
@@ -531,7 +533,8 @@ function playUserCorrectMove(cg, chess, delay) {
         state.count++;
         state.expectedMove = state.expectedLine[state.count];
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            window.parent.postMessage(state, '*');
+            state.puzzleComplete = true;
+            setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -558,17 +561,12 @@ function handleWrongMove(cg, chess, move) {
     updateBoard(cg, chess, move, true, true);
     // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
     if (state.errorCount > config.handicap) {
-        if (config.autoAdvance && config.handicapAdvance) {
-            state.puzzleComplete = true;
-            setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-        } else {
-            cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
-            playUserCorrectMove(cg, chess, 300); // Show the correct user move
-            playAiMove(cg, chess, 600); // Then play the AI's response
-            setTimeout(() => { // que after select: event
-                state.debounceTimeout = false;
-            }, 0);
-        }
+        cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
+        playUserCorrectMove(cg, chess, 300); // Show the correct user move
+        playAiMove(cg, chess, 600); // Then play the AI's response
+        setTimeout(() => { // que after select: event
+            state.debounceTimeout = false;
+        }, 0);
     } else {
         setTimeout(() => { // que after select: event
             state.debounceTimeout = false;
@@ -613,10 +611,12 @@ function checkUserMove(cg, chess, moveSan, delay) {
             // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
             if (state.errorTrack === null) state.errorTrack = false;
             state.puzzleComplete = true;
-	    if (config.autoAdvance) {
-            setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-        } else {
-            window.parent.postMessage(state, '*');
+            if (config.autoAdvance) {
+                setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+            } else {
+                window.parent.postMessage(state, '*');
+            }
+            document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
             document.documentElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -626,10 +626,9 @@ function checkUserMove(cg, chess, moveSan, delay) {
                 viewOnly: true
             });
         }
-     }
-	if (!(config.autoAdvance && state.puzzleComplete)) {
-            drawArrows(cg, chess);
-	}
+        if (!(config.autoAdvance && state.puzzleComplete)) {
+                drawArrows(cg, chess);
+        }
     } else if (delay) {
         handleWrongMove(cg, chess, moveAttempt);
         drawArrows(cg, chess, true);

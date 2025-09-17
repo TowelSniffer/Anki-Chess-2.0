@@ -14177,7 +14177,6 @@ ${contextLines.join("\n")}`;
       clearInterval(puzzleIncrement);
       let elapsedTime = Date.now() - startTime;
       let newDelay = remainingTime + additionalTime;
-      console.log(newDelay);
       if (newDelay >= 0) {
         startPuzzleTimeout(newDelay);
       }
@@ -14196,8 +14195,10 @@ ${contextLines.join("\n")}`;
     startTime = Date.now();
     puzzleIncrement = setInterval(() => {
       if (state.puzzleComplete) {
+        document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
         clearTimeout(puzzleTimeout);
         clearInterval(puzzleIncrement);
+        return;
       }
       let elapsedTime = Date.now() - startTime;
       remainingTime = totalTime - elapsedTime - usedTime;
@@ -14206,6 +14207,7 @@ ${contextLines.join("\n")}`;
       }
       if (state.playerColour !== cg.state.turnColor) {
         extendPuzzleTime(10);
+        return;
       }
       let percentage = 100 - remainingTime / totalTime * 100;
       document.documentElement.style.setProperty("--remainingTime", `${percentage.toFixed(2)}%`);
@@ -14530,19 +14532,19 @@ ${contextLines.join("\n")}`;
           setTimeout(() => {
             window.parent.postMessage(state, "*");
           }, 300);
-        } else {
-          window.parent.postMessage(state, "*");
-          document.documentElement.style.setProperty("--border-color", state.solvedColour);
-          cg2.set({
-            selected: void 0,
-            // Clear any selected square
-            draggable: {
-              current: void 0
-              // Explicitly clear any currently dragged piece
-            },
-            viewOnly: true
-          });
         }
+        document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
+        window.parent.postMessage(state, "*");
+        document.documentElement.style.setProperty("--border-color", state.solvedColour);
+        cg2.set({
+          selected: void 0,
+          // Clear any selected square
+          draggable: {
+            current: void 0
+            // Explicitly clear any currently dragged piece
+          },
+          viewOnly: true
+        });
       }
       drawArrows(cg2, chess2, true);
       state.debounceTimeout = false;
@@ -14557,7 +14559,10 @@ ${contextLines.join("\n")}`;
       state.count++;
       state.expectedMove = state.expectedLine[state.count];
       if (!state.expectedMove || typeof state.expectedMove === "string") {
-        window.parent.postMessage(state, "*");
+        state.puzzleComplete = true;
+        setTimeout(() => {
+          window.parent.postMessage(state, "*");
+        }, 300);
         document.documentElement.style.setProperty("--border-color", state.solvedColour);
         cg2.set({
           selected: void 0,
@@ -14583,19 +14588,12 @@ ${contextLines.join("\n")}`;
     }
     updateBoard(cg2, chess2, move3, true, true);
     if (state.errorCount > config.handicap) {
-      if (config.autoAdvance && config.handicapAdvance) {
-        state.puzzleComplete = true;
-        setTimeout(() => {
-          window.parent.postMessage(state, "*");
-        }, 300);
-      } else {
-        cg2.set({ viewOnly: true });
-        playUserCorrectMove(cg2, chess2, 300);
-        playAiMove(cg2, chess2, 600);
-        setTimeout(() => {
-          state.debounceTimeout = false;
-        }, 0);
-      }
+      cg2.set({ viewOnly: true });
+      playUserCorrectMove(cg2, chess2, 300);
+      playAiMove(cg2, chess2, 600);
+      setTimeout(() => {
+        state.debounceTimeout = false;
+      }, 0);
     } else {
       setTimeout(() => {
         state.debounceTimeout = false;
@@ -14642,17 +14640,18 @@ ${contextLines.join("\n")}`;
           }, 300);
         } else {
           window.parent.postMessage(state, "*");
-          document.documentElement.style.setProperty("--border-color", state.solvedColour);
-          cg2.set({
-            selected: void 0,
-            // Clear any selected square
-            draggable: {
-              current: void 0
-              // Explicitly clear any currently dragged piece
-            },
-            viewOnly: true
-          });
         }
+        document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
+        document.documentElement.style.setProperty("--border-color", state.solvedColour);
+        cg2.set({
+          selected: void 0,
+          // Clear any selected square
+          draggable: {
+            current: void 0
+            // Explicitly clear any currently dragged piece
+          },
+          viewOnly: true
+        });
       }
       if (!(config.autoAdvance && state.puzzleComplete)) {
         drawArrows(cg2, chess2);
