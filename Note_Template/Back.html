@@ -1,11 +1,29 @@
 <script>
     // User Variables
     var userConfig = {
-        muteAudio: false,
         fontSize: 18,
-        flip: false, // sets whether Puzzle begins from First or second move of PGN
-        mirror: false, // card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
-        showDests: true, // Indicate legal moves for clicked piece.
+
+        // Puzzle Behavior Section
+        puzzleBehavior: {
+            _title: "Puzzle Behavior", // This will be the dropdown title
+            _collapsed: false, // Set to false to have it open by default
+            flip: true, // Sets whether Puzzle begins from First or second move of PGN.
+        },
+
+        // Board Appearance Section
+        boardAppearance: {
+            _title: "Board Appearance",
+            _collapsed: true, // This section will be closed by default
+            showDests: true, // Indicate legal moves for clicked piece.
+            mirrorSettings: {
+                _title: "Mirror Settings",
+                _collapsed: true, // This section will be closed by default
+                mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+            },
+        },
+
+        // Audio
+        muteAudio: false, // Set true to suck the joy out of life.
     }
 </script>
 <script src="_persistence.js"></script>
