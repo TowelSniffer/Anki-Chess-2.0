@@ -1,35 +1,38 @@
 <script>
     // User Variables
     var userConfig = {
-        // General Settings (not in a section)
         fontSize: 18, // The font size for the puzzle text.
-        frontText: true, // Show userText on front side.
+        frontText: false, // Show userText on front side.
         muteAudio: false,
-
-        // Puzzle Settings Section
         puzzleSettings: {
-            _title: "Puzzle Settings", // This will be the dropdown title
+            _title: "Puzzle Settings",
             _collapsed: false, // Set to false to have it open by default
-            flip: true, // Sets whether Puzzle begins from First or second move of PGN.
+            flip: false, // Sets whether Puzzle begins from First or second move of PGN.
             handicap: 1, // Number of wrong attempts before puzzle advances automatically.
             strictScoring: false, // Puzzle is marked wrong with any mistake.
             acceptVariations: true, // Allows for multiple lines for both sides.
-            timer: 0, // Automatically mark the answer wrong after this number of ms. Set to 0 to disable.
-            autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly.
         },
-
-        // Board Settings Section
         boardSettings: {
             _title: "Board Settings",
             _collapsed: true, // This section will be closed by default
             disableArrows: false, // Disables arrows on front side.
             showDests: true, // Indicate legal moves for clicked piece.
-            mirrorSettings: {
-                _title: "Mirror Settings",
-                _collapsed: true, // This section will be closed by default
-                mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
-            },
-        }
+        },
+        mirrorSettings: {
+            _title: "Mirror Settings",
+            _collapsed: true, // This section will be closed by default
+            mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+        },
+        timerSettings: {
+            _title: "Timer Settings",
+            _collapsed: true, // This section will be closed by default
+            timer: 0, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+        },
+        autoAdvanceSettings: {
+            _title: "autoAdvance Settings",
+            _collapsed: true, // This section will be closed by default
+            autoAdvance: true, // Automatically show answer when player solves puzzle or uses up all attempts incorrectly.
+        },
     }
 </script>
 <script src="_persistence.js"></script>
@@ -49,7 +52,7 @@
         PGN = encodeURIComponent(PGN);
         const iframe = document.getElementById("Board");
         iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.flip+`&handicap=`+userConfig.handicap+`&background=`+background+`&acceptVariations=`+userConfig.acceptVariations+`&disableArrows=`+userConfig.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirror+`&showDests=`+userConfig.showDests+`&autoAdvance=`+userConfig.autoAdvance+`&strictScoring=`+userConfig.strictScoring+`&boardMode=Puzzle`;
+        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.puzzleSettings.flip+`&handicap=`+userConfig.puzzleSettings.handicap+`&background=`+background+`&acceptVariations=`+userConfig.puzzleSettings.acceptVariations+`&disableArrows=`+userConfig.boardSettings.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirrorSettings.mirror+`&showDests=`+userConfig.boardSettings.showDests+`&autoAdvance=`+userConfig.autoAdvanceSettings.autoAdvance+`&strictScoring=`+userConfig.puzzleSettings.strictScoring+`&boardMode=Puzzle`;
         let errorTrack;
         let mirrorState;
         let pgnPath = null;
@@ -69,7 +72,7 @@
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
                     Persistence.setItem("pgnPath", pgnPath);
-                    if (userConfig.autoAdvance === true && puzzleComplete === true) {
+                    if (userConfig.autoAdvanceSettings.autoAdvance === true && puzzleComplete === true) {
                         if (typeof showAnswer === 'function') {
                             showAnswer();
                         } else if (typeof pycmd === 'function') {
@@ -90,8 +93,8 @@
                 }
             }
 
-            if (userConfig.timer > 0) {
-                const timeoutId = setTimeout(handleExpiredTimer, userConfig.timer);
+            if (userConfig.timerSettings.timer > 0) {
+                const timeoutId = setTimeout(handleExpiredTimer, userConfig.timerSettings.timer);
                 Persistence.setItem("timeoutId", timeoutId);
             }
         }

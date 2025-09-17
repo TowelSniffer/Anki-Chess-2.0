@@ -47,6 +47,8 @@ const config = {
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
+    timer: parseInt(getUrlParam("timer", 0), 10),
+    increment: parseInt(getUrlParam("increment", 0), 10),
 };
 
 // --- Global State ---
@@ -79,6 +81,73 @@ let state = {
 // --- Stockfish Analysis State ---
 let cg = null;
 let chess = new Chess();
+
+// --- initializeTimeout ---
+let puzzleTimeout;
+let puzzleIncrement;
+let startTime;
+let totalTime;
+let remainingTime;
+
+let handleOutOfTime = function() {
+    state.errorTrack = true;
+    state.puzzleComplete = true;
+    window.parent.postMessage(state, '*');
+    puzzleTimeout = null;
+    clearInterval(puzzleIncrement);
+    document.documentElement.style.setProperty('--remainingTime', '100%');
+};
+
+function extendPuzzleTime(additionalTime) {
+    if (puzzleTimeout) {
+        clearTimeout(puzzleTimeout);
+        clearInterval(puzzleIncrement);
+        let elapsedTime = Date.now() - startTime;
+        let newDelay = remainingTime + additionalTime;
+        console.log(newDelay)
+        // Ensure the new delay is not negative
+        if (newDelay >= 0) {
+            startPuzzleTimeout(newDelay);
+        }
+    }
+}
+
+function startPuzzleTimeout(delay) {
+    document.getElementsByClassName("cg-wrap")[0].classList.add('timerMode');
+    puzzleTimeout = setTimeout(handleOutOfTime, delay);
+    totalTime = config.timer; // Set initial total time only once
+    let usedTime = config.timer - delay;
+    if (usedTime < 0) {
+        totalTime -= usedTime;
+        usedTime = 0;
+    }
+    startTime = Date.now();
+    puzzleIncrement = setInterval(() => {
+        if (state.puzzleComplete) {
+            clearTimeout(puzzleTimeout);
+            clearInterval(puzzleIncrement);
+        }
+        let elapsedTime = Date.now() - startTime;
+        remainingTime = totalTime - elapsedTime - usedTime;
+
+        // Ensure remaining time doesn't go negative
+        if (remainingTime < 0) {
+            remainingTime = 0;
+        }
+        if (state.playerColour !== cg.state.turnColor) {
+            extendPuzzleTime(10)
+        }
+        // Calculate the percentage of remaining time
+        let percentage = 100 - ((remainingTime / totalTime) * 100)
+
+        document.documentElement.style.setProperty('--remainingTime', `${percentage.toFixed(2)}%`);
+
+        // Stop the interval when time runs out
+        if (remainingTime === 0) {
+            clearInterval(puzzleIncrement);
+        }
+    }, 10);
+}
 
 // --- Audio Handling ---
 // Pre-load all audio files to prevent playback delays and race conditions.
@@ -133,7 +202,7 @@ if (config.ankiText) {
 } else {
     document.getElementById('textField').style.display = "none";
 }
-if (config.boardMode === "Puzzle") {
+if (config.boardMode === 'Puzzle') {
     document.querySelector('#buttons-container').style.visibility = "hidden";
     document.getElementById('pgnComment').style.display = "none";
 
@@ -524,6 +593,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
             window.parent.postMessage(state, '*');
             state.solvedColour = "#b31010";
         }
+        if (config.boardMode === 'Puzzle' && config.timer) extendPuzzleTime(config.increment);
         makeMove(cg, chess, moveAttempt);
         state.count++;
         state.expectedMove = state.expectedLine[state.count];
@@ -727,7 +797,9 @@ function reload() {
             }
         },
     });
-
+    if (config.boardMode === 'Puzzle' && config.timer) {
+        startPuzzleTimeout(config.timer);
+    }
     if (config.boardMode === 'Viewer') {
         cg.set({
             premovable: {
@@ -735,12 +807,9 @@ function reload() {
             }
         });
         pgnViewer.initPgnViewer();
-    }
-    if (config.boardMode === 'Viewer') {
         document.querySelector("#navBackward").disabled = true;
         document.querySelector("#resetBoard").disabled = true;
         if (state.pgnPath && state.pgnPath !== 'null') {
-            console.log(state.pgnPath)
             cg.set({ animation: { enabled: false} })
             pgnViewer.getFullMoveSequenceFromPath(state.pgnPath.split(','));
             pgnViewer.highlightCurrentMove(state.pgnPath.split(','));
