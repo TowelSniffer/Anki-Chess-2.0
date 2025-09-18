@@ -45,6 +45,7 @@ export const config = {
     increment: parseInt(getUrlParam("increment", 2), 10) * 1000,
     timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
     timerScore: getUrlParam("timerScore", 'false') === 'true',
+    analysisTime: parseInt(getUrlParam("analysisTime", 4), 10) * 1000,
 };
 
 export const parsedPGN = parse(config.pgn, { startRule: "game" });

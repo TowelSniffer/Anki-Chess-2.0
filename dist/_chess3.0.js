@@ -13579,7 +13579,8 @@ ${contextLines.join("\n")}`;
     timer: parseInt(getUrlParam("timer", 5), 10) * 1e3,
     increment: parseInt(getUrlParam("increment", 2), 10) * 1e3,
     timerAdvance: getUrlParam("timerAdvance", "false") === "true",
-    timerScore: getUrlParam("timerScore", "false") === "true"
+    timerScore: getUrlParam("timerScore", "false") === "true",
+    analysisTime: parseInt(getUrlParam("analysisTime", 4), 10) * 1e3
   };
   var parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
   var state = {
@@ -14052,7 +14053,7 @@ ${contextLines.join("\n")}`;
         state.isStockfishBusy = false;
         if (state.analysisFen === "none") {
           state.analysisFen = true;
-          startAnalysis(4e3);
+          startAnalysis(config.analysisTime);
         }
         const bestMoveUci = message2.split(" ")[1];
         if (state.analysisFen === chess.fen()) {
@@ -14145,7 +14146,7 @@ ${contextLines.join("\n")}`;
     if (state.analysisToggledOn) {
       cgwrap.classList.add("analysisMode");
       toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>";
-      startAnalysis(4e3);
+      startAnalysis(config.analysisTime);
     } else {
       cgwrap.classList.remove("analysisMode");
       toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>";
@@ -14196,6 +14197,7 @@ ${contextLines.join("\n")}`;
   }
   function positionPromoteOverlay() {
     const promoteOverlay = document.getElementById("promoteButtons");
+    if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
     const rect = cgwrap.getBoundingClientRect();
     promoteOverlay.style.top = rect.top + 8 + "px";
     promoteOverlay.style.left = rect.left + 8 + "px";
@@ -14534,7 +14536,7 @@ ${contextLines.join("\n")}`;
     document.querySelector("#resetBoard").disabled = false;
     if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
     if (state.analysisToggledOn) {
-      startAnalysis(4e3);
+      startAnalysis(config.analysisTime);
     }
   }
   function makeMove(cg2, chess2, move3) {
@@ -14606,7 +14608,7 @@ ${contextLines.join("\n")}`;
             window.parent.postMessage(state, "*");
           }, 300);
         }
-        document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
+        cgwrap.classList.remove("timerMode");
         window.parent.postMessage(state, "*");
         htmlElement.style.setProperty("--border-color", state.solvedColour);
         cg2.set({
@@ -14723,7 +14725,7 @@ ${contextLines.join("\n")}`;
         } else {
           window.parent.postMessage(state, "*");
         }
-        document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
+        cgwrap.classList.remove("timerMode");
         htmlElement.style.setProperty("--border-color", state.solvedColour);
         cg2.set({
           selected: void 0,
@@ -14760,7 +14762,6 @@ ${contextLines.join("\n")}`;
         }
       });
       toggleDisplay("showHide");
-      document.querySelector("cg-board").style.cursor = "pointer";
       drawArrows(cg2, chess2);
     };
     const promoteButtons = document.querySelectorAll("#promoteButtons > button");
@@ -14778,8 +14779,6 @@ ${contextLines.join("\n")}`;
           handleViewerMove(cg2, chess2, move3, null);
         }
         cancelPopup();
-        document.querySelector(".cg-wrap").style.filter = "none";
-        document.querySelector("cg-board").style.cursor = "pointer";
       };
       overlay.onclick = function() {
         cancelPopup();
@@ -14789,6 +14788,7 @@ ${contextLines.join("\n")}`;
       };
     }
     toggleDisplay("showHide");
+    positionPromoteOverlay();
   }
   function findParent(obj, targetChild) {
     for (const key in obj) {
@@ -14864,7 +14864,7 @@ ${contextLines.join("\n")}`;
       }
       if (state.count === 0 && state.ankiFen !== chess.fen()) {
         if (state.analysisToggledOn) {
-          startAnalysis(4e3);
+          startAnalysis(config.analysisTime);
         }
         return;
       } else if (state.count === 0) {
@@ -14901,7 +14901,7 @@ ${contextLines.join("\n")}`;
       }
     }
     if (state.analysisToggledOn) {
-      startAnalysis(4e3);
+      startAnalysis(config.analysisTime);
     }
   }
   function navForward() {
@@ -14957,7 +14957,7 @@ ${contextLines.join("\n")}`;
     document.querySelector("#navBackward").disabled = true;
     document.querySelector("#resetBoard").disabled = true;
     if (state.analysisToggledOn) {
-      startAnalysis(4e3);
+      startAnalysis(config.analysisTime);
     }
     drawArrows(cg, chess);
   }
@@ -15088,7 +15088,9 @@ ${contextLines.join("\n")}`;
       "stockfishToggle": toggleStockfishAnalysis
     };
     document.querySelector("#buttons-container").addEventListener("click", (event2) => {
-      const handler = actions[event2.target.id];
+      const button = event2.target.closest("button");
+      if (!button) return;
+      const handler = actions[button.id];
       if (handler) {
         handler();
       }
@@ -15156,8 +15158,6 @@ ${contextLines.join("\n")}`;
     cgwrap = document.querySelector(".cg-wrap");
     setupEventListeners();
     initPgnViewer();
-    if (config.boardMode === "Puzzle" && config.timer) startPuzzleTimeout(config.timer);
-    requestAnimationFrame(positionPromoteOverlay);
   }
   loadElements();
 })();

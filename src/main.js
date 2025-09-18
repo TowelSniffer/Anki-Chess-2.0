@@ -216,7 +216,7 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
     document.querySelector("#resetBoard").disabled = false;
     if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
     if (state.analysisToggledOn) {
-        startAnalysis(4000);
+        startAnalysis(config.analysisTime);
     }
 }
 
@@ -291,7 +291,7 @@ function playAiMove(cg, chess, delay) {
             if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
             }
-            document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
+            cgwrap.classList.remove('timerMode');
             window.parent.postMessage(state, '*');
             htmlElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
@@ -407,7 +407,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
             } else {
                 window.parent.postMessage(state, '*');
             }
-            document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
+            cgwrap.classList.remove('timerMode');
             htmlElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -443,7 +443,6 @@ function promotePopup(cg, chess, orig, dest, delay) {
             }
         });
         toggleDisplay('showHide');
-        document.querySelector("cg-board").style.cursor = 'pointer';
         drawArrows(cg, chess)
     }
     const promoteButtons = document.querySelectorAll("#promoteButtons > button");
@@ -461,8 +460,6 @@ function promotePopup(cg, chess, orig, dest, delay) {
                 handleViewerMove(cg, chess, move, null);
             }
             cancelPopup();
-            document.querySelector(".cg-wrap").style.filter = 'none';
-            document.querySelector("cg-board").style.cursor = 'pointer';
         }
         overlay.onclick = function() {
             cancelPopup();
@@ -472,6 +469,7 @@ function promotePopup(cg, chess, orig, dest, delay) {
         }
     }
     toggleDisplay('showHide');
+    positionPromoteOverlay();
 }
 function findParent(obj, targetChild) { // used to find previous line in PGN
     for (const key in obj) {
@@ -548,7 +546,7 @@ function navBackward() {
         }
         if (state.count === 0 && state.ankiFen !== chess.fen()) {
             if (state.analysisToggledOn) {
-                startAnalysis(4000);
+                startAnalysis(config.analysisTime);
             }
             return;
         } else if (state.count === 0) {
@@ -585,7 +583,7 @@ function navBackward() {
         }
     }
     if (state.analysisToggledOn) {
-        startAnalysis(4000);
+        startAnalysis(config.analysisTime);
     }
 }
 function navForward() {
@@ -643,7 +641,7 @@ function resetBoard() {
     document.querySelector("#navBackward").disabled = true;
     document.querySelector("#resetBoard").disabled = true;
     if (state.analysisToggledOn) {
-        startAnalysis(4000);
+        startAnalysis(config.analysisTime);
     }
     drawArrows(cg, chess);
 }
@@ -785,9 +783,13 @@ function setupEventListeners() {
         'copyFen': copyFen,
         'stockfishToggle': toggleStockfishAnalysis
     };
+
     document.querySelector('#buttons-container').addEventListener('click', (event) => {
-        // create a single event listener for container
-        const handler = actions[event.target.id];
+        // Start at the clicked element and find the nearest parent <button>
+        const button = event.target.closest('button');
+        if (!button) return;
+
+        const handler = actions[button.id];
         if (handler) {
             handler();
         }
@@ -869,10 +871,6 @@ async function loadElements() {
     cgwrap = document.querySelector('.cg-wrap');
     setupEventListeners();
     initPgnViewer();
-    if (config.boardMode === 'Puzzle' && config.timer) startPuzzleTimeout(config.timer);
-    requestAnimationFrame(positionPromoteOverlay);
-
-
 }
 
 loadElements();
