@@ -1,5 +1,5 @@
-import { cg, chess, toColor, toDests, drawArrows, state, nags } from '../main.js';
-import { parsedPGN, config } from './config.js';
+import { cg, chess, toColor, toDests, drawArrows, nags } from '../main.js';
+import { state, parsedPGN, config } from './config.js';
 function buildPgnHtml(moves, path = [], altLine) {
     let html = '';
     if (!moves || moves.length === 0) return '';

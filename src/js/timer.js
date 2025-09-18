@@ -1,13 +1,17 @@
-import { cg, chess, state, config, cgwrap } from '../main.js';
+import { cg, chess, cgwrap } from '../main.js';
+import { state, config } from './config.js';
 
-let puzzleTimeout;
+export let puzzleTimeout;
 let puzzleIncrement;
 let startTime;
 let totalTime;
 let remainingTime;
 
 let handleOutOfTime = function() {
-    if (config.timerScore) state.errorTrack = true;
+    if (config.timerScore) {
+        state.errorTrack = true;
+        state.solvedColour = "#b31010";
+    }
     if (config.timerAdvance) state.puzzleComplete = true;
     window.parent.postMessage(state, '*');
     puzzleTimeout = null;
@@ -16,6 +20,7 @@ let handleOutOfTime = function() {
 };
 
 export function extendPuzzleTime(additionalTime) {
+    if (config.boardMode === 'Viewer' || !config.timer) return
     if (puzzleTimeout) {
         clearTimeout(puzzleTimeout);
         clearInterval(puzzleIncrement);
@@ -29,6 +34,7 @@ export function extendPuzzleTime(additionalTime) {
 }
 
 export function startPuzzleTimeout(delay) {
+    if (config.boardMode === 'Viewer' || !config.timer) return
     if (!config.timerScore) document.documentElement.style.setProperty('--timer-color', config.randomOrientation ? "#66AAAA" : state.opponentColour);
     cgwrap.classList.add('timerMode');
     puzzleTimeout = setTimeout(handleOutOfTime, delay);

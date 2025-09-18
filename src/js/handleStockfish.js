@@ -1,5 +1,6 @@
 import { Chess } from 'chess.js';
-import { cg, chess, toColor, state, cgwrap, config } from '../main.js';
+import { cg, chess, toColor, cgwrap } from '../main.js';
+import { state, config } from './config.js';
 
 let stockfish = null;
 

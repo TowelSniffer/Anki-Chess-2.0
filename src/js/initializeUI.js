@@ -1,13 +1,15 @@
-import { htmlElement, state, config, cgwrap } from '../main.js';
+import { htmlElement, cgwrap } from '../main.js';
+import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights } from './mirror.js';
+import { parsedPGN, state, config } from './config.js';
 
 export function initializeUI() {
-    // score puzzle in viewer mode
-    if (state.errorTrack === 'true' && config.boardMode === 'Viewer') {
-        htmlElement.style.setProperty('--border-color', "#b31010");
-    } else if (state.errorTrack === 'false' && config.boardMode === 'Viewer') {
-        htmlElement.style.setProperty('--border-color', "limegreen");
+    // Mirror PGN
+    if (config.mirror && !checkCastleRights(state.ankiFen)) {
+        if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
+        window.parent.postMessage(state, '*');
+        mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+        state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
     }
-
     // link images to promote buttons
     const promoteBtnMap = ["Q", "B", "N", "R"];
     promoteBtnMap.forEach((piece) => document.querySelector(`#promote${piece}`).src = `_${state.boardRotation[0]}${piece}.svg`);
@@ -46,6 +48,14 @@ export function initializeUI() {
     htmlElement.style.setProperty('--border-color', config.randomOrientation ? "grey" : state.playerColour);
     htmlElement.style.setProperty('--player-color', config.randomOrientation ? "grey" : state.playerColour);
     htmlElement.style.setProperty('--opponent-color', state.opponentColour);
+    // score puzzle in viewer mode
+    if (state.errorTrack === 'true' && config.boardMode === 'Viewer') {
+        htmlElement.style.setProperty('--border-color', "#b31010");
+    } else if (state.errorTrack === 'correctTime' && config.boardMode === 'Viewer') {
+        htmlElement.style.setProperty('--border-color', "#66AAAA");
+    } else if (state.errorTrack === 'correct' && config.boardMode === 'Viewer') {
+        htmlElement.style.setProperty('--border-color', "limegreen");
+    }
 }
 
 export function positionPromoteOverlay() {
