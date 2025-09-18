@@ -24,31 +24,60 @@
     }
 </script>
 <script src="_persistence.js"></script>
-<iframe id="analysisBoard" style="visibility: hidden"></iframe>
+<iframe id="Board" style="visibility: hidden"></iframe>
 <script>
     (function initIframe() {
-        const background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
         {{#textField}}
-        // optional user text
-        let userText = `{{textField}}`
-        userText = encodeURIComponent(userText)
+        const userText = `{{textField}}`;
         {{/textField}}
+        const background = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+        const PGN = `{{text:PGN}}`;
+
+        const flattenConfig = (config) => {
+            const params = {};
+            for (const key in config) {
+                const value = config[key];
+
+                if (typeof value === 'object' && value !== null && !key.startsWith('_')) {
+                    const nestedParams = {};
+                    for (const nestedKey in value) {
+                        if (!nestedKey.startsWith('_')) {
+                            nestedParams[nestedKey] = value[nestedKey];
+                        }
+                    }
+                    Object.assign(params, nestedParams);
+                }
+                else if (typeof value !== 'object' && !key.startsWith('_')) {
+                    params[key] = value;
+                }
+            }
+            return params;
+        };
+
+        const params = flattenConfig(userConfig);
+        params.PGN = PGN;
+        params.background = background;
+        params.boardMode = 'Viewer';
+
+        {{#textField}}
+        params.userText = userText;
+        {{/textField}}
+
+        const query = new URLSearchParams(params).toString();
+        const iframe = document.getElementById("Board");
+        iframe.onload = function() { iframe.style.visibility = "visible"; };
+        iframe.src = `_chess3.0.html?${query}`;
+        document.querySelector("#Board").contentWindow.focus();
+
+        // handle anki persistence
         let errorTrack;
         let mirrorState;
         let pgnPath = null;
         if (Persistence.isAvailable()) {
             errorTrack = Persistence.getItem("errorTrack");
             mirrorState = Persistence.getItem("mirrorState");
-            timeoutId = Persistence.getItem("timeoutId");
             pgnPath = Persistence.getItem("pgnPath");
             Persistence.clear();
         }
-        clearTimeout(timeoutId);
-        let PGN = `{{text:PGN}}`.replace("[%eval", "[ %eval");
-        PGN = encodeURIComponent(PGN);
-        const iframe = document.getElementById("analysisBoard");
-        iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.puzzleSettings.flip+`&background=`+background+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&errorTrack=`+errorTrack+`&mirror=`+userConfig.mirrorSettings.mirror+`&mirrorState=`+mirrorState+`&showDests=`+userConfig.boardSettings.showDests+`&pgnPath=`+pgnPath+`&boardMode=Viewer`;
-        document.querySelector("#analysisBoard").contentWindow.focus();
     })();
 </script>

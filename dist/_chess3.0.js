@@ -13539,12 +13539,12 @@ ${contextLines.join("\n")}`;
 
   // src/js/config.js
   var import_pgn_parser = __toESM(require_index_umd());
-  var urlVars = {};
-  window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
-    urlVars[key] = decodeURIComponent(value).replace("#!/0", "");
-  });
+  var urlParams = new URLSearchParams(window.location.search);
   function getUrlParam(name, defaultValue) {
-    return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
+    if (urlParams.has(name)) {
+      return urlParams.get(name);
+    }
+    return defaultValue;
   }
   var config = {
     pgn: getUrlParam("PGN", `[Event "?"]
