@@ -1,6 +1,3 @@
-import { config, state } from '../main.js';
-import { parsedPGN } from './config.js';
-
 export function assignMirrorState(pgn) {
   const states = ["original","original_mirror", "invert", "invert_mirror"];
   const mirrorRandom = Math.floor(Math.random() * states.length);
@@ -138,15 +135,10 @@ export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
   }
 }
 
-function checkCastleRights(fen) {
+export function checkCastleRights(fen) {
   const castlingPart = fen.split(' ')[2];
   // If the castling part is not '-', at least one side has castling rights.
   return castlingPart !== '-';
 }
 
-if (config.mirror && !checkCastleRights(state.ankiFen)) {
-  if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
-  window.parent.postMessage(state, '*');
-  mirrorPgnTree(parsedPGN.moves, state.mirrorState);
-  state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
-}
+

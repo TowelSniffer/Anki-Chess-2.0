@@ -3,9 +3,8 @@ import { Chessground } from 'chessground';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
 import { config, state, parsedPGN } from './js/config.js';
-import { assignMirrorState, mirrorPgnTree, mirrorFen } from './js/mirror.js';
 import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath } from './js/pgnViewer.js';
-import { extendPuzzleTime, startPuzzleTimeout } from './js/timer.js';
+import { extendPuzzleTime, startPuzzleTimeout, puzzleTimeout } from './js/timer.js';
 import { playSound, changeAudio } from './js/audio.js';
 import { startAnalysis, toggleStockfishAnalysis } from './js/handleStockfish.js';
 import { initializeUI, positionPromoteOverlay } from './js/initializeUI.js';
@@ -14,7 +13,6 @@ import nags from './nags.json' assert { type: 'json' };
 function toggleDisplay(className) {
     document.querySelectorAll('.' + className).forEach(el => el.classList.toggle('hidden'));
 }
-
 // --- global scope ---
 let cg = null;
 const chess = new Chess();
@@ -286,13 +284,18 @@ function playAiMove(cg, chess, delay) {
 
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
             // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-            if (state.errorTrack === null) state.errorTrack = false;
+            if (state.errorTrack === null) state.errorTrack = "correct";
             state.puzzleComplete = true;
+            if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
+                state.solvedColour = "#66AAAA";
+                state.errorTrack = "correctTime";
+            }
             if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+            } else {
+                window.parent.postMessage(state, '*');
             }
             cgwrap.classList.remove('timerMode');
-            window.parent.postMessage(state, '*');
             htmlElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
@@ -392,7 +395,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
             window.parent.postMessage(state, '*');
             state.solvedColour = "#b31010";
         }
-        if (config.boardMode === 'Puzzle' && config.timer) extendPuzzleTime(config.increment);
+        extendPuzzleTime(config.increment);
         makeMove(cg, chess, moveAttempt);
         state.count++;
         state.expectedMove = state.expectedLine[state.count];
@@ -400,7 +403,11 @@ function checkUserMove(cg, chess, moveSan, delay) {
             playAiMove(cg, chess, delay);
         } else if (delay) {
             // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-            if (state.errorTrack === null) state.errorTrack = false;
+            if (state.errorTrack === null) state.errorTrack = "correct";
+            if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
+                state.solvedColour = "#66AAAA";
+                state.errorTrack = "correctTime";
+            }
             state.puzzleComplete = true;
             if (config.autoAdvance) {
                 setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
@@ -417,9 +424,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
                 viewOnly: true
             });
         }
-        if (!(config.autoAdvance && state.puzzleComplete)) {
-                drawArrows(cg, chess);
-        }
+        drawArrows(cg, chess);
     } else if (delay) {
         handleWrongMove(cg, chess, moveAttempt);
         drawArrows(cg, chess, true);
@@ -670,7 +675,6 @@ function reload() {
     state.count = 0;
     state.expectedLine = parsedPGN.moves;
     state.expectedMove = state.expectedLine[0];
-
     cg = Chessground(board, {
         fen: state.ankiFen,
         orientation: config.randomOrientation ? ['black', 'white'][Math.floor(Math.random() * 2)] : state.playerColour,
@@ -761,12 +765,6 @@ function reload() {
         });
         document.querySelector("#navBackward").disabled = true;
         document.querySelector("#resetBoard").disabled = true;
-        if (state.pgnPath && state.pgnPath !== 'null') {
-            cg.set({ animation: { enabled: false} })
-            getFullMoveSequenceFromPath(state.pgnPath.split(','));
-            highlightCurrentMove(state.pgnPath.split(','));
-            cg.set({ animation: { enabled: true} })
-        }
     } else if (!chess.isGameOver() && config.flipBoard) {
         playAiMove(cg, chess, 300);
     }
@@ -872,8 +870,14 @@ async function loadElements() {
     setupEventListeners();
     initPgnViewer();
     startPuzzleTimeout(config.timer);
+    if (state.pgnPath && state.pgnPath !== 'null') {
+        cg.set({ animation: { enabled: false} })
+        getFullMoveSequenceFromPath(state.pgnPath.split(','));
+        highlightCurrentMove(state.pgnPath.split(','));
+        cg.set({ animation: { enabled: true} })
+    }
 }
 
 loadElements();
 
-export { cg, chess, state, nags, cgwrap, config, toDests, toColor, drawArrows, htmlElement }
+export { cg, chess, nags, cgwrap, toDests, toColor, drawArrows, htmlElement }

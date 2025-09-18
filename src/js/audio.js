@@ -1,4 +1,4 @@
-import { config } from '../main.js';
+import { config } from './config.js';
 
 // --- Audio Handling ---
 // Pre-load all audio files to prevent playback delays and race conditions.

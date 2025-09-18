@@ -63,11 +63,13 @@
         params.userText = userText;
         {{/textField}}
         // handle anki persistence
-        let pgnPath = null;
         if (Persistence.isAvailable()) {
-            params.pgnPath = Persistence.getItem("pgnPath");
-            params.errorTrack = Persistence.getItem("errorTrack");
-            params.mirrorState = Persistence.getItem("mirrorState");
+            ['pgnPath', 'errorTrack', 'mirrorState'].forEach(key => {
+                const value = Persistence.getItem(key);
+                if (value) {
+                    params[key] = value;
+                }
+            });
             Persistence.clear();
         }
 
