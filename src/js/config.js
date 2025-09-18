@@ -1,13 +1,12 @@
 import { parse } from '@mliebelt/pgn-parser';
 
-const urlVars = {};
-window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
-    // The value from the regex is raw, so it needs to be decoded only once.
-    urlVars[key] = decodeURIComponent(value).replace("#!/0", "");
-});
+const urlParams = new URLSearchParams(window.location.search);
 
 function getUrlParam(name, defaultValue) {
-    return urlVars[name] !== undefined ? urlVars[name] : defaultValue;
+    if (urlParams.has(name)) {
+        return urlParams.get(name);
+    }
+    return defaultValue;
 }
 
 // --- Configuration ---

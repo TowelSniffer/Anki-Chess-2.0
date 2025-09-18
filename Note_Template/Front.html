@@ -45,23 +45,26 @@
 <script>
     (function initIframe() {
         {{#textField}}
-        let userText = `{{textField}}`;
-        userText = encodeURIComponent(userText);
+        const userText = `{{textField}}`;
         {{/textField}}
         const background = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
-        let PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, '').replace("[%", "[ %");
-        PGN = encodeURIComponent(PGN);
+        const PGN = `{{text:PGN}}`;
 
         const flattenConfig = (config) => {
-        // Grab config option to pass to URL
             const params = {};
             for (const key in config) {
                 const value = config[key];
+
                 if (typeof value === 'object' && value !== null && !key.startsWith('_')) {
-                    Object.assign(params, value);
+                    const nestedParams = {};
+                    for (const nestedKey in value) {
+                        if (!nestedKey.startsWith('_')) {
+                            nestedParams[nestedKey] = value[nestedKey];
+                        }
+                    }
+                    Object.assign(params, nestedParams);
                 }
-                // top-level property (like fontSize)
-                else if (typeof value !== 'object') {
+                else if (typeof value !== 'object' && !key.startsWith('_')) {
                     params[key] = value;
                 }
             }
@@ -82,7 +85,7 @@
         iframe.onload = function() { iframe.style.visibility = "visible"; };
         iframe.src = `_chess3.0.html?${query}`;
 
-        // handle anki _persistence
+        // handle anki persistence
         let errorTrack;
         let mirrorState;
         let pgnPath = null;
@@ -102,7 +105,7 @@
                     Persistence.setItem("errorTrack", errorTrack);
                     Persistence.setItem("mirrorState", mirrorState);
                     Persistence.setItem("pgnPath", pgnPath);
-                    if (userConfig.autoAdvanceSettings.autoAdvance && puzzleComplete === true) {
+                    if (userConfig.autoAdvanceSettings?.autoAdvance && puzzleComplete === true) {
                         if (typeof showAnswer === 'function') {
                             showAnswer();
                         } else if (typeof pycmd === 'function') {
