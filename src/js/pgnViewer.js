@@ -1,4 +1,5 @@
-import { cg, chess, toColor, toDests, drawArrows, state, parsedPGN, nags } from '../main.js';
+import { cg, chess, toColor, toDests, drawArrows, state, nags } from '../main.js';
+import { parsedPGN, config } from './config.js';
 function buildPgnHtml(moves, path = [], altLine) {
     let html = '';
     if (!moves || moves.length === 0) return '';
@@ -130,6 +131,7 @@ export function highlightCurrentMove(pgnPath) {
 
 
 export function initPgnViewer() {
+    if (config.boardMode === 'Puzzle') return;
     const pgnContainer = document.getElementById('pgnComment');
     pgnContainer.innerHTML = '';
     if (parsedPGN.gameComment) {
@@ -138,3 +140,48 @@ export function initPgnViewer() {
     pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
     pgnContainer.addEventListener('click', onPgnMoveClick);
 }
+
+const commentBox = document.getElementById('commentBox');
+
+commentBox.addEventListener('mouseover', (event) => {
+    const moveElement = event.target.closest('.move');
+
+    // If the mouse isn't over a '.move' element, do nothing.
+    if (!moveElement) {
+        return;
+    }
+
+    const tooltip = moveElement.querySelector('.nagTooltip');
+
+    if (!tooltip || !tooltip.textContent.trim()) return;
+
+    const itemRect = moveElement.getBoundingClientRect();
+    const tooltipWidth = tooltip.offsetWidth;
+    const commentBoxRect = commentBox.getBoundingClientRect();
+
+    let tooltipLeft = itemRect.left + (itemRect.width / 2) - (tooltipWidth / 2);
+    if (tooltipLeft < commentBoxRect.left) {
+        tooltipLeft = commentBoxRect.left;
+    } else if (tooltipLeft + tooltipWidth > commentBoxRect.right) {
+        tooltipLeft = commentBoxRect.right - tooltipWidth;
+    }
+
+    tooltip.style.left = `${tooltipLeft}px`;
+    tooltip.style.top = `${itemRect.top - tooltip.offsetHeight - 3}px`;
+
+    tooltip.style.display = 'block';
+    tooltip.style.visibility = 'visible';
+});
+
+commentBox.addEventListener('mouseout', (event) => {
+    const moveElement = event.target.closest('.move');
+
+    if (!moveElement) {
+        return;
+    }
+
+    const tooltip = moveElement.querySelector('.nagTooltip');
+    if (tooltip) {
+        tooltip.style.visibility = 'hidden';
+    }
+});

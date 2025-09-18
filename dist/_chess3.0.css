@@ -429,7 +429,7 @@ button.promoteBtn {
   z-index: 99;
   background: rgba(0, 0, 0, 0.5);
 }
-#center {
+#promoteButtons {
   position: absolute;
   height: calc(var(--board-size) * 0.25);
   background: rgba(0, 0, 0, 0.5);
@@ -442,7 +442,6 @@ button.promoteBtn {
   align-items: center;
 }
 .hidden {
-  display: none !important;
 }
 button.navBtn {
   z-index: 20;
