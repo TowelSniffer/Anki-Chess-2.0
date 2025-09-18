@@ -50,6 +50,7 @@ export function initializeUI() {
 
 export function positionPromoteOverlay() {
     const promoteOverlay = document.getElementById('promoteButtons');
+    if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
     const rect = cgwrap.getBoundingClientRect();
     // Set the position of the promote element
     promoteOverlay.style.top = (rect.top + 8) + 'px';

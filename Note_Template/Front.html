@@ -45,19 +45,44 @@
 <script>
     (function initIframe() {
         {{#textField}}
-        // optional user text
-        let userText = `{{textField}}`
-        userText = encodeURIComponent(userText)
+        let userText = `{{textField}}`;
+        userText = encodeURIComponent(userText);
+        {{/textField}}
+        const background = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+        let PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, '').replace("[%", "[ %");
+        PGN = encodeURIComponent(PGN);
+
+        const flattenConfig = (config) => {
+        // Grab config option to pass to URL
+            const params = {};
+            for (const key in config) {
+                const value = config[key];
+                if (typeof value === 'object' && value !== null && !key.startsWith('_')) {
+                    Object.assign(params, value);
+                }
+                // top-level property (like fontSize)
+                else if (typeof value !== 'object') {
+                    params[key] = value;
+                }
+            }
+            return params;
+        };
+
+        const params = flattenConfig(userConfig);
+        params.PGN = PGN;
+        params.background = background;
+        params.boardMode = 'Puzzle';
+
+        {{#textField}}
+        params.userText = userText;
         {{/textField}}
 
-        // note must use const here as variables are remembered when loading new cards/backside
-        const background = window.getComputedStyle( document.body ,null).getPropertyValue('background-color');
-        let PGN = `{{text:PGN}}`.replace(/\[Puzzle_Length.*?\]/, '').replace(/\[Tactic_line.*?\]/, '').replace("[%", "[ %");
-        ; //compatability with chess.com puzzles
-        PGN = encodeURIComponent(PGN);
+        const query = new URLSearchParams(params).toString();
         const iframe = document.getElementById("Board");
-        iframe.onload = function() { iframe.style.visibility = "visible"; }
-        iframe.src = `_chess3.0.html?{{#textField}}userText=` + userText + `&{{/textField}}PGN=`+PGN+`&flip=`+userConfig.puzzleSettings.flip+`&timer=`+userConfig.timerSettings.timer+`&increment=`+userConfig.timerSettings.increment+`&timerAdvance=`+userConfig.autoAdvanceSettings.timerAdvance+`&timerScore=`+userConfig.timerSettings.timerScore+`&handicap=`+userConfig.puzzleSettings.handicap+`&background=`+background+`&acceptVariations=`+userConfig.puzzleSettings.acceptVariations+`&disableArrows=`+userConfig.boardSettings.disableArrows+`&frontText=`+userConfig.frontText+`&fontSize=`+userConfig.fontSize+`&muteAudio=`+userConfig.muteAudio+`&mirror=`+userConfig.mirrorSettings.mirror+`&randomOrientation=`+userConfig.mirrorSettings.randomOrientation+`&showDests=`+userConfig.boardSettings.showDests+`&autoAdvance=`+userConfig.autoAdvanceSettings.autoAdvance+`&handicapAdvance=`+userConfig.autoAdvanceSettings.handicapAdvance+`&strictScoring=`+userConfig.puzzleSettings.strictScoring+`&boardMode=Puzzle`;
+        iframe.onload = function() { iframe.style.visibility = "visible"; };
+        iframe.src = `_chess3.0.html?${query}`;
+
+        // handle anki _persistence
         let errorTrack;
         let mirrorState;
         let pgnPath = null;

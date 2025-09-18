@@ -1,5 +1,5 @@
 import { Chess } from 'chess.js';
-import { cg, chess, toColor, state, cgwrap } from '../main.js';
+import { cg, chess, toColor, state, cgwrap, config } from '../main.js';
 
 let stockfish = null;
 
@@ -60,7 +60,7 @@ function handleStockfishMessages(event) {
             state.isStockfishBusy = false;
             if (state.analysisFen === 'none') {
                 state.analysisFen = true;
-                startAnalysis(4000);
+                startAnalysis(config.analysisTime);
             }
             const bestMoveUci = message.split(' ')[1];
             if (state.analysisFen === chess.fen()) {
@@ -180,7 +180,7 @@ export function toggleStockfishAnalysis() {
         cgwrap.classList.add('analysisMode');
         // Turn analysis ON
         toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>"
-        startAnalysis(4000);
+        startAnalysis(config.analysisTime);
     } else {
         cgwrap.classList.remove('analysisMode');
         toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>"
