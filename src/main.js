@@ -871,6 +871,7 @@ async function loadElements() {
     cgwrap = document.querySelector('.cg-wrap');
     setupEventListeners();
     initPgnViewer();
+    startPuzzleTimeout(config.timer);
 }
 
 loadElements();
