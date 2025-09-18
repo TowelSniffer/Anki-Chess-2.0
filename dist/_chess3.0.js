@@ -13537,8 +13537,77 @@ ${contextLines.join("\n")}`;
     };
   }
 
-  // src/main.js
+  // src/js/config.js
   var import_pgn_parser = __toESM(require_index_umd());
+  var urlVars = {};
+  window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
+    urlVars[key] = decodeURIComponent(value).replace("#!/0", "");
+  });
+  function getUrlParam(name, defaultValue) {
+    return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
+  }
+  var config = {
+    pgn: getUrlParam("PGN", `[Event "?"]
+    [Site "?"]
+    [Date "2025.02.22"]
+    [Round "?"]
+    [White "White"]
+    [Black "Black"]
+    [Result "*"]
+    [FEN "r1b2k1r/p1nq4/1pp1pPp1/6N1/2pP3P/2P2BQ1/P4P2/R3R1K1 b - - 3 28"]
+    [SetUp "1"]
+
+    28... Bb7 29. Qxc7 {EV: 99.9%, N: 11.89% of 34.0k} Qxc7 {EV: 0.7%, N: 45.51% of
+    12.7k} 30. Nxe6+ {EV: 99.5%, N: 99.85% of 22.3k} Kf7 {EV: 0.3%, N: 49.95% of
+    32.8k} 31. Nxc7 {EV: 99.8%, N: 99.86% of 25.2k} *`),
+    fontSize: getUrlParam("fontSize", 16),
+    ankiText: getUrlParam("userText", null),
+    frontText: getUrlParam("frontText", "false") === "true",
+    muteAudio: getUrlParam("muteAudio", "false") === "true",
+    showDests: getUrlParam("showDests", "true") === "true",
+    handicap: parseInt(getUrlParam("handicap", 1), 10),
+    strictScoring: getUrlParam("strictScoring", "false") === "true",
+    acceptVariations: getUrlParam("acceptVariations", "true") === "true",
+    disableArrows: getUrlParam("disableArrows", "false") === "true",
+    flipBoard: getUrlParam("flip", "true") === "true",
+    boardMode: getUrlParam("boardMode", "Viewer"),
+    background: getUrlParam("background", "#2C2C2C"),
+    mirror: getUrlParam("mirror", "true") === "true",
+    randomOrientation: getUrlParam("randomOrientation", "false") === "true",
+    autoAdvance: getUrlParam("autoAdvance", "false") === "true",
+    handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
+    timer: parseInt(getUrlParam("timer", 5), 10) * 1e3,
+    increment: parseInt(getUrlParam("increment", 2), 10) * 1e3,
+    timerAdvance: getUrlParam("timerAdvance", "false") === "true",
+    timerScore: getUrlParam("timerScore", "false") === "true"
+  };
+  var parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
+  var state = {
+    ankiFen: parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    boardRotation: "black",
+    playerColour: "white",
+    opponentColour: "black",
+    solvedColour: "limegreen",
+    errorTrack: getUrlParam("errorTrack", null),
+    count: 0,
+    pgnState: true,
+    chessGroundShapes: [],
+    expectedLine: [],
+    expectedMove: null,
+    lastMove: null,
+    errorCount: 0,
+    promoteChoice: "q",
+    promoteAnimate: true,
+    debounceTimeout: null,
+    navTimeout: null,
+    isStockfishBusy: false,
+    analysisFen: null,
+    analysisToggledOn: false,
+    pgnPath: getUrlParam("pgnPath", null),
+    mirrorState: getUrlParam("mirrorState", null),
+    blunderNags: ["$2", "$4", "$6", "$9"],
+    puzzleComplete: false
+  };
 
   // src/js/mirror.js
   function assignMirrorState(pgn2) {
@@ -13552,10 +13621,10 @@ ${contextLines.join("\n")}`;
     return result;
   }
   function mirrorFen(fullFen, mirrorState) {
-    const fenParts2 = fullFen.split(" ");
-    const fenBoard = fenParts2[0];
-    const fenColor = fenParts2[1];
-    const fenRest = fenParts2.slice(2).join(" ");
+    const fenParts = fullFen.split(" ");
+    const fenBoard = fenParts[0];
+    const fenColor = fenParts[1];
+    const fenRest = fenParts.slice(2).join(" ");
     const fenRows = fenBoard.split("/");
     const fenBoardInverted = swapCase(fenBoard.split("").reverse().join(""));
     const fenBoardMirrored = fenRows.map(mirrorFenRow).join("/");
@@ -13653,6 +13722,16 @@ ${contextLines.join("\n")}`;
         mirrorMove(move3, mirrorState);
       }
     }
+  }
+  function checkCastleRights(fen) {
+    const castlingPart = fen.split(" ")[2];
+    return castlingPart !== "-";
+  }
+  if (config.mirror && !checkCastleRights(state.ankiFen)) {
+    if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
+    window.parent.postMessage(state, "*");
+    mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+    state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
   }
 
   // src/js/pgnViewer.js
@@ -13775,6 +13854,7 @@ ${contextLines.join("\n")}`;
     document.querySelector(`[data-path="${pgnPath.join(",")}"]`).classList.add("current");
   }
   function initPgnViewer() {
+    if (config.boardMode === "Puzzle") return;
     const pgnContainer = document.getElementById("pgnComment");
     pgnContainer.innerHTML = "";
     if (parsedPGN.gameComment) {
@@ -13782,6 +13862,137 @@ ${contextLines.join("\n")}`;
     }
     pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
     pgnContainer.addEventListener("click", onPgnMoveClick);
+  }
+  var commentBox = document.getElementById("commentBox");
+  commentBox.addEventListener("mouseover", (event2) => {
+    const moveElement = event2.target.closest(".move");
+    if (!moveElement) {
+      return;
+    }
+    const tooltip = moveElement.querySelector(".nagTooltip");
+    if (!tooltip || !tooltip.textContent.trim()) return;
+    const itemRect = moveElement.getBoundingClientRect();
+    const tooltipWidth = tooltip.offsetWidth;
+    const commentBoxRect = commentBox.getBoundingClientRect();
+    let tooltipLeft = itemRect.left + itemRect.width / 2 - tooltipWidth / 2;
+    if (tooltipLeft < commentBoxRect.left) {
+      tooltipLeft = commentBoxRect.left;
+    } else if (tooltipLeft + tooltipWidth > commentBoxRect.right) {
+      tooltipLeft = commentBoxRect.right - tooltipWidth;
+    }
+    tooltip.style.left = `${tooltipLeft}px`;
+    tooltip.style.top = `${itemRect.top - tooltip.offsetHeight - 3}px`;
+    tooltip.style.display = "block";
+    tooltip.style.visibility = "visible";
+  });
+  commentBox.addEventListener("mouseout", (event2) => {
+    const moveElement = event2.target.closest(".move");
+    if (!moveElement) {
+      return;
+    }
+    const tooltip = moveElement.querySelector(".nagTooltip");
+    if (tooltip) {
+      tooltip.style.visibility = "hidden";
+    }
+  });
+
+  // src/js/timer.js
+  var puzzleTimeout;
+  var puzzleIncrement;
+  var startTime;
+  var totalTime;
+  var remainingTime;
+  var handleOutOfTime = function() {
+    if (config.timerScore) state.errorTrack = true;
+    if (config.timerAdvance) state.puzzleComplete = true;
+    window.parent.postMessage(state, "*");
+    puzzleTimeout = null;
+    clearInterval(puzzleIncrement);
+    document.documentElement.style.setProperty("--remainingTime", "100%");
+  };
+  function extendPuzzleTime(additionalTime) {
+    if (puzzleTimeout) {
+      clearTimeout(puzzleTimeout);
+      clearInterval(puzzleIncrement);
+      let elapsedTime = Date.now() - startTime;
+      let newDelay = remainingTime + additionalTime;
+      if (newDelay >= 0) {
+        startPuzzleTimeout(newDelay);
+      }
+    }
+  }
+  function startPuzzleTimeout(delay) {
+    if (!config.timerScore) document.documentElement.style.setProperty("--timer-color", config.randomOrientation ? "#66AAAA" : state.opponentColour);
+    cgwrap.classList.add("timerMode");
+    puzzleTimeout = setTimeout(handleOutOfTime, delay);
+    totalTime = config.timer;
+    let usedTime = config.timer - delay;
+    if (usedTime < 0) {
+      totalTime -= usedTime;
+      usedTime = 0;
+    }
+    startTime = Date.now();
+    puzzleIncrement = setInterval(() => {
+      if (state.puzzleComplete) {
+        cgwrap.classList.remove("timerMode");
+        clearTimeout(puzzleTimeout);
+        clearInterval(puzzleIncrement);
+        return;
+      }
+      let elapsedTime = Date.now() - startTime;
+      remainingTime = totalTime - elapsedTime - usedTime;
+      if (remainingTime < 0) {
+        remainingTime = 0;
+      }
+      if (state.playerColour !== cg.state.turnColor) {
+        extendPuzzleTime(10);
+        return;
+      }
+      let percentage = 100 - remainingTime / totalTime * 100;
+      document.documentElement.style.setProperty("--remainingTime", `${percentage.toFixed(2)}%`);
+      if (remainingTime === 0) {
+        clearInterval(puzzleIncrement);
+      }
+    }, 10);
+  }
+
+  // src/js/audio.js
+  function initAudio(mute) {
+    const sounds = ["Move", "checkmate", "move-check", "Capture", "castle", "promote", "Error", "computer-mouse-click"];
+    const audioMap2 = /* @__PURE__ */ new Map();
+    sounds.forEach((sound) => {
+      const audio = new Audio(`_${sound}.mp3`);
+      audio.preload = "auto";
+      audio.muted = mute;
+      audioMap2.set(sound, audio);
+    });
+    return audioMap2;
+  }
+  var audioMap = initAudio(config.muteAudio);
+  function playSound(soundName) {
+    if (config.muteAudio) return;
+    const audio = audioMap.get(soundName);
+    if (audio) {
+      audio.cloneNode().play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
+    }
+  }
+  function changeAudio(gameState) {
+    const soundMap = {
+      "#": "checkmate",
+      "+": "move-check",
+      "x": "Capture",
+      "k": "castle",
+      "q": "castle",
+      "p": "promote"
+    };
+    let sound = "Move";
+    for (const flag in soundMap) {
+      if (gameState.san.includes(flag) || gameState.flags && gameState.flags.includes(flag)) {
+        sound = soundMap[flag];
+        break;
+      }
+    }
+    playSound(sound);
   }
 
   // src/js/handleStockfish.js
@@ -13944,6 +14155,52 @@ ${contextLines.join("\n")}`;
     }
   }
 
+  // src/js/initializeUI.js
+  function initializeUI() {
+    if (state.errorTrack === "true" && config.boardMode === "Viewer") {
+      htmlElement.style.setProperty("--border-color", "#b31010");
+    } else if (state.errorTrack === "false" && config.boardMode === "Viewer") {
+      htmlElement.style.setProperty("--border-color", "limegreen");
+    }
+    const promoteBtnMap = ["Q", "B", "N", "R"];
+    promoteBtnMap.forEach((piece) => document.querySelector(`#promote${piece}`).src = `_${state.boardRotation[0]}${piece}.svg`);
+    htmlElement.style.setProperty("--background-color", config.background);
+    const commentBox2 = document.getElementById("commentBox");
+    commentBox2.style.fontSize = `${config.fontSize}px`;
+    if (config.ankiText) {
+      document.getElementById("textField").innerHTML = config.ankiText;
+    } else {
+      document.getElementById("textField").style.display = "none";
+    }
+    if (config.boardMode === "Puzzle") {
+      document.querySelector("#buttons-container").style.visibility = "hidden";
+      document.getElementById("pgnComment").style.display = "none";
+      if (!config.frontText || !config.ankiText) commentBox2.style.display = "none";
+    }
+    const fenParts = state.ankiFen.split(" ");
+    state.boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
+    if (config.flipBoard) {
+      state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+    }
+    if (state.boardRotation === "white") {
+      const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
+      const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
+      htmlElement.style.setProperty("--coord-white", coordBlack);
+      htmlElement.style.setProperty("--coord-black", coordWhite);
+    }
+    state.playerColour = state.boardRotation;
+    state.opponentColour = state.boardRotation === "white" ? "black" : "white";
+    htmlElement.style.setProperty("--border-color", config.randomOrientation ? "grey" : state.playerColour);
+    htmlElement.style.setProperty("--player-color", config.randomOrientation ? "grey" : state.playerColour);
+    htmlElement.style.setProperty("--opponent-color", state.opponentColour);
+  }
+  function positionPromoteOverlay() {
+    const promoteOverlay = document.getElementById("promoteButtons");
+    const rect = cgwrap.getBoundingClientRect();
+    promoteOverlay.style.top = rect.top + 8 + "px";
+    promoteOverlay.style.left = rect.left + 8 + "px";
+  }
+
   // src/nags.json
   var nags_default = {
     $1: ["Good move", "!", "_good.webp"],
@@ -14091,194 +14348,10 @@ ${contextLines.join("\n")}`;
   function toggleDisplay(className) {
     document.querySelectorAll("." + className).forEach((el) => el.classList.toggle("hidden"));
   }
-  var urlVars = {};
-  window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
-    urlVars[key] = decodeURIComponent(value).replace("#!/0", "");
-  });
-  function getUrlParam(name, defaultValue) {
-    return urlVars[name] !== void 0 ? urlVars[name] : defaultValue;
-  }
-  var config = {
-    pgn: getUrlParam("PGN", `[Event "?"]
-    [Site "?"]
-    [Date "2025.09.17"]
-    [Round "?"]
-    [White "White"]
-    [Black "Black"]
-    [Result "*"]
-
-    1. e4 e5 (1... f5 2. exf5 Nf6) 2. f4 exf4 *
-    `),
-    fontSize: getUrlParam("fontSize", 16),
-    ankiText: getUrlParam("userText", null),
-    frontText: getUrlParam("frontText", "false") === "true",
-    muteAudio: getUrlParam("muteAudio", "false") === "true",
-    showDests: getUrlParam("showDests", "true") === "true",
-    handicap: parseInt(getUrlParam("handicap", 1), 10),
-    strictScoring: getUrlParam("strictScoring", "false") === "true",
-    acceptVariations: getUrlParam("acceptVariations", "true") === "true",
-    disableArrows: getUrlParam("disableArrows", "false") === "true",
-    flipBoard: getUrlParam("flip", "false") === "true",
-    boardMode: getUrlParam("boardMode", "Puzzle"),
-    background: getUrlParam("background", "#2C2C2C"),
-    mirror: getUrlParam("mirror", "true") === "true",
-    randomOrientation: getUrlParam("randomOrientation", "false") === "true",
-    autoAdvance: getUrlParam("autoAdvance", "false") === "true",
-    handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
-    timer: parseInt(getUrlParam("timer", 0), 10) * 1e3,
-    increment: parseInt(getUrlParam("increment", 0), 10) * 1e3,
-    timerAdvance: getUrlParam("timerAdvance", "false") === "true",
-    timerScore: getUrlParam("timerScore", "false") === "true"
-  };
-  var state = {
-    ankiFen: "",
-    boardRotation: "black",
-    playerColour: "white",
-    opponentColour: "black",
-    solvedColour: "limegreen",
-    errorTrack: getUrlParam("errorTrack", null),
-    count: 0,
-    pgnState: true,
-    chessGroundShapes: [],
-    expectedLine: [],
-    expectedMove: null,
-    lastMove: null,
-    errorCount: 0,
-    promoteChoice: "q",
-    promoteAnimate: true,
-    debounceTimeout: null,
-    navTimeout: null,
-    isStockfishBusy: false,
-    analysisFen: null,
-    analysisToggledOn: false,
-    pgnPath: getUrlParam("pgnPath", null),
-    mirrorState: getUrlParam("mirrorState", null),
-    blunderNags: ["$2", "$4", "$6", "$9"],
-    puzzleComplete: false
-  };
   var cg = null;
   var chess = new Chess();
-  var puzzleTimeout;
-  var puzzleIncrement;
-  var startTime;
-  var totalTime;
-  var remainingTime;
-  var handleOutOfTime = function() {
-    if (config.timerScore) state.errorTrack = true;
-    if (config.timerAdvance) state.puzzleComplete = true;
-    window.parent.postMessage(state, "*");
-    puzzleTimeout = null;
-    clearInterval(puzzleIncrement);
-    document.documentElement.style.setProperty("--remainingTime", "100%");
-  };
-  function extendPuzzleTime(additionalTime) {
-    if (puzzleTimeout) {
-      clearTimeout(puzzleTimeout);
-      clearInterval(puzzleIncrement);
-      let elapsedTime = Date.now() - startTime;
-      let newDelay = remainingTime + additionalTime;
-      if (newDelay >= 0) {
-        startPuzzleTimeout(newDelay);
-      }
-    }
-  }
-  function startPuzzleTimeout(delay) {
-    if (!config.timerScore) document.documentElement.style.setProperty("--timer-color", config.randomOrientation ? "#66AAAA" : state.opponentColour);
-    document.getElementsByClassName("cg-wrap")[0].classList.add("timerMode");
-    puzzleTimeout = setTimeout(handleOutOfTime, delay);
-    totalTime = config.timer;
-    let usedTime = config.timer - delay;
-    if (usedTime < 0) {
-      totalTime -= usedTime;
-      usedTime = 0;
-    }
-    startTime = Date.now();
-    puzzleIncrement = setInterval(() => {
-      if (state.puzzleComplete) {
-        document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
-        clearTimeout(puzzleTimeout);
-        clearInterval(puzzleIncrement);
-        return;
-      }
-      let elapsedTime = Date.now() - startTime;
-      remainingTime = totalTime - elapsedTime - usedTime;
-      if (remainingTime < 0) {
-        remainingTime = 0;
-      }
-      if (state.playerColour !== cg.state.turnColor) {
-        extendPuzzleTime(10);
-        return;
-      }
-      let percentage = 100 - remainingTime / totalTime * 100;
-      document.documentElement.style.setProperty("--remainingTime", `${percentage.toFixed(2)}%`);
-      if (remainingTime === 0) {
-        clearInterval(puzzleIncrement);
-      }
-    }, 10);
-  }
-  function initAudio(mute) {
-    const sounds = ["Move", "checkmate", "move-check", "Capture", "castle", "promote", "Error", "computer-mouse-click"];
-    const audioMap2 = /* @__PURE__ */ new Map();
-    sounds.forEach((sound) => {
-      const audio = new Audio(`_${sound}.mp3`);
-      audio.preload = "auto";
-      audio.muted = mute;
-      audioMap2.set(sound, audio);
-    });
-    return audioMap2;
-  }
-  var audioMap = initAudio(config.muteAudio);
-  function playSound(soundName) {
-    if (config.muteAudio) return;
-    const audio = audioMap.get(soundName);
-    if (audio) {
-      audio.cloneNode().play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
-    }
-  }
-  var parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
-  state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  function checkCastleRights(fen) {
-    const castlingPart = fen.split(" ")[2];
-    return castlingPart !== "-";
-  }
-  if (config.mirror && !checkCastleRights(state.ankiFen)) {
-    if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
-    window.parent.postMessage(state, "*");
-    mirrorPgnTree(parsedPGN.moves, state.mirrorState);
-    state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
-  }
-  augmentPgnTree(parsedPGN.moves);
-  chess.load(state.ankiFen);
-  document.documentElement.style.setProperty("--background-color", config.background);
-  var commentBox = document.getElementById("commentBox");
-  commentBox.style.fontSize = `${config.fontSize}px`;
-  if (config.ankiText) {
-    document.getElementById("textField").innerHTML = config.ankiText;
-  } else {
-    document.getElementById("textField").style.display = "none";
-  }
-  if (config.boardMode === "Puzzle") {
-    document.querySelector("#buttons-container").style.visibility = "hidden";
-    document.getElementById("pgnComment").style.display = "none";
-    if (!config.frontText || !config.ankiText) commentBox.style.display = "none";
-  }
-  var fenParts = state.ankiFen.split(" ");
-  state.boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
-  if (config.flipBoard) {
-    state.boardRotation = state.boardRotation === "white" ? "black" : "white";
-  }
-  if (state.boardRotation === "white") {
-    const root = document.documentElement;
-    const coordWhite = getComputedStyle(root).getPropertyValue("--coord-white").trim();
-    const coordBlack = getComputedStyle(root).getPropertyValue("--coord-black").trim();
-    root.style.setProperty("--coord-white", coordBlack);
-    root.style.setProperty("--coord-black", coordWhite);
-  }
-  state.playerColour = state.boardRotation;
-  state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-  document.documentElement.style.setProperty("--border-color", config.randomOrientation ? "grey" : state.playerColour);
-  document.documentElement.style.setProperty("--player-color", config.randomOrientation ? "grey" : state.playerColour);
-  document.documentElement.style.setProperty("--opponent-color", state.opponentColour);
+  var cgwrap;
+  var htmlElement = document.documentElement;
   function toDests(chess2) {
     const dests = /* @__PURE__ */ new Map();
     SQUARES.forEach((s) => {
@@ -14535,7 +14608,7 @@ ${contextLines.join("\n")}`;
         }
         document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
         window.parent.postMessage(state, "*");
-        document.documentElement.style.setProperty("--border-color", state.solvedColour);
+        htmlElement.style.setProperty("--border-color", state.solvedColour);
         cg2.set({
           selected: void 0,
           // Clear any selected square
@@ -14563,7 +14636,7 @@ ${contextLines.join("\n")}`;
         setTimeout(() => {
           window.parent.postMessage(state, "*");
         }, 300);
-        document.documentElement.style.setProperty("--border-color", state.solvedColour);
+        htmlElement.style.setProperty("--border-color", state.solvedColour);
         cg2.set({
           selected: void 0,
           // Clear any selected square
@@ -14583,8 +14656,17 @@ ${contextLines.join("\n")}`;
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
     if (isFailed) {
       state.errorTrack = true;
-      window.parent.postMessage(state, "*");
       state.solvedColour = "#b31010";
+      if (config.handicapAdvance) {
+        htmlElement.style.setProperty("--border-color", state.solvedColour);
+        state.puzzleComplete = true;
+        setTimeout(() => {
+          window.parent.postMessage(state, "*");
+        }, 300);
+        return;
+      } else {
+        window.parent.postMessage(state, "*");
+      }
     }
     updateBoard(cg2, chess2, move3, true, true);
     if (state.errorCount > config.handicap) {
@@ -14642,7 +14724,7 @@ ${contextLines.join("\n")}`;
           window.parent.postMessage(state, "*");
         }
         document.getElementsByClassName("cg-wrap")[0].classList.remove("timerMode");
-        document.documentElement.style.setProperty("--border-color", state.solvedColour);
+        htmlElement.style.setProperty("--border-color", state.solvedColour);
         cg2.set({
           selected: void 0,
           // Clear any selected square
@@ -14666,24 +14748,6 @@ ${contextLines.join("\n")}`;
     }
     return foundVariation;
   }
-  function changeAudio(gameState) {
-    const soundMap = {
-      "#": "checkmate",
-      "+": "move-check",
-      "x": "Capture",
-      "k": "castle",
-      "q": "castle",
-      "p": "promote"
-    };
-    let sound = "Move";
-    for (const flag in soundMap) {
-      if (gameState.san.includes(flag) || gameState.flags && gameState.flags.includes(flag)) {
-        sound = soundMap[flag];
-        break;
-      }
-    }
-    playSound(sound);
-  }
   function promotePopup(cg2, chess2, orig, dest, delay) {
     const cancelPopup = function() {
       state.promoteAnimate = true;
@@ -14699,7 +14763,7 @@ ${contextLines.join("\n")}`;
       document.querySelector("cg-board").style.cursor = "pointer";
       drawArrows(cg2, chess2);
     };
-    const promoteButtons = document.querySelectorAll("#center > button");
+    const promoteButtons = document.querySelectorAll("#promoteButtons > button");
     const overlay = document.querySelector("#overlay");
     for (var i = 0; i < promoteButtons.length; i++) {
       promoteButtons[i].onclick = function() {
@@ -14746,6 +14810,175 @@ ${contextLines.join("\n")}`;
       }
     }
     return null;
+  }
+  function navBackward() {
+    if (config.boardMode === "Puzzle") return;
+    const lastMove = chess.undo();
+    const FENpos = chess.fen();
+    if (lastMove) {
+      if (lastMove.promotion) {
+        const tempChess = new Chess(chess.fen());
+        tempChess.load(FENpos);
+        tempChess.remove(lastMove.to);
+        tempChess.remove(lastMove.from);
+        tempChess.put({ type: "p", color: chess.turn() }, lastMove.to);
+        cg.set({ animation: { enabled: false } });
+        cg.set({
+          fen: tempChess.fen()
+        });
+        tempChess.remove(lastMove.to);
+        tempChess.put({ type: "p", color: chess.turn() }, lastMove.from);
+        cg.set({ animation: { enabled: true } });
+        cg.set({
+          fen: FENpos
+        });
+      } else {
+        cg.set({
+          fen: chess.fen()
+        });
+      }
+      cg.set({
+        check: chess.inCheck(),
+        turnColor: toColor(chess),
+        movable: {
+          color: toColor(chess),
+          dests: toDests(chess)
+        },
+        lastMove: [lastMove.from, lastMove.to]
+      });
+      if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
+        state.count--;
+        state.expectedMove = state.expectedLine[state.count];
+        if (state.count === 0) {
+          let parentOfChild = findParent(parsedPGN.moves, state.expectedLine);
+          if (parentOfChild) {
+            for (var i = 0; i < 2; i++) {
+              parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+            }
+            ;
+            state.expectedLine = parentOfChild.parent;
+            state.count = parentOfChild.key;
+            state.expectedMove = state.expectedLine[state.count];
+          }
+        }
+      }
+      if (state.count === 0 && state.ankiFen !== chess.fen()) {
+        if (state.analysisToggledOn) {
+          startAnalysis(4e3);
+        }
+        return;
+      } else if (state.count === 0) {
+        state.pgnState = true;
+        document.querySelector("#navForward").disabled = false;
+      } else if (state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
+        state.pgnState = true;
+        document.querySelector("#navForward").disabled = false;
+      }
+    }
+    state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.customSvg?.brush !== "moveType");
+    drawArrows(cg, chess);
+    if (config.boardMode === "Viewer") {
+      let expectedMove = state.expectedMove;
+      let expectedLine = state.expectedLine;
+      if (expectedLine[state.count - 1]?.notation?.notation) {
+        expectedMove = expectedLine[state.count - 1];
+        if (state.count === 0) {
+          let parentOfChild = findParent(parsedPGN.moves, expectedLine);
+          if (parentOfChild) {
+            for (var i = 0; i < 2; i++) {
+              parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+            }
+            ;
+            expectedLine = parentOfChild.parent;
+            const count = parentOfChild.key;
+            expectedMove = expectedLine[count];
+          }
+        }
+        highlightCurrentMove(expectedMove.pgnPath);
+      } else {
+        document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+        document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = true);
+      }
+    }
+    if (state.analysisToggledOn) {
+      startAnalysis(4e3);
+    }
+  }
+  function navForward() {
+    if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
+    const tempChess = new Chess(chess.fen());
+    const move3 = tempChess.move(state.expectedMove?.notation?.notation);
+    if (move3) {
+      puzzlePlay(cg, chess, null, move3.from, move3.to);
+    }
+    document.querySelector("#navBackward").disabled = false;
+    document.querySelector("#resetBoard").disabled = false;
+    if (!state.expectedMove || typeof state.expectedMove === "string") {
+      document.querySelector("#navForward").disabled = true;
+    }
+  }
+  function rotateBoard() {
+    state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+    const root = htmlElement;
+    const coordWhite = getComputedStyle(root).getPropertyValue("--coord-white").trim();
+    const coordBlack = getComputedStyle(root).getPropertyValue("--coord-black").trim();
+    root.style.setProperty("--coord-white", coordBlack);
+    root.style.setProperty("--coord-black", coordWhite);
+    cg.set({
+      orientation: state.boardRotation
+    });
+    const flipButton = document.querySelector(".flipBoardIcon");
+    if (flipButton.style.transform.includes("90deg")) {
+      flipButton.style.transform = "rotate(270deg)";
+    } else {
+      flipButton.style.transform = "rotate(90deg)";
+    }
+  }
+  function resetBoard() {
+    state.count = 0;
+    state.chessGroundShapes = [];
+    state.expectedLine = parsedPGN.moves;
+    state.expectedMove = parsedPGN.moves[state.count];
+    state.pgnState = true;
+    document.querySelector("#navForward").disabled = false;
+    chess.reset();
+    chess.load(state.ankiFen);
+    cg.set({
+      fen: chess.fen(),
+      check: chess.inCheck(),
+      turnColor: toColor(chess),
+      orientation: state.boardRotation,
+      movable: {
+        color: toColor(chess),
+        dests: toDests(chess)
+      }
+    });
+    document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+    document.querySelector("#navBackward").disabled = true;
+    document.querySelector("#resetBoard").disabled = true;
+    if (state.analysisToggledOn) {
+      startAnalysis(4e3);
+    }
+    drawArrows(cg, chess);
+  }
+  function copyFen() {
+    let textarea = document.createElement("textarea");
+    textarea.value = chess.fen();
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      playSound("computer-mouse-click");
+      return true;
+    } catch (err) {
+      playSound("Error");
+      console.error("Failed to copy text using execCommand:", err);
+      return false;
+    } finally {
+      document.body.removeChild(textarea);
+    }
   }
   function reload() {
     state.count = 0;
@@ -14826,16 +15059,12 @@ ${contextLines.join("\n")}`;
         }
       }
     });
-    if (config.boardMode === "Puzzle" && config.timer) {
-      startPuzzleTimeout(config.timer);
-    }
     if (config.boardMode === "Viewer") {
       cg.set({
         premovable: {
           enabled: false
         }
       });
-      initPgnViewer();
       document.querySelector("#navBackward").disabled = true;
       document.querySelector("#resetBoard").disabled = true;
       if (state.pgnPath && state.pgnPath !== "null") {
@@ -14848,181 +15077,22 @@ ${contextLines.join("\n")}`;
       playAiMove(cg, chess, 300);
     }
     drawArrows(cg, chess);
-    function navBackward() {
-      if (config.boardMode === "Puzzle") return;
-      const lastMove = chess.undo();
-      const FENpos = chess.fen();
-      if (lastMove) {
-        if (lastMove.promotion) {
-          const tempChess = new Chess(chess.fen());
-          tempChess.load(FENpos);
-          tempChess.remove(lastMove.to);
-          tempChess.remove(lastMove.from);
-          tempChess.put({ type: "p", color: chess.turn() }, lastMove.to);
-          cg.set({ animation: { enabled: false } });
-          cg.set({
-            fen: tempChess.fen()
-          });
-          tempChess.remove(lastMove.to);
-          tempChess.put({ type: "p", color: chess.turn() }, lastMove.from);
-          cg.set({ animation: { enabled: true } });
-          cg.set({
-            fen: FENpos
-          });
-        } else {
-          cg.set({
-            fen: chess.fen()
-          });
-        }
-        cg.set({
-          check: chess.inCheck(),
-          turnColor: toColor(chess),
-          movable: {
-            color: toColor(chess),
-            dests: toDests(chess)
-          },
-          lastMove: [lastMove.from, lastMove.to]
-        });
-        if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
-          state.count--;
-          state.expectedMove = state.expectedLine[state.count];
-          if (state.count === 0) {
-            let parentOfChild = findParent(parsedPGN.moves, state.expectedLine);
-            if (parentOfChild) {
-              for (var i = 0; i < 2; i++) {
-                parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
-              }
-              ;
-              state.expectedLine = parentOfChild.parent;
-              state.count = parentOfChild.key;
-              state.expectedMove = state.expectedLine[state.count];
-            }
-          }
-        }
-        if (state.count === 0 && state.ankiFen !== chess.fen()) {
-          if (state.analysisToggledOn) {
-            startAnalysis(4e3);
-          }
-          return;
-        } else if (state.count === 0) {
-          state.pgnState = true;
-          document.querySelector("#navForward").disabled = false;
-        } else if (state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
-          state.pgnState = true;
-          document.querySelector("#navForward").disabled = false;
-        }
+  }
+  function setupEventListeners() {
+    const actions = {
+      "resetBoard": resetBoard,
+      "navBackward": navBackward,
+      "navForward": navForward,
+      "rotateBoard": rotateBoard,
+      "copyFen": copyFen,
+      "stockfishToggle": toggleStockfishAnalysis
+    };
+    document.querySelector("#buttons-container").addEventListener("click", (event2) => {
+      const handler = actions[event2.target.id];
+      if (handler) {
+        handler();
       }
-      state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.customSvg?.brush !== "moveType");
-      drawArrows(cg, chess);
-      if (config.boardMode === "Viewer") {
-        let expectedMove = state.expectedMove;
-        let expectedLine = state.expectedLine;
-        if (expectedLine[state.count - 1]?.notation?.notation) {
-          expectedMove = expectedLine[state.count - 1];
-          if (state.count === 0) {
-            let parentOfChild = findParent(parsedPGN.moves, expectedLine);
-            if (parentOfChild) {
-              for (var i = 0; i < 2; i++) {
-                parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
-              }
-              ;
-              expectedLine = parentOfChild.parent;
-              const count = parentOfChild.key;
-              expectedMove = expectedLine[count];
-            }
-          }
-          highlightCurrentMove(expectedMove.pgnPath);
-        } else {
-          document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-          document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = true);
-        }
-      }
-      if (state.analysisToggledOn) {
-        startAnalysis(4e3);
-      }
-    }
-    function navForward() {
-      if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
-      const tempChess = new Chess(chess.fen());
-      const move3 = tempChess.move(state.expectedMove?.notation?.notation);
-      if (move3) {
-        puzzlePlay(cg, chess, null, move3.from, move3.to);
-      }
-      document.querySelector("#navBackward").disabled = false;
-      document.querySelector("#resetBoard").disabled = false;
-      if (!state.expectedMove || typeof state.expectedMove === "string") {
-        document.querySelector("#navForward").disabled = true;
-      }
-    }
-    function rotateBoard() {
-      state.boardRotation = state.boardRotation === "white" ? "black" : "white";
-      const root = document.documentElement;
-      const coordWhite = getComputedStyle(root).getPropertyValue("--coord-white").trim();
-      const coordBlack = getComputedStyle(root).getPropertyValue("--coord-black").trim();
-      root.style.setProperty("--coord-white", coordBlack);
-      root.style.setProperty("--coord-black", coordWhite);
-      cg.set({
-        orientation: state.boardRotation
-      });
-      const flipButton = document.querySelector(".flipBoardIcon");
-      if (flipButton.style.transform.includes("90deg")) {
-        flipButton.style.transform = "rotate(270deg)";
-      } else {
-        flipButton.style.transform = "rotate(90deg)";
-      }
-    }
-    function resetBoard() {
-      state.count = 0;
-      state.chessGroundShapes = [];
-      state.expectedLine = parsedPGN.moves;
-      state.expectedMove = parsedPGN.moves[state.count];
-      state.pgnState = true;
-      document.querySelector("#navForward").disabled = false;
-      chess.reset();
-      chess.load(state.ankiFen);
-      cg.set({
-        fen: chess.fen(),
-        check: chess.inCheck(),
-        turnColor: toColor(chess),
-        orientation: state.boardRotation,
-        movable: {
-          color: toColor(chess),
-          dests: toDests(chess)
-        }
-      });
-      document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-      document.querySelector("#navBackward").disabled = true;
-      document.querySelector("#resetBoard").disabled = true;
-      if (state.analysisToggledOn) {
-        startAnalysis(4e3);
-      }
-      drawArrows(cg, chess);
-    }
-    function copyFen() {
-      let textarea = document.createElement("textarea");
-      textarea.value = chess.fen();
-      textarea.style.position = "absolute";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        document.execCommand("copy");
-        playSound("computer-mouse-click");
-        return true;
-      } catch (err) {
-        playSound("Error");
-        console.error("Failed to copy text using execCommand:", err);
-        return false;
-      } finally {
-        document.body.removeChild(textarea);
-      }
-    }
-    document.querySelector("#resetBoard").addEventListener("click", resetBoard);
-    document.querySelector("#navBackward").addEventListener("click", navBackward);
-    document.querySelector("#navForward").addEventListener("click", navForward);
-    document.querySelector("#rotateBoard").addEventListener("click", rotateBoard);
-    document.querySelector("#copyFen").addEventListener("click", copyFen);
-    document.querySelector("#stockfishToggle").addEventListener("click", toggleStockfishAnalysis);
+    });
     board.addEventListener("wheel", (event2) => {
       event2.preventDefault();
       if (event2.deltaY < 0) {
@@ -15032,85 +15102,64 @@ ${contextLines.join("\n")}`;
       }
     });
     document.addEventListener("keydown", (event2) => {
-      event2.preventDefault();
-      if (event2.key === "ArrowLeft") {
-        navBackward();
-      } else if (event2.key === "ArrowRight") {
-        navForward();
-      } else if (event2.key === "ArrowDown") {
-        resetBoard();
+      switch (event2.key) {
+        case "ArrowLeft":
+          navBackward();
+          break;
+        case "ArrowRight":
+          navForward();
+          break;
+        case "ArrowDown":
+          resetBoard();
+          break;
       }
     });
-  }
-  document.querySelector("#promoteQ").src = "_" + state.boardRotation[0] + "Q.svg";
-  document.querySelector("#promoteB").src = "_" + state.boardRotation[0] + "B.svg";
-  document.querySelector("#promoteN").src = "_" + state.boardRotation[0] + "N.svg";
-  document.querySelector("#promoteR").src = "_" + state.boardRotation[0] + "R.svg";
-  window.addEventListener("error", (event2) => {
-    const message = event2.message || "";
-    const filename = event2.filename || "";
-    const isDetailedStockfishCrash = message.includes("abort") && filename.includes("_stockfish.js");
-    const isGenericCrossOriginError = message === "Script error.";
-    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
-      event2.preventDefault();
-      console.warn("Caught a fatal Stockfish crash via global error handler.");
-      if (isGenericCrossOriginError) {
-        console.log("generic message:", message);
-      } else {
-        console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+    window.addEventListener("error", (event2) => {
+      const message = event2.message || "";
+      const filename = event2.filename || "";
+      const isDetailedStockfishCrash = message.includes("abort") && filename.includes("_stockfish.js");
+      const isGenericCrossOriginError = message === "Script error.";
+      if (isDetailedStockfishCrash || isGenericCrossOriginError) {
+        event2.preventDefault();
+        console.warn("Caught a fatal Stockfish crash via global error handler.");
+        if (isGenericCrossOriginError) {
+          console.log("generic message:", message);
+        } else {
+          console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+        }
+        handleStockfishCrash("window.onerror");
       }
-      handleStockfishCrash("window.onerror");
+    });
+    if (cgwrap) {
+      let isUpdateScheduled = false;
+      const handleReposition = () => {
+        if (isUpdateScheduled) {
+          return;
+        }
+        isUpdateScheduled = true;
+        requestAnimationFrame(() => {
+          positionPromoteOverlay();
+          isUpdateScheduled = false;
+        });
+      };
+      const resizeObserver = new ResizeObserver(handleReposition);
+      resizeObserver.observe(cgwrap);
+      window.addEventListener("resize", handleReposition);
+      document.addEventListener("scroll", handleReposition, true);
     }
-  });
-  if (state.errorTrack === "true" && config.boardMode === "Viewer") {
-    document.documentElement.style.setProperty("--border-color", "#b31010");
-  } else if (state.errorTrack === "false" && config.boardMode === "Viewer") {
-    document.documentElement.style.setProperty("--border-color", "limegreen");
-  }
-  function positionPromoteOverlay() {
-    const promoteOverlay = document.getElementById("center");
-    const rect = document.querySelector(".cg-wrap").getBoundingClientRect();
-    promoteOverlay.style.top = rect.top + 8 + "px";
-    promoteOverlay.style.left = rect.left + 8 + "px";
-    window.addEventListener("resize", positionPromoteOverlay);
   }
   async function loadElements() {
+    initializeUI();
+    augmentPgnTree(parsedPGN.moves);
+    chess.load(state.ankiFen);
     await reload();
-    await positionPromoteOverlay();
-    setTimeout(() => {
-      positionPromoteOverlay();
-    }, 200);
+    cgwrap = document.querySelector(".cg-wrap");
+    setupEventListeners();
+    initPgnViewer();
+    if (config.boardMode === "Puzzle" && config.timer) startPuzzleTimeout(config.timer);
+    requestAnimationFrame(positionPromoteOverlay);
   }
   loadElements();
-  var cgwrap = document.getElementsByClassName("cg-wrap")[0];
-  document.querySelectorAll(".move").forEach((item) => {
-    item.addEventListener("mouseover", function(e) {
-      const commentBox2 = document.getElementById("commentBox");
-      const tooltip = this.querySelector(".nagTooltip");
-      if (!tooltip || !tooltip.textContent.trim()) {
-        return;
-      }
-      const itemRect = this.getBoundingClientRect();
-      const tooltipWidth = tooltip.offsetWidth;
-      const commentBoxRect = commentBox2.getBoundingClientRect();
-      let tooltipLeft = itemRect.left + itemRect.width / 2 - tooltipWidth / 2;
-      if (tooltipLeft < commentBoxRect.left) {
-        tooltipLeft = commentBoxRect.left;
-      } else if (tooltipLeft + tooltipWidth > commentBoxRect.right) {
-        tooltipLeft = commentBoxRect.right - tooltipWidth;
-      }
-      tooltip.style.left = `${tooltipLeft}px`;
-      tooltip.style.top = `${itemRect.top - tooltip.offsetHeight - 3}px`;
-      tooltip.style.display = "block";
-      tooltip.style.visibility = "visible";
-    });
-    item.addEventListener("mouseout", function() {
-      const tooltip = this.querySelector(".nagTooltip");
-      if (tooltip) {
-        tooltip.style.visibility = "hidden";
-      }
-    });
-  });
 })();
 /*! Bundled license information:
 

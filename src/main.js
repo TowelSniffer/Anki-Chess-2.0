@@ -1,244 +1,28 @@
 import { Chess, SQUARES } from 'chess.js';
 import { Chessground } from 'chessground';
-import { parse } from '@mliebelt/pgn-parser';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
-import * as mirror from './js/mirror.js';
-import * as pgnViewer from './js/pgnViewer.js';
-import * as handleStockfish from './js/handleStockfish.js';
+import { config, state, parsedPGN } from './js/config.js';
+import { assignMirrorState, mirrorPgnTree, mirrorFen } from './js/mirror.js';
+import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath } from './js/pgnViewer.js';
+import { extendPuzzleTime, startPuzzleTimeout } from './js/timer.js';
+import { playSound, changeAudio } from './js/audio.js';
+import { startAnalysis, toggleStockfishAnalysis } from './js/handleStockfish.js';
+import { initializeUI, positionPromoteOverlay } from './js/initializeUI.js';
 import nags from './nags.json' assert { type: 'json' };
 
 function toggleDisplay(className) {
     document.querySelectorAll('.' + className).forEach(el => el.classList.toggle('hidden'));
 }
-const urlVars = {};
-window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, (m, key, value) => {
-    // The value from the regex is raw, so it needs to be decoded only once.
-    urlVars[key] = decodeURIComponent(value).replace("#!/0", "");
-});
 
-function getUrlParam(name, defaultValue) {
-    return urlVars[name] !== undefined ? urlVars[name] : defaultValue;
-}
-
-// --- Configuration ---
-const config = {
-    pgn: getUrlParam("PGN", `[Event "?"]
-    [Site "?"]
-    [Date "2025.09.17"]
-    [Round "?"]
-    [White "White"]
-    [Black "Black"]
-    [Result "*"]
-
-    1. e4 e5 (1... f5 2. exf5 Nf6) 2. f4 exf4 *
-    `),
-    fontSize: getUrlParam("fontSize", 16),
-    ankiText: getUrlParam("userText", null),
-    frontText: getUrlParam("frontText", 'false') === 'true',
-    muteAudio: getUrlParam("muteAudio", 'false') === 'true',
-    showDests: getUrlParam("showDests", 'true') === 'true',
-    handicap: parseInt(getUrlParam("handicap", 1), 10),
-    strictScoring: getUrlParam("strictScoring", 'false') === 'true',
-    acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
-    disableArrows: getUrlParam("disableArrows", 'false') === 'true',
-    flipBoard: getUrlParam("flip", 'false') === 'true',
-    boardMode: getUrlParam("boardMode", 'Puzzle'),
-    background: getUrlParam("background", "#2C2C2C"),
-    mirror: getUrlParam("mirror", 'true') === 'true',
-    randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
-    autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
-    handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
-    timer: parseInt(getUrlParam("timer", 0), 10) * 1000,
-    increment: parseInt(getUrlParam("increment", 0), 10) * 1000,
-    timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
-    timerScore: getUrlParam("timerScore", 'false') === 'true',
-};
-
-// --- Global State ---
-let state = {
-    ankiFen: "",
-    boardRotation: "black",
-    playerColour: "white",
-    opponentColour: "black",
-    solvedColour: "limegreen",
-    errorTrack: getUrlParam("errorTrack", null),
-    count: 0,
-    pgnState: true,
-    chessGroundShapes: [],
-    expectedLine: [],
-    expectedMove: null,
-    lastMove: null,
-    errorCount: 0,
-    promoteChoice: 'q',
-    promoteAnimate: true,
-    debounceTimeout: null,
-    navTimeout: null,
-    isStockfishBusy: false,
-    analysisFen: null,
-    analysisToggledOn: false,
-    pgnPath: getUrlParam("pgnPath", null),
-    mirrorState: getUrlParam("mirrorState", null),
-    blunderNags: ['$2', '$4', '$6', '$9'],
-    puzzleComplete: false,
-};
-// --- Stockfish Analysis State ---
+// --- global scope ---
 let cg = null;
-let chess = new Chess();
-
-// --- initializeTimeout ---
-let puzzleTimeout;
-let puzzleIncrement;
-let startTime;
-let totalTime;
-let remainingTime;
-
-let handleOutOfTime = function() {
-    if (config.timerScore) state.errorTrack = true;
-    if (config.timerAdvance) state.puzzleComplete = true;
-    window.parent.postMessage(state, '*');
-    puzzleTimeout = null;
-    clearInterval(puzzleIncrement);
-    document.documentElement.style.setProperty('--remainingTime', '100%');
-};
-
-function extendPuzzleTime(additionalTime) {
-    if (puzzleTimeout) {
-        clearTimeout(puzzleTimeout);
-        clearInterval(puzzleIncrement);
-        let elapsedTime = Date.now() - startTime;
-        let newDelay = remainingTime + additionalTime;
-        // Ensure the new delay is not negative
-        if (newDelay >= 0) {
-            startPuzzleTimeout(newDelay);
-        }
-    }
-}
-
-function startPuzzleTimeout(delay) {
-    if (!config.timerScore) document.documentElement.style.setProperty('--timer-color', config.randomOrientation ? "#66AAAA" : state.opponentColour);
-    document.getElementsByClassName("cg-wrap")[0].classList.add('timerMode');
-    puzzleTimeout = setTimeout(handleOutOfTime, delay);
-    totalTime = config.timer; // Set initial total time only once
-    let usedTime = config.timer - delay;
-    if (usedTime < 0) {
-        totalTime -= usedTime;
-        usedTime = 0;
-    }
-    startTime = Date.now();
-    puzzleIncrement = setInterval(() => {
-        if (state.puzzleComplete) {
-            document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
-            clearTimeout(puzzleTimeout);
-            clearInterval(puzzleIncrement);
-            return
-        }
-        let elapsedTime = Date.now() - startTime;
-        remainingTime = totalTime - elapsedTime - usedTime;
-
-        // Ensure remaining time doesn't go negative
-        if (remainingTime < 0) {
-            remainingTime = 0;
-        }
-        if (state.playerColour !== cg.state.turnColor) {
-            extendPuzzleTime(10)
-            return
-        }
-        // Calculate the percentage of remaining time
-        let percentage = 100 - ((remainingTime / totalTime) * 100)
-
-        document.documentElement.style.setProperty('--remainingTime', `${percentage.toFixed(2)}%`);
-
-        // Stop the interval when time runs out
-        if (remainingTime === 0) {
-            clearInterval(puzzleIncrement);
-        }
-    }, 10);
-}
-
-// --- Audio Handling ---
-// Pre-load all audio files to prevent playback delays and race conditions.
-function initAudio(mute) {
-    const sounds = ["Move", "checkmate", "move-check", "Capture", "castle", "promote", "Error", "computer-mouse-click"];
-    const audioMap = new Map();
-    sounds.forEach(sound => {
-        const audio = new Audio(`_${sound}.mp3`);
-        audio.preload = 'auto';
-        audio.muted = mute;
-        audioMap.set(sound, audio);
-    });
-    return audioMap;
-}
-
-const audioMap = initAudio(config.muteAudio);
-
-function playSound(soundName) {
-    if (config.muteAudio) return
-    const audio = audioMap.get(soundName);
-    if (audio) {
-        // Clone the preloaded audio element and play the clone.
-        // This prevents race conditions and issues with interrupting a sound that's already playing, especially in Firefox.
-        audio.cloneNode().play().catch(e => console.error(`Could not play sound: ${soundName}`, e));
-    }
-}
-const parsedPGN = parse(config.pgn, { startRule: "game" });
-
-state.ankiFen = parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-function checkCastleRights(fen) {
-    const castlingPart = fen.split(' ')[2];
-    // If the castling part is not '-', at least one side has castling rights.
-    return castlingPart !== '-';
-}
-
-if (config.mirror && !checkCastleRights(state.ankiFen)) {
-    if (!state.mirrorState) state.mirrorState = mirror.assignMirrorState(config.pgn);
-    window.parent.postMessage(state, '*');
-    mirror.mirrorPgnTree(parsedPGN.moves, state.mirrorState);
-    state.ankiFen = mirror.mirrorFen(state.ankiFen, state.mirrorState);
-}
-pgnViewer.augmentPgnTree(parsedPGN.moves);
-chess.load(state.ankiFen);
-
-// --- UI Initialization ---
-document.documentElement.style.setProperty('--background-color', config.background);
-const commentBox = document.getElementById('commentBox');
-commentBox.style.fontSize = `${config.fontSize}px`;
-if (config.ankiText) {
-    document.getElementById('textField').innerHTML = config.ankiText;
-} else {
-    document.getElementById('textField').style.display = "none";
-}
-if (config.boardMode === 'Puzzle') {
-    document.querySelector('#buttons-container').style.visibility = "hidden";
-    document.getElementById('pgnComment').style.display = "none";
-
-    if (!config.frontText || !config.ankiText) commentBox.style.display = "none";
-}
-const fenParts = state.ankiFen.split(' ');
-state.boardRotation = (fenParts.length > 1 && fenParts[1] === 'w') ? 'white' : 'black';
-
-if (config.flipBoard) {
-    state.boardRotation = state.boardRotation === "white" ? "black" : "white";
-}
-if (state.boardRotation === "white") {
-    const root = document.documentElement;
-    // Get the current values of the CSS variables
-    const coordWhite = getComputedStyle(root).getPropertyValue('--coord-white').trim();
-    const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
-    // Swap the values. so coord colors are correct
-    root.style.setProperty('--coord-white', coordBlack);
-    root.style.setProperty('--coord-black', coordWhite);
-}
-
-state.playerColour = state.boardRotation;
-state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-document.documentElement.style.setProperty('--border-color', config.randomOrientation ? "grey" : state.playerColour);
-document.documentElement.style.setProperty('--player-color', config.randomOrientation ? "grey" : state.playerColour);
-document.documentElement.style.setProperty('--opponent-color', state.opponentColour);
+const chess = new Chess();
+let cgwrap;
+const htmlElement = document.documentElement;
 
 // --- Core Functions ---
-export function toDests(chess) {
+function toDests(chess) {
     const dests = new Map();
     SQUARES.forEach(s => {
         const ms = chess.moves({ square: s, verbose: true });
@@ -247,7 +31,7 @@ export function toDests(chess) {
     return dests;
 }
 
-export function toColor(chess) {
+function toColor(chess) {
     return chess.turn() === 'w' ? 'white' : 'black';
 }
 
@@ -265,7 +49,7 @@ function getLastMove(chess) {
     }
 }
 
-export function drawArrows(cg, chess, redraw) {
+function drawArrows(cg, chess, redraw) {
     state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfinished' && shape.brush !== 'stockfish');
     if (redraw) {
         cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -430,9 +214,9 @@ function updateBoard(cg, chess, move, quite) { // animate user/ai moves on chess
     });
     document.querySelector("#navBackward").disabled = false;
     document.querySelector("#resetBoard").disabled = false;
-    if (config.boardMode === "Viewer" && state.pgnState) pgnViewer.highlightCurrentMove(state.expectedMove.pgnPath);
+    if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
     if (state.analysisToggledOn) {
-        handleStockfish.startAnalysis(4000);
+        startAnalysis(4000);
     }
 }
 
@@ -509,7 +293,7 @@ function playAiMove(cg, chess, delay) {
             }
             document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
             window.parent.postMessage(state, '*');
-            document.documentElement.style.setProperty('--border-color', state.solvedColour);
+            htmlElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
                 draggable: {
@@ -535,7 +319,7 @@ function playUserCorrectMove(cg, chess, delay) {
         if (!state.expectedMove || typeof state.expectedMove === 'string') {
             state.puzzleComplete = true;
             setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-            document.documentElement.style.setProperty('--border-color', state.solvedColour);
+            htmlElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
                 draggable: {
@@ -555,8 +339,15 @@ function handleWrongMove(cg, chess, move) {
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
     if (isFailed) {
         state.errorTrack = true;
-        window.parent.postMessage(state, '*');
         state.solvedColour = "#b31010";
+        if (config.handicapAdvance) {
+            htmlElement.style.setProperty('--border-color', state.solvedColour);
+            state.puzzleComplete = true;
+            setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+            return
+        } else {
+            window.parent.postMessage(state, '*');
+        }
     }
     updateBoard(cg, chess, move, true, true);
     // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
@@ -617,7 +408,7 @@ function checkUserMove(cg, chess, moveSan, delay) {
                 window.parent.postMessage(state, '*');
             }
             document.getElementsByClassName("cg-wrap")[0].classList.remove('timerMode');
-            document.documentElement.style.setProperty('--border-color', state.solvedColour);
+            htmlElement.style.setProperty('--border-color', state.solvedColour);
             cg.set({
                 selected: undefined, // Clear any selected square
                 draggable: {
@@ -640,21 +431,6 @@ function checkUserMove(cg, chess, moveSan, delay) {
     return foundVariation
 }
 
-function changeAudio(gameState) {
-    const soundMap = {
-        "#": "checkmate", "+": "move-check", "x": "Capture",
-        "k": "castle", "q": "castle", "p": "promote"
-    };
-    let sound = "Move";
-    for (const flag in soundMap) {
-        if (gameState.san.includes(flag) || (gameState.flags && gameState.flags.includes(flag))) {
-            sound = soundMap[flag];
-            break;
-        }
-    }
-    playSound(sound);
-}
-
 function promotePopup(cg, chess, orig, dest, delay) {
     const cancelPopup = function(){
         state.promoteAnimate = true;
@@ -670,7 +446,7 @@ function promotePopup(cg, chess, orig, dest, delay) {
         document.querySelector("cg-board").style.cursor = 'pointer';
         drawArrows(cg, chess)
     }
-    const promoteButtons = document.querySelectorAll("#center > button");
+    const promoteButtons = document.querySelectorAll("#promoteButtons > button");
     const overlay = document.querySelector("#overlay");
     for (var i=0; i<promoteButtons.length; i++){
         promoteButtons[i].onclick = function(){
@@ -718,6 +494,179 @@ function findParent(obj, targetChild) { // used to find previous line in PGN
     }
     return null;
 };
+
+function navBackward() {
+    if (config.boardMode === 'Puzzle') return;
+    const lastMove = chess.undo();
+    const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
+    if (lastMove) {
+        if (lastMove.promotion) { // fix promotion animation
+            const tempChess = new Chess(chess.fen()); // new chess instance to no break old one
+            tempChess.load(FENpos);
+            tempChess.remove(lastMove.to);
+            tempChess.remove(lastMove.from);
+            tempChess.put({ type: 'p', color: chess.turn() }, lastMove.to);
+            cg.set({ animation: { enabled: false} })
+            cg.set({
+                fen: tempChess.fen(),
+            });
+            tempChess.remove(lastMove.to);
+            tempChess.put({ type: 'p', color: chess.turn() }, lastMove.from);
+            cg.set({ animation: { enabled: true} })
+            cg.set({
+                fen: FENpos
+            });
+        } else {
+            cg.set({
+                fen: chess.fen()
+            });
+        }
+        cg.set({
+            check: chess.inCheck(),
+               turnColor: toColor(chess),
+               movable: {
+                   color: toColor(chess),
+               dests: toDests(chess)
+               },
+               lastMove: [lastMove.from, lastMove.to]
+        });
+        if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
+            state.count--
+            state.expectedMove = state.expectedLine[state.count];
+            if (state.count === 0) {
+                let parentOfChild = findParent(parsedPGN.moves, state.expectedLine);
+                if (parentOfChild) {
+                    for (var i = 0; i < 2; i++) {
+                        parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+
+                    };
+                    state.expectedLine = parentOfChild.parent;
+                    state.count = parentOfChild.key;
+                    state.expectedMove = state.expectedLine[state.count];
+                }
+            }
+        }
+        if (state.count === 0 && state.ankiFen !== chess.fen()) {
+            if (state.analysisToggledOn) {
+                startAnalysis(4000);
+            }
+            return;
+        } else if (state.count === 0) {
+            state.pgnState = true; // needed for returning to first move from variation
+            document.querySelector("#navForward").disabled = false;
+        } else if (state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
+            state.pgnState = true; // inside PGN
+            document.querySelector("#navForward").disabled = false;
+        }
+    }
+    state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.customSvg?.brush !== 'moveType');
+    drawArrows(cg, chess);
+    if (config.boardMode === "Viewer") {
+        let expectedMove = state.expectedMove;
+        let expectedLine = state.expectedLine;
+        if (expectedLine[state.count - 1]?.notation?.notation) {
+            expectedMove = expectedLine[state.count - 1];
+            if (state.count === 0) {
+                let parentOfChild = findParent(parsedPGN.moves, expectedLine);
+                if (parentOfChild) {
+                    for (var i = 0; i < 2; i++) {
+                        parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+
+                    };
+                    expectedLine = parentOfChild.parent;
+                    const count = parentOfChild.key;
+                    expectedMove = expectedLine[count];
+                }
+            }
+            highlightCurrentMove(expectedMove.pgnPath);
+        } else { // no moves played clear highlight
+            document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
+            document.querySelectorAll('#navBackward, #resetBoard').forEach(el => el.disabled = true);
+        }
+    }
+    if (state.analysisToggledOn) {
+        startAnalysis(4000);
+    }
+}
+function navForward() {
+    if (config.boardMode === 'Puzzle' || !state.pgnState || !state.expectedMove?.notation) return;
+    const tempChess = new Chess(chess.fen());
+    const move = tempChess.move(state.expectedMove?.notation?.notation);
+    if (move) {
+        puzzlePlay(cg, chess, null, move.from, move.to);
+    }
+    document.querySelector("#navBackward").disabled = false;
+    document.querySelector("#resetBoard").disabled = false;
+    if (!state.expectedMove || typeof state.expectedMove === 'string') {
+        document.querySelector("#navForward").disabled = true;
+    }
+}
+function rotateBoard() {
+    state.boardRotation = ((state.boardRotation === 'white') ? 'black' : 'white')
+    const root = htmlElement;
+    // Get the current values of the CSS variables
+    const coordWhite = getComputedStyle(root).getPropertyValue('--coord-white').trim();
+    const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
+    // Swap the values. so coord colors are correct
+    root.style.setProperty('--coord-white', coordBlack);
+    root.style.setProperty('--coord-black', coordWhite);
+    cg.set({
+        orientation: state.boardRotation
+    });
+    const flipButton = document.querySelector(".flipBoardIcon");
+    if (flipButton.style.transform.includes("90deg")) {
+        flipButton.style.transform = "rotate(270deg)";
+    } else {
+        flipButton.style.transform = "rotate(90deg)";
+    }
+}
+function resetBoard() {
+    state.count = 0; // Int so we can track on which move we are.
+    state.chessGroundShapes = [];
+    state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
+    state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
+    state.pgnState = true; // incase outside PGN
+    document.querySelector("#navForward").disabled = false;
+    chess.reset();
+    chess.load(state.ankiFen);
+    cg.set({
+        fen: chess.fen(),
+           check: chess.inCheck(),
+           turnColor: toColor(chess),
+           orientation: state.boardRotation,
+           movable: {
+               color: toColor(chess),
+           dests: toDests(chess)
+           }
+    });
+    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
+    document.querySelector("#navBackward").disabled = true;
+    document.querySelector("#resetBoard").disabled = true;
+    if (state.analysisToggledOn) {
+        startAnalysis(4000);
+    }
+    drawArrows(cg, chess);
+}
+function copyFen() { //copy FEN to clipboard
+    let textarea = document.createElement("textarea");
+    textarea.value = chess.fen();
+    // Make the textarea invisible and off-screen
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        playSound("computer-mouse-click")
+        return true;
+    } catch (err) {
+        playSound("Error")
+        console.error('Failed to copy text using execCommand:', err);
+        return false;
+    } finally {
+        document.body.removeChild(textarea);
+    }
+}
 
 function reload() {
     state.count = 0;
@@ -806,312 +755,126 @@ function reload() {
             }
         },
     });
-    if (config.boardMode === 'Puzzle' && config.timer) {
-        startPuzzleTimeout(config.timer);
-    }
     if (config.boardMode === 'Viewer') {
         cg.set({
             premovable: {
                 enabled: false
             }
         });
-        pgnViewer.initPgnViewer();
         document.querySelector("#navBackward").disabled = true;
         document.querySelector("#resetBoard").disabled = true;
         if (state.pgnPath && state.pgnPath !== 'null') {
             cg.set({ animation: { enabled: false} })
-            pgnViewer.getFullMoveSequenceFromPath(state.pgnPath.split(','));
-            pgnViewer.highlightCurrentMove(state.pgnPath.split(','));
+            getFullMoveSequenceFromPath(state.pgnPath.split(','));
+            highlightCurrentMove(state.pgnPath.split(','));
             cg.set({ animation: { enabled: true} })
         }
     } else if (!chess.isGameOver() && config.flipBoard) {
         playAiMove(cg, chess, 300);
     }
     drawArrows(cg, chess);
-    function navBackward() {
-        if (config.boardMode === 'Puzzle') return;
-        const lastMove = chess.undo();
-        const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
-        if (lastMove) {
-            if (lastMove.promotion) { // fix promotion animation
-                const tempChess = new Chess(chess.fen()); // new chess instance to no break old one
-                tempChess.load(FENpos);
-                tempChess.remove(lastMove.to);
-                tempChess.remove(lastMove.from);
-                tempChess.put({ type: 'p', color: chess.turn() }, lastMove.to);
-                cg.set({ animation: { enabled: false} })
-                cg.set({
-                    fen: tempChess.fen(),
-                });
-                tempChess.remove(lastMove.to);
-                tempChess.put({ type: 'p', color: chess.turn() }, lastMove.from);
-                cg.set({ animation: { enabled: true} })
-                cg.set({
-                    fen: FENpos
-                });
-            } else {
-                cg.set({
-                    fen: chess.fen()
-                });
-            }
-            cg.set({
-                check: chess.inCheck(),
-                turnColor: toColor(chess),
-                movable: {
-                    color: toColor(chess),
-                    dests: toDests(chess)
-                },
-                lastMove: [lastMove.from, lastMove.to]
-            });
-            if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
-                state.count--
-                state.expectedMove = state.expectedLine[state.count];
-                if (state.count === 0) {
-                    let parentOfChild = findParent(parsedPGN.moves, state.expectedLine);
-                    if (parentOfChild) {
-                        for (var i = 0; i < 2; i++) {
-                            parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+}
 
-                        };
-                        state.expectedLine = parentOfChild.parent;
-                        state.count = parentOfChild.key;
-                        state.expectedMove = state.expectedLine[state.count];
-                    }
-                }
-            }
-            if (state.count === 0 && state.ankiFen !== chess.fen()) {
-                if (state.analysisToggledOn) {
-                    handleStockfish.startAnalysis(4000);
-                }
-                return;
-            } else if (state.count === 0) {
-                state.pgnState = true; // needed for returning to first move from variation
-                document.querySelector("#navForward").disabled = false;
-            } else if (state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
-                state.pgnState = true; // inside PGN
-                document.querySelector("#navForward").disabled = false;
-            }
+function setupEventListeners() {
+    // navButtons
+    const actions = {
+        'resetBoard': resetBoard,
+        'navBackward': navBackward,
+        'navForward': navForward,
+        'rotateBoard': rotateBoard,
+        'copyFen': copyFen,
+        'stockfishToggle': toggleStockfishAnalysis
+    };
+    document.querySelector('#buttons-container').addEventListener('click', (event) => {
+        // create a single event listener for container
+        const handler = actions[event.target.id];
+        if (handler) {
+            handler();
         }
-        state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.customSvg?.brush !== 'moveType');
-        drawArrows(cg, chess);
-        if (config.boardMode === "Viewer") {
-            let expectedMove = state.expectedMove;
-            let expectedLine = state.expectedLine;
-            if (expectedLine[state.count - 1]?.notation?.notation) {
-                expectedMove = expectedLine[state.count - 1];
-                if (state.count === 0) {
-                    let parentOfChild = findParent(parsedPGN.moves, expectedLine);
-                    if (parentOfChild) {
-                        for (var i = 0; i < 2; i++) {
-                            parentOfChild = findParent(parsedPGN.moves, parentOfChild.parent);
+    });
 
-                        };
-                        expectedLine = parentOfChild.parent;
-                        const count = parentOfChild.key;
-                        expectedMove = expectedLine[count];
-                    }
-                }
-                pgnViewer.highlightCurrentMove(expectedMove.pgnPath);
-            } else { // no moves played clear highlight
-                document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-                document.querySelectorAll('#navBackward, #resetBoard').forEach(el => el.disabled = true);
-            }
-        }
-        if (state.analysisToggledOn) {
-            handleStockfish.startAnalysis(4000);
-        }
-    }
-    function navForward() {
-        if (config.boardMode === 'Puzzle' || !state.pgnState || !state.expectedMove?.notation) return;
-        const tempChess = new Chess(chess.fen());
-        const move = tempChess.move(state.expectedMove?.notation?.notation);
-        if (move) {
-            puzzlePlay(cg, chess, null, move.from, move.to);
-        }
-        document.querySelector("#navBackward").disabled = false;
-        document.querySelector("#resetBoard").disabled = false;
-        if (!state.expectedMove || typeof state.expectedMove === 'string') {
-            document.querySelector("#navForward").disabled = true;
-        }
-    }
-    function rotateBoard() {
-        state.boardRotation = ((state.boardRotation === 'white') ? 'black' : 'white')
-        const root = document.documentElement;
-        // Get the current values of the CSS variables
-        const coordWhite = getComputedStyle(root).getPropertyValue('--coord-white').trim();
-        const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
-        // Swap the values. so coord colors are correct
-        root.style.setProperty('--coord-white', coordBlack);
-        root.style.setProperty('--coord-black', coordWhite);
-        cg.set({
-            orientation: state.boardRotation
-        });
-        const flipButton = document.querySelector(".flipBoardIcon");
-        if (flipButton.style.transform.includes("90deg")) {
-            flipButton.style.transform = "rotate(270deg)";
-        } else {
-            flipButton.style.transform = "rotate(90deg)";
-        }
-    }
-    function resetBoard() {
-        state.count = 0; // Int so we can track on which move we are.
-        state.chessGroundShapes = [];
-        state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
-        state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
-        state.pgnState = true; // incase outside PGN
-        document.querySelector("#navForward").disabled = false;
-        chess.reset();
-        chess.load(state.ankiFen);
-        cg.set({
-            fen: chess.fen(),
-            check: chess.inCheck(),
-            turnColor: toColor(chess),
-            orientation: state.boardRotation,
-            movable: {
-                color: toColor(chess),
-                dests: toDests(chess)
-            }
-        });
-        document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-        document.querySelector("#navBackward").disabled = true;
-        document.querySelector("#resetBoard").disabled = true;
-        if (state.analysisToggledOn) {
-            handleStockfish.startAnalysis(4000);
-        }
-        drawArrows(cg, chess);
-    }
-    function copyFen() { //copy FEN to clipboard
-        let textarea = document.createElement("textarea");
-        textarea.value = chess.fen();
-        // Make the textarea invisible and off-screen
-        textarea.style.position = "absolute";
-        textarea.style.left = "-9999px";
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            playSound("computer-mouse-click")
-            return true;
-        } catch (err) {
-            playSound("Error")
-            console.error('Failed to copy text using execCommand:', err);
-            return false;
-        } finally {
-            document.body.removeChild(textarea);
-        }
-    }
-    document.querySelector("#resetBoard").addEventListener('click', resetBoard);
-    document.querySelector("#navBackward").addEventListener('click', navBackward);
-    document.querySelector("#navForward").addEventListener('click', navForward);
-    document.querySelector("#rotateBoard").addEventListener('click', rotateBoard);
-    document.querySelector("#copyFen").addEventListener('click', copyFen);
-    document.querySelector("#stockfishToggle").addEventListener('click', handleStockfish.toggleStockfishAnalysis);
-    board.addEventListener('wheel', (event) => { // scroll Navigation
+    // wheel navigation
+    board.addEventListener('wheel', (event) => {
         event.preventDefault();
         if (event.deltaY < 0) {
-            // Perform actions for scrolling up
-            navBackward()
+            navBackward();
         } else if (event.deltaY > 0) {
-            // Perform actions for scrolling down
-            navForward()
+            navForward();
         }
     });
-    document.addEventListener('keydown', (event) => { // scroll Navigation
-        event.preventDefault();
-        if (event.key === 'ArrowLeft') {
-            navBackward()
-        } else if (event.key === 'ArrowRight') {
-            navForward()
-        } else if (event.key === 'ArrowDown') {
-            resetBoard()
+
+    document.addEventListener('keydown', (event) => {
+        // We don't prevent default here to allow for browser shortcuts etc.
+        // The individual functions can call it if needed.
+        switch (event.key) {
+            case 'ArrowLeft':
+                navBackward();
+                break;
+            case 'ArrowRight':
+                navForward();
+                break;
+            case 'ArrowDown':
+                resetBoard();
+                break;
         }
     });
-}
-document.querySelector('#promoteQ').src = "_"+state.boardRotation[0]+"Q.svg";
-document.querySelector('#promoteB').src = "_"+state.boardRotation[0]+"B.svg";
-document.querySelector('#promoteN').src = "_"+state.boardRotation[0]+"N.svg";
-document.querySelector('#promoteR').src = "_"+state.boardRotation[0]+"R.svg";
+    window.addEventListener('error', (event) => {
+        const message = event.message || '';
+        const filename = event.filename || '';
 
-window.addEventListener('error', (event) => {
-    const message = event.message || '';
-    const filename = event.filename || '';
+        // stockfish js crash error message.
+        const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
 
-    // stockfish js crash error message.
-    const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
+        // generic "Script error."
+        const isGenericCrossOriginError = message === 'Script error.';
 
-    // generic "Script error."
-    const isGenericCrossOriginError = message === 'Script error.';
-
-    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
-        // Prevent the default browser error console message since we are handling it
-        event.preventDefault();
-        console.warn("Caught a fatal Stockfish crash via global error handler.");
-        if (isGenericCrossOriginError) {
-            console.log("generic message:", message)
-        } else {
-            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+        if (isDetailedStockfishCrash || isGenericCrossOriginError) {
+            // Prevent the default browser error console message since we are handling it
+            event.preventDefault();
+            console.warn("Caught a fatal Stockfish crash via global error handler.");
+            if (isGenericCrossOriginError) {
+                console.log("generic message:", message)
+            } else {
+                console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+            }
+            handleStockfishCrash("window.onerror");
         }
-        handleStockfishCrash("window.onerror");
+    });
+    if (cgwrap) {
+        let isUpdateScheduled = false;
+        const handleReposition = () => {
+            // If an update is already in the queue for the next frame, do nothing. Prevents running twice with resize event
+            if (isUpdateScheduled) {
+                return;
+            }
+            isUpdateScheduled = true;
+            requestAnimationFrame(() => { // for when board itself is resized
+                positionPromoteOverlay();
+                isUpdateScheduled = false;
+            });
+        };
+        const resizeObserver = new ResizeObserver(handleReposition);
+        resizeObserver.observe(cgwrap);
+        window.addEventListener('resize', handleReposition);
+        document.addEventListener('scroll', handleReposition, true);
     }
-});
-
-if (state.errorTrack === 'true' && config.boardMode === 'Viewer') {
-    document.documentElement.style.setProperty('--border-color', "#b31010");
-} else if (state.errorTrack === 'false' && config.boardMode === 'Viewer') {
-    document.documentElement.style.setProperty('--border-color', "limegreen");
 }
 
-function positionPromoteOverlay() {
-    const promoteOverlay = document.getElementById('center');
-    const rect = document.querySelector('.cg-wrap').getBoundingClientRect();
-    // Set the position of the promote element
-    promoteOverlay.style.top = (rect.top + 8) + 'px';
-    promoteOverlay.style.left = (rect.left + 8) + 'px';
-    window.addEventListener('resize', positionPromoteOverlay);
-}
-
+// load board
 async function loadElements() {
+    initializeUI();
+    augmentPgnTree(parsedPGN.moves);
+    chess.load(state.ankiFen);
     await reload();
-    await positionPromoteOverlay();
-    setTimeout(() => {
-        positionPromoteOverlay();
-    }, 200);
+    cgwrap = document.querySelector('.cg-wrap');
+    setupEventListeners();
+    initPgnViewer();
+    if (config.boardMode === 'Puzzle' && config.timer) startPuzzleTimeout(config.timer);
+    requestAnimationFrame(positionPromoteOverlay);
+
+
 }
+
 loadElements();
-const cgwrap = document.getElementsByClassName("cg-wrap")[0];
-document.querySelectorAll('.move').forEach(item => {
-    // Position nag tooltips and keep withing comment box
-    item.addEventListener('mouseover', function(e) {
-        const commentBox = document.getElementById('commentBox');
-        const tooltip = this.querySelector('.nagTooltip');
 
-        if (!tooltip || !tooltip.textContent.trim()) {
-            return; // Exit if no tooltip or it's empty
-        }
-
-        const itemRect = this.getBoundingClientRect();
-        const tooltipWidth = tooltip.offsetWidth;
-        const commentBoxRect = commentBox.getBoundingClientRect();
-
-        let tooltipLeft = itemRect.left + (itemRect.width / 2) - (tooltipWidth / 2);
-        if (tooltipLeft < commentBoxRect.left) {
-            tooltipLeft = commentBoxRect.left;
-        } else if (tooltipLeft + tooltipWidth > commentBoxRect.right) {
-            tooltipLeft = commentBoxRect.right - tooltipWidth;
-        }
-
-        tooltip.style.left = `${tooltipLeft}px`;
-        tooltip.style.top = `${itemRect.top - tooltip.offsetHeight - 3}px`;
-
-        tooltip.style.display = 'block';
-        tooltip.style.visibility = 'visible'
-    });
-
-    item.addEventListener('mouseout', function() {
-        const tooltip = this.querySelector('.nagTooltip');
-        if (tooltip) {
-            tooltip.style.visibility = 'hidden';
-        }
-    });
-});
-export { cg, chess, state, parsedPGN, nags, cgwrap }
+export { cg, chess, state, nags, cgwrap, config, toDests, toColor, drawArrows, htmlElement }
