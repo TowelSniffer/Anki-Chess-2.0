@@ -442,6 +442,7 @@ button.promoteBtn {
   align-items: center;
 }
 .hidden {
+  display: none !important;
 }
 button.navBtn {
   z-index: 20;
