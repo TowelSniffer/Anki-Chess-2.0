@@ -62,6 +62,14 @@
         {{#textField}}
         params.userText = userText;
         {{/textField}}
+        // handle anki persistence
+        let pgnPath = null;
+        if (Persistence.isAvailable()) {
+            params.pgnPath = Persistence.getItem("pgnPath");
+            params.errorTrack = Persistence.getItem("errorTrack");
+            params.mirrorState = Persistence.getItem("mirrorState");
+            Persistence.clear();
+        }
 
         const query = new URLSearchParams(params).toString();
         const iframe = document.getElementById("Board");
@@ -69,15 +77,5 @@
         iframe.src = `_chess3.0.html?${query}`;
         document.querySelector("#Board").contentWindow.focus();
 
-        // handle anki persistence
-        let errorTrack;
-        let mirrorState;
-        let pgnPath = null;
-        if (Persistence.isAvailable()) {
-            errorTrack = Persistence.getItem("errorTrack");
-            mirrorState = Persistence.getItem("mirrorState");
-            pgnPath = Persistence.getItem("pgnPath");
-            Persistence.clear();
-        }
     })();
 </script>

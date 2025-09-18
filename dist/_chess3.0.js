@@ -13570,7 +13570,7 @@ ${contextLines.join("\n")}`;
     acceptVariations: getUrlParam("acceptVariations", "true") === "true",
     disableArrows: getUrlParam("disableArrows", "false") === "true",
     flipBoard: getUrlParam("flip", "true") === "true",
-    boardMode: getUrlParam("boardMode", "Viewer"),
+    boardMode: getUrlParam("boardMode", "Puzzle"),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", "true") === "true",
     randomOrientation: getUrlParam("randomOrientation", "false") === "true",
@@ -15158,6 +15158,7 @@ ${contextLines.join("\n")}`;
     cgwrap = document.querySelector(".cg-wrap");
     setupEventListeners();
     initPgnViewer();
+    startPuzzleTimeout(config.timer);
   }
   loadElements();
 })();
