@@ -1,68 +1,103 @@
-import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights } from './mirror';
-import { parsedPGN, state, config, htmlElement } from './config';
+import { state, config, htmlElement } from './config';
 import { cgwrap } from './chessFunctions';
+import type { Color } from 'chessground/types';
+import type { PgnMove } from '@mliebelt/pgn-parser';
 
-export function initializeUI() {
-    // Mirror PGN
-    if (config.mirror && !checkCastleRights(state.ankiFen)) {
-        if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
-        window.parent.postMessage(state, '*');
-        mirrorPgnTree(parsedPGN.moves, state.mirrorState);
-        state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
+/**
+ * Safely finds and returns an HTML element, throwing an error if not found.
+ * @param selector The CSS selector for the element.
+ * @param type The element type constructor (e.g., HTMLDivElement).
+ * @returns The found element.
+ */
+function getElement<T extends HTMLElement>(selector: string, type: { new(): T }): T {
+    const element = document.querySelector<T>(selector);
+    if (!element) {
+        throw new Error(`Critical UI element not found: ${selector}`);
     }
-    // link images to promote buttons
+    return element;
+}
+
+export function initializeUI(): void {
+
+    // Link images to promote buttons
     const promoteBtnMap = ["Q", "B", "N", "R"];
-    promoteBtnMap.forEach((piece) => document.querySelector(`#promote${piece}`).src = `_${state.boardRotation[0]}${piece}.svg`);
+    promoteBtnMap.forEach((piece) => {
+        const imgElement = getElement(`#promote${piece}`, HTMLImageElement);
+        imgElement.src = `_${state.boardRotation[0]}${piece}.svg`;
+    });
 
     htmlElement.style.setProperty('--background-color', config.background);
-    const commentBox = document.getElementById('commentBox');
-    commentBox.style.fontSize = `${config.fontSize}px`;
-    if (config.ankiText) {
-        document.getElementById('textField').innerHTML = config.ankiText;
-    } else {
-        document.getElementById('textField').style.display = "none";
-    }
-    if (config.boardMode === 'Puzzle') {
-        document.querySelector('#buttons-container').style.visibility = "hidden";
-        document.getElementById('pgnComment').style.display = "none";
 
-        if (!config.frontText || !config.ankiText) commentBox.style.display = "none";
+    const commentBox = document.getElementById('commentBox');
+    if (commentBox) {
+        commentBox.style.fontSize = `${config.fontSize}px`;
     }
+
+    const textField = document.getElementById('textField');
+    if (textField) {
+        if (config.ankiText) {
+            textField.innerHTML = config.ankiText;
+        } else {
+            textField.style.display = "none";
+        }
+    }
+
+    // Handle different board modes
+    if (config.boardMode === 'Puzzle') {
+        const buttonsContainer = document.querySelector<HTMLElement>('#buttons-container');
+        if (buttonsContainer) buttonsContainer.style.visibility = "hidden";
+
+        const pgnComment = document.getElementById('pgnComment');
+        if (pgnComment) pgnComment.style.display = "none";
+
+        if (commentBox && (!config.frontText || !config.ankiText)) {
+            commentBox.style.display = "none";
+        }
+    }
+
+    // Determine board orientation
     const fenParts = state.ankiFen.split(' ');
-    state.boardRotation = (fenParts.length > 1 && fenParts[1] === 'w') ? 'white' : 'black';
+    let boardRotation: Color = (fenParts.length > 1 && fenParts[1] === 'w') ? 'white' : 'black';
 
     if (config.flipBoard) {
-        state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+        boardRotation = boardRotation === "white" ? "black" : "white";
     }
+    state.boardRotation = boardRotation;
+
+    // Set player and opponent colors
+    state.playerColour = state.boardRotation;
+    state.opponentColour = state.boardRotation === "white" ? "black" : "white";
+
+    // Update CSS variables for theming
     if (state.boardRotation === "white") {
-        // Get the current values of the CSS variables
         const coordWhite = getComputedStyle(htmlElement).getPropertyValue('--coord-white').trim();
         const coordBlack = getComputedStyle(htmlElement).getPropertyValue('--coord-black').trim();
-        // Swap the values. so coord colors are correct
         htmlElement.style.setProperty('--coord-white', coordBlack);
         htmlElement.style.setProperty('--coord-black', coordWhite);
     }
 
-    state.playerColour = state.boardRotation;
-    state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-    htmlElement.style.setProperty('--border-color', config.randomOrientation ? "grey" : state.playerColour);
-    htmlElement.style.setProperty('--player-color', config.randomOrientation ? "grey" : state.playerColour);
+    const borderColor = config.randomOrientation ? "grey" : state.playerColour;
+    htmlElement.style.setProperty('--border-color', borderColor);
+    htmlElement.style.setProperty('--player-color', borderColor);
     htmlElement.style.setProperty('--opponent-color', state.opponentColour);
-    // score puzzle in viewer mode
-    if (state.errorTrack === 'true' && config.boardMode === 'Viewer') {
-        htmlElement.style.setProperty('--border-color', "#b31010");
-    } else if (state.errorTrack === 'correctTime' && config.boardMode === 'Viewer') {
-        htmlElement.style.setProperty('--border-color', "#2CBFA7");
-    } else if (state.errorTrack === 'correct' && config.boardMode === 'Viewer') {
-        htmlElement.style.setProperty('--border-color', "limegreen");
+
+    // Update border color based on error tracking in Viewer mode
+    if (config.boardMode === 'Viewer') {
+        if (state.errorTrack === 'true') {
+            htmlElement.style.setProperty('--border-color', "#b31010");
+        } else if (state.errorTrack === 'correctTime') {
+            htmlElement.style.setProperty('--border-color', "#2CBFA7");
+        } else if (state.errorTrack === 'correct') {
+            htmlElement.style.setProperty('--border-color', "limegreen");
+        }
     }
 }
 
-export function positionPromoteOverlay() {
+export function positionPromoteOverlay(): void {
     const promoteOverlay = document.getElementById('promoteButtons');
     if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
+
     const rect = cgwrap.getBoundingClientRect();
-    // Set the position of the promote element
-    promoteOverlay.style.top = (rect.top + 8) + 'px';
-    promoteOverlay.style.left = (rect.left + 8) + 'px';
+    promoteOverlay.style.top = `${rect.top + 8}px`;
+    promoteOverlay.style.left = `${rect.left + 8}px`;
 }

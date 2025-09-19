@@ -3536,7 +3536,7 @@
         lan;
         before;
         after;
-        constructor(chess3, internal) {
+        constructor(chess2, internal) {
           const { color, piece, from, to, flags, captured, promotion } = internal;
           const fromAlgebraic = algebraic(from);
           const toAlgebraic = algebraic(to);
@@ -3544,12 +3544,12 @@
           this.piece = piece;
           this.from = fromAlgebraic;
           this.to = toAlgebraic;
-          this.san = chess3["_moveToSan"](internal, chess3["_moves"]({ legal: true }));
+          this.san = chess2["_moveToSan"](internal, chess2["_moves"]({ legal: true }));
           this.lan = fromAlgebraic + toAlgebraic;
-          this.before = chess3.fen();
-          chess3["_makeMove"](internal);
-          this.after = chess3.fen();
-          chess3["_undoMove"]();
+          this.before = chess2.fen();
+          chess2["_makeMove"](internal);
+          this.after = chess2.fen();
+          chess2["_undoMove"]();
           this.flags = "";
           for (const flag in BITS) {
             if (BITS[flag] & flags) {
@@ -13697,6 +13697,124 @@ ${contextLines.join("\n")}`;
     }
   });
 
+  // src/js/mirror.ts
+  function assignMirrorState(_pgn) {
+    const states = ["original", "original_mirror", "invert", "invert_mirror"];
+    const mirrorRandom = Math.floor(Math.random() * states.length);
+    return states[mirrorRandom];
+  }
+  function mirrorFenRow(row) {
+    return row.split("").reverse().join("");
+  }
+  function mirrorFen(fullFen, mirrorState) {
+    if (mirrorState === "original") {
+      return fullFen;
+    }
+    const fenParts = fullFen.split(" ");
+    const fenBoard = fenParts[0];
+    const fenColor = fenParts[1];
+    const fenRest = fenParts.slice(2).join(" ");
+    const fenRows = fenBoard.split("/");
+    const fenBoardInverted = swapCase(fenBoard.split("").reverse().join(""));
+    const fenBoardMirrored = fenRows.map(mirrorFenRow).join("/");
+    const fenBoardMirroredInverted = swapCase(fenBoardMirrored.split("").reverse().join(""));
+    const fenColorSwapped = fenColor === "w" ? "b" : "w";
+    switch (mirrorState) {
+      case "invert_mirror":
+        return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
+      case "invert":
+        return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
+      case "original_mirror":
+        return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
+      default:
+        return fullFen;
+    }
+  }
+  function swapCase(str) {
+    return str.split("").map(
+      (ch) => ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
+    ).join("");
+  }
+  function mirrorMove(move3, mirrorState) {
+    const notationMaps = {
+      "invert_mirror": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", "1": "8", "2": "7", "3": "6", "4": "5", "5": "4", "6": "3", "7": "2", "8": "1" },
+      "invert": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", "1": "8", "2": "7", "3": "6", "4": "5", "5": "4", "6": "3", "7": "2", "8": "1" },
+      "original_mirror": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" },
+      "original": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" }
+    };
+    const notationMap = notationMaps[mirrorState];
+    const transform = (val) => {
+      return val?.split("").map((char) => notationMap[char] || char).join("");
+    };
+    move3.notation.disc = transform(move3.notation.disc);
+    move3.notation.col = transform(move3.notation.col);
+    move3.notation.row = transform(move3.notation.row);
+    move3.notation.notation = transform(move3.notation.notation) ?? move3.notation.notation;
+  }
+  function mirrorPgnTree(moves, mirrorState, parentMove = null) {
+    if (!moves || moves.length === 0) return;
+    for (const move3 of moves) {
+      if (move3.variations) {
+        move3.variations.forEach((variation) => {
+          mirrorPgnTree(variation, mirrorState, move3);
+        });
+      }
+    }
+    const isInverted = mirrorState === "invert" || mirrorState === "invert_mirror";
+    if (!isInverted) {
+      for (const move3 of moves) mirrorMove(move3, mirrorState);
+      return;
+    }
+    let lastValidMoveNumber;
+    const startsWithWhite = moves[0].turn === "w";
+    if (startsWithWhite) {
+      moves.forEach((move3, index) => {
+        mirrorMove(move3, mirrorState);
+        if (move3.turn === "w") {
+          move3.turn = "b";
+          if (index === 0) {
+            move3.moveNumber--;
+            lastValidMoveNumber = move3.moveNumber;
+          } else {
+            move3.moveNumber = void 0;
+          }
+        } else {
+          move3.turn = "w";
+          move3.moveNumber = lastValidMoveNumber + 1;
+          lastValidMoveNumber = move3.moveNumber;
+        }
+      });
+    } else {
+      lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber;
+      moves.forEach((move3, index) => {
+        mirrorMove(move3, mirrorState);
+        if (move3.turn === "b") {
+          move3.turn = "w";
+          if (move3.moveNumber) {
+            lastValidMoveNumber = move3.moveNumber;
+          } else {
+            move3.moveNumber = index === 0 ? lastValidMoveNumber : lastValidMoveNumber + 1;
+            lastValidMoveNumber = move3.moveNumber;
+          }
+        } else {
+          move3.turn = "b";
+          move3.moveNumber = void 0;
+        }
+      });
+    }
+  }
+  function checkCastleRights(fen) {
+    const fenParts = fen.split(" ");
+    if (fenParts.length < 3) return false;
+    const castlingPart = fenParts[2];
+    return castlingPart !== "-";
+  }
+  var init_mirror = __esm({
+    "src/js/mirror.ts"() {
+      "use strict";
+    }
+  });
+
   // src/js/config.ts
   function getUrlParam(name, defaultValue) {
     const value = urlParams.get(name);
@@ -13709,6 +13827,7 @@ ${contextLines.join("\n")}`;
       init_chessground();
       init_chess();
       import_pgn_parser = __toESM(require_index_umd());
+      init_mirror();
       shapeArray = {
         ["All" /* All */]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
         ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
@@ -13720,14 +13839,20 @@ ${contextLines.join("\n")}`;
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.09.20"]
+    [Date "2025.02.24"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
+    [FEN "r7/p1pnkppp/4b3/2p5/N2pP3/1P3P2/P1P1B1PP/2KR4 w - - 0 17"]
+    [SetUp "1"]
 
-    1. e4 e5 2. f4 f5 3. g4 *
-    `),
+    17. Bb5 Kd6 {EV: 14.8%, N: 84.79% of 315k} (17... c6 {EV: 14.7%, N: 9.92% of
+        315k} 18. Bxc6 {EV: 84.9%, N: 98.99% of 49.4k} Rc8 {EV: 15.6%, N: 98.06% of
+            58.7k} 19. Bb5 {EV: 80.2%, N: 7.41% of 483k} (19. Bxd7 {EV: 83.9%, N: 91.06% of
+                483k} Bxd7 {EV: 16.3%, N: 98.49% of 447k}) Ne5 {EV: 20.5%, N: 92.74% of 140k})
+    18. c3 {EV: 83.9%, N: 95.46% of 62.5k} c6 {EV: 16.2%, N: 92.94% of 58.0k} 19.
+    Ba6 {EV: 86.3%, N: 94.71% of 572k} Nb6 {EV: 17.1%, N: 79.75% of 2.8k} *`),
         fontSize: parseInt(getUrlParam("fontSize", "16"), 10),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -13777,11 +13902,20 @@ ${contextLines.join("\n")}`;
         blunderNags: ["$2", "$4", "$6", "$9"],
         puzzleComplete: false
       };
+      if (config.mirror && !checkCastleRights(state.ankiFen)) {
+        if (!state.mirrorState) {
+          state.mirrorState = assignMirrorState(config.pgn);
+        }
+        window.parent.postMessage(state, "*");
+        mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+        state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
+      }
       boardElement = document.getElementById("board");
       if (!boardElement) {
         throw new Error("Fatal: Board element with id 'board' not found in the DOM.");
       }
       cg2 = Chessground(boardElement, {
+        fen: state.ankiFen,
         premovable: {
           enabled: true
         },
@@ -13811,13 +13945,25 @@ ${contextLines.join("\n")}`;
   });
 
   // src/js/timer.ts
+  function handleOutOfTime() {
+    if (config.timerScore) {
+      state.errorTrack = "true";
+      state.solvedColour = "#b31010";
+    }
+    if (config.timerAdvance) {
+      state.puzzleComplete = true;
+    }
+    window.parent.postMessage(state, "*");
+    puzzleTimeout = null;
+    if (puzzleIncrement) clearInterval(puzzleIncrement);
+    document.documentElement.style.setProperty("--remainingTime", "100%");
+  }
   function extendPuzzleTime(additionalTime) {
     if (config.boardMode === "Viewer" || !config.timer) return;
     if (puzzleTimeout) {
       clearTimeout(puzzleTimeout);
-      clearInterval(puzzleIncrement);
-      let elapsedTime = Date.now() - startTime;
-      let newDelay = remainingTime + additionalTime;
+      if (puzzleIncrement) clearInterval(puzzleIncrement);
+      const newDelay = remainingTime + additionalTime;
       if (newDelay >= 0) {
         startPuzzleTimeout(newDelay);
       }
@@ -13825,56 +13971,52 @@ ${contextLines.join("\n")}`;
   }
   function startPuzzleTimeout(delay) {
     if (config.boardMode === "Viewer" || !config.timer) return;
-    if (!config.timerScore) document.documentElement.style.setProperty("--timer-color", config.randomOrientation ? "#2CBFA7" : state.opponentColour);
+    if (puzzleTimeout) clearTimeout(puzzleTimeout);
+    if (puzzleIncrement) clearInterval(puzzleIncrement);
+    if (!config.timerScore) {
+      const timerColor = config.randomOrientation ? "#2CBFA7" : state.opponentColour;
+      document.documentElement.style.setProperty("--timer-color", timerColor);
+    }
     cgwrap.classList.add("timerMode");
-    puzzleTimeout = setTimeout(handleOutOfTime, delay);
-    totalTime = config.timer;
+    puzzleTimeout = window.setTimeout(handleOutOfTime, delay);
     let usedTime = config.timer - delay;
+    totalTime = config.timer;
     if (usedTime < 0) {
       totalTime -= usedTime;
       usedTime = 0;
     }
     startTime = Date.now();
-    puzzleIncrement = setInterval(() => {
+    puzzleIncrement = window.setInterval(() => {
       if (state.puzzleComplete) {
         cgwrap.classList.remove("timerMode");
-        clearTimeout(puzzleTimeout);
-        clearInterval(puzzleIncrement);
+        if (puzzleTimeout) clearTimeout(puzzleTimeout);
+        if (puzzleIncrement) clearInterval(puzzleIncrement);
         return;
       }
-      let elapsedTime = Date.now() - startTime;
-      remainingTime = totalTime - elapsedTime - usedTime;
-      if (remainingTime < 0) {
-        remainingTime = 0;
-      }
+      const elapsedTime = Date.now() - startTime;
+      remainingTime = Math.max(0, totalTime - elapsedTime - usedTime);
       if (state.playerColour !== cg2.state.turnColor) {
         extendPuzzleTime(10);
         return;
       }
-      let percentage = 100 - remainingTime / totalTime * 100;
+      const percentage = 100 - remainingTime / totalTime * 100;
       document.documentElement.style.setProperty("--remainingTime", `${percentage.toFixed(2)}%`);
       if (remainingTime === 0) {
-        clearInterval(puzzleIncrement);
+        if (puzzleIncrement) clearInterval(puzzleIncrement);
       }
     }, 10);
   }
-  var puzzleTimeout, puzzleIncrement, startTime, totalTime, remainingTime, handleOutOfTime;
+  var puzzleTimeout, puzzleIncrement, startTime, totalTime, remainingTime;
   var init_timer = __esm({
     "src/js/timer.ts"() {
       "use strict";
       init_config2();
       init_chessFunctions();
-      handleOutOfTime = function() {
-        if (config.timerScore) {
-          state.errorTrack = true;
-          state.solvedColour = "#b31010";
-        }
-        if (config.timerAdvance) state.puzzleComplete = true;
-        window.parent.postMessage(state, "*");
-        puzzleTimeout = null;
-        clearInterval(puzzleIncrement);
-        document.documentElement.style.setProperty("--remainingTime", "100%");
-      };
+      puzzleTimeout = null;
+      puzzleIncrement = null;
+      startTime = 0;
+      totalTime = 0;
+      remainingTime = 0;
     }
   });
 
@@ -14017,7 +14159,7 @@ ${contextLines.join("\n")}`;
     });
   }
   function startAnalysis(movetime) {
-    if (chess.moves().length === 0 || state.analysisFen === "none") {
+    if (chess.moves().length === 0 || state.analysisFen === "none" || !state.analysisToggledOn) {
       return;
     }
     if (state.isStockfishBusy) {
@@ -14071,188 +14213,80 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/mirror.ts
-  function assignMirrorState(pgn2) {
-    const states = ["original", "original_mirror", "invert", "invert_mirror"];
-    const mirrorRandom = Math.floor(Math.random() * states.length);
-    let mirrorState = states[mirrorRandom];
-    return mirrorState;
-  }
-  function mirrorFenRow(row) {
-    let result = row.split("").reverse().join("");
-    return result;
-  }
-  function mirrorFen(fullFen, mirrorState) {
-    const fenParts = fullFen.split(" ");
-    const fenBoard = fenParts[0];
-    const fenColor = fenParts[1];
-    const fenRest = fenParts.slice(2).join(" ");
-    const fenRows = fenBoard.split("/");
-    const fenBoardInverted = swapCase(fenBoard.split("").reverse().join(""));
-    const fenBoardMirrored = fenRows.map(mirrorFenRow).join("/");
-    const fenBoardMirroredInverted = swapCase(fenBoardMirrored.split("").reverse().join(""));
-    const fenColorSwapped = fenColor === "w" ? "b" : "w";
-    if (mirrorState == "invert_mirror") {
-      return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
-    } else if (mirrorState == "invert") {
-      return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
-    } else if (mirrorState == "original_mirror") {
-      return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
-    } else {
-      return fullFen;
-    }
-  }
-  function swapCase(str) {
-    return str.split("").map(
-      (ch) => ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
-    ).join("");
-  }
-  function mirrorMove(move3, mirrorState) {
-    var notations = {};
-    const notationMaps = {
-      "invert_mirror": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", 1: "8", 2: "7", 3: "6", 4: "5", 5: "4", 6: "3", 7: "2", 8: "1" },
-      "invert": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", 1: "8", 2: "7", 3: "6", 4: "5", 5: "4", 6: "3", 7: "2", 8: "1" },
-      "original_mirror": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8" },
-      "original": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8" }
-    };
-    const notationMap = notationMaps[mirrorState] || notationMaps.original;
-    if (move3.notation.disc) move3.notation.disc = move3.notation.disc.split("").map((char) => notationMap[char] || char).join("");
-    if (move3.notation.col) move3.notation.col = move3.notation.col.split("").map((char) => notationMap[char] || char).join("");
-    if (move3.notation.row) move3.notation.row = move3.notation.row.split("").map((char) => notationMap[char] || char).join("");
-    move3.notation.notation = move3.notation.notation.split("").map((char) => notationMap[char] || char).join("");
-  }
-  function mirrorPgnTree(moves, mirrorState, parentMove = null) {
-    if (!moves || moves.length === 0) return;
-    for (const move3 of moves) {
-      if (move3.variations) {
-        move3.variations.forEach((variation) => {
-          mirrorPgnTree(variation, mirrorState, move3);
-        });
-      }
-    }
-    const isInverted = mirrorState === "invert" || mirrorState === "invert_mirror";
-    let lastValidMoveNumber;
-    if (isInverted) {
-      const startsWithWhite = moves[0].turn === "w";
-      if (startsWithWhite) {
-        for (const move3 of moves) {
-          mirrorMove(move3, mirrorState);
-          const originalTurn = move3.turn;
-          if (originalTurn === "w") {
-            move3.turn = "b";
-            if (move3 === moves[0]) {
-              move3.moveNumber--;
-              lastValidMoveNumber = move3.moveNumber;
-            } else {
-              move3.moveNumber = null;
-            }
-          } else {
-            move3.turn = "w";
-            move3.moveNumber = lastValidMoveNumber + 1;
-            lastValidMoveNumber = move3.moveNumber;
-          }
-        }
-      } else {
-        if (parentMove) {
-          lastValidMoveNumber = parentMove.moveNumber;
-        } else {
-          lastValidMoveNumber = moves[0].moveNumber;
-        }
-        for (const move3 of moves) {
-          mirrorMove(move3, mirrorState);
-          const originalTurn = move3.turn;
-          if (originalTurn === "b") {
-            move3.turn = "w";
-            if (move3.moveNumber) {
-              lastValidMoveNumber = move3.moveNumber;
-            } else {
-              if (move3 === moves[0]) {
-                move3.moveNumber = lastValidMoveNumber;
-              } else {
-                move3.moveNumber = lastValidMoveNumber + 1;
-                lastValidMoveNumber = move3.moveNumber;
-              }
-            }
-          } else {
-            move3.turn = "b";
-            move3.moveNumber = null;
-          }
-        }
-      }
-    } else {
-      for (const move3 of moves) {
-        mirrorMove(move3, mirrorState);
-      }
-    }
-  }
-  function checkCastleRights(fen) {
-    const castlingPart = fen.split(" ")[2];
-    return castlingPart !== "-";
-  }
-  var init_mirror = __esm({
-    "src/js/mirror.ts"() {
-      "use strict";
-    }
-  });
-
   // src/js/initializeUI.ts
-  function initializeUI() {
-    if (config.mirror && !checkCastleRights(state.ankiFen)) {
-      if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
-      window.parent.postMessage(state, "*");
-      mirrorPgnTree(parsedPGN.moves, state.mirrorState);
-      state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
+  function getElement(selector, type) {
+    const element = document.querySelector(selector);
+    if (!element) {
+      throw new Error(`Critical UI element not found: ${selector}`);
     }
+    return element;
+  }
+  function initializeUI() {
     const promoteBtnMap = ["Q", "B", "N", "R"];
-    promoteBtnMap.forEach((piece) => document.querySelector(`#promote${piece}`).src = `_${state.boardRotation[0]}${piece}.svg`);
+    promoteBtnMap.forEach((piece) => {
+      const imgElement = getElement(`#promote${piece}`, HTMLImageElement);
+      imgElement.src = `_${state.boardRotation[0]}${piece}.svg`;
+    });
     htmlElement.style.setProperty("--background-color", config.background);
     const commentBox = document.getElementById("commentBox");
-    commentBox.style.fontSize = `${config.fontSize}px`;
-    if (config.ankiText) {
-      document.getElementById("textField").innerHTML = config.ankiText;
-    } else {
-      document.getElementById("textField").style.display = "none";
+    if (commentBox) {
+      commentBox.style.fontSize = `${config.fontSize}px`;
+    }
+    const textField = document.getElementById("textField");
+    if (textField) {
+      if (config.ankiText) {
+        textField.innerHTML = config.ankiText;
+      } else {
+        textField.style.display = "none";
+      }
     }
     if (config.boardMode === "Puzzle") {
-      document.querySelector("#buttons-container").style.visibility = "hidden";
-      document.getElementById("pgnComment").style.display = "none";
-      if (!config.frontText || !config.ankiText) commentBox.style.display = "none";
+      const buttonsContainer = document.querySelector("#buttons-container");
+      if (buttonsContainer) buttonsContainer.style.visibility = "hidden";
+      const pgnComment = document.getElementById("pgnComment");
+      if (pgnComment) pgnComment.style.display = "none";
+      if (commentBox && (!config.frontText || !config.ankiText)) {
+        commentBox.style.display = "none";
+      }
     }
     const fenParts = state.ankiFen.split(" ");
-    state.boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
+    let boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
     if (config.flipBoard) {
-      state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+      boardRotation = boardRotation === "white" ? "black" : "white";
     }
+    state.boardRotation = boardRotation;
+    state.playerColour = state.boardRotation;
+    state.opponentColour = state.boardRotation === "white" ? "black" : "white";
     if (state.boardRotation === "white") {
       const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
       const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
       htmlElement.style.setProperty("--coord-white", coordBlack);
       htmlElement.style.setProperty("--coord-black", coordWhite);
     }
-    state.playerColour = state.boardRotation;
-    state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-    htmlElement.style.setProperty("--border-color", config.randomOrientation ? "grey" : state.playerColour);
-    htmlElement.style.setProperty("--player-color", config.randomOrientation ? "grey" : state.playerColour);
+    const borderColor = config.randomOrientation ? "grey" : state.playerColour;
+    htmlElement.style.setProperty("--border-color", borderColor);
+    htmlElement.style.setProperty("--player-color", borderColor);
     htmlElement.style.setProperty("--opponent-color", state.opponentColour);
-    if (state.errorTrack === "true" && config.boardMode === "Viewer") {
-      htmlElement.style.setProperty("--border-color", "#b31010");
-    } else if (state.errorTrack === "correctTime" && config.boardMode === "Viewer") {
-      htmlElement.style.setProperty("--border-color", "#2CBFA7");
-    } else if (state.errorTrack === "correct" && config.boardMode === "Viewer") {
-      htmlElement.style.setProperty("--border-color", "limegreen");
+    if (config.boardMode === "Viewer") {
+      if (state.errorTrack === "true") {
+        htmlElement.style.setProperty("--border-color", "#b31010");
+      } else if (state.errorTrack === "correctTime") {
+        htmlElement.style.setProperty("--border-color", "#2CBFA7");
+      } else if (state.errorTrack === "correct") {
+        htmlElement.style.setProperty("--border-color", "limegreen");
+      }
     }
   }
   function positionPromoteOverlay() {
     const promoteOverlay = document.getElementById("promoteButtons");
     if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
     const rect = cgwrap.getBoundingClientRect();
-    promoteOverlay.style.top = rect.top + 8 + "px";
-    promoteOverlay.style.left = rect.left + 8 + "px";
+    promoteOverlay.style.top = `${rect.top + 8}px`;
+    promoteOverlay.style.left = `${rect.left + 8}px`;
   }
   var init_initializeUI = __esm({
     "src/js/initializeUI.ts"() {
       "use strict";
-      init_mirror();
       init_config2();
       init_chessFunctions();
     }
@@ -14408,22 +14442,21 @@ ${contextLines.join("\n")}`;
 
   // src/js/chessFunctions.ts
   function toggleClass(querySelector, className) {
-    document.querySelectorAll("." + querySelector).forEach((el) => el.classList.toggle(`${className}`));
+    document.querySelectorAll("." + querySelector).forEach((el) => el.classList.toggle(className));
+  }
+  function getElement2(selector) {
+    return document.querySelector(selector);
   }
   function isEndOfLine() {
-    return !state.expectedMove || typeof state.expectedMove === "string";
+    const isEnd = !state.expectedMove || typeof state.expectedMove === "string";
+    if (isEnd) document.querySelector("#navForward").disabled = true;
+    return isEnd;
   }
   function handlePuzzleComplete() {
     state.puzzleComplete = true;
-    cgwrap.classList.remove("timerMode");
+    if (cgwrap) cgwrap.classList.remove("timerMode");
     htmlElement.style.setProperty("--border-color", state.solvedColour);
     cg2.set({
-      selected: void 0,
-      // Clear any selected square
-      draggable: {
-        current: void 0
-        // Explicitly clear any currently dragged piece
-      },
       viewOnly: true
     });
   }
@@ -14456,27 +14489,23 @@ ${contextLines.join("\n")}`;
       handlePuzzleComplete();
     }
   }
-  function toDests(chess3) {
+  function toDests(chess2) {
     const dests = /* @__PURE__ */ new Map();
     SQUARES.forEach((s) => {
-      const ms = chess3.moves({ square: s, verbose: true });
+      const ms = chess2.moves({ square: s, verbose: true });
       if (ms.length) dests.set(s, ms.map((m) => m.to));
     });
     return dests;
   }
-  function toColor(chess3) {
-    return chess3.turn() === "w" ? "white" : "black";
+  function toColor(chess2) {
+    return chess2.turn() === "w" ? "white" : "black";
   }
-  function getOpponentColor(chess3) {
-    return chess3.turn() === "w" ? "b" : "w";
+  function getOpponentColor(chess2) {
+    return chess2.turn() === "w" ? "b" : "w";
   }
-  function getLastMove(chess3) {
-    const allMoves = chess3.history({ verbose: true });
-    if (allMoves.length > 0) {
-      return allMoves[allMoves.length - 1];
-    } else {
-      return false;
-    }
+  function getLastMove(chess2) {
+    const allMoves = chess2.history({ verbose: true });
+    return allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
   }
   function filterShapes(filterKey) {
     let brushesToRemove = shapeArray[filterKey];
@@ -14596,7 +14625,7 @@ ${contextLines.join("\n")}`;
     }
     cg2.set({ drawable: { shapes: state.chessGroundShapes } });
   }
-  function updateBoard(move3, backwardPromote = null) {
+  function updateBoard(move3, backwardPromote = false) {
     function cancelDefaultAnimation(chessInstance) {
       cg2.set({ animation: { enabled: false } });
       cg2.set({
@@ -14665,8 +14694,9 @@ ${contextLines.join("\n")}`;
   }
   function makeMove(move3) {
     const moveResult = chess.move(move3);
-    if (!moveResult) return null;
-    updateBoard(moveResult);
+    if (moveResult) {
+      updateBoard(moveResult);
+    }
     return moveResult;
   }
   function puzzlePlay(delay, orig, dest) {
@@ -14692,18 +14722,13 @@ ${contextLines.join("\n")}`;
   }
   function handleViewerMove(orig, dest) {
     const tempChess = new Chess(chess.fen());
-    let move3;
-    let promoCheck = false;
-    if (dest) {
-      move3 = tempChess.move({ from: orig, to: dest, promotion: "q" });
-      promoCheck = true;
-    } else {
-      move3 = tempChess.move(orig.san);
-    }
-    if (move3.flags.includes("p") && promoCheck) {
-      promotePopup(move3.from, move3.to, null);
+    const move3 = typeof orig === "string" ? tempChess.move({ from: orig, to: dest, promotion: "q" }) : tempChess.move(orig.san);
+    if (!move3) return;
+    if (move3.flags.includes("p") && dest) {
+      promotePopup(orig, dest, null);
     } else {
       checkUserMove(move3.san, null);
+      isEndOfLine();
     }
   }
   function playAiMove(delay) {
@@ -14864,31 +14889,8 @@ ${contextLines.join("\n")}`;
   }
   function handlePgnState(pgnState) {
     state.pgnState = pgnState;
-    document.querySelector("#navForward").disabled = !pgnState;
-  }
-  function waitForElement(selector) {
-    return new Promise((resolve) => {
-      const element = document.querySelector(selector);
-      if (element) {
-        resolve(element);
-        return;
-      }
-      const observer = new MutationObserver((mutations) => {
-        const targetElement = document.querySelector(selector);
-        if (targetElement) {
-          resolve(targetElement);
-          observer.disconnect();
-        }
-      });
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
-    });
-  }
-  async function setupTimer() {
-    cgwrap = await waitForElement(".cg-wrap");
-    startPuzzleTimeout(config.timer);
+    const forwardButton = getElement2("#navForward");
+    if (forwardButton) forwardButton.disabled = !pgnState;
   }
   function navBackward() {
     if (config.boardMode === "Puzzle") return;
@@ -14950,28 +14952,13 @@ ${contextLines.join("\n")}`;
     if (move3) {
       puzzlePlay(null, move3.from, move3.to);
     }
+    isEndOfLine();
     document.querySelector("#navBackward").disabled = false;
     document.querySelector("#resetBoard").disabled = false;
-    if (isEndOfLine()) {
-      document.querySelector("#navForward").disabled = true;
-    }
   }
   function rotateBoard() {
     state.boardRotation = state.boardRotation === "white" ? "black" : "white";
-    const root = htmlElement;
-    const coordWhite = getComputedStyle(root).getPropertyValue("--coord-white").trim();
-    const coordBlack = getComputedStyle(root).getPropertyValue("--coord-black").trim();
-    root.style.setProperty("--coord-white", coordBlack);
-    root.style.setProperty("--coord-black", coordWhite);
-    cg2.set({
-      orientation: state.boardRotation
-    });
-    const flipButton = document.querySelector(".flipBoardIcon");
-    if (flipButton.style.transform.includes("90deg")) {
-      flipButton.style.transform = "rotate(270deg)";
-    } else {
-      flipButton.style.transform = "rotate(90deg)";
-    }
+    cg2.set({ orientation: state.boardRotation });
   }
   function resetBoard() {
     state.count = 0;
@@ -15016,6 +15003,29 @@ ${contextLines.join("\n")}`;
       document.body.removeChild(textarea);
     }
   }
+  async function setupTimer() {
+    const element = await waitForElement(".cg-wrap");
+    cgwrap = element;
+    if (config.timer) {
+      startPuzzleTimeout(config.timer);
+    }
+  }
+  function waitForElement(selector) {
+    return new Promise((resolve) => {
+      const element = document.querySelector(selector);
+      if (element) {
+        return resolve(element);
+      }
+      const observer = new MutationObserver(() => {
+        const element2 = document.querySelector(selector);
+        if (element2) {
+          observer.disconnect();
+          resolve(element2);
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }
   function reload() {
     state.count = 0;
     state.expectedLine = parsedPGN.moves;
@@ -15026,6 +15036,10 @@ ${contextLines.join("\n")}`;
       orientation: config.randomOrientation ? ["black", "white"][Math.floor(Math.random() * 2)] : state.playerColour,
       turnColor: toColor(chess),
       events: {
+        change: () => {
+        },
+        move: (orig, dest, capturedPiece) => {
+        },
         select: (key) => {
           filterShapes("Drawn" /* Drawn */);
           cg2.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -15150,9 +15164,8 @@ ${contextLines.join("\n")}`;
     state.count = 0;
     state.chessGroundShapes = [];
     state.expectedLine = parsedPGN.moves;
-    state.expectedMove = parsedPGN.moves[state.count];
+    state.expectedMove = state.expectedLine[state.count];
     state.pgnState = true;
-    document.querySelector("#navForward").disabled = false;
     chess.reset();
     chess.load(state.ankiFen);
     let branchIndex = null;
@@ -15160,15 +15173,17 @@ ${contextLines.join("\n")}`;
       const pathCount = parseInt(path[i], 10);
       if (path[i + 1] === "v") {
         branchIndex = parseInt(path[i + 2], 10);
-        i = i + 2;
+        i += 2;
       }
       for (let j = 0; j <= pathCount; j++) {
         if (branchIndex !== null && j === pathCount) {
-          state.count = 0;
-          state.expectedLine = state.expectedMove.variations[branchIndex];
-          state.expectedMove = state.expectedLine[0];
-          branchIndex = null;
-        } else {
+          if (state.expectedMove?.variations) {
+            state.count = 0;
+            state.expectedLine = state.expectedMove.variations[branchIndex];
+            state.expectedMove = state.expectedLine[0];
+            branchIndex = null;
+          }
+        } else if (state.expectedMove) {
           chess.move(state.expectedMove.notation.notation);
           state.count++;
           state.expectedMove = state.expectedLine[state.count];
@@ -15184,23 +15199,24 @@ ${contextLines.join("\n")}`;
         dests: toDests(chess)
       }
     });
+    const forwardButton = document.querySelector("#navForward");
+    if (forwardButton) forwardButton.disabled = !state.expectedMove;
     document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = false);
-    if (!state.expectedMove || typeof state.expectedMove === "string") {
-      document.querySelector("#navForward").disabled = true;
-    }
     if (state.analysisToggledOn) {
-      handleStockfish.startAnalysis(4e3);
+      startAnalysis(config.analysisTime);
     }
-    drawArrows(cg2, chess);
+    drawArrows();
     return chess.moves();
   }
   function onPgnMoveClick(event2) {
-    if (!event2.target.classList.contains("move")) return;
+    const target = event2.target;
+    if (!target || !target.classList.contains("move")) return;
     document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-    event2.target.classList.add("current");
-    const pathStr = event2.target.dataset.path;
-    const path = pathStr.split(",");
-    getFullMoveSequenceFromPath(path);
+    target.classList.add("current");
+    const pathStr = target.dataset.path;
+    if (pathStr) {
+      getFullMoveSequenceFromPath(pathStr.split(","));
+    }
   }
   function augmentPgnTree(moves, path = []) {
     if (!moves) return;
@@ -15218,11 +15234,15 @@ ${contextLines.join("\n")}`;
   }
   function highlightCurrentMove(pgnPath) {
     document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-    document.querySelector(`[data-path="${pgnPath.join(",")}"]`).classList.add("current");
+    const currentMoveEl = document.querySelector(`[data-path="${pgnPath.join(",")}"]`);
+    if (currentMoveEl) {
+      currentMoveEl.classList.add("current");
+    }
   }
   function initPgnViewer() {
     if (config.boardMode === "Puzzle") return;
     const pgnContainer = document.getElementById("pgnComment");
+    if (!pgnContainer) return;
     pgnContainer.innerHTML = "";
     if (parsedPGN.gameComment) {
       pgnContainer.innerHTML += `<span class="comment"> ${parsedPGN.gameComment.comment} </span>`;
@@ -15234,6 +15254,7 @@ ${contextLines.join("\n")}`;
       "use strict";
       init_chessFunctions();
       init_config2();
+      init_handleStockfish();
       init_nags();
     }
   });

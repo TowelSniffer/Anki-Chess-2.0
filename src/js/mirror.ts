@@ -1,17 +1,29 @@
-export function assignMirrorState(pgn) {
-  const states = ["original","original_mirror", "invert", "invert_mirror"];
+import type { PgnMove } from '@mliebelt/pgn-parser';
+
+// Define a specific type for the possible mirror states for type safety.
+export type MirrorState = "original" | "original_mirror" | "invert" | "invert_mirror";
+
+// A map for character-to-character substitution.
+type NotationMap = { [key: string]: string };
+
+
+// The _pgn parameter is prefixed with an underscore indicates it's intentionally unused
+export function assignMirrorState(_pgn: string): MirrorState {
+  const states: MirrorState[] = ["original", "original_mirror", "invert", "invert_mirror"];
   const mirrorRandom = Math.floor(Math.random() * states.length);
-  let mirrorState = states[mirrorRandom];
-
-  return mirrorState;
+  return states[mirrorRandom];
 }
 
-function mirrorFenRow(row) {
-  let result = row.split('').reverse().join('');
-  return result;
+// Reverses a single row of a FEN string.
+function mirrorFenRow(row: string): string {
+  return row.split('').reverse().join('');
 }
 
-export function mirrorFen(fullFen, mirrorState) {
+// Transforms a FEN string based on the given mirror state.
+export function mirrorFen(fullFen: string, mirrorState: MirrorState): string {
+  if (mirrorState === "original") {
+    return fullFen;
+  }
 
   const fenParts = fullFen.split(' ');
   const fenBoard = fenParts[0];
@@ -22,48 +34,48 @@ export function mirrorFen(fullFen, mirrorState) {
   const fenBoardInverted = swapCase(fenBoard.split('').reverse().join(''));
   const fenBoardMirrored = fenRows.map(mirrorFenRow).join('/');
   const fenBoardMirroredInverted = swapCase(fenBoardMirrored.split('').reverse().join(''));
-
   const fenColorSwapped = (fenColor === 'w') ? 'b' : 'w';
 
-  if ( mirrorState == "invert_mirror") {
-    return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
-  } else if (mirrorState == "invert") {
-    return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
-  } else if (mirrorState == "original_mirror") {
-    return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
-  } else {
-    return fullFen;
+  switch (mirrorState) {
+    case "invert_mirror":
+      return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
+    case "invert":
+      return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
+    case "original_mirror":
+      return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
+    default:
+      return fullFen;
   }
-
 }
 
-function swapCase(str) {
+function swapCase(str: string): string {
   return str.split('').map(ch =>
-    ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
+  ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
   ).join('');
 }
 
-function mirrorMove(move, mirrorState) {
-  var notations = {}
+function mirrorMove(move: PgnMove, mirrorState: MirrorState): void {
+  const notationMaps: Record<MirrorState, NotationMap> = {
+    "invert_mirror": { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', '1': '8', '2': '7', '3': '6', '4': '5', '5': '4', '6': '3', '7': '2', '8': '1' },
+    "invert": { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', '1': '8', '2': '7', '3': '6', '4': '5', '5': '4', '6': '3', '7': '2', '8': '1' },
+    "original_mirror": { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8' },
+    "original": { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8' }
+  };
 
-  const notationMaps = {
-    "invert_mirror": { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', 1: '8', 2: '7', 3: '6', 4: '5', 5: '4', 6: '3', 7: '2', 8: '1' },
-    "invert": { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', 1: '8', 2: '7', 3: '6', 4: '5', 5: '4', 6: '3', 7: '2', 8: '1' },
-    "original_mirror": { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8' },
-    "original": { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8' }
+  const notationMap = notationMaps[mirrorState];
+  const transform = (val: string | undefined): string | undefined => {
+    return val?.split('').map(char => notationMap[char] || char).join('');
   }
 
-  const notationMap = notationMaps[mirrorState] || notationMaps.original;
-
-  if (move.notation.disc) move.notation.disc = move.notation.disc.split('').map(char => notationMap[char] || char).join('');
-  if (move.notation.col) move.notation.col = move.notation.col.split('').map(char => notationMap[char] || char).join('');
-  if (move.notation.row) move.notation.row = move.notation.row.split('').map(char => notationMap[char] || char).join('');
-  move.notation.notation = move.notation.notation.split('').map(char => notationMap[char] || char).join('');
-
+  move.notation.disc = transform(move.notation.disc);
+  move.notation.col = transform(move.notation.col);
+  move.notation.row = transform(move.notation.row);
+  move.notation.notation = transform(move.notation.notation) ?? move.notation.notation;
 }
 
-export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
+export function mirrorPgnTree(moves: PgnMove[], mirrorState: MirrorState, parentMove: PgnMove | null = null): void {
   if (!moves || moves.length === 0) return;
+
   for (const move of moves) {
     if (move.variations) {
       move.variations.forEach(variation => {
@@ -71,74 +83,59 @@ export function mirrorPgnTree(moves, mirrorState, parentMove = null) {
       });
     }
   }
+
   const isInverted = mirrorState === 'invert' || mirrorState === 'invert_mirror';
-  let lastValidMoveNumber;
-  if (isInverted) {
-    const startsWithWhite = moves[0].turn === 'w';
-    if (startsWithWhite) {
-      // Case A: Sequence starts with White (e.g., "3. exd4 c4")
-      // Becomes: "3... exd4 4. c4"
-      for (const move of moves) {
-        mirrorMove(move, mirrorState);
-        const originalTurn = move.turn;
+  if (!isInverted) {
+    for (const move of moves) mirrorMove(move, mirrorState);
+    return;
+  }
 
-        if (originalTurn === 'w') {
-          move.turn = 'b';
-          if (move === moves[0]) {
-            move.moveNumber--;
-            lastValidMoveNumber = move.moveNumber;
-          } else {
-            move.moveNumber = null;
-          }
-        } else {
-          move.turn = 'w';
-          move.moveNumber = lastValidMoveNumber + 1;
-          lastValidMoveNumber = move.moveNumber;
-        }
-      }
-    } else {
-      // Case B: Sequence starts with Black (e.g., "3... exd4 4. c4")
-      // Becomes: "3. exd4 c4"
-      if (parentMove) {
-        lastValidMoveNumber = parentMove.moveNumber;
-      } else {
-        lastValidMoveNumber = moves[0].moveNumber;
-      }
+  let lastValidMoveNumber: number;
+  const startsWithWhite = moves[0].turn === 'w';
 
-      for (const move of moves) {
-        mirrorMove(move, mirrorState);
-        const originalTurn = move.turn;
-
-        if (originalTurn === 'b') {
-          move.turn = 'w';
-          if (move.moveNumber) {
-            lastValidMoveNumber = move.moveNumber;
-          } else {
-            if (move === moves[0]) {
-              move.moveNumber = lastValidMoveNumber;
-            } else {
-              move.moveNumber = lastValidMoveNumber + 1;
-              lastValidMoveNumber = move.moveNumber;
-            }
-          }
-        } else {
-          move.turn = 'b';
-          move.moveNumber = null;
-        }
-      }
-    }
-  } else {
-    // If not a full color inversion, just mirror coordinates.
-    for (const move of moves) {
+  if (startsWithWhite) {
+    // Case A: Sequence starts with White (e.g., "3. exd4 c4") -> "3... exd4 4. c4"
+    moves.forEach((move, index) => {
       mirrorMove(move, mirrorState);
+      if (move.turn === 'w') {
+        move.turn = 'b';
+    if (index === 0) {
+      move.moveNumber--;
+      lastValidMoveNumber = move.moveNumber;
+    } else {
+      move.moveNumber = undefined;
     }
+      } else {
+        move.turn = 'w';
+        move.moveNumber = lastValidMoveNumber + 1;
+        lastValidMoveNumber = move.moveNumber;
+      }
+    });
+  } else {
+    // Case B: Sequence starts with Black (e.g., "3... exd4 4. c4") -> "3. exd4 c4"
+    lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber;
+    moves.forEach((move, index) => {
+      mirrorMove(move, mirrorState);
+      if (move.turn === 'b') {
+        move.turn = 'w';
+    if (move.moveNumber) {
+      lastValidMoveNumber = move.moveNumber;
+    } else {
+      move.moveNumber = (index === 0) ? lastValidMoveNumber : lastValidMoveNumber + 1;
+      lastValidMoveNumber = move.moveNumber;
+    }
+      } else {
+        move.turn = 'b';
+        move.moveNumber = undefined;
+      }
+    });
   }
 }
 
-export function checkCastleRights(fen) {
-  const castlingPart = fen.split(' ')[2];
-  // If the castling part is not '-', at least one side has castling rights.
+export function checkCastleRights(fen: string): boolean {
+  const fenParts = fen.split(' ');
+  if (fenParts.length < 3) return false;
+
+  const castlingPart = fenParts[2];
   return castlingPart !== '-';
 }
-
-

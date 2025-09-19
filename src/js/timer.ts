@@ -1,76 +1,91 @@
-import { state, config, cg, chess } from './config';
+import { state, config, cg } from './config';
 import { cgwrap } from './chessFunctions';
 
-export let puzzleTimeout;
-let puzzleIncrement;
-let startTime;
-let totalTime;
-let remainingTime;
+// --- Module-level timer variables with explicit types ---
+export let puzzleTimeout: number | null = null;
+let puzzleIncrement: number | null = null;
+let startTime: number = 0;
+let totalTime: number = 0;
+let remainingTime: number = 0;
 
-let handleOutOfTime = function() {
+function handleOutOfTime(): void {
     if (config.timerScore) {
-        state.errorTrack = true;
+        state.errorTrack = 'true'; // Assuming 'true' is a possible value
         state.solvedColour = "#b31010";
     }
-    if (config.timerAdvance) state.puzzleComplete = true;
+    if (config.timerAdvance) {
+        state.puzzleComplete = true;
+    }
+
     window.parent.postMessage(state, '*');
     puzzleTimeout = null;
-    clearInterval(puzzleIncrement);
+    if (puzzleIncrement) clearInterval(puzzleIncrement);
     document.documentElement.style.setProperty('--remainingTime', '100%');
-};
+}
 
-export function extendPuzzleTime(additionalTime) {
-    if (config.boardMode === 'Viewer' || !config.timer) return
+export function extendPuzzleTime(additionalTime: number): void {
+    if (config.boardMode === 'Viewer' || !config.timer) return;
+
     if (puzzleTimeout) {
         clearTimeout(puzzleTimeout);
-        clearInterval(puzzleIncrement);
-        let elapsedTime = Date.now() - startTime;
-        let newDelay = remainingTime + additionalTime;
-        // Ensure the new delay is not negative
+        if (puzzleIncrement) clearInterval(puzzleIncrement);
+
+        const newDelay = remainingTime + additionalTime;
+
+        // Ensure the new delay is not negative before restarting the timer
         if (newDelay >= 0) {
             startPuzzleTimeout(newDelay);
         }
     }
 }
 
-export function startPuzzleTimeout(delay) {
+export function startPuzzleTimeout(delay: number): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
-    if (!config.timerScore) document.documentElement.style.setProperty('--timer-color', config.randomOrientation ? "#2CBFA7" : state.opponentColour);
+
+    // Clear any existing timers before starting a new one
+    if (puzzleTimeout) clearTimeout(puzzleTimeout);
+    if (puzzleIncrement) clearInterval(puzzleIncrement);
+
+    if (!config.timerScore) {
+        const timerColor = config.randomOrientation ? "#2CBFA7" : state.opponentColour;
+        document.documentElement.style.setProperty('--timer-color', timerColor);
+    }
     cgwrap.classList.add('timerMode');
-    puzzleTimeout = setTimeout(handleOutOfTime, delay);
-    totalTime = config.timer; // Set initial total time only once
+
+    puzzleTimeout = window.setTimeout(handleOutOfTime, delay);
+
     let usedTime = config.timer - delay;
+    totalTime = config.timer;
+
     if (usedTime < 0) {
-        totalTime -= usedTime;
+        totalTime -= usedTime; // Effectively increases total time if delay > config.timer
         usedTime = 0;
     }
+
     startTime = Date.now();
-    puzzleIncrement = setInterval(() => {
+
+    puzzleIncrement = window.setInterval(() => {
         if (state.puzzleComplete) {
             cgwrap.classList.remove('timerMode');
-            clearTimeout(puzzleTimeout);
-            clearInterval(puzzleIncrement);
-            return
+            if (puzzleTimeout) clearTimeout(puzzleTimeout);
+            if (puzzleIncrement) clearInterval(puzzleIncrement);
+            return;
         }
-        let elapsedTime = Date.now() - startTime;
-        remainingTime = totalTime - elapsedTime - usedTime;
 
-        // Ensure remaining time doesn't go negative
-        if (remainingTime < 0) {
-            remainingTime = 0;
-        }
+        const elapsedTime = Date.now() - startTime;
+        remainingTime = Math.max(0, totalTime - elapsedTime - usedTime);
+
+        // extend time when it's not the player's turn
         if (state.playerColour !== cg.state.turnColor) {
-            extendPuzzleTime(10)
-            return
+            extendPuzzleTime(10);
+            return;
         }
-        // Calculate the percentage of remaining time
-        let percentage = 100 - ((remainingTime / totalTime) * 100)
 
+        const percentage = 100 - ((remainingTime / totalTime) * 100);
         document.documentElement.style.setProperty('--remainingTime', `${percentage.toFixed(2)}%`);
 
-        // Stop the interval when time runs out
         if (remainingTime === 0) {
-            clearInterval(puzzleIncrement);
+            if (puzzleIncrement) clearInterval(puzzleIncrement);
         }
     }, 10);
 }

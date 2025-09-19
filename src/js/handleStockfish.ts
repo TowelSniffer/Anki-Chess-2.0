@@ -132,7 +132,7 @@ export function initializeStockfish(): Promise<void> {
 }
 
 export function startAnalysis(movetime: number): void {
-    if (chess.moves().length === 0 || state.analysisFen === 'none') {
+    if (chess.moves().length === 0 || state.analysisFen === 'none' || !state.analysisToggledOn) {
         return;
     }
 

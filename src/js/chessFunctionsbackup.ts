@@ -1,54 +1,36 @@
-import { Chess, SQUARES, Move, PieceSymbol } from 'chess.js';
-import { cg, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray } from './config';
-import { highlightCurrentMove, CustomPgnMove } from './pgnViewer';
+import { Chess, SQUARES } from 'chess.js';
+import { cg, cgwrap, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray } from './config';
+import { highlightCurrentMove } from './pgnViewer';
 import { extendPuzzleTime, startPuzzleTimeout, puzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
 import { startAnalysis } from './handleStockfish';
 import { positionPromoteOverlay } from './initializeUI';
 import nags from '../nags.json' assert { type: 'json' };
-import type { Color, Key, DrawShape } from 'chessground';
 
-// --- Type Definitions ---
-interface NagData {
-  [nagKey: string]: [string, string, string?]; // [description, symbol, image_url?]
+function toggleClass(querySelector, className) {
+  document.querySelectorAll('.' + querySelector).forEach(el => el.classList.toggle(`${className}`));
 }
 
-interface FindParentResult {
-  key: string;
-  parent: any;
+// PGN checks
+
+function isEndOfLine() {
+  return !state.expectedMove || typeof state.expectedMove === 'string';
 }
 
-// --- Module-level Variables ---
-export let cgwrap: HTMLDivElement | null = null; // Assigned asynchronously in setupTimer
-
-// --- DOM & UI Helpers ---
-
-function toggleClass(querySelector: string, className: string): void {
-  document.querySelectorAll('.' + querySelector).forEach(el => el.classList.toggle(className));
-}
-
-function getElement<T extends HTMLElement>(selector: string): T | null {
-  return document.querySelector<T>(selector);
-}
-
-// --- PGN State & Puzzle Logic ---
-
-function isEndOfLine(): boolean {
-  const isEnd = !state.expectedMove || typeof state.expectedMove === 'string';
-  if (isEnd) document.querySelector("#navForward").disabled = true;
-  return isEnd
-}
-
-function handlePuzzleComplete(): void {
+function handlePuzzleComplete() {
   state.puzzleComplete = true;
-  if (cgwrap) cgwrap.classList.remove('timerMode');
+  cgwrap.classList.remove('timerMode');
   htmlElement.style.setProperty('--border-color', state.solvedColour);
   cg.set({
+    selected: undefined, // Clear any selected square
+    draggable: {
+      current: undefined // Explicitly clear any currently dragged piece
+    },
     viewOnly: true
   });
 }
 
-function isPuzzleFailed(isFailed: boolean): void {
+function isPuzzleFailed(isFailed) {
   if (isFailed) { // manually fail
     state.errorTrack = true;
     state.solvedColour = "#b31010";
@@ -72,34 +54,35 @@ function isPuzzleFailed(isFailed: boolean): void {
     }
     handlePuzzleComplete()
   }
+
 }
 
-
-// --- Chess Logic Helpers ---
-
-export function toDests(chess: Chess): Map<Key, Key[]> {
-  const dests = new Map<Key, Key[]>();
+function toDests(chess) {
+  const dests = new Map();
   SQUARES.forEach(s => {
-    const ms = chess.moves({ square: s as Key, verbose: true });
-    if (ms.length) dests.set(s as Key, ms.map(m => m.to));
+    const ms = chess.moves({ square: s, verbose: true });
+    if (ms.length) dests.set(s, ms.map(m => m.to));
   });
     return dests;
 }
 
-export function toColor(chess: Chess): Color {
+function toColor(chess) {
   return chess.turn() === 'w' ? 'white' : 'black';
 }
 
-function getOpponentColor(chess: Chess): 'w' | 'b' {
+function getOpponentColor(chess) {
   return chess.turn() === 'w' ? 'b' : 'w';
 }
 
-function getLastMove(chess: Chess): Move | false {
-  const allMoves = chess.history({ verbose: true });
-  return allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
-}
+function getLastMove(chess) {
+  const allMoves = chess.history({ verbose: true }); // Get all moves with verbose details
 
-// --- Drawing & Shapes ---
+  if (allMoves.length > 0) {
+    return allMoves[allMoves.length - 1];
+  } else {
+    return false // No moves have been made yet.
+  }
+}
 
 function filterShapes(filterKey: ShapeFilter): void {
   let brushesToRemove = shapeArray[filterKey];
@@ -128,7 +111,7 @@ function filterShapes(filterKey: ShapeFilter): void {
   state.chessGroundShapes = filteredShapes;
 }
 
-export function drawArrows(redraw?: boolean): void {
+function drawArrows(redraw) {
   filterShapes(ShapeFilter.Stockfish)
   if (redraw) {
     cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -238,10 +221,7 @@ export function drawArrows(redraw?: boolean): void {
   cg.set({ drawable: { shapes: state.chessGroundShapes } });
 }
 
-
-// --- Board Interaction & Move Handling ---
-
-function updateBoard(move: Move, backwardPromote: boolean = false): void {
+function updateBoard(move, backwardPromote = null) {
   function cancelDefaultAnimation(chessInstance) {
     cg.set({ animation: { enabled: false} })
     cg.set({
@@ -299,7 +279,7 @@ function updateBoard(move: Move, backwardPromote: boolean = false): void {
          turnColor: toColor(chess),
          movable: {
            dests: toDests(chess),
-         color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
+           color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
          },
          lastMove: [move.from, move.to]
   });
@@ -309,15 +289,14 @@ function updateBoard(move: Move, backwardPromote: boolean = false): void {
   startAnalysis(config.analysisTime);
 }
 
-function makeMove(move: string | { from: Key; to: Key; promotion?: PieceSymbol }): Move | null {
+function makeMove(move) {
   const moveResult = chess.move(move);
-  if (moveResult) {
-    updateBoard(moveResult);
-  }
+  if (!moveResult) return null;
+  updateBoard(moveResult);
   return moveResult;
 }
 
-function puzzlePlay(delay: number, orig: Key | { san: string }, dest?: Key): void {
+function puzzlePlay(delay, orig, dest) {
   const tempChess = new Chess(chess.fen());
   let tempMove = false;
   if (dest) {
@@ -338,23 +317,24 @@ function puzzlePlay(delay: number, orig: Key | { san: string }, dest?: Key): voi
   }
 }
 
-function handleViewerMove(orig: Key | { san: string }, dest?: Key): void {
+function handleViewerMove(orig, dest) {
   const tempChess = new Chess(chess.fen());
-  const move = typeof orig === 'string'
-  ? tempChess.move({ from: orig, to: dest!, promotion: 'q' })
-  : tempChess.move(orig.san);
-
-  if (!move) return;
-
-  if (move.flags.includes("p") && dest) {
-    promotePopup(orig as Key, dest, null);
+  let move;
+  let promoCheck = false;
+  if (dest) {
+    move = tempChess.move({ from: orig, to: dest, promotion: 'q' });
+    promoCheck = true;
+  } else {
+    move = tempChess.move(orig.san);
+  }
+  if (move.flags.includes("p") && promoCheck) {
+    promotePopup(move.from, move.to, null)
   } else {
     checkUserMove(move.san, null);
-    isEndOfLine();
   }
 }
 
-function playAiMove(delay: number): void {
+function playAiMove(delay) {
   setTimeout(() => {
     if (isEndOfLine()) return;
     state.errorCount = 0;
@@ -376,7 +356,8 @@ function playAiMove(delay: number): void {
     state.debounceCheck = false;
   }, delay);
 }
-function playUserCorrectMove(delay: number): void {
+
+function playUserCorrectMove(delay) {
   setTimeout(() => {
     cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
     if (isEndOfLine()) return;
@@ -391,7 +372,7 @@ function playUserCorrectMove(delay: number): void {
   }, delay);
 }
 
-function handleWrongMove(move: Move): void {
+function handleWrongMove(move) {
   state.errorCount++;
   cg.move(move.from, move.to)
   playSound("Error");
@@ -415,8 +396,7 @@ function handleWrongMove(move: Move): void {
   }
 }
 
-
-function checkUserMove(moveSan: string, delay: number | null): boolean {
+function checkUserMove(moveSan, delay) {
   const tempChess = new Chess(chess.fen());
   const moveAttempt = tempChess.move(moveSan);
 
@@ -459,8 +439,7 @@ function checkUserMove(moveSan: string, delay: number | null): boolean {
   return foundVariation
 }
 
-
-function promotePopup(orig: Key, dest: Key, delay: number | null): void {
+function promotePopup(orig, dest, delay) {
   const cancelPopup = function(){
     state.promoteAnimate = true;
     cg.set({
@@ -468,7 +447,7 @@ function promotePopup(orig: Key, dest: Key, delay: number | null): void {
            turnColor: toColor(chess),
            movable: {
              color: toColor(chess),
-           dests: toDests(chess)
+             dests: toDests(chess)
            }
     });
     toggleClass('showHide', 'hidden');
@@ -500,8 +479,7 @@ function promotePopup(orig: Key, dest: Key, delay: number | null): void {
   toggleClass('showHide', 'hidden');
   positionPromoteOverlay();
 }
-
-function findParentLine(obj: any, targetChild: CustomPgnMove[]): FindParentResult | null {
+function findParentLine(obj, targetChild) { // used to find previous line in PGN
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       const value = obj[key];
@@ -522,16 +500,44 @@ function findParentLine(obj: any, targetChild: CustomPgnMove[]): FindParentResul
   }
   return null;
 };
-// --- Navigation ---
 
-function handlePgnState(pgnState: boolean): void {
+function handlePgnState(pgnState) {
   state.pgnState = pgnState;
-  const forwardButton = getElement<HTMLButtonElement>("#navForward");
-  if (forwardButton) forwardButton.disabled = !pgnState;
+  document.querySelector("#navForward").disabled = !pgnState;
 }
 
-export function navBackward(): void {
+function waitForElement(selector) {
+  return new Promise(resolve => {
 
+    const element = document.querySelector(selector);
+    if (element) {
+      resolve(element);
+      return;
+    }
+
+    const observer = new MutationObserver(mutations => {
+      const targetElement = document.querySelector(selector);
+      if (targetElement) {
+        resolve(targetElement);
+        observer.disconnect(); // Clean up the observer
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
+}
+
+// gloabal chessground board
+let cgwrap: HTMLDivElement | null = null;
+async function setupTimer() {
+  cgwrap = await waitForElement('.cg-wrap');
+  startPuzzleTimeout(config.timer);
+}
+
+function navBackward() {
   if (config.boardMode === 'Puzzle') return;
   const lastMove = chess.undo();
   if (lastMove) {
@@ -584,27 +590,39 @@ export function navBackward(): void {
   }
   startAnalysis(config.analysisTime);
 }
-
-export function navForward(): void {
+function navForward() {
   if (config.boardMode === 'Puzzle' || !state.pgnState || !state.expectedMove?.notation) return;
   const tempChess = new Chess(chess.fen());
   const move = tempChess.move(state.expectedMove?.notation?.notation);
   if (move) {
     puzzlePlay(null, move.from, move.to);
   }
-  isEndOfLine();
   document.querySelector("#navBackward").disabled = false;
   document.querySelector("#resetBoard").disabled = false;
+  if (isEndOfLine()) {
+    document.querySelector("#navForward").disabled = true;
+  }
 }
-
-// --- Board Actions ---
-
-export function rotateBoard(): void {
-  state.boardRotation = (state.boardRotation === 'white') ? 'black' : 'white';
-  cg.set({ orientation: state.boardRotation });
+function rotateBoard() {
+  state.boardRotation = ((state.boardRotation === 'white') ? 'black' : 'white')
+  const root = htmlElement;
+  // Get the current values of the CSS variables
+  const coordWhite = getComputedStyle(root).getPropertyValue('--coord-white').trim();
+  const coordBlack = getComputedStyle(root).getPropertyValue('--coord-black').trim();
+  // Swap the values. so coord colors are correct
+  root.style.setProperty('--coord-white', coordBlack);
+  root.style.setProperty('--coord-black', coordWhite);
+  cg.set({
+    orientation: state.boardRotation
+  });
+  const flipButton = document.querySelector(".flipBoardIcon");
+  if (flipButton.style.transform.includes("90deg")) {
+    flipButton.style.transform = "rotate(270deg)";
+  } else {
+    flipButton.style.transform = "rotate(90deg)";
+  }
 }
-
-export function resetBoard(): void {
+function resetBoard() {
   state.count = 0; // Int so we can track on which move we are.
   state.chessGroundShapes = [];
   state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
@@ -619,7 +637,7 @@ export function resetBoard(): void {
          orientation: state.boardRotation,
          movable: {
            color: toColor(chess),
-         dests: toDests(chess)
+           dests: toDests(chess)
          }
   });
   document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
@@ -628,9 +646,7 @@ export function resetBoard(): void {
   startAnalysis(config.analysisTime);
   drawArrows();
 }
-
-
-export function copyFen(): boolean {
+function copyFen() { //copy FEN to clipboard
   let textarea = document.createElement("textarea");
   textarea.value = chess.fen();
   // Make the textarea invisible and off-screen
@@ -651,35 +667,7 @@ export function copyFen(): boolean {
   }
 }
 
-// --- Initialization ---
-
-async function setupTimer(): Promise<void> {
-  const element = await waitForElement('.cg-wrap');
-  cgwrap = element as HTMLElement;
-  if (config.timer) {
-    startPuzzleTimeout(config.timer);
-  }
-}
-
-function waitForElement<T extends Element>(selector: string): Promise<T> {
-  return new Promise(resolve => {
-    const element = document.querySelector<T>(selector);
-    if (element) {
-      return resolve(element);
-    }
-    const observer = new MutationObserver(() => {
-      const element = document.querySelector<T>(selector);
-      if (element) {
-        observer.disconnect();
-        resolve(element);
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
-}
-
-
-export function reload(): void {
+function reload() {
   // Load beggining state for pgn
   state.count = 0;
   state.expectedLine = parsedPGN.moves;
@@ -689,64 +677,58 @@ export function reload(): void {
   cg.set({
     fen: state.ankiFen,
     orientation: config.randomOrientation ? ['black', 'white'][Math.floor(Math.random() * 2)] : state.playerColour,
-         turnColor: toColor(chess),
-         events: {
-           change: () => {
-             // called after the situation changes on the board
-           },
-           move: (orig, dest, capturedPiece) => {
-             // will call on any user move.
-           },
-           select: (key) => {
-             filterShapes(ShapeFilter.Drawn);
-             cg.set({drawable: {shapes: state.chessGroundShapes}});
-             setTimeout(() => { // 0ms timout to run thise after "after:" event
-               if (state.debounceCheck) return;
+    turnColor: toColor(chess),
+    events: {
+      select: (key) => {
+        filterShapes(ShapeFilter.Drawn);
+        cg.set({drawable: {shapes: state.chessGroundShapes}});
+        setTimeout(() => { // 0ms timout to run thise after "after:" event
+          if (state.debounceCheck) return;
 
-               const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
-               const arrowMove = state.chessGroundShapes
-               .filter(shape => shape.dest === key && priority.includes(shape.brush))
-               .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
-               if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
-                 // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
-                 if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
-                   handlePgnState(false);
-                 }
-                 handleViewerMove(arrowMove[0], null);
-               } else { // No arrow was clicked, check if there's only one legal play to this square.
-                 const allMoves = chess.moves({ verbose: true });
-                 const movesToSquare = allMoves.filter(move => move.to === key);
-                 if (movesToSquare.length === 1) {
-                   // If only one piece can move to this square, play that move.
-                   if (config.boardMode === 'Puzzle') {
-                     puzzlePlay(300, movesToSquare[0], null);
-                   } else if (config.boardMode === 'Viewer') {
-                     handleViewerMove(movesToSquare[0], null);
-                   }
-                 }
-               }
-             }, 0);
-           },
-         },
-         movable: {
-            color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
-            dests: toDests(chess),
-            events: {
-              after: (orig, dest) => {
-                state.debounceCheck = true;
-                if (config.boardMode === 'Puzzle') {
-                  puzzlePlay(300, orig, dest);
-                } else {
-                  // Viewer mode
-                  handleViewerMove(orig, dest);
-                  setTimeout(() => { // que after select: event
-                    state.debounceCheck = false;
-                  }, 0);
-                }
-              },
+          const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
+          const arrowMove = state.chessGroundShapes
+          .filter(shape => shape.dest === key && priority.includes(shape.brush))
+          .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
+          if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
+            // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
+            if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
+              handlePgnState(false);
             }
-         },
-         check: chess.inCheck(),
+            handleViewerMove(arrowMove[0], null);
+          } else { // No arrow was clicked, check if there's only one legal play to this square.
+            const allMoves = chess.moves({ verbose: true });
+            const movesToSquare = allMoves.filter(move => move.to === key);
+            if (movesToSquare.length === 1) {
+              // If only one piece can move to this square, play that move.
+              if (config.boardMode === 'Puzzle') {
+                puzzlePlay(300, movesToSquare[0], null);
+              } else if (config.boardMode === 'Viewer') {
+                handleViewerMove(movesToSquare[0], null);
+              }
+            }
+          }
+        }, 0);
+      },
+    },
+    movable: {
+      color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
+      dests: toDests(chess),
+      events: {
+        after: (orig, dest) => {
+          state.debounceCheck = true;
+          if (config.boardMode === 'Puzzle') {
+            puzzlePlay(300, orig, dest);
+          } else {
+            // Viewer mode
+            handleViewerMove(orig, dest);
+            setTimeout(() => { // que after select: event
+              state.debounceCheck = false;
+            }, 0);
+          }
+        }
+      }
+    },
+    check: chess.inCheck(),
   });
   if (config.boardMode === 'Viewer') {
     cg.set({
@@ -763,3 +745,5 @@ export function reload(): void {
   setupTimer()
 
 }
+
+export  { cgwrap, reload, resetBoard, navBackward, navForward, rotateBoard, copyFen, toDests, toColor, drawArrows }
