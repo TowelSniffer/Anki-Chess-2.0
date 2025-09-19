@@ -2,7 +2,7 @@
 
 I have made a [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) to simplify this process. Note this is not required for the template to work, it just tries to make installation/updating easier. This is a note template so it will run without addons. 
 
-## How to install
+## Manual installation
 
 either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) or manually install:
 
@@ -17,7 +17,7 @@ either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1
 
 either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) or manually update:
 
-The upgrade process is typically the same as the installation process explained in the [previous section](##How to install). 
+The upgrade process is typically the same as the installation process explained in the [previous section](#Manual-installation). 
 
 ### issues on other devices after updating 
 
