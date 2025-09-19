@@ -13,11 +13,15 @@ either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1
 1. Browse for and select the downloaded file `chess.apkg`.
 1. Download the dist.zip folder and extract. Copy the contents of the dist folder into you anki collection.media folder
 
-## Upgrading
+## Updating
 
 either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) or manually update:
 
-The upgrade process is typically the same as the installation process explained in the [previous section](###How to install). However, when upgrading media files, it is important to fist delete them from your media folder and then sync. this will remove the old files from the anki servers and will allow each device to sync without issues.
+The upgrade process is typically the same as the installation process explained in the [previous section](##How to install). 
+
+### issues on other devices after updating 
+
+when upgrading media files,some people report that anki doesn't update the matching files on its server and other devices as it's supposed to which can lead to the template not updating properly on other devices. it is important to fist delete them from your collection.media folder on desktop and then sync all your devices. this will remove the old files from the anki servers and will allow each device to sync without issues.
 
 ### Build from source
 
