@@ -30,22 +30,13 @@ https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
 
 [walktrough Video](https://youtu.be/UpNYGrnCmEE?si=QHdeiV7oE8pgA6pC)
 
-### How to install/update
+### [How to install/update](documentation/installation.md)
 
-[See here](documentation/installation.md)
+### [Card Creation](documentation/cardCreation.md)
 
-### Card Creation
+### [Customization](documentation/userConfig.md)
 
-[See here](documentation/cardCreation.md)
-
-### Customization
-
-[See here](documentation/userConfig.md)
-
-
-## Compatability Issues
-
-[See here](documentation/compatability.md)
+### [Compatability Issues](documentation/compatability.md)
 
 ## Shared decks
 
