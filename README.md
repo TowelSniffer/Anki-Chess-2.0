@@ -28,8 +28,6 @@ https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
 
 ## Getting started
 
-[walktrough Video](https://youtu.be/UpNYGrnCmEE?si=QHdeiV7oE8pgA6pC)
-
 ### [How to install/update](documentation/installation.md)
 
 ### [Card Creation](documentation/cardCreation.md)
@@ -37,6 +35,8 @@ https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
 ### [Customization](documentation/userConfig.md)
 
 ### [Compatability Issues](documentation/compatability.md)
+
+[walktrough Video](https://youtu.be/UpNYGrnCmEE?si=QHdeiV7oE8pgA6pC)
 
 ## Shared decks
 
