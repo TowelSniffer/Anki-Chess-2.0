@@ -11,6 +11,52 @@ function toggleClass(querySelector, className) {
   document.querySelectorAll('.' + querySelector).forEach(el => el.classList.toggle(`${className}`));
 }
 
+// PGN checks
+
+function isEndOfLine() {
+  return !state.expectedMove || typeof state.expectedMove === 'string';
+}
+
+function handlePuzzleComplete() {
+  state.puzzleComplete = true;
+  cgwrap.classList.remove('timerMode');
+  htmlElement.style.setProperty('--border-color', state.solvedColour);
+  cg.set({
+    selected: undefined, // Clear any selected square
+    draggable: {
+      current: undefined // Explicitly clear any currently dragged piece
+    },
+    viewOnly: true
+  });
+}
+
+function isPuzzleFailed(isFailed) {
+  if (isFailed) { // manually fail
+    state.errorTrack = true;
+    state.solvedColour = "#b31010";
+    if (config.handicapAdvance) {
+      handlePuzzleComplete();
+      setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+    } else {
+      window.parent.postMessage(state, '*');
+    }
+  } else { // correct
+    console.log(state.errorTrack)
+    state.errorTrack = state.errorTrack ? true : "correct";
+    if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
+      state.solvedColour = "#2CBFA7";
+      state.errorTrack = "correctTime";
+    }
+    if (config.autoAdvance) {
+      setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+    } else {
+      window.parent.postMessage(state, '*');
+    }
+    handlePuzzleComplete()
+  }
+
+}
+
 function toDests(chess) {
   const dests = new Map();
   SQUARES.forEach(s => {
@@ -75,10 +121,9 @@ function drawArrows(redraw) {
     state.chessGroundShapes = [];
     return
   }
-  state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine' && shape.customSvg?.brush !== 'moveType');
-  if (config.boardMode === 'Puzzle' && config.disableArrows) {
-    return;
-  }
+  filterShapes(ShapeFilter.All);
+
+  if (config.boardMode === 'Puzzle' && config.disableArrows) return;
 
   let expectedMove = state.expectedMove;
   let expectedLine = state.expectedLine;
@@ -176,20 +221,23 @@ function drawArrows(redraw) {
   cg.set({ drawable: { shapes: state.chessGroundShapes } });
 }
 
-function updateBoard(move, quite) { // animate user/ai moves on chessground
-  if (!quite) { changeAudio(move) }
-  if (!state.analysisToggledOn) {
-    cgwrap.classList.remove('analysisMode');
+function updateBoard(move, backwardPromote = null) {
+  function cancelDefaultAnimation(chessInstance) {
+    cg.set({ animation: { enabled: false} })
+    cg.set({
+      fen: chessInstance.fen(),
+    });
+    cg.set({ animation: { enabled: true} })
   }
   if (!state.pgnState) {
     state.chessGroundShapes = [];
   }
   state.lastMove = getLastMove(chess).san;
-  if (state.pgnState && state.lastMove === state.expectedMove.notation.notation ) {
+  if (state.pgnState && state.lastMove === state.expectedMove?.notation.notation ) {
     state.pgnPath = state.expectedMove.pgnPath;
     window.parent.postMessage(state, '*');
   }
-  if (move.flags.includes("p") && state.promoteAnimate) {
+  if (move.flags.includes("p") && state.promoteAnimate && !backwardPromote) {
     const tempChess = new Chess(chess.fen());
     tempChess.load(chess.fen());
     tempChess.remove(move.from);
@@ -198,19 +246,28 @@ function updateBoard(move, quite) { // animate user/ai moves on chessground
       fen: tempChess.fen(),
     });
     setTimeout(() => {
-      cg.set({ animation: { enabled: false} })
-      cg.set({
-        fen: chess.fen(),
-      });
-      cg.set({ animation: { enabled: true} });
+      cancelDefaultAnimation(chess)
       drawArrows();
     }, 200)
-  } else if (move.flags.includes("e") && state.debounceTimeout) {
+  } else if (move.flags.includes("p") && backwardPromote) { // nav back promote
+    const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
+    const tempChess = new Chess(chess.fen()); // new chess instance to no break old one
+    tempChess.load(FENpos);
+    tempChess.remove(move.to);
+    tempChess.remove(move.from);
+    tempChess.put({ type: 'p', color: chess.turn() }, move.to);
     cg.set({ animation: { enabled: false} })
     cg.set({
-      fen: chess.fen(),
+      fen: tempChess.fen(),
     });
+    tempChess.remove(move.to);
+    tempChess.put({ type: 'p', color: chess.turn() }, move.from);
     cg.set({ animation: { enabled: true} })
+    cg.set({
+      fen: FENpos
+    });
+  } else if (move.flags.includes("e") && state.debounceCheck) {
+    cancelDefaultAnimation(chess)
     cg.set({
       fen: chess.fen(),
     });
@@ -222,18 +279,14 @@ function updateBoard(move, quite) { // animate user/ai moves on chessground
          turnColor: toColor(chess),
          movable: {
            dests: toDests(chess),
-         // In Puzzle mode, the movable color is fixed to the user's side to allow premoves.
-         // In Viewer mode, it follows the current turn.
-         color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
+           color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
          },
          lastMove: [move.from, move.to]
   });
   document.querySelector("#navBackward").disabled = false;
   document.querySelector("#resetBoard").disabled = false;
-  if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
-  if (state.analysisToggledOn) {
-    startAnalysis(config.analysisTime);
-  }
+  if (config.boardMode === "Viewer" && state.pgnState && !isEndOfLine()) highlightCurrentMove(state.expectedMove.pgnPath);
+  startAnalysis(config.analysisTime);
 }
 
 function makeMove(move) {
@@ -253,7 +306,7 @@ function puzzlePlay(delay, orig, dest) {
   }
   if (!tempMove) {
     setTimeout(() => { // que after select: event
-      state.debounceTimeout = false;
+      state.debounceCheck = false;
     }, 0);
     return
   };
@@ -279,14 +332,11 @@ function handleViewerMove(orig, dest) {
   } else {
     checkUserMove(move.san, null);
   }
-  if (!state.expectedMove || typeof state.expectedMove === 'string') {
-    document.querySelector("#navForward").disabled = true;
-  }
 }
 
 function playAiMove(delay) {
   setTimeout(() => {
-    if (!state.expectedMove || typeof state.expectedMove === 'string') return;
+    if (isEndOfLine()) return;
     state.errorCount = 0;
     if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
       const moveVar = Math.floor(Math.random() * (state.expectedMove.variations.length + 1));
@@ -300,54 +350,24 @@ function playAiMove(delay) {
     state.count++;
     state.expectedMove = state.expectedLine[state.count];
 
-    if (!state.expectedMove || typeof state.expectedMove === 'string') {
-      // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-      if (state.errorTrack === null) state.errorTrack = "correct";
-      state.puzzleComplete = true;
-      if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
-        state.solvedColour = "#66AAAA";
-        state.errorTrack = "correctTime";
-      }
-      if (config.autoAdvance) {
-        setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-      } else {
-        window.parent.postMessage(state, '*');
-      }
-      cgwrap.classList.remove('timerMode');
-      htmlElement.style.setProperty('--border-color', state.solvedColour);
-      cg.set({
-        selected: undefined, // Clear any selected square
-        draggable: {
-          current: undefined // Explicitly clear any currently dragged piece
-        },
-        viewOnly: true
-      });
-    }
+    if (isEndOfLine()) isPuzzleFailed(false);
+
     drawArrows(true);
-    state.debounceTimeout = false;
+    state.debounceCheck = false;
   }, delay);
 }
 
 function playUserCorrectMove(delay) {
   setTimeout(() => {
     cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
-    if (!state.expectedMove || typeof state.expectedMove === 'string') return;
-    state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.customSvg?.brush !== 'moveType');
+    if (isEndOfLine()) return;
     // Make the move without the AI's variation-selection logic
     makeMove(state.expectedMove.notation.notation);
     state.count++;
     state.expectedMove = state.expectedLine[state.count];
-    if (!state.expectedMove || typeof state.expectedMove === 'string') {
-      state.puzzleComplete = true;
+    if (isEndOfLine()) {
+      handlePuzzleComplete();
       setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-      htmlElement.style.setProperty('--border-color', state.solvedColour);
-      cg.set({
-        selected: undefined, // Clear any selected square
-        draggable: {
-          current: undefined // Explicitly clear any currently dragged piece
-        },
-        viewOnly: true
-      });
     }
   }, delay);
 }
@@ -358,30 +378,20 @@ function handleWrongMove(move) {
   playSound("Error");
   // A puzzle is "failed" for scoring purposes if strict mode is on, or the handicap is exceeded.
   const isFailed = config.strictScoring || state.errorCount > config.handicap;
-  if (isFailed) {
-    state.errorTrack = true;
-    state.solvedColour = "#b31010";
-    if (config.handicapAdvance) {
-      htmlElement.style.setProperty('--border-color', state.solvedColour);
-      state.puzzleComplete = true;
-      setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-      return
-    } else {
-      window.parent.postMessage(state, '*');
-    }
-  }
-  updateBoard(move, true, true);
+  if (isFailed) isPuzzleFailed(true);
+
+  updateBoard(move);
   // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
   if (state.errorCount > config.handicap) {
     cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
     playUserCorrectMove(300); // Show the correct user move
     playAiMove(600); // Then play the AI's response
     setTimeout(() => { // que after select: event
-      state.debounceTimeout = false;
+      state.debounceCheck = false;
     }, 0);
   } else {
     setTimeout(() => { // que after select: event
-      state.debounceTimeout = false;
+      state.debounceCheck = false;
     }, 0);
   }
 }
@@ -408,11 +418,7 @@ function checkUserMove(moveSan, delay) {
   }
   if (foundVariation) {
     const isBlunder = state.expectedMove.nag?.some(nags => state.blunderNags.includes(nags));
-    if (isBlunder) {
-      state.errorTrack = true;
-      window.parent.postMessage(state, '*');
-      state.solvedColour = "#b31010";
-    }
+    if (isBlunder) isPuzzleFailed(true);
     extendPuzzleTime(config.increment);
     makeMove(moveAttempt);
     state.count++;
@@ -420,35 +426,14 @@ function checkUserMove(moveSan, delay) {
     if (state.expectedMove && delay) {
       playAiMove(delay);
     } else if (delay) {
-      // explicitly set state.errorTrack to false (as opposed to null) to track a correct answer
-      if (state.errorTrack === null) state.errorTrack = "correct";
-      if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
-        state.solvedColour = "#2CBFA7";
-        state.errorTrack = "correctTime";
-      }
-      state.puzzleComplete = true;
-      if (config.autoAdvance) {
-        setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
-      } else {
-        window.parent.postMessage(state, '*');
-      }
-      cgwrap.classList.remove('timerMode');
-      htmlElement.style.setProperty('--border-color', state.solvedColour);
-      cg.set({
-        selected: undefined, // Clear any selected square
-        draggable: {
-          current: undefined // Explicitly clear any currently dragged piece
-        },
-        viewOnly: true
-      });
+      isPuzzleFailed(false)
     }
     drawArrows();
   } else if (delay) {
     handleWrongMove(moveAttempt);
     drawArrows(true);
   } else if (!delay) { // no delay passed from viewer mode
-    state.pgnState = false;
-    document.querySelector("#navForward").disabled = true;
+    handlePgnState(false);
     makeMove(moveAttempt);
   }
   return foundVariation
@@ -462,7 +447,7 @@ function promotePopup(orig, dest, delay) {
            turnColor: toColor(chess),
            movable: {
              color: toColor(chess),
-           dests: toDests(chess)
+             dests: toDests(chess)
            }
     });
     toggleClass('showHide', 'hidden');
@@ -487,7 +472,7 @@ function promotePopup(orig, dest, delay) {
     overlay.onclick = function() {
       cancelPopup();
       setTimeout(() => { // que after select: event
-        state.debounceTimeout = false;
+        state.debounceCheck = false;
       }, 0);
     }
   }
@@ -515,6 +500,11 @@ function findParentLine(obj, targetChild) { // used to find previous line in PGN
   }
   return null;
 };
+
+function handlePgnState(pgnState) {
+  state.pgnState = pgnState;
+  document.querySelector("#navForward").disabled = !pgnState;
+}
 
 function waitForElement(selector) {
   return new Promise(resolve => {
@@ -550,38 +540,8 @@ async function setupTimer() {
 function navBackward() {
   if (config.boardMode === 'Puzzle') return;
   const lastMove = chess.undo();
-  const FENpos = chess.fen(); // used to track when udoing captured with promoted piece
   if (lastMove) {
-    if (lastMove.promotion) { // fix promotion animation
-      const tempChess = new Chess(chess.fen()); // new chess instance to no break old one
-      tempChess.load(FENpos);
-      tempChess.remove(lastMove.to);
-      tempChess.remove(lastMove.from);
-      tempChess.put({ type: 'p', color: chess.turn() }, lastMove.to);
-      cg.set({ animation: { enabled: false} })
-      cg.set({
-        fen: tempChess.fen(),
-      });
-      tempChess.remove(lastMove.to);
-      tempChess.put({ type: 'p', color: chess.turn() }, lastMove.from);
-      cg.set({ animation: { enabled: true} })
-      cg.set({
-        fen: FENpos
-      });
-    } else {
-      cg.set({
-        fen: chess.fen()
-      });
-    }
-    cg.set({
-      check: chess.inCheck(),
-           turnColor: toColor(chess),
-           movable: {
-             color: toColor(chess),
-           dests: toDests(chess)
-           },
-           lastMove: [lastMove.from, lastMove.to]
-    });
+    updateBoard(lastMove, true)
     if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
       state.count--
       state.expectedMove = state.expectedLine[state.count];
@@ -599,19 +559,11 @@ function navBackward() {
       }
     }
     if (state.count === 0 && state.ankiFen !== chess.fen()) {
-      if (state.analysisToggledOn) {
-        startAnalysis(config.analysisTime);
-      }
       return;
-    } else if (state.count === 0) {
-      state.pgnState = true; // needed for returning to first move from variation
-      document.querySelector("#navForward").disabled = false;
-    } else if (state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
-      state.pgnState = true; // inside PGN
-      document.querySelector("#navForward").disabled = false;
+    } else if (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
+      handlePgnState(true);
     }
   }
-  state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.customSvg?.brush !== 'moveType');
   drawArrows();
   if (config.boardMode === "Viewer") {
     let expectedMove = state.expectedMove;
@@ -636,9 +588,7 @@ function navBackward() {
       document.querySelectorAll('#navBackward, #resetBoard').forEach(el => el.disabled = true);
     }
   }
-  if (state.analysisToggledOn) {
-    startAnalysis(config.analysisTime);
-  }
+  startAnalysis(config.analysisTime);
 }
 function navForward() {
   if (config.boardMode === 'Puzzle' || !state.pgnState || !state.expectedMove?.notation) return;
@@ -649,7 +599,7 @@ function navForward() {
   }
   document.querySelector("#navBackward").disabled = false;
   document.querySelector("#resetBoard").disabled = false;
-  if (!state.expectedMove || typeof state.expectedMove === 'string') {
+  if (isEndOfLine()) {
     document.querySelector("#navForward").disabled = true;
   }
 }
@@ -677,8 +627,7 @@ function resetBoard() {
   state.chessGroundShapes = [];
   state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
   state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
-  state.pgnState = true; // incase outside PGN
-  document.querySelector("#navForward").disabled = false;
+  handlePgnState(true);
   chess.reset();
   chess.load(state.ankiFen);
   cg.set({
@@ -688,15 +637,13 @@ function resetBoard() {
          orientation: state.boardRotation,
          movable: {
            color: toColor(chess),
-         dests: toDests(chess)
+           dests: toDests(chess)
          }
   });
   document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
   document.querySelector("#navBackward").disabled = true;
   document.querySelector("#resetBoard").disabled = true;
-  if (state.analysisToggledOn) {
-    startAnalysis(config.analysisTime);
-  }
+  startAnalysis(config.analysisTime);
   drawArrows();
 }
 function copyFen() { //copy FEN to clipboard
@@ -733,11 +680,10 @@ function reload() {
     turnColor: toColor(chess),
     events: {
       select: (key) => {
-        filterShapes(ShapeFilter.Drawn)
+        filterShapes(ShapeFilter.Drawn);
         cg.set({drawable: {shapes: state.chessGroundShapes}});
         setTimeout(() => { // 0ms timout to run thise after "after:" event
-          if (state.debounceTimeout) return;
-
+          if (state.debounceCheck) return;
 
           const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
           const arrowMove = state.chessGroundShapes
@@ -746,9 +692,7 @@ function reload() {
           if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
             // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
             if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
-              state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'mainLine' && shape.brush !== 'altLine' && shape.brush !== 'blunderLine');
-              state.pgnState = false;
-              document.querySelector("#navForward").disabled = true;
+              handlePgnState(false);
             }
             handleViewerMove(arrowMove[0], null);
           } else { // No arrow was clicked, check if there's only one legal play to this square.
@@ -771,14 +715,14 @@ function reload() {
       dests: toDests(chess),
       events: {
         after: (orig, dest) => {
-          state.debounceTimeout = true;
+          state.debounceCheck = true;
           if (config.boardMode === 'Puzzle') {
             puzzlePlay(300, orig, dest);
           } else {
             // Viewer mode
             handleViewerMove(orig, dest);
             setTimeout(() => { // que after select: event
-              state.debounceTimeout = false;
+              state.debounceCheck = false;
             }, 0);
           }
         }
