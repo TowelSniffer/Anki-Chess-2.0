@@ -17,7 +17,7 @@ either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1
 
 either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) or manually update:
 
-The upgrade process is typically the same as the installation process explained in the [previous section](###How to install). However, when upgrading media files, it is important to fist delete them from your media folder and then sync. this will remove the old files from the anki servers and will allow each device to sync without issues.
+The upgrade process is typically the same as the installation process explained in the [previous section](##How to install). However, when upgrading media files, it is important to fist delete them from your media folder and then sync. this will remove the old files from the anki servers and will allow each device to sync without issues.
 
 ### Build from source
 
