@@ -15,6 +15,14 @@ If you run into problems loading cards, please check that formatting is correct.
 
 Numeric Annotation Glyphs or NAGs are used to annotate chess games when using a computer, typically providing an assessment of a chess move or a chess position. Blunders can be marked with ??, ? or ?!, or their equivilent numeric annotation $4, $2 or $6. Good (! or $1) and Excellent (!! or $3) moves will also show an icon when played on front side. 
 
+eg: `3... Bc5 $4`, blunder and `4. Nf3!` good move:
+```
+[FEN "rnbqkbnr/pppp1ppp/8/8/3pPP2/8/PPP3PP/RNBQKBNR b KQkq - 0 3"]
+
+3... Bc5 $4 (3... Nc6) 4. Nf3! d5 (4... Nc6) *
+
+```
+
 ## Supported Nags
 ```
     "$1": ["Good move", "!", "_good.webp"],

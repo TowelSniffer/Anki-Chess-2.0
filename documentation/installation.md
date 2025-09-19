@@ -17,7 +17,7 @@ either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1
 
 either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) or manually update:
 
-The upgrade process is typically the same as the installation process explained in the [previous section](#Manual-installation). 
+The upgrade process is typically the same as the installation process explained in the [Manual installation](#Manual-installation) section. 
 
 ### issues on other devices after updating 
 
