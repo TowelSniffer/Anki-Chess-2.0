@@ -13699,30 +13699,22 @@ ${contextLines.join("\n")}`;
 
   // src/js/config.ts
   function getUrlParam(name, defaultValue) {
-    if (urlParams.has(name)) {
-      return urlParams.get(name);
-    }
-    return defaultValue;
+    const value = urlParams.get(name);
+    return value !== null ? value : defaultValue;
   }
-  var import_pgn_parser, ShapeFilter, shapeArray, urlParams, config, parsedPGN, state, cg2, htmlElement, chess;
+  var import_pgn_parser, shapeArray, urlParams, config, parsedPGN, state, boardElement, cg2, htmlElement, chess;
   var init_config2 = __esm({
     "src/js/config.ts"() {
       "use strict";
       init_chessground();
       init_chess();
       import_pgn_parser = __toESM(require_index_umd());
-      ShapeFilter = /* @__PURE__ */ ((ShapeFilter2) => {
-        ShapeFilter2["All"] = "All";
-        ShapeFilter2["Stockfish"] = "Stockfish";
-        ShapeFilter2["PGN"] = "PGN";
-        ShapeFilter2["Custom"] = "Custom";
-        return ShapeFilter2;
-      })(ShapeFilter || {});
       shapeArray = {
         ["All" /* All */]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
         ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
         ["PGN" /* PGN */]: ["mainLine", "altLine", "blunderLine", "moveType"],
-        [ShapeFilter.Drawn]: ["userDrawn"]
+        ["Nag" /* Nag */]: ["moveType"],
+        ["Drawn" /* Drawn */]: ["userDrawn"]
       };
       urlParams = new URLSearchParams(window.location.search);
       config = {
@@ -13734,33 +13726,33 @@ ${contextLines.join("\n")}`;
     [Black "Black"]
     [Result "*"]
 
-    1. e4 f5 (1... e5) (1... d5) (1... c5) (1... b5) (1... a5) (1... g5) (1... h5) *
+    1. e4 e5 2. f4 f5 3. g4 *
     `),
-        fontSize: getUrlParam("fontSize", 16),
+        fontSize: parseInt(getUrlParam("fontSize", "16"), 10),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
         showDests: getUrlParam("showDests", "true") === "true",
-        handicap: parseInt(getUrlParam("handicap", 1), 10),
+        handicap: parseInt(getUrlParam("handicap", "1"), 10),
         strictScoring: getUrlParam("strictScoring", "false") === "true",
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Puzzle"),
+        boardMode: getUrlParam("boardMode", "Viewer"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
         autoAdvance: getUrlParam("autoAdvance", "false") === "true",
         handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
-        timer: parseInt(getUrlParam("timer", 5), 10) * 1e3,
-        increment: parseInt(getUrlParam("increment", 2), 10) * 1e3,
+        timer: parseInt(getUrlParam("timer", "2"), 10) * 1e3,
+        increment: parseInt(getUrlParam("increment", "2"), 10) * 1e3,
         timerAdvance: getUrlParam("timerAdvance", "false") === "true",
         timerScore: getUrlParam("timerScore", "false") === "true",
-        analysisTime: parseInt(getUrlParam("analysisTime", 4), 10) * 1e3
+        analysisTime: parseInt(getUrlParam("analysisTime", "4"), 10) * 1e3
       };
       parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
       state = {
-        ankiFen: parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        ankiFen: parsedPGN.tags?.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         boardRotation: "black",
         playerColour: "white",
         opponentColour: "black",
@@ -13775,7 +13767,7 @@ ${contextLines.join("\n")}`;
         errorCount: 0,
         promoteChoice: "q",
         promoteAnimate: true,
-        debounceTimeout: null,
+        debounceCheck: null,
         navTimeout: null,
         isStockfishBusy: false,
         analysisFen: null,
@@ -13785,7 +13777,11 @@ ${contextLines.join("\n")}`;
         blunderNags: ["$2", "$4", "$6", "$9"],
         puzzleComplete: false
       };
-      cg2 = Chessground(board, {
+      boardElement = document.getElementById("board");
+      if (!boardElement) {
+        throw new Error("Fatal: Board element with id 'board' not found in the DOM.");
+      }
+      cg2 = Chessground(boardElement, {
         premovable: {
           enabled: true
         },
@@ -13900,24 +13896,6 @@ ${contextLines.join("\n")}`;
       audio.cloneNode().play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
     }
   }
-  function changeAudio(gameState) {
-    const soundMap = {
-      "#": "checkmate",
-      "+": "move-check",
-      "x": "Capture",
-      "k": "castle",
-      "q": "castle",
-      "p": "promote"
-    };
-    let sound = "Move";
-    for (const flag in soundMap) {
-      if (gameState.san.includes(flag) || gameState.flags && gameState.flags.includes(flag)) {
-        sound = soundMap[flag];
-        break;
-      }
-    }
-    playSound(sound);
-  }
   var audioMap;
   var init_audio = __esm({
     "src/js/audio.ts"() {
@@ -13937,99 +13915,103 @@ ${contextLines.join("\n")}`;
     return `${percentage.toFixed(1)}%`;
   }
   function handleStockfishMessages(event2) {
-    const message = event2.data ? event2.data : event2;
-    stockfish.onmessage = (event3) => {
-      const message2 = event3.data ? event3.data : event3;
-      if (typeof message2 !== "string") return;
-      if (message2.startsWith("info")) {
-        const parts = message2.split(" ");
-        const pvIndex = parts.indexOf("pv");
-        const cpIndex = parts.indexOf("cp");
-        const mateIndex = parts.indexOf("mate");
-        const pvDepthIndex = parts.indexOf("depth");
-        if (pvIndex > -1 && parts.length > pvIndex + 1) {
-          const firstMove = parts[pvIndex + 1];
-          const cp = parts[cpIndex + 1];
-          const mate = parts[mateIndex + 1];
-          let advantage;
-          if (cpIndex === -1) {
-            advantage = mate < 0 ? 0 : 100;
-            if (state.playerColour === toColor(chess)) {
-              advantage = 100 - advantage;
-            }
-            advantage = `${advantage.toFixed(1)}%`;
-          } else {
-            advantage = convertCpToWinPercentage(cp);
+    const message = event2.data;
+    if (typeof message !== "string") {
+      console.warn("Received a non-string message from the Stockfish worker:", message);
+      return;
+    }
+    if (message.startsWith("info")) {
+      const parts = message.split(" ");
+      const pvIndex = parts.indexOf("pv");
+      const cpIndex = parts.indexOf("cp");
+      const mateIndex = parts.indexOf("mate");
+      const pvDepthIndex = parts.indexOf("depth");
+      if (pvIndex > -1 && parts.length > pvIndex + 1) {
+        const firstMove = parts[pvIndex + 1];
+        const cp = parts[cpIndex + 1];
+        const mate = parts[mateIndex + 1];
+        let advantage;
+        if (cpIndex === -1) {
+          advantage = mate < 0 ? 0 : 100;
+          if (state.playerColour === toColor(chess)) {
+            advantage = 100 - advantage;
           }
-          const pvDepth = parts[pvDepthIndex + 1];
-          if (state.analysisFen !== "none") document.documentElement.style.setProperty("--centipawn", advantage);
-          if (state.analysisFen === chess.fen()) {
-            const tempChess = new Chess(state.analysisFen);
-            const moveObject = tempChess.move(firstMove);
-            if (moveObject && state.analysisToggledOn) {
-              state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
-              state.chessGroundShapes.push({
-                orig: moveObject.from,
-                dest: moveObject.to,
-                brush: "stockfish",
-                san: moveObject.san
-              });
-              cg2.set({ drawable: { shapes: state.chessGroundShapes } });
-            }
-          }
+          advantage = `${advantage.toFixed(1)}%`;
+        } else {
+          advantage = convertCpToWinPercentage(cp);
         }
-      } else if (message2.startsWith("bestmove")) {
-        cg2.set({ viewOnly: false });
-        state.isStockfishBusy = false;
-        if (state.analysisFen === "none") {
-          state.analysisFen = true;
-          startAnalysis(config.analysisTime);
-        }
-        const bestMoveUci = message2.split(" ")[1];
+        const pvDepth = parts[pvDepthIndex + 1];
+        if (state.analysisFen !== "none") document.documentElement.style.setProperty("--centipawn", advantage);
         if (state.analysisFen === chess.fen()) {
-          try {
-            const tempChess = new Chess(state.analysisFen);
-            const moveObject = tempChess.move(bestMoveUci);
-            if (moveObject && state.analysisToggledOn) {
-              state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
-              state.chessGroundShapes.push({
-                orig: moveObject.from,
-                dest: moveObject.to,
-                brush: "stockfinished",
-                san: moveObject.san
-              });
-              cg2.set({ drawable: { shapes: state.chessGroundShapes } });
-            }
-          } catch (e) {
+          const tempChess = new Chess(state.analysisFen);
+          const moveObject = tempChess.move(firstMove);
+          if (moveObject && state.analysisToggledOn) {
+            state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+            state.chessGroundShapes.push({
+              orig: moveObject.from,
+              dest: moveObject.to,
+              brush: "stockfish",
+              san: moveObject.san
+            });
+            cg2.set({ drawable: { shapes: state.chessGroundShapes } });
           }
         }
       }
-    };
-    stockfish.onerror = (error) => {
-      handleStockfishCrash2("stockfish.onerror");
-    };
-    stockfish.postMessage("uci");
+    } else if (message.startsWith("bestmove")) {
+      cg2.set({ viewOnly: false });
+      state.isStockfishBusy = false;
+      if (state.analysisFen === "none") {
+        state.analysisFen = true;
+        startAnalysis(config.analysisTime);
+      }
+      const bestMoveUci = message.split(" ")[1];
+      if (state.analysisFen === chess.fen()) {
+        try {
+          const tempChess = new Chess(state.analysisFen);
+          const moveObject = tempChess.move(bestMoveUci);
+          if (moveObject && state.analysisToggledOn) {
+            state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
+            state.chessGroundShapes.push({
+              orig: moveObject.from,
+              dest: moveObject.to,
+              brush: "stockfinished",
+              san: moveObject.san
+            });
+            cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+          }
+        } catch (e) {
+        }
+      }
+    }
   }
   function handleStockfishCrash2(source) {
     console.error(`Stockfish engine crashed. Source: ${source}.`);
-    console.log("Attempting to restart the engine...");
     if (!state.analysisToggledOn) return;
+    console.log("Attempting to restart the engine...");
     state.isStockfishBusy = false;
-    setTimeout(initializeStockfish, 100);
+    setTimeout(initializeStockfish, 250);
   }
   function initializeStockfish() {
-    return new Promise((resolve) => {
-      stockfish = new Worker("_stockfish.js");
+    return new Promise((resolve, reject) => {
+      if (stockfish) {
+        stockfish.terminate();
+      }
+      stockfish = new Worker("/_stockfish.js");
       stockfish.onmessage = (event2) => {
-        const message = event2.data ? event2.data : event2;
+        const message = event2.data ?? event2;
         if (typeof message !== "string") return;
         if (message === "uciok") {
+          stockfish.postMessage("isready");
+        } else if (message === "readyok") {
           stockfish.onmessage = handleStockfishMessages;
+          stockfish.onerror = () => handleStockfishCrash2("stockfish.onerror");
           resolve();
         }
       };
       stockfish.onerror = (error) => {
-        handleStockfishCrash2("stockfish.onerror");
+        console.error("Stockfish failed to initialize.", error);
+        handleStockfishCrash2("stockfish.on-init-error");
+        reject(error);
       };
       stockfish.postMessage("uci");
     });
@@ -14047,27 +14029,34 @@ ${contextLines.join("\n")}`;
     }
     state.analysisFen = chess.fen();
     state.isStockfishBusy = true;
-    setTimeout(function() {
-      stockfish.postMessage(`position fen ${state.analysisFen}`);
-      stockfish.postMessage(`go movetime ${movetime}`);
-    }, 200);
+    stockfish.postMessage(`position fen ${state.analysisFen}`);
+    stockfish.postMessage(`go movetime ${movetime}`);
   }
   function toggleStockfishAnalysis() {
-    if (!stockfish) initializeStockfish();
+    if (!stockfish) {
+      initializeStockfish().then(() => {
+        state.analysisToggledOn = false;
+        toggleStockfishAnalysis();
+      });
+      return;
+    }
     state.analysisToggledOn = !state.analysisToggledOn;
     const toggleButton = document.querySelector("#stockfishToggle");
-    toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
+    if (toggleButton) {
+      toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
+      toggleButton.innerHTML = state.analysisToggledOn ? "<span class='material-icons md-small'>developer_board</span>" : "<span class='material-icons md-small'>developer_board_off</span>";
+    }
+    cgwrap.classList.toggle("analysisMode", state.analysisToggledOn);
     if (state.analysisToggledOn) {
-      cgwrap.classList.add("analysisMode");
-      toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>";
       startAnalysis(config.analysisTime);
     } else {
-      cgwrap.classList.remove("analysisMode");
-      toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>";
       if (state.isStockfishBusy) {
         stockfish.postMessage("stop");
+        state.isStockfishBusy = false;
       }
-      state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish");
+      state.chessGroundShapes = state.chessGroundShapes.filter(
+        (shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish"
+      );
       cg2.set({ drawable: { shapes: state.chessGroundShapes } });
     }
   }
@@ -14421,6 +14410,52 @@ ${contextLines.join("\n")}`;
   function toggleClass(querySelector, className) {
     document.querySelectorAll("." + querySelector).forEach((el) => el.classList.toggle(`${className}`));
   }
+  function isEndOfLine() {
+    return !state.expectedMove || typeof state.expectedMove === "string";
+  }
+  function handlePuzzleComplete() {
+    state.puzzleComplete = true;
+    cgwrap.classList.remove("timerMode");
+    htmlElement.style.setProperty("--border-color", state.solvedColour);
+    cg2.set({
+      selected: void 0,
+      // Clear any selected square
+      draggable: {
+        current: void 0
+        // Explicitly clear any currently dragged piece
+      },
+      viewOnly: true
+    });
+  }
+  function isPuzzleFailed(isFailed) {
+    if (isFailed) {
+      state.errorTrack = true;
+      state.solvedColour = "#b31010";
+      if (config.handicapAdvance) {
+        handlePuzzleComplete();
+        setTimeout(() => {
+          window.parent.postMessage(state, "*");
+        }, 300);
+      } else {
+        window.parent.postMessage(state, "*");
+      }
+    } else {
+      console.log(state.errorTrack);
+      state.errorTrack = state.errorTrack ? true : "correct";
+      if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
+        state.solvedColour = "#2CBFA7";
+        state.errorTrack = "correctTime";
+      }
+      if (config.autoAdvance) {
+        setTimeout(() => {
+          window.parent.postMessage(state, "*");
+        }, 300);
+      } else {
+        window.parent.postMessage(state, "*");
+      }
+      handlePuzzleComplete();
+    }
+  }
   function toDests(chess3) {
     const dests = /* @__PURE__ */ new Map();
     SQUARES.forEach((s) => {
@@ -14471,10 +14506,8 @@ ${contextLines.join("\n")}`;
       state.chessGroundShapes = [];
       return;
     }
-    state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.customSvg?.brush !== "moveType");
-    if (config.boardMode === "Puzzle" && config.disableArrows) {
-      return;
-    }
+    filterShapes("All" /* All */);
+    if (config.boardMode === "Puzzle" && config.disableArrows) return;
     let expectedMove = state.expectedMove;
     let expectedLine = state.expectedLine;
     let puzzleMove;
@@ -14563,22 +14596,23 @@ ${contextLines.join("\n")}`;
     }
     cg2.set({ drawable: { shapes: state.chessGroundShapes } });
   }
-  function updateBoard(move3, quite) {
-    if (!quite) {
-      changeAudio(move3);
-    }
-    if (!state.analysisToggledOn) {
-      cgwrap.classList.remove("analysisMode");
+  function updateBoard(move3, backwardPromote = null) {
+    function cancelDefaultAnimation(chessInstance) {
+      cg2.set({ animation: { enabled: false } });
+      cg2.set({
+        fen: chessInstance.fen()
+      });
+      cg2.set({ animation: { enabled: true } });
     }
     if (!state.pgnState) {
       state.chessGroundShapes = [];
     }
     state.lastMove = getLastMove(chess).san;
-    if (state.pgnState && state.lastMove === state.expectedMove.notation.notation) {
+    if (state.pgnState && state.lastMove === state.expectedMove?.notation.notation) {
       state.pgnPath = state.expectedMove.pgnPath;
       window.parent.postMessage(state, "*");
     }
-    if (move3.flags.includes("p") && state.promoteAnimate) {
+    if (move3.flags.includes("p") && state.promoteAnimate && !backwardPromote) {
       const tempChess = new Chess(chess.fen());
       tempChess.load(chess.fen());
       tempChess.remove(move3.from);
@@ -14587,19 +14621,28 @@ ${contextLines.join("\n")}`;
         fen: tempChess.fen()
       });
       setTimeout(() => {
-        cg2.set({ animation: { enabled: false } });
-        cg2.set({
-          fen: chess.fen()
-        });
-        cg2.set({ animation: { enabled: true } });
+        cancelDefaultAnimation(chess);
         drawArrows();
       }, 200);
-    } else if (move3.flags.includes("e") && state.debounceTimeout) {
+    } else if (move3.flags.includes("p") && backwardPromote) {
+      const FENpos = chess.fen();
+      const tempChess = new Chess(chess.fen());
+      tempChess.load(FENpos);
+      tempChess.remove(move3.to);
+      tempChess.remove(move3.from);
+      tempChess.put({ type: "p", color: chess.turn() }, move3.to);
       cg2.set({ animation: { enabled: false } });
       cg2.set({
-        fen: chess.fen()
+        fen: tempChess.fen()
       });
+      tempChess.remove(move3.to);
+      tempChess.put({ type: "p", color: chess.turn() }, move3.from);
       cg2.set({ animation: { enabled: true } });
+      cg2.set({
+        fen: FENpos
+      });
+    } else if (move3.flags.includes("e") && state.debounceCheck) {
+      cancelDefaultAnimation(chess);
       cg2.set({
         fen: chess.fen()
       });
@@ -14611,18 +14654,14 @@ ${contextLines.join("\n")}`;
       turnColor: toColor(chess),
       movable: {
         dests: toDests(chess),
-        // In Puzzle mode, the movable color is fixed to the user's side to allow premoves.
-        // In Viewer mode, it follows the current turn.
         color: config.boardMode === "Puzzle" ? state.playerColour : toColor(chess)
       },
       lastMove: [move3.from, move3.to]
     });
     document.querySelector("#navBackward").disabled = false;
     document.querySelector("#resetBoard").disabled = false;
-    if (config.boardMode === "Viewer" && state.pgnState) highlightCurrentMove(state.expectedMove.pgnPath);
-    if (state.analysisToggledOn) {
-      startAnalysis(config.analysisTime);
-    }
+    if (config.boardMode === "Viewer" && state.pgnState && !isEndOfLine()) highlightCurrentMove(state.expectedMove.pgnPath);
+    startAnalysis(config.analysisTime);
   }
   function makeMove(move3) {
     const moveResult = chess.move(move3);
@@ -14640,7 +14679,7 @@ ${contextLines.join("\n")}`;
     }
     if (!tempMove) {
       setTimeout(() => {
-        state.debounceTimeout = false;
+        state.debounceCheck = false;
       }, 0);
       return;
     }
@@ -14666,13 +14705,10 @@ ${contextLines.join("\n")}`;
     } else {
       checkUserMove(move3.san, null);
     }
-    if (!state.expectedMove || typeof state.expectedMove === "string") {
-      document.querySelector("#navForward").disabled = true;
-    }
   }
   function playAiMove(delay) {
     setTimeout(() => {
-      if (!state.expectedMove || typeof state.expectedMove === "string") return;
+      if (isEndOfLine()) return;
       state.errorCount = 0;
       if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
         const moveVar = Math.floor(Math.random() * (state.expectedMove.variations.length + 1));
@@ -14685,59 +14721,23 @@ ${contextLines.join("\n")}`;
       makeMove(state.expectedMove.notation.notation);
       state.count++;
       state.expectedMove = state.expectedLine[state.count];
-      if (!state.expectedMove || typeof state.expectedMove === "string") {
-        if (state.errorTrack === null) state.errorTrack = "correct";
-        state.puzzleComplete = true;
-        if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
-          state.solvedColour = "#66AAAA";
-          state.errorTrack = "correctTime";
-        }
-        if (config.autoAdvance) {
-          setTimeout(() => {
-            window.parent.postMessage(state, "*");
-          }, 300);
-        } else {
-          window.parent.postMessage(state, "*");
-        }
-        cgwrap.classList.remove("timerMode");
-        htmlElement.style.setProperty("--border-color", state.solvedColour);
-        cg2.set({
-          selected: void 0,
-          // Clear any selected square
-          draggable: {
-            current: void 0
-            // Explicitly clear any currently dragged piece
-          },
-          viewOnly: true
-        });
-      }
+      if (isEndOfLine()) isPuzzleFailed(false);
       drawArrows(true);
-      state.debounceTimeout = false;
+      state.debounceCheck = false;
     }, delay);
   }
   function playUserCorrectMove(delay) {
     setTimeout(() => {
       cg2.set({ viewOnly: false });
-      if (!state.expectedMove || typeof state.expectedMove === "string") return;
-      state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.customSvg?.brush !== "moveType");
+      if (isEndOfLine()) return;
       makeMove(state.expectedMove.notation.notation);
       state.count++;
       state.expectedMove = state.expectedLine[state.count];
-      if (!state.expectedMove || typeof state.expectedMove === "string") {
-        state.puzzleComplete = true;
+      if (isEndOfLine()) {
+        handlePuzzleComplete();
         setTimeout(() => {
           window.parent.postMessage(state, "*");
         }, 300);
-        htmlElement.style.setProperty("--border-color", state.solvedColour);
-        cg2.set({
-          selected: void 0,
-          // Clear any selected square
-          draggable: {
-            current: void 0
-            // Explicitly clear any currently dragged piece
-          },
-          viewOnly: true
-        });
       }
     }, delay);
   }
@@ -14746,31 +14746,18 @@ ${contextLines.join("\n")}`;
     cg2.move(move3.from, move3.to);
     playSound("Error");
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
-    if (isFailed) {
-      state.errorTrack = true;
-      state.solvedColour = "#b31010";
-      if (config.handicapAdvance) {
-        htmlElement.style.setProperty("--border-color", state.solvedColour);
-        state.puzzleComplete = true;
-        setTimeout(() => {
-          window.parent.postMessage(state, "*");
-        }, 300);
-        return;
-      } else {
-        window.parent.postMessage(state, "*");
-      }
-    }
-    updateBoard(move3, true, true);
+    if (isFailed) isPuzzleFailed(true);
+    updateBoard(move3);
     if (state.errorCount > config.handicap) {
       cg2.set({ viewOnly: true });
       playUserCorrectMove(300);
       playAiMove(600);
       setTimeout(() => {
-        state.debounceTimeout = false;
+        state.debounceCheck = false;
       }, 0);
     } else {
       setTimeout(() => {
-        state.debounceTimeout = false;
+        state.debounceCheck = false;
       }, 0);
     }
   }
@@ -14794,11 +14781,7 @@ ${contextLines.join("\n")}`;
     }
     if (foundVariation) {
       const isBlunder = state.expectedMove.nag?.some((nags) => state.blunderNags.includes(nags));
-      if (isBlunder) {
-        state.errorTrack = true;
-        window.parent.postMessage(state, "*");
-        state.solvedColour = "#b31010";
-      }
+      if (isBlunder) isPuzzleFailed(true);
       extendPuzzleTime(config.increment);
       makeMove(moveAttempt);
       state.count++;
@@ -14806,38 +14789,14 @@ ${contextLines.join("\n")}`;
       if (state.expectedMove && delay) {
         playAiMove(delay);
       } else if (delay) {
-        if (state.errorTrack === null) state.errorTrack = "correct";
-        if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
-          state.solvedColour = "#2CBFA7";
-          state.errorTrack = "correctTime";
-        }
-        state.puzzleComplete = true;
-        if (config.autoAdvance) {
-          setTimeout(() => {
-            window.parent.postMessage(state, "*");
-          }, 300);
-        } else {
-          window.parent.postMessage(state, "*");
-        }
-        cgwrap.classList.remove("timerMode");
-        htmlElement.style.setProperty("--border-color", state.solvedColour);
-        cg2.set({
-          selected: void 0,
-          // Clear any selected square
-          draggable: {
-            current: void 0
-            // Explicitly clear any currently dragged piece
-          },
-          viewOnly: true
-        });
+        isPuzzleFailed(false);
       }
       drawArrows();
     } else if (delay) {
       handleWrongMove(moveAttempt);
       drawArrows(true);
     } else if (!delay) {
-      state.pgnState = false;
-      document.querySelector("#navForward").disabled = true;
+      handlePgnState(false);
       makeMove(moveAttempt);
     }
     return foundVariation;
@@ -14875,7 +14834,7 @@ ${contextLines.join("\n")}`;
       overlay.onclick = function() {
         cancelPopup();
         setTimeout(() => {
-          state.debounceTimeout = false;
+          state.debounceCheck = false;
         }, 0);
       };
     }
@@ -14902,6 +14861,10 @@ ${contextLines.join("\n")}`;
       }
     }
     return null;
+  }
+  function handlePgnState(pgnState) {
+    state.pgnState = pgnState;
+    document.querySelector("#navForward").disabled = !pgnState;
   }
   function waitForElement(selector) {
     return new Promise((resolve) => {
@@ -14930,38 +14893,8 @@ ${contextLines.join("\n")}`;
   function navBackward() {
     if (config.boardMode === "Puzzle") return;
     const lastMove = chess.undo();
-    const FENpos = chess.fen();
     if (lastMove) {
-      if (lastMove.promotion) {
-        const tempChess = new Chess(chess.fen());
-        tempChess.load(FENpos);
-        tempChess.remove(lastMove.to);
-        tempChess.remove(lastMove.from);
-        tempChess.put({ type: "p", color: chess.turn() }, lastMove.to);
-        cg2.set({ animation: { enabled: false } });
-        cg2.set({
-          fen: tempChess.fen()
-        });
-        tempChess.remove(lastMove.to);
-        tempChess.put({ type: "p", color: chess.turn() }, lastMove.from);
-        cg2.set({ animation: { enabled: true } });
-        cg2.set({
-          fen: FENpos
-        });
-      } else {
-        cg2.set({
-          fen: chess.fen()
-        });
-      }
-      cg2.set({
-        check: chess.inCheck(),
-        turnColor: toColor(chess),
-        movable: {
-          color: toColor(chess),
-          dests: toDests(chess)
-        },
-        lastMove: [lastMove.from, lastMove.to]
-      });
+      updateBoard(lastMove, true);
       if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
         state.count--;
         state.expectedMove = state.expectedLine[state.count];
@@ -14979,19 +14912,11 @@ ${contextLines.join("\n")}`;
         }
       }
       if (state.count === 0 && state.ankiFen !== chess.fen()) {
-        if (state.analysisToggledOn) {
-          startAnalysis(config.analysisTime);
-        }
         return;
-      } else if (state.count === 0) {
-        state.pgnState = true;
-        document.querySelector("#navForward").disabled = false;
-      } else if (state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
-        state.pgnState = true;
-        document.querySelector("#navForward").disabled = false;
+      } else if (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
+        handlePgnState(true);
       }
     }
-    state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.customSvg?.brush !== "moveType");
     drawArrows();
     if (config.boardMode === "Viewer") {
       let expectedMove = state.expectedMove;
@@ -15016,9 +14941,7 @@ ${contextLines.join("\n")}`;
         document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = true);
       }
     }
-    if (state.analysisToggledOn) {
-      startAnalysis(config.analysisTime);
-    }
+    startAnalysis(config.analysisTime);
   }
   function navForward() {
     if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
@@ -15029,7 +14952,7 @@ ${contextLines.join("\n")}`;
     }
     document.querySelector("#navBackward").disabled = false;
     document.querySelector("#resetBoard").disabled = false;
-    if (!state.expectedMove || typeof state.expectedMove === "string") {
+    if (isEndOfLine()) {
       document.querySelector("#navForward").disabled = true;
     }
   }
@@ -15055,8 +14978,7 @@ ${contextLines.join("\n")}`;
     state.chessGroundShapes = [];
     state.expectedLine = parsedPGN.moves;
     state.expectedMove = parsedPGN.moves[state.count];
-    state.pgnState = true;
-    document.querySelector("#navForward").disabled = false;
+    handlePgnState(true);
     chess.reset();
     chess.load(state.ankiFen);
     cg2.set({
@@ -15072,9 +14994,7 @@ ${contextLines.join("\n")}`;
     document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
     document.querySelector("#navBackward").disabled = true;
     document.querySelector("#resetBoard").disabled = true;
-    if (state.analysisToggledOn) {
-      startAnalysis(config.analysisTime);
-    }
+    startAnalysis(config.analysisTime);
     drawArrows();
   }
   function copyFen() {
@@ -15107,17 +15027,15 @@ ${contextLines.join("\n")}`;
       turnColor: toColor(chess),
       events: {
         select: (key) => {
-          filterShapes(ShapeFilter.Drawn);
+          filterShapes("Drawn" /* Drawn */);
           cg2.set({ drawable: { shapes: state.chessGroundShapes } });
           setTimeout(() => {
-            if (state.debounceTimeout) return;
+            if (state.debounceCheck) return;
             const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
             const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
             if (arrowMove.length > 0 && config.boardMode === "Viewer") {
               if (arrowMove[0].brush === "stockfish" || arrowMove[0].brush === "stockfinished") {
-                state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine");
-                state.pgnState = false;
-                document.querySelector("#navForward").disabled = true;
+                handlePgnState(false);
               }
               handleViewerMove(arrowMove[0], null);
             } else {
@@ -15139,13 +15057,13 @@ ${contextLines.join("\n")}`;
         dests: toDests(chess),
         events: {
           after: (orig, dest) => {
-            state.debounceTimeout = true;
+            state.debounceCheck = true;
             if (config.boardMode === "Puzzle") {
               puzzlePlay(300, orig, dest);
             } else {
               handleViewerMove(orig, dest);
               setTimeout(() => {
-                state.debounceTimeout = false;
+                state.debounceCheck = false;
               }, 0);
             }
           }
