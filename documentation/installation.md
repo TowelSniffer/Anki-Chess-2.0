@@ -13,7 +13,7 @@ either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1
 1. Browse for and select the downloaded file `chess.apkg`.
 1. Download the dist.zip folder and extract. Copy the contents of the dist folder into you anki collection.media folder
 
-## Upgrading
+## Updating
 
 either use the [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) or manually update:
 
