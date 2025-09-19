@@ -1,10 +1,10 @@
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
-import { state, parsedPGN } from './js/config.js';
-import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath, onPgnMoveClick } from './js/pgnViewer.js';
-import { toggleStockfishAnalysis } from './js/handleStockfish.js';
-import { initializeUI, positionPromoteOverlay } from './js/initializeUI.js';
-import { reload, resetBoard, navBackward, navForward, rotateBoard, copyFen } from './js/chessFunctions.js';
+import { state, parsedPGN } from './js/config';
+import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath, onPgnMoveClick } from './js/pgnViewer';
+import { toggleStockfishAnalysis } from './js/handleStockfish';
+import { initializeUI, positionPromoteOverlay } from './js/initializeUI';
+import { cgwrap, reload, resetBoard, navBackward, navForward, rotateBoard, copyFen } from './js/chessFunctions';
 
 function setupEventListeners() {
     // --- PGN viewer ---
@@ -130,7 +130,6 @@ function setupEventListeners() {
     });
 
     // handle promote resize
-    const cgwrap = document.querySelector('.cg-wrap');
     if (cgwrap) {
         let isUpdateScheduled = false;
         const handleReposition = () => {
