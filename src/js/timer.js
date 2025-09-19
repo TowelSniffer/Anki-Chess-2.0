@@ -1,5 +1,4 @@
-import { cg, chess, cgwrap } from '../main.js';
-import { state, config } from './config.js';
+import { state, config, cg, chess } from './config.js';
 
 export let puzzleTimeout;
 let puzzleIncrement;
@@ -34,7 +33,8 @@ export function extendPuzzleTime(additionalTime) {
 }
 
 export function startPuzzleTimeout(delay) {
-    if (config.boardMode === 'Viewer' || !config.timer) return
+    if (config.boardMode === 'Viewer' || !config.timer) return;
+    const cgwrap = document.querySelector('.cg-wrap');
     if (!config.timerScore) document.documentElement.style.setProperty('--timer-color', config.randomOrientation ? "#66AAAA" : state.opponentColour);
     cgwrap.classList.add('timerMode');
     puzzleTimeout = setTimeout(handleOutOfTime, delay);

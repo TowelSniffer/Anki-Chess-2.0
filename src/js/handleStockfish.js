@@ -1,6 +1,6 @@
 import { Chess } from 'chess.js';
-import { cg, chess, toColor, cgwrap } from '../main.js';
-import { state, config } from './config.js';
+import { toColor } from './chessFunctions.js';
+import { state, config, cg, chess } from './config.js';
 
 let stockfish = null;
 
@@ -103,28 +103,6 @@ function handleStockfishCrash(source) {
     // Re-initialize a fresh instance after a short delay to let the browser recover.
     setTimeout(initializeStockfish, 100);
 }
-window.addEventListener('error', (event) => {
-    const message = event.message || '';
-    const filename = event.filename || '';
-
-    // stockfish js crash error message.
-    const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
-
-    // generic "Script error."
-    const isGenericCrossOriginError = message === 'Script error.';
-
-    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
-        // Prevent the default browser error console message since we are handling it
-        event.preventDefault();
-        console.warn("Caught a fatal Stockfish crash via global error handler.");
-        if (isGenericCrossOriginError) {
-            console.log(message)
-        } else {
-            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
-        }
-        handleStockfishCrash("window.onerror");
-    }
-});
 
 export function initializeStockfish() {
     return new Promise((resolve) => {
@@ -172,6 +150,7 @@ export function startAnalysis(movetime) {
 }
 
 export function toggleStockfishAnalysis() {
+    const cgwrap = document.querySelector('.cg-wrap');
     if (!stockfish) initializeStockfish();
     state.analysisToggledOn = !state.analysisToggledOn; // Toggle the state
     const toggleButton = document.querySelector("#stockfishToggle");

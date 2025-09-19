@@ -1,6 +1,5 @@
-import { htmlElement, cgwrap } from '../main.js';
 import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights } from './mirror.js';
-import { parsedPGN, state, config } from './config.js';
+import { parsedPGN, state, config, htmlElement } from './config.js';
 
 export function initializeUI() {
     // Mirror PGN
@@ -61,6 +60,7 @@ export function initializeUI() {
 export function positionPromoteOverlay() {
     const promoteOverlay = document.getElementById('promoteButtons');
     if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
+    const cgwrap = document.querySelector('.cg-wrap');
     const rect = cgwrap.getBoundingClientRect();
     // Set the position of the promote element
     promoteOverlay.style.top = (rect.top + 8) + 'px';
