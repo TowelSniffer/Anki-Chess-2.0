@@ -2,7 +2,7 @@ import { Chessground } from 'chessground';
 import { Chess, Move } from 'chess.js';
 import { parse, PgnGame } from '@mliebelt/pgn-parser';
 import type { Api, DrawShape, Color } from 'chessground';
-
+import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights } from './mirror';
 
 // --- Type Definitions ---
 // Note: Ensure you have the necessary type definitions installed:
@@ -20,7 +20,7 @@ interface Config {
     acceptVariations: boolean;
     disableArrows: boolean;
     flipBoard: boolean;
-    boardMode: 'Viewer' | 'Practice' | 'Analysis'; // Assuming possible modes
+    boardMode: 'Viewer' | 'Puzzle';
     background: string;
     mirror: boolean;
     randomOrientation: boolean;
@@ -90,14 +90,20 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
 const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.09.20"]
+    [Date "2025.02.24"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
+    [FEN "r7/p1pnkppp/4b3/2p5/N2pP3/1P3P2/P1P1B1PP/2KR4 w - - 0 17"]
+    [SetUp "1"]
 
-    1. e4 e5 2. f4 f5 3. g4 *
-    `),
+    17. Bb5 Kd6 {EV: 14.8%, N: 84.79% of 315k} (17... c6 {EV: 14.7%, N: 9.92% of
+        315k} 18. Bxc6 {EV: 84.9%, N: 98.99% of 49.4k} Rc8 {EV: 15.6%, N: 98.06% of
+            58.7k} 19. Bb5 {EV: 80.2%, N: 7.41% of 483k} (19. Bxd7 {EV: 83.9%, N: 91.06% of
+                483k} Bxd7 {EV: 16.3%, N: 98.49% of 447k}) Ne5 {EV: 20.5%, N: 92.74% of 140k})
+    18. c3 {EV: 83.9%, N: 95.46% of 62.5k} c6 {EV: 16.2%, N: 92.94% of 58.0k} 19.
+    Ba6 {EV: 86.3%, N: 94.71% of 572k} Nb6 {EV: 17.1%, N: 79.75% of 2.8k} *`),
     fontSize: parseInt(getUrlParam("fontSize", '16') as string, 10),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'false') === 'true',
@@ -108,7 +114,7 @@ const config: Config = {
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'true') === 'true',
-    boardMode: getUrlParam("boardMode", 'Viewer') as 'Viewer' | 'Practice' | 'Analysis',
+    boardMode: getUrlParam("boardMode", 'Viewer') as 'Viewer' | 'Puzzle',
     background: getUrlParam("background", "#2C2C2C") as string,
     mirror: getUrlParam("mirror", 'true') === 'true',
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
@@ -150,6 +156,15 @@ const state: State = {
     blunderNags: ['$2', '$4', '$6', '$9'],
     puzzleComplete: false,
 };
+// Mirror PGN if applicable
+if (config.mirror && !checkCastleRights(state.ankiFen)) {
+    if (!state.mirrorState) {
+        state.mirrorState = assignMirrorState(config.pgn);
+    }
+    window.parent.postMessage(state, '*');
+    mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+    state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
+}
 
 // --- Global Variables & Initialization ---
 const boardElement = document.getElementById('board');
@@ -158,6 +173,7 @@ if (!boardElement) {
 }
 
 const cg: Api = Chessground(boardElement, {
+    fen: state.ankiFen,
     premovable: {
         enabled: true,
     },

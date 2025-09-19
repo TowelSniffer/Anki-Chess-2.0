@@ -1,7 +1,25 @@
 import { toColor, toDests, drawArrows } from './chessFunctions';
 import { state, parsedPGN, config, cg, chess } from './config';
+import { startAnalysis } from './handleStockfish';
 import nags from '../nags.json' assert { type: 'json' };
-function buildPgnHtml(moves, path = [], altLine) {
+import type { PgnMove } from '@mliebelt/pgn-parser';
+
+// --- Type Definitions ---
+
+// Define the shape of the imported nags.json file.
+interface NagData {
+    [nagKey: string]: [string, string]; // [description, symbol]
+}
+
+// Extend the PgnMove type from the library to include our custom path property.
+export interface CustomPgnMove extends PgnMove {
+    pgnPath?: (string | number)[];
+    variations?: CustomPgnMove[][];
+}
+
+// --- PGN Rendering ---
+
+function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], altLine?: boolean): string {
     let html = '';
     if (!moves || moves.length === 0) return '';
     let lineClass
@@ -50,36 +68,42 @@ function buildPgnHtml(moves, path = [], altLine) {
     return html;
 }
 
-export function getFullMoveSequenceFromPath(path) {
-    state.count = 0; // Int so we can track on which move we are.
+// --- PGN Navigation ---
+
+export function getFullMoveSequenceFromPath(path: string[]): string[] {
+    state.count = 0;
     state.chessGroundShapes = [];
-    state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
-    state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
-    state.pgnState = true; // incase outside PGN
-    document.querySelector("#navForward").disabled = false;
+    state.expectedLine = parsedPGN.moves as CustomPgnMove[];
+    state.expectedMove = state.expectedLine[state.count];
+    state.pgnState = true;
+
     chess.reset();
     chess.load(state.ankiFen);
-    let branchIndex = null;
-    for ( let i=0; i < path.length; i++) {
-        // [ "3", "v", "1", "2" ] means: at the 3rd mainline move branch into branch[1] and then 2 mainline moves down branch one
+
+    let branchIndex: number | null = null;
+    for (let i = 0; i < path.length; i++) {
         const pathCount = parseInt(path[i], 10);
-        if (path[i+1] === 'v') {
-            branchIndex = parseInt(path[i+2], 10);
-            i = i + 2 // skip branch move and index after branch
+        if (path[i + 1] === 'v') {
+            branchIndex = parseInt(path[i + 2], 10);
+            i += 2; // Skip 'v' and branch index
         }
+
         for (let j = 0; j <= pathCount; j++) {
             if (branchIndex !== null && j === pathCount) {
-                state.count = 0;
-                state.expectedLine = state.expectedMove.variations[branchIndex];
-                state.expectedMove = state.expectedLine[0];
-                branchIndex = null;
-            } else {
+                if (state.expectedMove?.variations) {
+                    state.count = 0;
+                    state.expectedLine = state.expectedMove.variations[branchIndex];
+                    state.expectedMove = state.expectedLine[0];
+                    branchIndex = null;
+                }
+            } else if (state.expectedMove) {
                 chess.move(state.expectedMove.notation.notation);
                 state.count++;
                 state.expectedMove = state.expectedLine[state.count];
             }
         }
     }
+
     cg.set({
         fen: chess.fen(),
            check: chess.inCheck(),
@@ -89,33 +113,42 @@ export function getFullMoveSequenceFromPath(path) {
            dests: toDests(chess)
            },
     });
-    document.querySelectorAll('#navBackward, #resetBoard')
+
+    const forwardButton = document.querySelector<HTMLButtonElement>("#navForward");
+    if (forwardButton) forwardButton.disabled = !state.expectedMove;
+
+    document.querySelectorAll<HTMLButtonElement>('#navBackward, #resetBoard')
     .forEach(el => el.disabled = false);
-    if (!state.expectedMove || typeof state.expectedMove === 'string') {
-        document.querySelector("#navForward").disabled = true;
-    }
+
     if (state.analysisToggledOn) {
-        handleStockfish.startAnalysis(4000);
+        startAnalysis(config.analysisTime);
     }
-    drawArrows(cg, chess)
-    return chess.moves()
+    drawArrows();
+    return chess.moves();
 }
 
-export function onPgnMoveClick(event) {
-    if (!event.target.classList.contains('move')) return;
+export function onPgnMoveClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target || !target.classList.contains('move')) return;
+
     document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    event.target.classList.add('current');
-    const pathStr = event.target.dataset.path;
-    const path = pathStr.split(',');
-    getFullMoveSequenceFromPath(path);
+    target.classList.add('current');
+
+    const pathStr = target.dataset.path;
+    if (pathStr) {
+        getFullMoveSequenceFromPath(pathStr.split(','));
+    }
 }
 
-export function augmentPgnTree(moves, path = []) {
+// --- PGN Data Augmentation ---
+
+export function augmentPgnTree(moves: CustomPgnMove[], path: (string | number)[] = []): void {
     if (!moves) return;
     for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
         const currentPath = [...path, i];
         move.pgnPath = currentPath;
+
         if (move.variations) {
             move.variations.forEach((variation, varIndex) => {
                 const variationPath = [...currentPath, 'v', varIndex];
@@ -125,20 +158,25 @@ export function augmentPgnTree(moves, path = []) {
     }
 }
 
-export function highlightCurrentMove(pgnPath) {
+export function highlightCurrentMove(pgnPath: (string | number)[]): void {
     document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    document.querySelector(`[data-path="${pgnPath.join(',')}"]`).classList.add("current");
+    const currentMoveEl = document.querySelector(`[data-path="${pgnPath.join(',')}"]`);
+    if (currentMoveEl) {
+        currentMoveEl.classList.add("current");
+    }
 }
 
+// --- Initialization ---
 
-export function initPgnViewer() {
+export function initPgnViewer(): void {
     if (config.boardMode === 'Puzzle') return;
+
     const pgnContainer = document.getElementById('pgnComment');
+    if (!pgnContainer) return;
+
     pgnContainer.innerHTML = '';
     if (parsedPGN.gameComment) {
         pgnContainer.innerHTML += `<span class="comment"> ${parsedPGN.gameComment.comment} </span>`;
     }
-    pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
+    pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves as CustomPgnMove[]);
 }
-
-
