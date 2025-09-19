@@ -1,3 +1,5 @@
+import { Chessground } from 'chessground';
+import { Chess } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -10,7 +12,7 @@ function getUrlParam(name, defaultValue) {
 }
 
 // --- Configuration ---
-export const config = {
+const config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
     [Date "2025.02.22"]
@@ -21,7 +23,7 @@ export const config = {
     [FEN "r1b2k1r/p1nq4/1pp1pPp1/6N1/2pP3P/2P2BQ1/P4P2/R3R1K1 b - - 3 28"]
     [SetUp "1"]
 
-    28... Bb7 29. Qxc7 {EV: 99.9%, N: 11.89% of 34.0k} Qxc7 {EV: 0.7%, N: 45.51% of
+    28... Bb7! 29. Qxc7 {EV: 99.9%, N: 11.89% of 34.0k} Qxc7 {EV: 0.7%, N: 45.51% of
     12.7k} 30. Nxe6+ {EV: 99.5%, N: 99.85% of 22.3k} Kf7 {EV: 0.3%, N: 49.95% of
     32.8k} 31. Nxc7 {EV: 99.8%, N: 99.86% of 25.2k} *`),
     fontSize: getUrlParam("fontSize", 16),
@@ -34,7 +36,7 @@ export const config = {
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'true') === 'true',
-    boardMode: getUrlParam("boardMode", 'Puzzle'),
+    boardMode: getUrlParam("boardMode", 'Viewer'),
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
@@ -47,9 +49,10 @@ export const config = {
     analysisTime: parseInt(getUrlParam("analysisTime", 4), 10) * 1000,
 };
 
-export const parsedPGN = parse(config.pgn, { startRule: "game" });
+const parsedPGN = parse(config.pgn, { startRule: "game" });
+
 // --- Global State ---
-export let state = {
+const state = {
     ankiFen: parsedPGN.tags.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     boardRotation: "black",
     playerColour: "white",
@@ -76,3 +79,33 @@ export let state = {
     puzzleComplete: false,
 };
 
+// --- Global Variables ---
+// default chessgrounf values
+const cg = Chessground(board, {
+    premovable: {
+        enabled: true,
+    },
+    movable: {
+        free: false,
+        showDests: config.showDests,
+    },
+    highlight: { check: true },
+    drawable: {
+        enabled: true,
+        brushes: {
+            stockfish: { key: 'stockfish', color: '#e5e5e5', opacity: 1, lineWidth: 7 },
+            stockfinished: { key: 'stockfinished', color: 'white', opacity: 1, lineWidth: 7 },
+            mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
+            altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
+            blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 9 },
+            green: { opacity: 0.7, lineWidth: 9 },
+            red: { opacity: 0.7, lineWidth: 9 },
+            blue: { opacity: 0.7, lineWidth: 9 },
+            yellow: { opacity: 0.7, lineWidth: 9 },
+        },
+    },
+}); // gloabal chessground board
+const htmlElement = document.documentElement;
+const chess = new Chess();
+
+export { parsedPGN, config, state, cg, chess, htmlElement }
