@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node build.js",
+    "typecheck": "tsc",
+    "build": "node build.js && npm run typecheck",
     "dev": "node build.js --dev"
   },
   "keywords": [],
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.25.9",
-    "glob": "^11.0.3"
+    "glob": "^11.0.3",
+    "typescript": "^5.9.2"
   }
 }

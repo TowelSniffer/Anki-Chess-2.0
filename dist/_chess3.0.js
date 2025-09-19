@@ -1,3 +1,4 @@
+"use strict";
 (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
@@ -3535,7 +3536,7 @@
         lan;
         before;
         after;
-        constructor(chess2, internal) {
+        constructor(chess3, internal) {
           const { color, piece, from, to, flags, captured, promotion } = internal;
           const fromAlgebraic = algebraic(from);
           const toAlgebraic = algebraic(to);
@@ -3543,12 +3544,12 @@
           this.piece = piece;
           this.from = fromAlgebraic;
           this.to = toAlgebraic;
-          this.san = chess2["_moveToSan"](internal, chess2["_moves"]({ legal: true }));
+          this.san = chess3["_moveToSan"](internal, chess3["_moves"]({ legal: true }));
           this.lan = fromAlgebraic + toAlgebraic;
-          this.before = chess2.fen();
-          chess2["_makeMove"](internal);
-          this.after = chess2.fen();
-          chess2["_undoMove"]();
+          this.before = chess3.fen();
+          chess3["_makeMove"](internal);
+          this.after = chess3.fen();
+          chess3["_undoMove"]();
           this.flags = "";
           for (const flag in BITS) {
             if (BITS[flag] & flags) {
@@ -13696,34 +13697,45 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/config.js
+  // src/js/config.ts
   function getUrlParam(name, defaultValue) {
     if (urlParams.has(name)) {
       return urlParams.get(name);
     }
     return defaultValue;
   }
-  var import_pgn_parser, urlParams, config, parsedPGN, state, cg2, htmlElement, chess;
+  var import_pgn_parser, ShapeFilter, shapeArray, urlParams, config, parsedPGN, state, cg2, htmlElement, chess;
   var init_config2 = __esm({
-    "src/js/config.js"() {
+    "src/js/config.ts"() {
+      "use strict";
       init_chessground();
       init_chess();
       import_pgn_parser = __toESM(require_index_umd());
+      ShapeFilter = /* @__PURE__ */ ((ShapeFilter2) => {
+        ShapeFilter2["All"] = "All";
+        ShapeFilter2["Stockfish"] = "Stockfish";
+        ShapeFilter2["PGN"] = "PGN";
+        ShapeFilter2["Custom"] = "Custom";
+        return ShapeFilter2;
+      })(ShapeFilter || {});
+      shapeArray = {
+        ["All" /* All */]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
+        ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
+        ["PGN" /* PGN */]: ["mainLine", "altLine", "blunderLine", "moveType"],
+        [ShapeFilter.Drawn]: ["userDrawn"]
+      };
       urlParams = new URLSearchParams(window.location.search);
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.02.22"]
+    [Date "2025.09.20"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "r1b2k1r/p1nq4/1pp1pPp1/6N1/2pP3P/2P2BQ1/P4P2/R3R1K1 b - - 3 28"]
-    [SetUp "1"]
 
-    28... Bb7! 29. Qxc7 {EV: 99.9%, N: 11.89% of 34.0k} Qxc7 {EV: 0.7%, N: 45.51% of
-    12.7k} 30. Nxe6+ {EV: 99.5%, N: 99.85% of 22.3k} Kf7 {EV: 0.3%, N: 49.95% of
-    32.8k} 31. Nxc7 {EV: 99.8%, N: 99.86% of 25.2k} *`),
+    1. e4 f5 (1... e5) (1... d5) (1... c5) (1... b5) (1... a5) (1... g5) (1... h5) *
+    `),
         fontSize: getUrlParam("fontSize", 16),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -13734,7 +13746,7 @@ ${contextLines.join("\n")}`;
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Viewer"),
+        boardMode: getUrlParam("boardMode", "Puzzle"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
@@ -13802,7 +13814,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/timer.js
+  // src/js/timer.ts
   function extendPuzzleTime(additionalTime) {
     if (config.boardMode === "Viewer" || !config.timer) return;
     if (puzzleTimeout) {
@@ -13817,9 +13829,8 @@ ${contextLines.join("\n")}`;
   }
   function startPuzzleTimeout(delay) {
     if (config.boardMode === "Viewer" || !config.timer) return;
-    const cgwrap2 = document.querySelector(".cg-wrap");
-    if (!config.timerScore) document.documentElement.style.setProperty("--timer-color", config.randomOrientation ? "#66AAAA" : state.opponentColour);
-    cgwrap2.classList.add("timerMode");
+    if (!config.timerScore) document.documentElement.style.setProperty("--timer-color", config.randomOrientation ? "#2CBFA7" : state.opponentColour);
+    cgwrap.classList.add("timerMode");
     puzzleTimeout = setTimeout(handleOutOfTime, delay);
     totalTime = config.timer;
     let usedTime = config.timer - delay;
@@ -13830,7 +13841,7 @@ ${contextLines.join("\n")}`;
     startTime = Date.now();
     puzzleIncrement = setInterval(() => {
       if (state.puzzleComplete) {
-        cgwrap2.classList.remove("timerMode");
+        cgwrap.classList.remove("timerMode");
         clearTimeout(puzzleTimeout);
         clearInterval(puzzleIncrement);
         return;
@@ -13853,8 +13864,10 @@ ${contextLines.join("\n")}`;
   }
   var puzzleTimeout, puzzleIncrement, startTime, totalTime, remainingTime, handleOutOfTime;
   var init_timer = __esm({
-    "src/js/timer.js"() {
+    "src/js/timer.ts"() {
+      "use strict";
       init_config2();
+      init_chessFunctions();
       handleOutOfTime = function() {
         if (config.timerScore) {
           state.errorTrack = true;
@@ -13869,14 +13882,13 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/audio.js
-  function initAudio(mute) {
+  // src/js/audio.ts
+  function initAudio() {
     const sounds = ["Move", "checkmate", "move-check", "Capture", "castle", "promote", "Error", "computer-mouse-click"];
     const audioMap2 = /* @__PURE__ */ new Map();
     sounds.forEach((sound) => {
       const audio = new Audio(`_${sound}.mp3`);
       audio.preload = "auto";
-      audio.muted = mute;
       audioMap2.set(sound, audio);
     });
     return audioMap2;
@@ -13908,13 +13920,14 @@ ${contextLines.join("\n")}`;
   }
   var audioMap;
   var init_audio = __esm({
-    "src/js/audio.js"() {
+    "src/js/audio.ts"() {
+      "use strict";
       init_config2();
-      audioMap = initAudio(config.muteAudio);
+      audioMap = initAudio();
     }
   });
 
-  // src/js/handleStockfish.js
+  // src/js/handleStockfish.ts
   function convertCpToWinPercentage(cp) {
     const probability = 1 / (1 + Math.pow(10, -cp / 400));
     let percentage = probability * 100;
@@ -14040,26 +14053,28 @@ ${contextLines.join("\n")}`;
     }, 200);
   }
   function toggleStockfishAnalysis() {
-    const cgwrap2 = document.querySelector(".cg-wrap");
     if (!stockfish) initializeStockfish();
     state.analysisToggledOn = !state.analysisToggledOn;
     const toggleButton = document.querySelector("#stockfishToggle");
     toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
     if (state.analysisToggledOn) {
-      cgwrap2.classList.add("analysisMode");
+      cgwrap.classList.add("analysisMode");
       toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board</span>";
       startAnalysis(config.analysisTime);
     } else {
-      cgwrap2.classList.remove("analysisMode");
+      cgwrap.classList.remove("analysisMode");
       toggleButton.innerHTML = "<span class='material-icons md-small'>developer_board_off</span>";
       if (state.isStockfishBusy) {
         stockfish.postMessage("stop");
       }
+      state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish");
+      cg2.set({ drawable: { shapes: state.chessGroundShapes } });
     }
   }
   var stockfish;
   var init_handleStockfish = __esm({
-    "src/js/handleStockfish.js"() {
+    "src/js/handleStockfish.ts"() {
+      "use strict";
       init_chess();
       init_chessFunctions();
       init_config2();
@@ -14067,7 +14082,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/mirror.js
+  // src/js/mirror.ts
   function assignMirrorState(pgn2) {
     const states = ["original", "original_mirror", "invert", "invert_mirror"];
     const mirrorRandom = Math.floor(Math.random() * states.length);
@@ -14186,11 +14201,12 @@ ${contextLines.join("\n")}`;
     return castlingPart !== "-";
   }
   var init_mirror = __esm({
-    "src/js/mirror.js"() {
+    "src/js/mirror.ts"() {
+      "use strict";
     }
   });
 
-  // src/js/initializeUI.js
+  // src/js/initializeUI.ts
   function initializeUI() {
     if (config.mirror && !checkCastleRights(state.ankiFen)) {
       if (!state.mirrorState) state.mirrorState = assignMirrorState(config.pgn);
@@ -14232,7 +14248,7 @@ ${contextLines.join("\n")}`;
     if (state.errorTrack === "true" && config.boardMode === "Viewer") {
       htmlElement.style.setProperty("--border-color", "#b31010");
     } else if (state.errorTrack === "correctTime" && config.boardMode === "Viewer") {
-      htmlElement.style.setProperty("--border-color", "#66AAAA");
+      htmlElement.style.setProperty("--border-color", "#2CBFA7");
     } else if (state.errorTrack === "correct" && config.boardMode === "Viewer") {
       htmlElement.style.setProperty("--border-color", "limegreen");
     }
@@ -14240,15 +14256,16 @@ ${contextLines.join("\n")}`;
   function positionPromoteOverlay() {
     const promoteOverlay = document.getElementById("promoteButtons");
     if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
-    const cgwrap2 = document.querySelector(".cg-wrap");
-    const rect = cgwrap2.getBoundingClientRect();
+    const rect = cgwrap.getBoundingClientRect();
     promoteOverlay.style.top = rect.top + 8 + "px";
     promoteOverlay.style.left = rect.left + 8 + "px";
   }
   var init_initializeUI = __esm({
-    "src/js/initializeUI.js"() {
+    "src/js/initializeUI.ts"() {
+      "use strict";
       init_mirror();
       init_config2();
+      init_chessFunctions();
     }
   });
 
@@ -14400,34 +14417,52 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/chessFunctions.js
+  // src/js/chessFunctions.ts
   function toggleClass(querySelector, className) {
     document.querySelectorAll("." + querySelector).forEach((el) => el.classList.toggle(`${className}`));
   }
-  function toDests(chess2) {
+  function toDests(chess3) {
     const dests = /* @__PURE__ */ new Map();
     SQUARES.forEach((s) => {
-      const ms = chess2.moves({ square: s, verbose: true });
+      const ms = chess3.moves({ square: s, verbose: true });
       if (ms.length) dests.set(s, ms.map((m) => m.to));
     });
     return dests;
   }
-  function toColor(chess2) {
-    return chess2.turn() === "w" ? "white" : "black";
+  function toColor(chess3) {
+    return chess3.turn() === "w" ? "white" : "black";
   }
-  function getOpponentColor(chess2) {
-    return chess2.turn() === "w" ? "b" : "w";
+  function getOpponentColor(chess3) {
+    return chess3.turn() === "w" ? "b" : "w";
   }
-  function getLastMove(chess2) {
-    const allMoves = chess2.history({ verbose: true });
+  function getLastMove(chess3) {
+    const allMoves = chess3.history({ verbose: true });
     if (allMoves.length > 0) {
       return allMoves[allMoves.length - 1];
     } else {
       return false;
     }
   }
+  function filterShapes(filterKey) {
+    let brushesToRemove = shapeArray[filterKey];
+    const shouldFilterDrawn = brushesToRemove.includes("userDrawn");
+    if (shouldFilterDrawn) brushesToRemove = shapeArray["All" /* All */];
+    const shouldFilterMoveType = brushesToRemove.includes("moveType");
+    const normalBrushesToRemove = brushesToRemove.filter((b) => b !== "moveType");
+    const filteredShapes = state.chessGroundShapes.filter((shape) => {
+      const isNormalBrushMatch = normalBrushesToRemove.includes(shape.brush);
+      const isMoveTypeMatch = shouldFilterMoveType && shape.customSvg?.brush === "moveType";
+      const shouldRemove = isNormalBrushMatch || isMoveTypeMatch;
+      if (shouldFilterDrawn) {
+        return shouldRemove;
+      } else {
+        return !shouldRemove;
+      }
+    });
+    state.chessGroundShapes = filteredShapes;
+  }
   function drawArrows(redraw) {
-    state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish");
+    filterShapes("Stockfish" /* Stockfish */);
     if (redraw) {
       cg2.set({ drawable: { shapes: state.chessGroundShapes } });
       return;
@@ -14773,7 +14808,7 @@ ${contextLines.join("\n")}`;
       } else if (delay) {
         if (state.errorTrack === null) state.errorTrack = "correct";
         if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
-          state.solvedColour = "#66AAAA";
+          state.solvedColour = "#2CBFA7";
           state.errorTrack = "correctTime";
         }
         state.puzzleComplete = true;
@@ -14867,6 +14902,30 @@ ${contextLines.join("\n")}`;
       }
     }
     return null;
+  }
+  function waitForElement(selector) {
+    return new Promise((resolve) => {
+      const element = document.querySelector(selector);
+      if (element) {
+        resolve(element);
+        return;
+      }
+      const observer = new MutationObserver((mutations) => {
+        const targetElement = document.querySelector(selector);
+        if (targetElement) {
+          resolve(targetElement);
+          observer.disconnect();
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    });
+  }
+  async function setupTimer() {
+    cgwrap = await waitForElement(".cg-wrap");
+    startPuzzleTimeout(config.timer);
   }
   function navBackward() {
     if (config.boardMode === "Puzzle") return;
@@ -15048,10 +15107,7 @@ ${contextLines.join("\n")}`;
       turnColor: toColor(chess),
       events: {
         select: (key) => {
-          const arrowCheck = state.chessGroundShapes.filter((shape) => shape.brush !== "mainLine" && shape.brush !== "altLine" && shape.brush !== "blunderLine" && shape.brush !== "stockfish" && shape.brush !== "stockfinished" && shape.customSvg?.brush !== "moveType");
-          if (arrowCheck.length > 0) {
-            state.chessGroundShapes = state.chessGroundShapes.filter((element) => !arrowCheck.includes(element));
-          }
+          filterShapes(ShapeFilter.Drawn);
           cg2.set({ drawable: { shapes: state.chessGroundShapes } });
           setTimeout(() => {
             if (state.debounceTimeout) return;
@@ -15109,11 +15165,12 @@ ${contextLines.join("\n")}`;
       playAiMove(300);
     }
     drawArrows();
-    startPuzzleTimeout(config.timer);
+    setupTimer();
   }
   var cgwrap;
   var init_chessFunctions = __esm({
-    "src/js/chessFunctions.js"() {
+    "src/js/chessFunctions.ts"() {
+      "use strict";
       init_chess();
       init_config2();
       init_pgnViewer();
@@ -15122,11 +15179,11 @@ ${contextLines.join("\n")}`;
       init_handleStockfish();
       init_initializeUI();
       init_nags();
-      cgwrap = document.querySelector(".cg-wrap");
+      cgwrap = null;
     }
   });
 
-  // src/js/pgnViewer.js
+  // src/js/pgnViewer.ts
   function buildPgnHtml(moves, path = [], altLine) {
     let html = "";
     if (!moves || moves.length === 0) return "";
@@ -15255,7 +15312,8 @@ ${contextLines.join("\n")}`;
     pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
   }
   var init_pgnViewer = __esm({
-    "src/js/pgnViewer.js"() {
+    "src/js/pgnViewer.ts"() {
+      "use strict";
       init_chessFunctions();
       init_config2();
       init_nags();
@@ -15360,8 +15418,7 @@ ${contextLines.join("\n")}`;
             handleStockfishCrash("window.onerror");
           }
         });
-        const cgwrap2 = document.querySelector(".cg-wrap");
-        if (cgwrap2) {
+        if (cgwrap) {
           let isUpdateScheduled = false;
           const handleReposition = () => {
             if (isUpdateScheduled) {
@@ -15374,7 +15431,7 @@ ${contextLines.join("\n")}`;
             });
           };
           const resizeObserver = new ResizeObserver(handleReposition);
-          resizeObserver.observe(cgwrap2);
+          resizeObserver.observe(cgwrap);
           window.addEventListener("resize", handleReposition);
           document.addEventListener("scroll", handleReposition, true);
         }
