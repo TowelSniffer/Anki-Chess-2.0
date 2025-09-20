@@ -115,7 +115,7 @@ const config: Config = {
     [FEN "r7/p1pnkppp/4b3/2p5/N2pP3/1P3P2/P1P1B1PP/2KR4 w - - 0 17"]
     [SetUp "1"]
 
-    17. Bb5 Kd6 {EV: 14.8%, N: 84.79% of 315k} (17... c6 {EV: 14.7%, N: 9.92% of
+    17. Bb5 Kd6! {EV: 14.8%, N: 84.79% of 315k} (17... c6 {EV: 14.7%, N: 9.92% of
         315k} 18. Bxc6 {EV: 84.9%, N: 98.99% of 49.4k} Rc8 {EV: 15.6%, N: 98.06% of
             58.7k} 19. Bb5 {EV: 80.2%, N: 7.41% of 483k} (19. Bxd7 {EV: 83.9%, N: 91.06% of
                 483k} Bxd7 {EV: 16.3%, N: 98.49% of 447k}) Ne5 {EV: 20.5%, N: 92.74% of 140k})
@@ -137,7 +137,7 @@ const config: Config = {
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
     handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
-    timer: parseInt(getUrlParam("timer", '2') as string, 10) * 1000,
+    timer: parseInt(getUrlParam("timer", '4') as string, 10) * 1000,
     increment: parseInt(getUrlParam("increment", '2') as string, 10) * 1000,
     timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
     timerScore: getUrlParam("timerScore", 'false') === 'true',
@@ -207,7 +207,7 @@ const cg: Api = Chessground(boardElement, {
             mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
             altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
             blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 9 },
-            moveType: { key: 'moveType', color: 'green',   opacity: 0.7, lineWidth: 9 },
+            moveType: { key: 'moveType', color: 'transparant',   opacity: 0.7, lineWidth: 9 },
             // default
             green:   { key: 'green', color: 'green',   opacity: 0.7, lineWidth: 9 },
             red:     { key: 'red',   color: 'red',     opacity: 0.7, lineWidth: 9 },
@@ -250,7 +250,7 @@ export const btn = {
 };
 
 export async function setupCgwrap(): Promise<HTMLDivElement> {
-    const element = await waitForElement('#board');
+    const element = await waitForElement('.cg-wrap');
     return element as HTMLDivElement;
 }
 

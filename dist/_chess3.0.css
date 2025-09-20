@@ -195,7 +195,7 @@ piece.fading {
   --opponent-color: black;
   --player-color: white;
   --border-shadow: LightSlateGrey;
-  --timer-color: #66AAAA;
+  --timer-color: #b31010;
   --max-width: min(100vw, 1000px);
   --centipawn: 50%;
   --remainingTime: 0%;
@@ -524,7 +524,7 @@ img {
   opacity: 1 !important;
   filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.6));
 }
-#board {
+.cg-wrap {
   width: var(--board-size);
   height: var(--board-size);
   box-shadow: 0px 0px 3px 0px grey;
