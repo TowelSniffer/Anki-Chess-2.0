@@ -563,6 +563,8 @@ export function navBackward(): void {
       return;
     } else if (firstMoveCheck && (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === firstMoveCheck.san) ) {
       handlePgnState(true);
+    } else if (state.count === 0 && !firstMoveCheck) { // start of pgn from branch at first move
+      handlePgnState(true)
     }
   }
   drawArrows();
