@@ -33,7 +33,7 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
         let nagCheck = '';
         let nagTitle = null;
         if (move.nag) {
-            const foundNagKey = move.nag?.find(key => key in nags);
+            const foundNagKey = move.nag?.find((key: string) => key in nags);
             if (foundNagKey) {
                 nagCheck = (nags as NagData)[foundNagKey]?.[1] ?? '';
                 nagTitle = (nags as NagData)[foundNagKey]?.[0] ?? '';

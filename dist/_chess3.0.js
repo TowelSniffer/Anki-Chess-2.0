@@ -1114,8 +1114,8 @@
         return getKeyAtDomPos(pos, whitePov(state2), state2.dom.bounds());
       },
       redrawAll,
-      dragNewPiece(piece, event2, force) {
-        dragNewPiece(state2, piece, event2, force);
+      dragNewPiece(piece, event, force) {
+        dragNewPiece(state2, piece, event, force);
       },
       destroy() {
         stop(state2);
@@ -1558,8 +1558,8 @@
     element.classList.toggle("manipulable", !s.viewOnly);
     const container = createEl("cg-container");
     element.appendChild(container);
-    const board2 = createEl("cg-board");
-    container.appendChild(board2);
+    const board = createEl("cg-board");
+    container.appendChild(board);
     let svg;
     let customSvg;
     let autoPieces;
@@ -1600,7 +1600,7 @@
       container.appendChild(ghost);
     }
     return {
-      board: board2,
+      board,
       container,
       wrap: element,
       ghost,
@@ -13698,7 +13698,7 @@ ${contextLines.join("\n")}`;
   });
 
   // src/js/mirror.ts
-  function assignMirrorState(_pgn) {
+  function assignMirrorState() {
     const states = ["original", "original_mirror", "invert", "invert_mirror"];
     const mirrorRandom = Math.floor(Math.random() * states.length);
     return states[mirrorRandom];
@@ -13785,7 +13785,7 @@ ${contextLines.join("\n")}`;
         }
       });
     } else {
-      lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber;
+      lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber ?? 0;
       moves.forEach((move3, index) => {
         mirrorMove(move3, mirrorState);
         if (move3.turn === "b") {
@@ -13820,7 +13820,27 @@ ${contextLines.join("\n")}`;
     const value = urlParams.get(name);
     return value !== null ? value : defaultValue;
   }
-  var import_pgn_parser, shapeArray, urlParams, config, parsedPGN, state, boardElement, cg2, htmlElement, chess;
+  function waitForElement(selector) {
+    return new Promise((resolve) => {
+      const element = document.querySelector(selector);
+      if (element) {
+        return resolve(element);
+      }
+      const observer = new MutationObserver(() => {
+        const element2 = document.querySelector(selector);
+        if (element2) {
+          observer.disconnect();
+          resolve(element2);
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+  async function setupCgwrap() {
+    const element = await waitForElement("#board");
+    return element;
+  }
+  var import_pgn_parser, shapeArray, urlParams, config, parsedPGN, state, boardElement, cg, htmlElement, chess, btn;
   var init_config2 = __esm({
     "src/js/config.ts"() {
       "use strict";
@@ -13888,11 +13908,11 @@ ${contextLines.join("\n")}`;
         chessGroundShapes: [],
         expectedLine: [],
         expectedMove: null,
-        lastMove: null,
+        lastMove: false,
         errorCount: 0,
         promoteChoice: "q",
         promoteAnimate: true,
-        debounceCheck: null,
+        debounceCheck: false,
         navTimeout: null,
         isStockfishBusy: false,
         analysisFen: null,
@@ -13904,7 +13924,7 @@ ${contextLines.join("\n")}`;
       };
       if (config.mirror && !checkCastleRights(state.ankiFen)) {
         if (!state.mirrorState) {
-          state.mirrorState = assignMirrorState(config.pgn);
+          state.mirrorState = assignMirrorState();
         }
         window.parent.postMessage(state, "*");
         mirrorPgnTree(parsedPGN.moves, state.mirrorState);
@@ -13914,7 +13934,7 @@ ${contextLines.join("\n")}`;
       if (!boardElement) {
         throw new Error("Fatal: Board element with id 'board' not found in the DOM.");
       }
-      cg2 = Chessground(boardElement, {
+      cg = Chessground(boardElement, {
         fen: state.ankiFen,
         premovable: {
           enabled: true
@@ -13932,15 +13952,37 @@ ${contextLines.join("\n")}`;
             mainLine: { key: "mainLine", color: "#66AA66", opacity: 1, lineWidth: 9 },
             altLine: { key: "altLine", color: "#66AAAA", opacity: 1, lineWidth: 9 },
             blunderLine: { key: "blunderLine", color: "#b31010", opacity: 1, lineWidth: 9 },
-            green: { opacity: 0.7, lineWidth: 9 },
-            red: { opacity: 0.7, lineWidth: 9 },
-            blue: { opacity: 0.7, lineWidth: 9 },
-            yellow: { opacity: 0.7, lineWidth: 9 }
+            moveType: { key: "moveType", color: "green", opacity: 0.7, lineWidth: 9 },
+            // default
+            green: { key: "green", color: "green", opacity: 0.7, lineWidth: 9 },
+            red: { key: "red", color: "red", opacity: 0.7, lineWidth: 9 },
+            blue: { key: "blue", color: "blue", opacity: 0.7, lineWidth: 9 },
+            yellow: { key: "yellow", color: "yellow", opacity: 0.7, lineWidth: 9 }
           }
         }
       });
       htmlElement = document.documentElement;
       chess = new Chess();
+      btn = {
+        get reset() {
+          return document.querySelector("#resetBoard");
+        },
+        get back() {
+          return document.querySelector("#navBackward");
+        },
+        get forward() {
+          return document.querySelector("#navForward");
+        },
+        get copy() {
+          return document.querySelector("#copyFen");
+        },
+        get stockfish() {
+          return document.querySelector("#stockfishToggle");
+        },
+        get flip() {
+          return document.querySelector("#flipBoardIcon");
+        }
+      };
     }
   });
 
@@ -13969,7 +14011,8 @@ ${contextLines.join("\n")}`;
       }
     }
   }
-  function startPuzzleTimeout(delay) {
+  async function startPuzzleTimeout(delay) {
+    const cgwrap = await setupCgwrap();
     if (config.boardMode === "Viewer" || !config.timer) return;
     if (puzzleTimeout) clearTimeout(puzzleTimeout);
     if (puzzleIncrement) clearInterval(puzzleIncrement);
@@ -13995,7 +14038,7 @@ ${contextLines.join("\n")}`;
       }
       const elapsedTime = Date.now() - startTime;
       remainingTime = Math.max(0, totalTime - elapsedTime - usedTime);
-      if (state.playerColour !== cg2.state.turnColor) {
+      if (state.playerColour !== cg.state.turnColor) {
         extendPuzzleTime(10);
         return;
       }
@@ -14011,7 +14054,6 @@ ${contextLines.join("\n")}`;
     "src/js/timer.ts"() {
       "use strict";
       init_config2();
-      init_chessFunctions();
       puzzleTimeout = null;
       puzzleIncrement = null;
       startTime = 0;
@@ -14056,8 +14098,8 @@ ${contextLines.join("\n")}`;
     }
     return `${percentage.toFixed(1)}%`;
   }
-  function handleStockfishMessages(event2) {
-    const message = event2.data;
+  function handleStockfishMessages(event) {
+    const message = event.data;
     if (typeof message !== "string") {
       console.warn("Received a non-string message from the Stockfish worker:", message);
       return;
@@ -14070,8 +14112,8 @@ ${contextLines.join("\n")}`;
       const pvDepthIndex = parts.indexOf("depth");
       if (pvIndex > -1 && parts.length > pvIndex + 1) {
         const firstMove = parts[pvIndex + 1];
-        const cp = parts[cpIndex + 1];
-        const mate = parts[mateIndex + 1];
+        const cp = parseInt(parts[cpIndex + 1], 10);
+        const mate = parseInt(parts[mateIndex + 1], 10);
         let advantage;
         if (cpIndex === -1) {
           advantage = mate < 0 ? 0 : 100;
@@ -14095,12 +14137,12 @@ ${contextLines.join("\n")}`;
               brush: "stockfish",
               san: moveObject.san
             });
-            cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+            cg.set({ drawable: { shapes: state.chessGroundShapes } });
           }
         }
       }
     } else if (message.startsWith("bestmove")) {
-      cg2.set({ viewOnly: false });
+      cg.set({ viewOnly: false });
       state.isStockfishBusy = false;
       if (state.analysisFen === "none") {
         state.analysisFen = true;
@@ -14119,14 +14161,14 @@ ${contextLines.join("\n")}`;
               brush: "stockfinished",
               san: moveObject.san
             });
-            cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+            cg.set({ drawable: { shapes: state.chessGroundShapes } });
           }
         } catch (e) {
         }
       }
     }
   }
-  function handleStockfishCrash2(source) {
+  function handleStockfishCrash(source) {
     console.error(`Stockfish engine crashed. Source: ${source}.`);
     if (!state.analysisToggledOn) return;
     console.log("Attempting to restart the engine...");
@@ -14135,33 +14177,29 @@ ${contextLines.join("\n")}`;
   }
   function initializeStockfish() {
     return new Promise((resolve, reject) => {
-      if (stockfish) {
-        stockfish.terminate();
-      }
+      if (stockfish) stockfish.terminate();
       stockfish = new Worker("/_stockfish.js");
-      stockfish.onmessage = (event2) => {
-        const message = event2.data ?? event2;
+      stockfish.onmessage = (event) => {
+        const message = event.data ?? event;
         if (typeof message !== "string") return;
         if (message === "uciok") {
           stockfish.postMessage("isready");
         } else if (message === "readyok") {
           stockfish.onmessage = handleStockfishMessages;
-          stockfish.onerror = () => handleStockfishCrash2("stockfish.onerror");
+          stockfish.onerror = () => handleStockfishCrash("stockfish.onerror");
           resolve();
         }
       };
       stockfish.onerror = (error) => {
         console.error("Stockfish failed to initialize.", error);
-        handleStockfishCrash2("stockfish.on-init-error");
+        handleStockfishCrash("stockfish.on-init-error");
         reject(error);
       };
       stockfish.postMessage("uci");
     });
   }
   function startAnalysis(movetime) {
-    if (chess.moves().length === 0 || state.analysisFen === "none" || !state.analysisToggledOn) {
-      return;
-    }
+    if (chess.moves().length === 0 || state.analysisFen === "none" || !state.analysisToggledOn || !stockfish) return;
     if (state.isStockfishBusy) {
       state.chessGroundShapes = state.chessGroundShapes.filter((shape) => shape.brush !== "stockfish" && shape.brush !== "stockfinished");
       state.isStockfishBusy = false;
@@ -14174,11 +14212,12 @@ ${contextLines.join("\n")}`;
     stockfish.postMessage(`position fen ${state.analysisFen}`);
     stockfish.postMessage(`go movetime ${movetime}`);
   }
-  function toggleStockfishAnalysis() {
+  function toggleStockfishAnalysis(cgwrap) {
+    if (!cgwrap) return;
     if (!stockfish) {
       initializeStockfish().then(() => {
         state.analysisToggledOn = false;
-        toggleStockfishAnalysis();
+        toggleStockfishAnalysis(cgwrap);
       });
       return;
     }
@@ -14199,7 +14238,7 @@ ${contextLines.join("\n")}`;
       state.chessGroundShapes = state.chessGroundShapes.filter(
         (shape) => shape.brush !== "stockfinished" && shape.brush !== "stockfish"
       );
-      cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+      cg.set({ drawable: { shapes: state.chessGroundShapes } });
     }
   }
   var stockfish;
@@ -14277,9 +14316,9 @@ ${contextLines.join("\n")}`;
       }
     }
   }
-  function positionPromoteOverlay() {
+  function positionPromoteOverlay(cgwrap) {
     const promoteOverlay = document.getElementById("promoteButtons");
-    if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
+    if (!promoteOverlay || promoteOverlay.classList.contains("hidden") || !cgwrap) return;
     const rect = cgwrap.getBoundingClientRect();
     promoteOverlay.style.top = `${rect.top + 8}px`;
     promoteOverlay.style.left = `${rect.left + 8}px`;
@@ -14288,7 +14327,6 @@ ${contextLines.join("\n")}`;
     "src/js/initializeUI.ts"() {
       "use strict";
       init_config2();
-      init_chessFunctions();
     }
   });
 
@@ -14444,19 +14482,28 @@ ${contextLines.join("\n")}`;
   function toggleClass(querySelector, className) {
     document.querySelectorAll("." + querySelector).forEach((el) => el.classList.toggle(className));
   }
-  function getElement2(selector) {
-    return document.querySelector(selector);
+  function setButtonsDisabled(keys, isDisabled) {
+    keys.forEach((key) => {
+      const button = btn[key];
+      if (button) {
+        button.disabled = isDisabled;
+      }
+    });
   }
   function isEndOfLine() {
     const isEnd = !state.expectedMove || typeof state.expectedMove === "string";
-    if (isEnd) document.querySelector("#navForward").disabled = true;
+    if (isEnd) setButtonsDisabled(["forward"], true);
     return isEnd;
   }
   function handlePuzzleComplete() {
     state.puzzleComplete = true;
-    if (cgwrap) cgwrap.classList.remove("timerMode");
+    (async () => {
+      const cgwrap = await setupCgwrap();
+      positionPromoteOverlay(cgwrap);
+      cgwrap.classList.remove("timerMode");
+    })();
     htmlElement.style.setProperty("--border-color", state.solvedColour);
-    cg2.set({
+    cg.set({
       viewOnly: true
     });
   }
@@ -14505,18 +14552,15 @@ ${contextLines.join("\n")}`;
   }
   function getLastMove(chess2) {
     const allMoves = chess2.history({ verbose: true });
-    return allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
+    const lastMove = allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
+    return lastMove;
   }
   function filterShapes(filterKey) {
     let brushesToRemove = shapeArray[filterKey];
     const shouldFilterDrawn = brushesToRemove.includes("userDrawn");
     if (shouldFilterDrawn) brushesToRemove = shapeArray["All" /* All */];
-    const shouldFilterMoveType = brushesToRemove.includes("moveType");
-    const normalBrushesToRemove = brushesToRemove.filter((b) => b !== "moveType");
     const filteredShapes = state.chessGroundShapes.filter((shape) => {
-      const isNormalBrushMatch = normalBrushesToRemove.includes(shape.brush);
-      const isMoveTypeMatch = shouldFilterMoveType && shape.customSvg?.brush === "moveType";
-      const shouldRemove = isNormalBrushMatch || isMoveTypeMatch;
+      const shouldRemove = brushesToRemove.includes(shape.brush);
       if (shouldFilterDrawn) {
         return shouldRemove;
       } else {
@@ -14528,7 +14572,7 @@ ${contextLines.join("\n")}`;
   function drawArrows(redraw) {
     filterShapes("Stockfish" /* Stockfish */);
     if (redraw) {
-      cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+      cg.set({ drawable: { shapes: state.chessGroundShapes } });
       return;
     }
     if (!state.pgnState) {
@@ -14561,11 +14605,12 @@ ${contextLines.join("\n")}`;
       }
       expectedMove = expectedLine[count];
       if (expectedMove) {
-        puzzleMove = chess.undo().san;
+        puzzleMove = chess.undo();
+        if (puzzleMove) puzzleMove = puzzleMove.san;
       }
     }
     if (!expectedMove || typeof expectedMove === "string") {
-      cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+      cg.set({ drawable: { shapes: state.chessGroundShapes } });
       return;
     }
     const tempChess = new Chess(chess.fen());
@@ -14589,9 +14634,9 @@ ${contextLines.join("\n")}`;
             state.chessGroundShapes.push({
               orig: alternateMove.to,
               // The square to anchor the image to
+              brush: "moveType",
               customSvg: {
-                html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`,
-                brush: "moveType"
+                html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`
               }
             });
           }
@@ -14613,9 +14658,9 @@ ${contextLines.join("\n")}`;
         state.chessGroundShapes.push({
           orig: mainMoveAttempt.to,
           // The square to anchor the image to
+          brush: "moveType",
           customSvg: {
-            html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`,
-            brush: "moveType"
+            html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`
           }
         });
       }
@@ -14623,21 +14668,21 @@ ${contextLines.join("\n")}`;
     if (config.boardMode === "Puzzle" && puzzleMove) {
       chess.move(puzzleMove);
     }
-    cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+    cg.set({ drawable: { shapes: state.chessGroundShapes } });
   }
   function updateBoard(move3, backwardPromote = false) {
     function cancelDefaultAnimation(chessInstance) {
-      cg2.set({ animation: { enabled: false } });
-      cg2.set({
+      cg.set({ animation: { enabled: false } });
+      cg.set({
         fen: chessInstance.fen()
       });
-      cg2.set({ animation: { enabled: true } });
+      cg.set({ animation: { enabled: true } });
     }
     if (!state.pgnState) {
       state.chessGroundShapes = [];
     }
-    state.lastMove = getLastMove(chess).san;
-    if (state.pgnState && state.lastMove === state.expectedMove?.notation.notation) {
+    state.lastMove = getLastMove(chess);
+    if (state.pgnState && state.lastMove && state.lastMove?.san === state.expectedMove?.notation.notation && !isEndOfLine()) {
       state.pgnPath = state.expectedMove.pgnPath;
       window.parent.postMessage(state, "*");
     }
@@ -14646,7 +14691,7 @@ ${contextLines.join("\n")}`;
       tempChess.load(chess.fen());
       tempChess.remove(move3.from);
       tempChess.put({ type: "p", color: getOpponentColor(chess) }, move3.to);
-      cg2.set({
+      cg.set({
         fen: tempChess.fen()
       });
       setTimeout(() => {
@@ -14660,25 +14705,25 @@ ${contextLines.join("\n")}`;
       tempChess.remove(move3.to);
       tempChess.remove(move3.from);
       tempChess.put({ type: "p", color: chess.turn() }, move3.to);
-      cg2.set({ animation: { enabled: false } });
-      cg2.set({
+      cg.set({ animation: { enabled: false } });
+      cg.set({
         fen: tempChess.fen()
       });
       tempChess.remove(move3.to);
       tempChess.put({ type: "p", color: chess.turn() }, move3.from);
-      cg2.set({ animation: { enabled: true } });
-      cg2.set({
+      cg.set({ animation: { enabled: true } });
+      cg.set({
         fen: FENpos
       });
     } else if (move3.flags.includes("e") && state.debounceCheck) {
       cancelDefaultAnimation(chess);
-      cg2.set({
+      cg.set({
         fen: chess.fen()
       });
     } else {
-      cg2.set({ fen: chess.fen() });
+      cg.set({ fen: chess.fen() });
     }
-    cg2.set({
+    cg.set({
       check: chess.inCheck(),
       turnColor: toColor(chess),
       movable: {
@@ -14687,8 +14732,7 @@ ${contextLines.join("\n")}`;
       },
       lastMove: [move3.from, move3.to]
     });
-    document.querySelector("#navBackward").disabled = false;
-    document.querySelector("#resetBoard").disabled = false;
+    setButtonsDisabled(["back", "reset"], false);
     if (config.boardMode === "Viewer" && state.pgnState && !isEndOfLine()) highlightCurrentMove(state.expectedMove.pgnPath);
     startAnalysis(config.analysisTime);
   }
@@ -14701,10 +14745,10 @@ ${contextLines.join("\n")}`;
   }
   function puzzlePlay(delay, orig, dest) {
     const tempChess = new Chess(chess.fen());
-    let tempMove = false;
-    if (dest) {
+    let tempMove = null;
+    if (dest && typeof orig === "string") {
       tempMove = tempChess.move({ from: orig, to: dest, promotion: "q" });
-    } else {
+    } else if (typeof orig === "object" && orig && "san" in orig && orig.san) {
       tempMove = tempChess.move(orig.san);
     }
     if (!tempMove) {
@@ -14715,17 +14759,22 @@ ${contextLines.join("\n")}`;
     }
     ;
     if (tempMove.flags.includes("p") && delay && dest) {
-      promotePopup(orig, dest, delay);
+      promotePopup(tempMove.from, tempMove.to, delay);
     } else {
       checkUserMove(tempMove.san, delay);
     }
   }
   function handleViewerMove(orig, dest) {
     const tempChess = new Chess(chess.fen());
-    const move3 = typeof orig === "string" ? tempChess.move({ from: orig, to: dest, promotion: "q" }) : tempChess.move(orig.san);
+    let move3 = null;
+    if (dest && typeof orig === "string") {
+      move3 = tempChess.move({ from: orig, to: dest, promotion: "q" });
+    } else if (typeof orig === "object" && orig && "san" in orig && orig.san) {
+      move3 = tempChess.move(orig.san);
+    }
     if (!move3) return;
     if (move3.flags.includes("p") && dest) {
-      promotePopup(orig, dest, null);
+      promotePopup(move3.from, move3.to, null);
     } else {
       checkUserMove(move3.san, null);
       isEndOfLine();
@@ -14753,8 +14802,7 @@ ${contextLines.join("\n")}`;
   }
   function playUserCorrectMove(delay) {
     setTimeout(() => {
-      cg2.set({ viewOnly: false });
-      if (isEndOfLine()) return;
+      cg.set({ viewOnly: false });
       makeMove(state.expectedMove.notation.notation);
       state.count++;
       state.expectedMove = state.expectedLine[state.count];
@@ -14768,13 +14816,13 @@ ${contextLines.join("\n")}`;
   }
   function handleWrongMove(move3) {
     state.errorCount++;
-    cg2.move(move3.from, move3.to);
+    cg.move(move3.from, move3.to);
     playSound("Error");
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
     if (isFailed) isPuzzleFailed(true);
     updateBoard(move3);
     if (state.errorCount > config.handicap) {
-      cg2.set({ viewOnly: true });
+      cg.set({ viewOnly: true });
       playUserCorrectMove(300);
       playAiMove(600);
       setTimeout(() => {
@@ -14789,7 +14837,7 @@ ${contextLines.join("\n")}`;
   function checkUserMove(moveSan, delay) {
     const tempChess = new Chess(chess.fen());
     const moveAttempt = tempChess.move(moveSan);
-    if (!moveAttempt) return;
+    if (!moveAttempt) return false;
     let foundVariation = false;
     if (state.expectedMove?.notation.notation === moveAttempt.san && state.pgnState) {
       foundVariation = true;
@@ -14805,7 +14853,7 @@ ${contextLines.join("\n")}`;
       }
     }
     if (foundVariation) {
-      const isBlunder = state.expectedMove.nag?.some((nags) => state.blunderNags.includes(nags));
+      const isBlunder = state.expectedMove?.nag?.some((nags) => state.blunderNags.includes(nags));
       if (isBlunder) isPuzzleFailed(true);
       extendPuzzleTime(config.increment);
       makeMove(moveAttempt);
@@ -14829,7 +14877,7 @@ ${contextLines.join("\n")}`;
   function promotePopup(orig, dest, delay) {
     const cancelPopup = function() {
       state.promoteAnimate = true;
-      cg2.set({
+      cg.set({
         fen: chess.fen(),
         turnColor: toColor(chess),
         movable: {
@@ -14842,11 +14890,12 @@ ${contextLines.join("\n")}`;
     };
     const promoteButtons = document.querySelectorAll("#promoteButtons > button");
     const overlay = document.querySelector("#overlay");
-    for (var i = 0; i < promoteButtons.length; i++) {
-      promoteButtons[i].onclick = function() {
+    promoteButtons.forEach((button) => {
+      button.onclick = (event) => {
+        const clickedButton = event.currentTarget;
         state.promoteAnimate = false;
         event.stopPropagation();
-        state.promoteChoice = this.value;
+        state.promoteChoice = clickedButton.value;
         const tempChess = new Chess(chess.fen());
         const move3 = tempChess.move({ from: orig, to: dest, promotion: state.promoteChoice });
         if (config.boardMode === "Puzzle") {
@@ -14856,6 +14905,8 @@ ${contextLines.join("\n")}`;
         }
         cancelPopup();
       };
+    });
+    if (overlay) {
       overlay.onclick = function() {
         cancelPopup();
         setTimeout(() => {
@@ -14864,7 +14915,10 @@ ${contextLines.join("\n")}`;
       };
     }
     toggleClass("showHide", "hidden");
-    positionPromoteOverlay();
+    (async () => {
+      const cgwrap = await setupCgwrap();
+      positionPromoteOverlay(cgwrap);
+    })();
   }
   function findParentLine(obj, targetChild) {
     for (const key in obj) {
@@ -14889,8 +14943,7 @@ ${contextLines.join("\n")}`;
   }
   function handlePgnState(pgnState) {
     state.pgnState = pgnState;
-    const forwardButton = getElement2("#navForward");
-    if (forwardButton) forwardButton.disabled = !pgnState;
+    setButtonsDisabled(["forward"], !pgnState);
   }
   function navBackward() {
     if (config.boardMode === "Puzzle") return;
@@ -14913,14 +14966,15 @@ ${contextLines.join("\n")}`;
           }
         }
       }
+      const firstMoveCheck = getLastMove(chess);
       if (state.count === 0 && state.ankiFen !== chess.fen()) {
         return;
-      } else if (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
+      } else if (firstMoveCheck && (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === firstMoveCheck.san)) {
         handlePgnState(true);
       }
     }
     drawArrows();
-    if (config.boardMode === "Viewer") {
+    if (config.boardMode === "Viewer" && !isEndOfLine()) {
       let expectedMove = state.expectedMove;
       let expectedLine = state.expectedLine;
       if (expectedLine[state.count - 1]?.notation?.notation) {
@@ -14940,7 +14994,7 @@ ${contextLines.join("\n")}`;
         highlightCurrentMove(expectedMove.pgnPath);
       } else {
         document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-        document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = true);
+        setButtonsDisabled(["back", "reset"], true);
       }
     }
     startAnalysis(config.analysisTime);
@@ -14953,12 +15007,11 @@ ${contextLines.join("\n")}`;
       puzzlePlay(null, move3.from, move3.to);
     }
     isEndOfLine();
-    document.querySelector("#navBackward").disabled = false;
-    document.querySelector("#resetBoard").disabled = false;
+    setButtonsDisabled(["back", "reset"], false);
   }
   function rotateBoard() {
     state.boardRotation = state.boardRotation === "white" ? "black" : "white";
-    cg2.set({ orientation: state.boardRotation });
+    cg.set({ orientation: state.boardRotation });
   }
   function resetBoard() {
     state.count = 0;
@@ -14968,7 +15021,7 @@ ${contextLines.join("\n")}`;
     handlePgnState(true);
     chess.reset();
     chess.load(state.ankiFen);
-    cg2.set({
+    cg.set({
       fen: chess.fen(),
       check: chess.inCheck(),
       turnColor: toColor(chess),
@@ -14979,8 +15032,7 @@ ${contextLines.join("\n")}`;
       }
     });
     document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-    document.querySelector("#navBackward").disabled = true;
-    document.querySelector("#resetBoard").disabled = true;
+    setButtonsDisabled(["back", "reset"], true);
     startAnalysis(config.analysisTime);
     drawArrows();
   }
@@ -15003,35 +15055,12 @@ ${contextLines.join("\n")}`;
       document.body.removeChild(textarea);
     }
   }
-  async function setupTimer() {
-    const element = await waitForElement(".cg-wrap");
-    cgwrap = element;
-    if (config.timer) {
-      startPuzzleTimeout(config.timer);
-    }
-  }
-  function waitForElement(selector) {
-    return new Promise((resolve) => {
-      const element = document.querySelector(selector);
-      if (element) {
-        return resolve(element);
-      }
-      const observer = new MutationObserver(() => {
-        const element2 = document.querySelector(selector);
-        if (element2) {
-          observer.disconnect();
-          resolve(element2);
-        }
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-    });
-  }
   function reload() {
     state.count = 0;
     state.expectedLine = parsedPGN.moves;
     state.expectedMove = state.expectedLine[0];
     chess.load(state.ankiFen);
-    cg2.set({
+    cg.set({
       fen: state.ankiFen,
       orientation: config.randomOrientation ? ["black", "white"][Math.floor(Math.random() * 2)] : state.playerColour,
       turnColor: toColor(chess),
@@ -15042,11 +15071,11 @@ ${contextLines.join("\n")}`;
         },
         select: (key) => {
           filterShapes("Drawn" /* Drawn */);
-          cg2.set({ drawable: { shapes: state.chessGroundShapes } });
+          cg.set({ drawable: { shapes: state.chessGroundShapes } });
           setTimeout(() => {
             if (state.debounceCheck) return;
             const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
-            const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
+            const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && shape.brush && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
             if (arrowMove.length > 0 && config.boardMode === "Viewer") {
               if (arrowMove[0].brush === "stockfish" || arrowMove[0].brush === "stockfinished") {
                 handlePgnState(false);
@@ -15086,20 +15115,22 @@ ${contextLines.join("\n")}`;
       check: chess.inCheck()
     });
     if (config.boardMode === "Viewer") {
-      cg2.set({
+      cg.set({
         premovable: {
           enabled: false
         }
       });
-      document.querySelector("#navBackward").disabled = true;
-      document.querySelector("#resetBoard").disabled = true;
+      setButtonsDisabled(["back", "reset"], true);
     } else if (!chess.isGameOver() && config.flipBoard) {
       playAiMove(300);
     }
     drawArrows();
-    setupTimer();
+    (async () => {
+      const cgwrap = await setupCgwrap();
+      positionPromoteOverlay(cgwrap);
+      startPuzzleTimeout(config.timer);
+    })();
   }
-  var cgwrap;
   var init_chessFunctions = __esm({
     "src/js/chessFunctions.ts"() {
       "use strict";
@@ -15111,7 +15142,6 @@ ${contextLines.join("\n")}`;
       init_handleStockfish();
       init_initializeUI();
       init_nags();
-      cgwrap = null;
     }
   });
 
@@ -15134,11 +15164,13 @@ ${contextLines.join("\n")}`;
       let nagTitle = null;
       if (move3.nag) {
         const foundNagKey = move3.nag?.find((key) => key in nags_default);
-        nagCheck = nags_default[foundNagKey]?.[1] ?? "";
-        nagTitle = nags_default[foundNagKey]?.[0] ?? "";
+        if (foundNagKey) {
+          nagCheck = nags_default[foundNagKey]?.[1] ?? "";
+          nagTitle = nags_default[foundNagKey]?.[0] ?? "";
+        }
       }
       nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : "";
-      html += ` <span class="move" data-path="${move3.pgnPath.join(",")}">${nagTitle} ${move3.notation.notation} ${nagCheck}</span>`;
+      html += ` <span class="move" data-path="${move3.pgnPath?.join(",")}">${nagTitle} ${move3.notation.notation} ${nagCheck}</span>`;
       if (move3.commentAfter) {
         if (move3.turn === "w" && !altLine) html += `<span class="nullMove">|...|</span>`;
         html += `<span class="comment"> ${move3.commentAfter} </span>`;
@@ -15150,7 +15182,7 @@ ${contextLines.join("\n")}`;
           html += `<div class="altLine">`;
         }
         move3.variations.forEach((variation) => {
-          html += `(${buildPgnHtml(variation, variation.pgnPath, true)})`;
+          html += `(${buildPgnHtml(variation, [], true)})`;
         });
         if (!altLine) {
           html += `</div>`;
@@ -15183,14 +15215,14 @@ ${contextLines.join("\n")}`;
             state.expectedMove = state.expectedLine[0];
             branchIndex = null;
           }
-        } else if (state.expectedMove) {
+        } else if (state.expectedMove?.notation) {
           chess.move(state.expectedMove.notation.notation);
           state.count++;
           state.expectedMove = state.expectedLine[state.count];
         }
       }
     }
-    cg2.set({
+    cg.set({
       fen: chess.fen(),
       check: chess.inCheck(),
       turnColor: toColor(chess),
@@ -15208,8 +15240,8 @@ ${contextLines.join("\n")}`;
     drawArrows();
     return chess.moves();
   }
-  function onPgnMoveClick(event2) {
-    const target = event2.target;
+  function onPgnMoveClick(event) {
+    const target = event.target;
     if (!target || !target.classList.contains("move")) return;
     document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
     target.classList.add("current");
@@ -15259,9 +15291,9 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/main.js
+  // src/main.ts
   var require_main = __commonJS({
-    "src/main.js"() {
+    "src/main.ts"() {
       init_chessground_base();
       init_custom();
       init_config2();
@@ -15269,17 +15301,19 @@ ${contextLines.join("\n")}`;
       init_handleStockfish();
       init_initializeUI();
       init_chessFunctions();
-      function setupEventListeners() {
+      function setupEventListeners(cgwrap) {
         const pgnContainer = document.getElementById("pgnComment");
-        pgnContainer.addEventListener("click", onPgnMoveClick);
+        if (pgnContainer) {
+          pgnContainer.addEventListener("click", onPgnMoveClick);
+        }
         const commentBox = document.getElementById("commentBox");
-        commentBox.addEventListener("mouseover", (event2) => {
-          const moveElement = event2.target.closest(".move");
-          if (!moveElement) {
-            return;
-          }
+        if (!commentBox) return;
+        commentBox.addEventListener("mouseover", (event) => {
+          const target = event.target;
+          const moveElement = target.closest(".move");
+          if (!moveElement) return;
           const tooltip = moveElement.querySelector(".nagTooltip");
-          if (!tooltip || !tooltip.textContent.trim()) return;
+          if (!tooltip || !tooltip.textContent?.trim()) return;
           const itemRect = moveElement.getBoundingClientRect();
           const tooltipWidth = tooltip.offsetWidth;
           const commentBoxRect = commentBox.getBoundingClientRect();
@@ -15294,11 +15328,10 @@ ${contextLines.join("\n")}`;
           tooltip.style.display = "block";
           tooltip.style.visibility = "visible";
         });
-        commentBox.addEventListener("mouseout", (event2) => {
-          const moveElement = event2.target.closest(".move");
-          if (!moveElement) {
-            return;
-          }
+        commentBox.addEventListener("mouseout", (event) => {
+          const target = event.target;
+          const moveElement = target.closest(".move");
+          if (!moveElement) return;
           const tooltip = moveElement.querySelector(".nagTooltip");
           if (tooltip) {
             tooltip.style.visibility = "hidden";
@@ -15310,26 +15343,27 @@ ${contextLines.join("\n")}`;
           "navForward": navForward,
           "rotateBoard": rotateBoard,
           "copyFen": copyFen,
-          "stockfishToggle": toggleStockfishAnalysis
+          "stockfishToggle": () => toggleStockfishAnalysis(cgwrap)
         };
-        document.querySelector("#buttons-container").addEventListener("click", (event2) => {
-          const button = event2.target.closest("button");
+        document.querySelector("#buttons-container")?.addEventListener("click", (event) => {
+          const target = event.target;
+          const button = target.closest("button");
           if (!button) return;
           const handler = actions[button.id];
           if (handler) {
             handler();
           }
         });
-        board.addEventListener("wheel", (event2) => {
-          event2.preventDefault();
-          if (event2.deltaY < 0) {
+        cgwrap.addEventListener("wheel", (event) => {
+          event.preventDefault();
+          if (event.deltaY < 0) {
             navBackward();
-          } else if (event2.deltaY > 0) {
+          } else if (event.deltaY > 0) {
             navForward();
           }
         });
-        document.addEventListener("keydown", (event2) => {
-          switch (event2.key) {
+        document.addEventListener("keydown", (event) => {
+          switch (event.key) {
             case "ArrowLeft":
               navBackward();
               break;
@@ -15341,13 +15375,13 @@ ${contextLines.join("\n")}`;
               break;
           }
         });
-        window.addEventListener("error", (event2) => {
-          const message = event2.message || "";
-          const filename = event2.filename || "";
+        window.addEventListener("error", (event) => {
+          const message = event.message || "";
+          const filename = event.filename || "";
           const isDetailedStockfishCrash = message.includes("abort") && filename.includes("_stockfish.js");
           const isGenericCrossOriginError = message === "Script error.";
           if (isDetailedStockfishCrash || isGenericCrossOriginError) {
-            event2.preventDefault();
+            event.preventDefault();
             console.warn("Caught a fatal Stockfish crash via global error handler.");
             if (isGenericCrossOriginError) {
               console.log("generic message:", message);
@@ -15357,31 +15391,28 @@ ${contextLines.join("\n")}`;
             handleStockfishCrash("window.onerror");
           }
         });
-        if (cgwrap) {
-          let isUpdateScheduled = false;
-          const handleReposition = () => {
-            if (isUpdateScheduled) {
-              return;
-            }
-            isUpdateScheduled = true;
-            requestAnimationFrame(() => {
-              positionPromoteOverlay();
-              isUpdateScheduled = false;
-            });
-          };
-          const resizeObserver = new ResizeObserver(handleReposition);
-          resizeObserver.observe(cgwrap);
-          window.addEventListener("resize", handleReposition);
-          document.addEventListener("scroll", handleReposition, true);
-        }
+        let isUpdateScheduled = false;
+        const handleReposition = () => {
+          if (isUpdateScheduled) return;
+          isUpdateScheduled = true;
+          requestAnimationFrame(() => {
+            positionPromoteOverlay(cgwrap);
+            isUpdateScheduled = false;
+          });
+        };
+        const resizeObserver = new ResizeObserver(handleReposition);
+        resizeObserver.observe(cgwrap);
+        window.addEventListener("resize", handleReposition);
+        document.addEventListener("scroll", handleReposition, true);
       }
       async function loadElements() {
         initializeUI();
         augmentPgnTree(parsedPGN.moves);
         await reload();
-        setupEventListeners();
+        const cgwrap = await setupCgwrap();
+        setupEventListeners(cgwrap);
         initPgnViewer();
-        if (state.pgnPath && state.pgnPath !== "null") {
+        if (state.pgnPath && state.pgnPath !== "null" && typeof state.pgnPath !== "object") {
           cg.set({ animation: { enabled: false } });
           getFullMoveSequenceFromPath(state.pgnPath.split(","));
           highlightCurrentMove(state.pgnPath.split(","));

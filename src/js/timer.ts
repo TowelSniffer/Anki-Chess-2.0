@@ -1,4 +1,4 @@
-import { state, config, cg } from './config';
+import { state, config, cg, setupCgwrap } from './config';
 
 // --- Module-level timer variables with explicit types ---
 export let puzzleTimeout: number | null = null;
@@ -7,7 +7,7 @@ let startTime: number = 0;
 let totalTime: number = 0;
 let remainingTime: number = 0;
 
-function handleOutOfTime(cgwrap: HTMLDivElement): void {
+function handleOutOfTime(): void {
     if (config.timerScore) {
         state.errorTrack = 'true'; // Assuming 'true' is a possible value
         state.solvedColour = "#b31010";
@@ -22,7 +22,7 @@ function handleOutOfTime(cgwrap: HTMLDivElement): void {
     document.documentElement.style.setProperty('--remainingTime', '100%');
 }
 
-export function extendPuzzleTime(cgwrap: HTMLDivElement, additionalTime: number): void {
+export function extendPuzzleTime(additionalTime: number): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     if (puzzleTimeout) {
@@ -33,12 +33,13 @@ export function extendPuzzleTime(cgwrap: HTMLDivElement, additionalTime: number)
 
         // Ensure the new delay is not negative before restarting the timer
         if (newDelay >= 0) {
-            startPuzzleTimeout(cgwrap, newDelay);
+            startPuzzleTimeout(newDelay);
         }
     }
 }
 
-export function startPuzzleTimeout(cgwrap: HTMLDivElement, delay: number): void {
+export async function startPuzzleTimeout(delay: number): Promise<void> {
+    const cgwrap = await setupCgwrap();
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     // Clear any existing timers before starting a new one
@@ -76,7 +77,7 @@ export function startPuzzleTimeout(cgwrap: HTMLDivElement, delay: number): void 
 
         // extend time when it's not the player's turn
         if (state.playerColour !== cg.state.turnColor) {
-            extendPuzzleTime(cgwrap, 10);
+            extendPuzzleTime(10);
             return;
         }
 

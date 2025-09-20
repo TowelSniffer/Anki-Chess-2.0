@@ -27,7 +27,7 @@ export function playSound(soundName: string): void {
 
     const audio = audioMap.get(soundName);
     if (audio) {
-        audio.cloneNode().play().catch(e => console.error(`Could not play sound: ${soundName}`, e));
+        (audio.cloneNode() as HTMLAudioElement).play().catch(e => console.error(`Could not play sound: ${soundName}`, e));
     }
 }
 

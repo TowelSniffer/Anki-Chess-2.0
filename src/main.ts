@@ -4,7 +4,6 @@ import { state, config, cg, parsedPGN, setupCgwrap } from './js/config';
 import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath, onPgnMoveClick } from './js/pgnViewer';
 import { toggleStockfishAnalysis, handleStockfishCrash } from './js/handleStockfish';
 import { initializeUI, positionPromoteOverlay } from './js/initializeUI';
-import { startPuzzleTimeout } from './js/timer';
 import { reload, resetBoard, navBackward, navForward, rotateBoard, copyFen } from './js/chessFunctions';
 
 function setupEventListeners(cgwrap: HTMLDivElement): void {
@@ -138,10 +137,9 @@ async function loadElements(): Promise<void> {
     augmentPgnTree(parsedPGN.moves);
     await reload();
     const cgwrap = await setupCgwrap();
-    startPuzzleTimeout(cgwrap, config.timer);
     setupEventListeners(cgwrap);
     initPgnViewer();
-    if (state.pgnPath && state.pgnPath !== 'null') {
+    if (state.pgnPath && state.pgnPath !== 'null' && typeof state.pgnPath !== 'object') {
         cg.set({ animation: { enabled: false } });
         getFullMoveSequenceFromPath(state.pgnPath.split(','));
         highlightCurrentMove(state.pgnPath.split(','));
