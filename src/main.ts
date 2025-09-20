@@ -1,12 +1,13 @@
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
-import { state, cg, parsedPGN } from './js/config';
+import { state, config, cg, parsedPGN, setupCgwrap } from './js/config';
 import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath, onPgnMoveClick } from './js/pgnViewer';
 import { toggleStockfishAnalysis, handleStockfishCrash } from './js/handleStockfish';
 import { initializeUI, positionPromoteOverlay } from './js/initializeUI';
-import { cgwrap, reload, resetBoard, navBackward, navForward, rotateBoard, copyFen } from './js/chessFunctions';
+import { startPuzzleTimeout } from './js/timer';
+import { reload, resetBoard, navBackward, navForward, rotateBoard, copyFen } from './js/chessFunctions';
 
-function setupEventListeners(): void {
+function setupEventListeners(cgwrap: HTMLDivElement): void {
     // --- PGN viewer ---
     const pgnContainer = document.getElementById('pgnComment');
     if (pgnContainer) {
@@ -75,16 +76,14 @@ function setupEventListeners(): void {
     });
 
     // --- Board navigation ---
-    if (cgwrap) {
-        cgwrap.addEventListener('wheel', (event: WheelEvent) => {
-            event.preventDefault();
-            if (event.deltaY < 0) {
-                navBackward();
-            } else if (event.deltaY > 0) {
-                navForward();
-            }
-        });
-    }
+    cgwrap.addEventListener('wheel', (event: WheelEvent) => {
+        event.preventDefault();
+        if (event.deltaY < 0) {
+            navBackward();
+        } else if (event.deltaY > 0) {
+            navForward();
+        }
+    });
 
     document.addEventListener('keydown', (event: KeyboardEvent) => {
         switch (event.key) {
@@ -118,29 +117,29 @@ function setupEventListeners(): void {
         handleStockfishCrash("window.onerror");
     }
     });
-// mirrorPgnTree
-    if (cgwrap) {
-        let isUpdateScheduled = false;
-        const handleReposition = (): void => {
-            if (isUpdateScheduled) return;
-            isUpdateScheduled = true;
-            requestAnimationFrame(() => {
-                positionPromoteOverlay();
-                isUpdateScheduled = false;
-            });
-        };
-        const resizeObserver = new ResizeObserver(handleReposition);
-        resizeObserver.observe(cgwrap);
-        window.addEventListener('resize', handleReposition);
-        document.addEventListener('scroll', handleReposition, true);
-    }
+    // mirrorPgnTree
+    let isUpdateScheduled = false;
+    const handleReposition = (): void => {
+        if (isUpdateScheduled) return;
+        isUpdateScheduled = true;
+        requestAnimationFrame(() => {
+            positionPromoteOverlay(cgwrap);
+            isUpdateScheduled = false;
+        });
+    };
+    const resizeObserver = new ResizeObserver(handleReposition);
+    resizeObserver.observe(cgwrap);
+    window.addEventListener('resize', handleReposition);
+    document.addEventListener('scroll', handleReposition, true);
 }
 
 async function loadElements(): Promise<void> {
     initializeUI();
     augmentPgnTree(parsedPGN.moves);
     await reload();
-    setupEventListeners();
+    const cgwrap = await setupCgwrap();
+    startPuzzleTimeout(cgwrap, config.timer);
+    setupEventListeners(cgwrap);
     initPgnViewer();
     if (state.pgnPath && state.pgnPath !== 'null') {
         cg.set({ animation: { enabled: false } });

@@ -1,7 +1,6 @@
 import { Chess } from 'chess.js';
 import { toColor } from './chessFunctions';
 import { state, config, cg, chess } from './config';
-import type { DrawShape } from 'chessground';
 
 let stockfish: Worker | null = null;
 
@@ -31,8 +30,8 @@ function handleStockfishMessages(event: MessageEvent): void {
         const pvDepthIndex = parts.indexOf('depth');
         if (pvIndex > -1 && parts.length > pvIndex + 1) {
             const firstMove = parts[pvIndex + 1];
-            const cp = parts[cpIndex + 1];
-            const mate = parts[mateIndex + 1];
+            const cp = parseInt(parts[cpIndex + 1], 10);
+            const mate: number = parseInt(parts[mateIndex + 1], 10);
             let advantage;
             if (cpIndex === -1) {
                 advantage = mate < 0 ? 0 : 100;
@@ -101,22 +100,19 @@ export function handleStockfishCrash(source: string): void {
 export function initializeStockfish(): Promise<void> {
     return new Promise((resolve, reject) => {
         // Terminate existing worker if it exists
-        if (stockfish) {
-            stockfish.terminate();
-        }
+        if (stockfish) stockfish.terminate();
 
         stockfish = new Worker('/_stockfish.js');
-
         stockfish.onmessage = (event: MessageEvent) => {
             const message: unknown = event.data ?? event;
 
             if (typeof message !== 'string') return;
 
             if (message === 'uciok') {
-                stockfish.postMessage('isready'); // Ensure the engine is fully ready
+                stockfish!.postMessage('isready'); // Ensure the engine is fully ready
             } else if (message === 'readyok') {
-                stockfish.onmessage = handleStockfishMessages; // Re-assign main handler
-                stockfish.onerror = () => handleStockfishCrash("stockfish.onerror");
+                stockfish!.onmessage = handleStockfishMessages; // Re-assign main handler
+                stockfish!.onerror = () => handleStockfishCrash("stockfish.onerror");
                 resolve();
             }
         };
@@ -132,9 +128,7 @@ export function initializeStockfish(): Promise<void> {
 }
 
 export function startAnalysis(movetime: number): void {
-    if (chess.moves().length === 0 || state.analysisFen === 'none' || !state.analysisToggledOn) {
-        return;
-    }
+    if (chess.moves().length === 0 || state.analysisFen === 'none' || !state.analysisToggledOn || !stockfish) return;
 
     if (state.isStockfishBusy) {
         state.chessGroundShapes = state.chessGroundShapes.filter(shape => shape.brush !== 'stockfish' && shape.brush !== 'stockfinished');
@@ -151,7 +145,7 @@ export function startAnalysis(movetime: number): void {
 }
 
 
-export function toggleStockfishAnalysis(cgwrap): void {
+export function toggleStockfishAnalysis(cgwrap: HTMLDivElement): void {
     if (!cgwrap) return;
     if (!stockfish) {
         initializeStockfish().then(() => {

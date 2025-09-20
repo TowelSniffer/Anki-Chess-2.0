@@ -1,5 +1,4 @@
 import { state, config, htmlElement } from './config';
-import { cgwrap } from './chessFunctions';
 import type { Color } from 'chessground/types';
 
 /**
@@ -92,9 +91,9 @@ export function initializeUI(): void {
     }
 }
 
-export function positionPromoteOverlay(): void {
+export function positionPromoteOverlay(cgwrap: HTMLDivElement): void {
     const promoteOverlay = document.getElementById('promoteButtons');
-    if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
+    if (!promoteOverlay || promoteOverlay.classList.contains("hidden") || !cgwrap) return;
 
     const rect = cgwrap.getBoundingClientRect();
     promoteOverlay.style.top = `${rect.top + 8}px`;
