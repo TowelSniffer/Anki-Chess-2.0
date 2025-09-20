@@ -13980,7 +13980,7 @@ ${contextLines.join("\n")}`;
           return document.querySelector("#stockfishToggle");
         },
         get flip() {
-          return document.querySelector("#flipBoardIcon");
+          return document.querySelector("#rotateBoard");
         }
       };
     }
@@ -14520,7 +14520,6 @@ ${contextLines.join("\n")}`;
         window.parent.postMessage(state, "*");
       }
     } else {
-      console.log(state.errorTrack);
       state.errorTrack = state.errorTrack ? true : "correct";
       if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
         state.solvedColour = "#2CBFA7";
@@ -15011,7 +15010,17 @@ ${contextLines.join("\n")}`;
   }
   function rotateBoard() {
     state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+    const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
+    const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
+    htmlElement.style.setProperty("--coord-white", coordBlack);
+    htmlElement.style.setProperty("--coord-black", coordWhite);
     cg.set({ orientation: state.boardRotation });
+    const flipButton = document.querySelector(".flipBoardIcon");
+    if (flipButton && flipButton.style.transform.includes("90deg")) {
+      flipButton.style.transform = "rotate(270deg)";
+    } else if (flipButton) {
+      flipButton.style.transform = "rotate(90deg)";
+    }
   }
   function resetBoard() {
     state.count = 0;
