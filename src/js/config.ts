@@ -2,19 +2,35 @@ import { Chessground } from 'chessground';
 import { Chess } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
 import { PgnReaderMove, PgnGame } from '@mliebelt/pgn-types';
-import type { Api, DrawShape, Color } from 'chessground';
-import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights } from './mirror';
+import type { Color, Key } from 'chessground/types';
+import type { DrawShape } from 'chessground/draw';
+import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights, MirrorState } from './mirror';
 
 // --- Type Definitions ---
+export type Api = ReturnType<typeof Chessground>;
 
-export interface CustomPgnMove extends PgnReaderMove {
+export type CustomPgnMove = Omit<PgnReaderMove, 'pgnPath' | variations> & {
     pgnPath?: (string | number)[];
     variations?: CustomPgnMove[][];
-}
-export interface CustomPgnGame extends PgnGame {
+};
+export type CustomPgnGame = Omit<PgnGame, 'moves'> & {
     moves: CustomPgnMove[];
+};
+
+// --- Chesground Shapes ---
+enum ShapeFilter {
+    All = "All",
+    Stockfish = "Stockfish",
+    PGN = "PGN",
+    Nag = "Nag",
+    Drawn = "Drawn",
 }
 
+export interface CustomShape extends DrawShape {
+    san?: string
+}
+
+type booleanValues = "true" | "false" | boolean | null;
 interface Config {
     pgn: string;
     fontSize: number;
@@ -46,11 +62,11 @@ interface State {
     playerColour: Color;
     opponentColour: Color;
     solvedColour: string;
-    errorTrack: string | null;
+    errorTrack: "correct" | "correctTime" | booleanValues;
     count: number;
     pgnState: boolean;
-    chessGroundShapes: DrawShape[];
-    expectedLine: CustomPgnMove[] = [];
+    chessGroundShapes: CustomShape[];
+    expectedLine: CustomPgnMove[];
     expectedMove: CustomPgnMove | null;
     lastMove: CustomPgnMove | null;
     errorCount: number;
@@ -59,22 +75,12 @@ interface State {
     debounceCheck: number | null;
     navTimeout: number | null;
     isStockfishBusy: boolean;
-    analysisFen: string | null;
+    analysisFen: string | booleanValues;
     analysisToggledOn: boolean;
     pgnPath: string | null;
-    mirrorState: string | null;
+    mirrorState: MirrorState | null;
     blunderNags: string[];
-    puzzleComplete: boolean;
-}
-
-// --- Shape Filters ---
-enum ShapeFilter {
-    All = "All",
-    Stockfish = "Stockfish",
-    PGN = "PGN",
-    Custom = "Custom",
-    Nag = "Nag",
-    Drawn = "Drawn",
+    puzzleComplete: string | boolean;
 }
 
 const shapeArray: Record<ShapeFilter, string[]> = {
@@ -143,7 +149,7 @@ const state: State = {
     playerColour: "white",
     opponentColour: "black",
     solvedColour: "limegreen",
-    errorTrack: getUrlParam("errorTrack", null),
+    errorTrack: getUrlParam("errorTrack", null) as "correct" | "correctTime" | booleanValues,
     count: 0,
     pgnState: true,
     chessGroundShapes: [],
@@ -159,7 +165,7 @@ const state: State = {
     analysisFen: null,
     analysisToggledOn: false,
     pgnPath: getUrlParam("pgnPath", null),
-    mirrorState: getUrlParam("mirrorState", null),
+    mirrorState: getUrlParam("mirrorState", null) as MirrorState | null,
     blunderNags: ['$2', '$4', '$6', '$9'],
     puzzleComplete: false,
 };
@@ -197,15 +203,40 @@ const cg: Api = Chessground(boardElement, {
             mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
             altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
             blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 9 },
-            green: { opacity: 0.7, lineWidth: 9 },
-            red: { opacity: 0.7, lineWidth: 9 },
-            blue: { opacity: 0.7, lineWidth: 9 },
-            yellow: { opacity: 0.7, lineWidth: 9 },
+            // default
+            green:   { key: 'green', color: 'green',   opacity: 0.7, lineWidth: 9 },
+            red:     { key: 'red',   color: 'red',     opacity: 0.7, lineWidth: 9 },
+            blue:    { key: 'blue',  color: 'blue',    opacity: 0.7, lineWidth: 9 },
+            yellow:  { key: 'yellow',color: 'yellow',  opacity: 0.7, lineWidth: 9 },
         },
     },
 });
 
 const htmlElement: HTMLElement = document.documentElement;
 const chess = new Chess();
+// gloabal chessground board
+let cgwrap: HTMLDivElement | null = null;
+
+function waitForElement<T extends Element>(selector: string): Promise<T> {
+    return new Promise(resolve => {
+        const element = document.querySelector<T>(selector);
+        if (element) {
+            return resolve(element);
+        }
+        const observer = new MutationObserver(() => {
+            const element = document.querySelector<T>(selector);
+            if (element) {
+                observer.disconnect();
+                resolve(element);
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+}
+
+export async function setupCgwrap(): Promise<HTMLDivElement> {
+    const element = await waitForElement('#board');
+    return element as HTMLDivElement;
+}
 
 export { parsedPGN, config, state, cg, chess, htmlElement, ShapeFilter, shapeArray }

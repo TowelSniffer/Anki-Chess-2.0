@@ -73,7 +73,7 @@ function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
   move.notation.notation = transform(move.notation.notation) ?? move.notation.notation;
 }
 
-export function mirrorPgnTree(moves: CustomPgnMove[], mirrorState: MirrorState, parentMove: PgnMove | null = null): void {
+export function mirrorPgnTree(moves: CustomPgnMove[], mirrorState: MirrorState, parentMove: CustomPgnMove | null = null): void {
   if (!moves || moves.length === 0) return;
 
   for (const move of moves) {
@@ -99,21 +99,21 @@ export function mirrorPgnTree(moves: CustomPgnMove[], mirrorState: MirrorState, 
       mirrorMove(move, mirrorState);
       if (move.turn === 'w') {
         move.turn = 'b';
-    if (index === 0) {
-      move.moveNumber--;
-      lastValidMoveNumber = move.moveNumber;
-    } else {
-      move.moveNumber = undefined;
-    }
+        if (index === 0) {
+          move.moveNumber!--;
+          lastValidMoveNumber = move.moveNumber!;
+        } else {
+          move.moveNumber = undefined;
+        }
       } else {
         move.turn = 'w';
         move.moveNumber = lastValidMoveNumber + 1;
-        lastValidMoveNumber = move.moveNumber;
+        lastValidMoveNumber = move.moveNumber!;
       }
     });
   } else {
     // Case B: Sequence starts with Black (e.g., "3... exd4 4. c4") -> "3. exd4 c4"
-    lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber;
+    lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber ?? 0;
     moves.forEach((move, index) => {
       mirrorMove(move, mirrorState);
       if (move.turn === 'b') {

@@ -1,7 +1,7 @@
 import { Chess, SQUARES, Move, PieceSymbol } from 'chess.js';
 import { cg, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray, CustomPgnMove } from './config';
 import { highlightCurrentMove } from './pgnViewer';
-import { extendPuzzleTime, startPuzzleTimeout, puzzleTimeout } from './timer';
+import { extendPuzzleTime, puzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
 import { startAnalysis } from './handleStockfish';
 import { positionPromoteOverlay } from './initializeUI';
@@ -17,9 +17,6 @@ interface FindParentResult {
   key: string;
   parent: any;
 }
-
-// --- Module-level Variables ---
-export let cgwrap: HTMLDivElement | null = null; // Assigned asynchronously in setupTimer
 
 // --- DOM & UI Helpers ---
 
@@ -498,7 +495,7 @@ function promotePopup(orig: Key, dest: Key, delay: number | null): void {
     }
   }
   toggleClass('showHide', 'hidden');
-  positionPromoteOverlay();
+  positionPromoteOverlay(cgwrap);
 }
 
 function findParentLine(obj: any, targetChild: CustomPgnMove[]): FindParentResult | null {
@@ -652,33 +649,6 @@ export function copyFen(): boolean {
 }
 
 // --- Initialization ---
-
-async function setupTimer(): Promise<void> {
-  const element = await waitForElement('.cg-wrap');
-  cgwrap = element as HTMLElement;
-  if (config.timer) {
-    startPuzzleTimeout(config.timer);
-  }
-}
-
-function waitForElement<T extends Element>(selector: string): Promise<T> {
-  return new Promise(resolve => {
-    const element = document.querySelector<T>(selector);
-    if (element) {
-      return resolve(element);
-    }
-    const observer = new MutationObserver(() => {
-      const element = document.querySelector<T>(selector);
-      if (element) {
-        observer.disconnect();
-        resolve(element);
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  });
-}
-
-
 export function reload(): void {
   // Load beggining state for pgn
   state.count = 0;
@@ -760,6 +730,5 @@ export function reload(): void {
     playAiMove(300);
   }
   drawArrows();
-  setupTimer()
 
 }
