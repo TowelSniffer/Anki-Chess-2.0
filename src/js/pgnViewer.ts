@@ -1,21 +1,16 @@
 import { toColor, toDests, drawArrows } from './chessFunctions';
-import { state, parsedPGN, config, cg, chess } from './config';
+import { state, parsedPGN, config, cg, chess, CustomPgnMove } from './config';
 import { startAnalysis } from './handleStockfish';
 import nags from '../nags.json' assert { type: 'json' };
-import type { PgnMove } from '@mliebelt/pgn-parser';
 
 // --- Type Definitions ---
 
 // Define the shape of the imported nags.json file.
 interface NagData {
-    [nagKey: string]: [string, string]; // [description, symbol]
+    [nagKey: string]: string[]; // [description, symbol/sub array of symbols]
 }
 
-// Extend the PgnMove type from the library to include our custom path property.
-export interface CustomPgnMove extends PgnMove {
-    pgnPath?: (string | number)[];
-    variations?: CustomPgnMove[][];
-}
+
 
 // --- PGN Rendering ---
 
@@ -39,11 +34,13 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
         let nagTitle = null;
         if (move.nag) {
             const foundNagKey = move.nag?.find(key => key in nags);
-            nagCheck = nags[foundNagKey]?.[1] ?? '';
-            nagTitle = nags[foundNagKey]?.[0] ?? '';
+            if (foundNagKey) {
+                nagCheck = (nags as NagData)[foundNagKey]?.[1] ?? '';
+                nagTitle = (nags as NagData)[foundNagKey]?.[0] ?? '';
+            }
         }
         nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : '';
-        html += ` <span class="move" data-path="${move.pgnPath.join(',')}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
+        html += ` <span class="move" data-path="${move.pgnPath?.join(',')}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
 
         if (move.commentAfter) {
             if (move.turn === 'w' && !altLine) html += `<span class="nullMove">|...|</span>`;
@@ -57,7 +54,7 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
                 html += `<div class="altLine">`;
             }
             move.variations.forEach(variation => {
-                html += `(${buildPgnHtml(variation, variation.pgnPath, true)})`;
+                html += `(${buildPgnHtml(variation, [], true)})`;
             });
             if (!altLine) {
                 html += `</div>`;
@@ -73,7 +70,7 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
 export function getFullMoveSequenceFromPath(path: string[]): string[] {
     state.count = 0;
     state.chessGroundShapes = [];
-    state.expectedLine = parsedPGN.moves as CustomPgnMove[];
+    state.expectedLine = parsedPGN.moves;
     state.expectedMove = state.expectedLine[state.count];
     state.pgnState = true;
 
@@ -96,7 +93,7 @@ export function getFullMoveSequenceFromPath(path: string[]): string[] {
                     state.expectedMove = state.expectedLine[0];
                     branchIndex = null;
                 }
-            } else if (state.expectedMove) {
+            } else if (state.expectedMove?.notation) {
                 chess.move(state.expectedMove.notation.notation);
                 state.count++;
                 state.expectedMove = state.expectedLine[state.count];
@@ -178,5 +175,5 @@ export function initPgnViewer(): void {
     if (parsedPGN.gameComment) {
         pgnContainer.innerHTML += `<span class="comment"> ${parsedPGN.gameComment.comment} </span>`;
     }
-    pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves as CustomPgnMove[]);
+    pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
 }

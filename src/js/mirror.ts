@@ -1,4 +1,4 @@
-import type { PgnMove } from '@mliebelt/pgn-parser';
+import { CustomPgnMove } from './config';
 
 // Define a specific type for the possible mirror states for type safety.
 export type MirrorState = "original" | "original_mirror" | "invert" | "invert_mirror";
@@ -8,7 +8,7 @@ type NotationMap = { [key: string]: string };
 
 
 // The _pgn parameter is prefixed with an underscore indicates it's intentionally unused
-export function assignMirrorState(_pgn: string): MirrorState {
+export function assignMirrorState(): MirrorState {
   const states: MirrorState[] = ["original", "original_mirror", "invert", "invert_mirror"];
   const mirrorRandom = Math.floor(Math.random() * states.length);
   return states[mirrorRandom];
@@ -54,7 +54,7 @@ function swapCase(str: string): string {
   ).join('');
 }
 
-function mirrorMove(move: PgnMove, mirrorState: MirrorState): void {
+function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
   const notationMaps: Record<MirrorState, NotationMap> = {
     "invert_mirror": { q: 'q', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h', '1': '8', '2': '7', '3': '6', '4': '5', '5': '4', '6': '3', '7': '2', '8': '1' },
     "invert": { q: 'q', a: 'h', b: 'g', c: 'f', d: 'e', e: 'd', f: 'c', g: 'b', h: 'a', '1': '8', '2': '7', '3': '6', '4': '5', '5': '4', '6': '3', '7': '2', '8': '1' },
@@ -73,7 +73,7 @@ function mirrorMove(move: PgnMove, mirrorState: MirrorState): void {
   move.notation.notation = transform(move.notation.notation) ?? move.notation.notation;
 }
 
-export function mirrorPgnTree(moves: PgnMove[], mirrorState: MirrorState, parentMove: PgnMove | null = null): void {
+export function mirrorPgnTree(moves: CustomPgnMove[], mirrorState: MirrorState, parentMove: PgnMove | null = null): void {
   if (!moves || moves.length === 0) return;
 
   for (const move of moves) {

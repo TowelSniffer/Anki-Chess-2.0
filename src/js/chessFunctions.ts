@@ -1,6 +1,6 @@
 import { Chess, SQUARES, Move, PieceSymbol } from 'chess.js';
-import { cg, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray } from './config';
-import { highlightCurrentMove, CustomPgnMove } from './pgnViewer';
+import { cg, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray, CustomPgnMove } from './config';
+import { highlightCurrentMove } from './pgnViewer';
 import { extendPuzzleTime, startPuzzleTimeout, puzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
 import { startAnalysis } from './handleStockfish';
@@ -439,7 +439,7 @@ function checkUserMove(moveSan: string, delay: number | null): boolean {
   if (foundVariation) {
     const isBlunder = state.expectedMove.nag?.some(nags => state.blunderNags.includes(nags));
     if (isBlunder) isPuzzleFailed(true);
-    extendPuzzleTime(config.increment);
+    extendPuzzleTime(cgwrap, config.increment);
     makeMove(moveAttempt);
     state.count++;
     state.expectedMove = state.expectedLine[state.count];

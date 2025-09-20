@@ -1,12 +1,19 @@
 import { Chessground } from 'chessground';
-import { Chess, Move } from 'chess.js';
-import { parse, PgnGame } from '@mliebelt/pgn-parser';
+import { Chess } from 'chess.js';
+import { parse } from '@mliebelt/pgn-parser';
+import { PgnReaderMove, PgnGame } from '@mliebelt/pgn-types';
 import type { Api, DrawShape, Color } from 'chessground';
 import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights } from './mirror';
 
 // --- Type Definitions ---
-// Note: Ensure you have the necessary type definitions installed:
-// npm install --save-dev @types/chessground
+
+export interface CustomPgnMove extends PgnReaderMove {
+    pgnPath?: (string | number)[];
+    variations?: CustomPgnMove[][];
+}
+export interface CustomPgnGame extends PgnGame {
+    moves: CustomPgnMove[];
+}
 
 interface Config {
     pgn: string;
@@ -43,9 +50,9 @@ interface State {
     count: number;
     pgnState: boolean;
     chessGroundShapes: DrawShape[];
-    expectedLine: Move[];
-    expectedMove: Move | null;
-    lastMove: Move | null;
+    expectedLine: CustomPgnMove[] = [];
+    expectedMove: CustomPgnMove | null;
+    lastMove: CustomPgnMove | null;
     errorCount: number;
     promoteChoice: 'q' | 'r' | 'b' | 'n';
     promoteAnimate: boolean;
@@ -127,7 +134,7 @@ const config: Config = {
     analysisTime: parseInt(getUrlParam("analysisTime", '4') as string, 10) * 1000,
 };
 
-const parsedPGN = parse(config.pgn, { startRule: "game" }) as PgnGame;
+const parsedPGN = parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame;
 
 // --- Global State ---
 const state: State = {
@@ -159,7 +166,7 @@ const state: State = {
 // Mirror PGN if applicable
 if (config.mirror && !checkCastleRights(state.ankiFen)) {
     if (!state.mirrorState) {
-        state.mirrorState = assignMirrorState(config.pgn);
+        state.mirrorState = assignMirrorState();
     }
     window.parent.postMessage(state, '*');
     mirrorPgnTree(parsedPGN.moves, state.mirrorState);

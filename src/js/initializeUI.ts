@@ -1,7 +1,6 @@
 import { state, config, htmlElement } from './config';
 import { cgwrap } from './chessFunctions';
 import type { Color } from 'chessground/types';
-import type { PgnMove } from '@mliebelt/pgn-parser';
 
 /**
  * Safely finds and returns an HTML element, throwing an error if not found.
