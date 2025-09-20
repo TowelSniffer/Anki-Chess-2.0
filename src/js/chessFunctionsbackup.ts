@@ -7,6 +7,13 @@ import { startAnalysis } from './handleStockfish';
 import { positionPromoteOverlay } from './initializeUI';
 import nags from '../nags.json' assert { type: 'json' };
 
+// gloabal chessground board
+let cgwrap: HTMLDivElement | null = null;
+async function setupTimer() {
+  cgwrap = await waitForElement('.cg-wrap');
+  startPuzzleTimeout(cgwrap, config.timer);
+}
+
 function toggleClass(querySelector, className) {
   document.querySelectorAll('.' + querySelector).forEach(el => el.classList.toggle(`${className}`));
 }
@@ -419,7 +426,7 @@ function checkUserMove(moveSan, delay) {
   if (foundVariation) {
     const isBlunder = state.expectedMove.nag?.some(nags => state.blunderNags.includes(nags));
     if (isBlunder) isPuzzleFailed(true);
-    extendPuzzleTime(config.increment);
+    extendPuzzleTime(cgwrap, config.increment);
     makeMove(moveAttempt);
     state.count++;
     state.expectedMove = state.expectedLine[state.count];
@@ -528,13 +535,6 @@ function waitForElement(selector) {
       subtree: true
     });
   });
-}
-
-// gloabal chessground board
-let cgwrap: HTMLDivElement | null = null;
-async function setupTimer() {
-  cgwrap = await waitForElement('.cg-wrap');
-  startPuzzleTimeout(config.timer);
 }
 
 function navBackward() {
@@ -745,5 +745,4 @@ function reload() {
   setupTimer()
 
 }
-
 export  { cgwrap, reload, resetBoard, navBackward, navForward, rotateBoard, copyFen, toDests, toColor, drawArrows }

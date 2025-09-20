@@ -1,5 +1,4 @@
 import { state, config, cg } from './config';
-import { cgwrap } from './chessFunctions';
 
 // --- Module-level timer variables with explicit types ---
 export let puzzleTimeout: number | null = null;
@@ -8,7 +7,7 @@ let startTime: number = 0;
 let totalTime: number = 0;
 let remainingTime: number = 0;
 
-function handleOutOfTime(): void {
+function handleOutOfTime(cgwrap: HTMLDivElement): void {
     if (config.timerScore) {
         state.errorTrack = 'true'; // Assuming 'true' is a possible value
         state.solvedColour = "#b31010";
@@ -23,7 +22,7 @@ function handleOutOfTime(): void {
     document.documentElement.style.setProperty('--remainingTime', '100%');
 }
 
-export function extendPuzzleTime(additionalTime: number): void {
+export function extendPuzzleTime(cgwrap: HTMLDivElement, additionalTime: number): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     if (puzzleTimeout) {
@@ -34,12 +33,12 @@ export function extendPuzzleTime(additionalTime: number): void {
 
         // Ensure the new delay is not negative before restarting the timer
         if (newDelay >= 0) {
-            startPuzzleTimeout(newDelay);
+            startPuzzleTimeout(cgwrap, newDelay);
         }
     }
 }
 
-export function startPuzzleTimeout(delay: number): void {
+export function startPuzzleTimeout(cgwrap: HTMLDivElement, delay: number): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     // Clear any existing timers before starting a new one
@@ -77,7 +76,7 @@ export function startPuzzleTimeout(delay: number): void {
 
         // extend time when it's not the player's turn
         if (state.playerColour !== cg.state.turnColor) {
-            extendPuzzleTime(10);
+            extendPuzzleTime(cgwrap, 10);
             return;
         }
 

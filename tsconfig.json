@@ -1,6 +1,7 @@
 // tsconfig.json
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
     "target": "es2022",
     "module": "esnext",
     "strict": true,

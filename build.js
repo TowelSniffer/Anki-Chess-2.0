@@ -48,7 +48,7 @@ fs.mkdirSync(distDir);
 
 (async () => {
     const buildOptions = {
-        entryPoints: [path.join(srcDir, 'src/main.js')],
+        entryPoints: [path.join(srcDir, 'src/main.ts')],
         bundle: true,
         outfile: path.join(distDir, '_chess3.0.js'),
         assetNames: '[name]',

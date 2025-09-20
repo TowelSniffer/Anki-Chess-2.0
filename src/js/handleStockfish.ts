@@ -1,5 +1,5 @@
 import { Chess } from 'chess.js';
-import { cgwrap, toColor } from './chessFunctions';
+import { toColor } from './chessFunctions';
 import { state, config, cg, chess } from './config';
 import type { DrawShape } from 'chessground';
 
@@ -89,7 +89,7 @@ function handleStockfishMessages(event: MessageEvent): void {
     }
 }
 
-function handleStockfishCrash(source: string): void {
+export function handleStockfishCrash(source: string): void {
     console.error(`Stockfish engine crashed. Source: ${source}.`);
     if (!state.analysisToggledOn) return;
 
@@ -151,12 +151,13 @@ export function startAnalysis(movetime: number): void {
 }
 
 
-export function toggleStockfishAnalysis(): void {
+export function toggleStockfishAnalysis(cgwrap): void {
+    if (!cgwrap) return;
     if (!stockfish) {
         initializeStockfish().then(() => {
             // After initialization, re-run the toggle logic
             state.analysisToggledOn = false; // It will be flipped to true below
-            toggleStockfishAnalysis();
+            toggleStockfishAnalysis(cgwrap);
         });
         return;
     }

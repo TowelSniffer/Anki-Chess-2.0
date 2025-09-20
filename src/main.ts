@@ -1,29 +1,29 @@
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
-import { state, parsedPGN } from './js/config';
+import { state, cg, parsedPGN } from './js/config';
 import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath, onPgnMoveClick } from './js/pgnViewer';
-import { toggleStockfishAnalysis } from './js/handleStockfish';
+import { toggleStockfishAnalysis, handleStockfishCrash } from './js/handleStockfish';
 import { initializeUI, positionPromoteOverlay } from './js/initializeUI';
 import { cgwrap, reload, resetBoard, navBackward, navForward, rotateBoard, copyFen } from './js/chessFunctions';
 
-function setupEventListeners() {
+function setupEventListeners(): void {
     // --- PGN viewer ---
     const pgnContainer = document.getElementById('pgnComment');
-    pgnContainer.addEventListener('click', onPgnMoveClick);
+    if (pgnContainer) {
+        pgnContainer.addEventListener('click', onPgnMoveClick);
+    }
 
     const commentBox = document.getElementById('commentBox');
+    if (!commentBox) return;
 
-    commentBox.addEventListener('mouseover', (event) => {
-        const moveElement = event.target.closest('.move');
+    commentBox.addEventListener('mouseover', (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        const moveElement = target.closest<HTMLElement>('.move');
 
-        // If the mouse isn't over a '.move' element, do nothing.
-        if (!moveElement) {
-            return;
-        }
+        if (!moveElement) return;
 
-        const tooltip = moveElement.querySelector('.nagTooltip');
-
-        if (!tooltip || !tooltip.textContent.trim()) return;
+        const tooltip = moveElement.querySelector<HTMLElement>('.nagTooltip');
+        if (!tooltip || !tooltip.textContent?.trim()) return;
 
         const itemRect = moveElement.getBoundingClientRect();
         const tooltipWidth = tooltip.offsetWidth;
@@ -38,37 +38,34 @@ function setupEventListeners() {
 
         tooltip.style.left = `${tooltipLeft}px`;
         tooltip.style.top = `${itemRect.top - tooltip.offsetHeight - 3}px`;
-
         tooltip.style.display = 'block';
         tooltip.style.visibility = 'visible';
     });
 
-    commentBox.addEventListener('mouseout', (event) => {
-        const moveElement = event.target.closest('.move');
+    commentBox.addEventListener('mouseout', (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        const moveElement = target.closest<HTMLElement>('.move');
+        if (!moveElement) return;
 
-        if (!moveElement) {
-            return;
-        }
-
-        const tooltip = moveElement.querySelector('.nagTooltip');
+        const tooltip = moveElement.querySelector<HTMLElement>('.nagTooltip');
         if (tooltip) {
             tooltip.style.visibility = 'hidden';
         }
     });
 
-    // navButtons
-    const actions = {
+    // --- Button Actions ---
+    const actions: Record<string, () => void> = {
         'resetBoard': resetBoard,
         'navBackward': navBackward,
         'navForward': navForward,
         'rotateBoard': rotateBoard,
         'copyFen': copyFen,
-        'stockfishToggle': toggleStockfishAnalysis
+        'stockfishToggle': () => toggleStockfishAnalysis(cgwrap)
     };
 
-    document.querySelector('#buttons-container').addEventListener('click', (event) => {
-        // Start at the clicked element and find the nearest parent <button>
-        const button = event.target.closest('button');
+    document.querySelector<HTMLElement>('#buttons-container')?.addEventListener('click', (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+        const button = target.closest('button');
         if (!button) return;
 
         const handler = actions[button.id];
@@ -78,20 +75,18 @@ function setupEventListeners() {
     });
 
     // --- Board navigation ---
-    // wheel navigation
-    board.addEventListener('wheel', (event) => {
-        event.preventDefault();
-        if (event.deltaY < 0) {
-            navBackward();
-        } else if (event.deltaY > 0) {
-            navForward();
-        }
-    });
+    if (cgwrap) {
+        cgwrap.addEventListener('wheel', (event: WheelEvent) => {
+            event.preventDefault();
+            if (event.deltaY < 0) {
+                navBackward();
+            } else if (event.deltaY > 0) {
+                navForward();
+            }
+        });
+    }
 
-    // arrow navigation
-    document.addEventListener('keydown', (event) => {
-        // We don't prevent default here to allow for browser shortcuts etc.
-        // The individual functions can call it if needed.
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
         switch (event.key) {
             case 'ArrowLeft':
                 navBackward();
@@ -105,40 +100,31 @@ function setupEventListeners() {
         }
     });
 
-    // stockfish crash handler
-    window.addEventListener('error', (event) => {
+    // --- Error and Resize Handlers ---
+    window.addEventListener('error', (event: ErrorEvent) => {
         const message = event.message || '';
         const filename = event.filename || '';
-
-        // stockfish js crash error message.
         const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
-
-        // generic "Script error."
         const isGenericCrossOriginError = message === 'Script error.';
 
-        if (isDetailedStockfishCrash || isGenericCrossOriginError) {
-            // Prevent the default browser error console message since we are handling it
-            event.preventDefault();
-            console.warn("Caught a fatal Stockfish crash via global error handler.");
-            if (isGenericCrossOriginError) {
-                console.log("generic message:", message)
-            } else {
-                console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
-            }
-            handleStockfishCrash("window.onerror");
+    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
+        event.preventDefault();
+        console.warn("Caught a fatal Stockfish crash via global error handler.");
+        if (isGenericCrossOriginError) {
+            console.log("generic message:", message);
+        } else {
+            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
         }
+        handleStockfishCrash("window.onerror");
+    }
     });
-
-    // handle promote resize
+// mirrorPgnTree
     if (cgwrap) {
         let isUpdateScheduled = false;
-        const handleReposition = () => {
-            // If an update is already in the queue for the next frame, do nothing. Prevents running twice with resize event
-            if (isUpdateScheduled) {
-                return;
-            }
+        const handleReposition = (): void => {
+            if (isUpdateScheduled) return;
             isUpdateScheduled = true;
-            requestAnimationFrame(() => { // for when board itself is resized
+            requestAnimationFrame(() => {
                 positionPromoteOverlay();
                 isUpdateScheduled = false;
             });
@@ -150,18 +136,17 @@ function setupEventListeners() {
     }
 }
 
-// load board
-async function loadElements() {
+async function loadElements(): Promise<void> {
     initializeUI();
     augmentPgnTree(parsedPGN.moves);
     await reload();
     setupEventListeners();
     initPgnViewer();
     if (state.pgnPath && state.pgnPath !== 'null') {
-        cg.set({ animation: { enabled: false} })
+        cg.set({ animation: { enabled: false } });
         getFullMoveSequenceFromPath(state.pgnPath.split(','));
         highlightCurrentMove(state.pgnPath.split(','));
-        cg.set({ animation: { enabled: true} })
+        cg.set({ animation: { enabled: true } });
     }
 }
 
