@@ -246,7 +246,7 @@ export const btn = {
     get forward() { return document.querySelector<HTMLButtonElement>("#navForward"); },
     get copy() { return document.querySelector<HTMLButtonElement>("#copyFen"); },
     get stockfish() { return document.querySelector<HTMLButtonElement>("#stockfishToggle"); },
-    get flip() { return document.querySelector<HTMLButtonElement>("#flipBoardIcon"); },
+    get flip() { return document.querySelector<HTMLButtonElement>("#rotateBoard"); },
 };
 
 export async function setupCgwrap(): Promise<HTMLDivElement> {

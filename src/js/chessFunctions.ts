@@ -61,7 +61,6 @@ function isPuzzleFailed(isFailed: boolean): void {
       window.parent.postMessage(state, '*');
     }
   } else { // correct
-    console.log(state.errorTrack)
     state.errorTrack = state.errorTrack ? true : "correct";
     if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
       state.solvedColour = "#2CBFA7";
@@ -607,8 +606,21 @@ export function navForward(): void {
 // --- Board Actions ---
 
 export function rotateBoard(): void {
-  state.boardRotation = (state.boardRotation === 'white') ? 'black' : 'white';
+  state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+
+  const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
+  const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
+  htmlElement.style.setProperty("--coord-white", coordBlack);
+  htmlElement.style.setProperty("--coord-black", coordWhite);
+
   cg.set({ orientation: state.boardRotation });
+
+  const flipButton = document.querySelector<HTMLElement>(".flipBoardIcon");
+  if (flipButton && flipButton.style.transform.includes("90deg")) {
+    flipButton.style.transform = "rotate(270deg)";
+  } else if (flipButton) {
+    flipButton.style.transform = "rotate(90deg)";
+  }
 }
 
 export function resetBoard(): void {
