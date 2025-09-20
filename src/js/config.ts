@@ -1,5 +1,5 @@
 import { Chessground } from 'chessground';
-import { Chess } from 'chess.js';
+import { Chess, Move } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
 import { PgnReaderMove, PgnGame } from '@mliebelt/pgn-types';
 import type { Color, Key } from 'chessground/types';
@@ -9,7 +9,7 @@ import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights, MirrorS
 // --- Type Definitions ---
 export type Api = ReturnType<typeof Chessground>;
 
-export type CustomPgnMove = Omit<PgnReaderMove, 'pgnPath' | variations> & {
+export type CustomPgnMove = Omit<PgnReaderMove, 'pgnPath' | `variations`> & {
     pgnPath?: (string | number)[];
     variations?: CustomPgnMove[][];
 };
@@ -28,6 +28,10 @@ enum ShapeFilter {
 
 export interface CustomShape extends DrawShape {
     san?: string
+}
+
+export interface NagData {
+    [nagKey: string]: string[];
 }
 
 type booleanValues = "true" | "false" | boolean | null;
@@ -68,16 +72,16 @@ interface State {
     chessGroundShapes: CustomShape[];
     expectedLine: CustomPgnMove[];
     expectedMove: CustomPgnMove | null;
-    lastMove: CustomPgnMove | null;
+    lastMove: Move | false;
     errorCount: number;
     promoteChoice: 'q' | 'r' | 'b' | 'n';
     promoteAnimate: boolean;
-    debounceCheck: number | null;
+    debounceCheck: boolean;
     navTimeout: number | null;
     isStockfishBusy: boolean;
     analysisFen: string | booleanValues;
     analysisToggledOn: boolean;
-    pgnPath: string | null;
+    pgnPath: string | (string | number)[] | null;
     mirrorState: MirrorState | null;
     blunderNags: string[];
     puzzleComplete: string | boolean;
@@ -155,11 +159,11 @@ const state: State = {
     chessGroundShapes: [],
     expectedLine: [],
     expectedMove: null,
-    lastMove: null,
+    lastMove: false,
     errorCount: 0,
     promoteChoice: 'q',
     promoteAnimate: true,
-    debounceCheck: null,
+    debounceCheck: false,
     navTimeout: null,
     isStockfishBusy: false,
     analysisFen: null,
@@ -203,6 +207,7 @@ const cg: Api = Chessground(boardElement, {
             mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
             altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
             blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 9 },
+            moveType: { key: 'moveType', color: 'green',   opacity: 0.7, lineWidth: 9 },
             // default
             green:   { key: 'green', color: 'green',   opacity: 0.7, lineWidth: 9 },
             red:     { key: 'red',   color: 'red',     opacity: 0.7, lineWidth: 9 },
@@ -233,6 +238,16 @@ function waitForElement<T extends Element>(selector: string): Promise<T> {
         observer.observe(document.body, { childList: true, subtree: true });
     });
 }
+
+// --- HTML defs ---
+export const btn = {
+    get reset() { return document.querySelector<HTMLButtonElement>("#resetBoard"); },
+    get back() { return document.querySelector<HTMLButtonElement>("#navBackward"); },
+    get forward() { return document.querySelector<HTMLButtonElement>("#navForward"); },
+    get copy() { return document.querySelector<HTMLButtonElement>("#copyFen"); },
+    get stockfish() { return document.querySelector<HTMLButtonElement>("#stockfishToggle"); },
+    get flip() { return document.querySelector<HTMLButtonElement>("#flipBoardIcon"); },
+};
 
 export async function setupCgwrap(): Promise<HTMLDivElement> {
     const element = await waitForElement('#board');

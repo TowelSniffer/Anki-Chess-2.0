@@ -1,17 +1,14 @@
 import { Chess, SQUARES, Move, PieceSymbol } from 'chess.js';
-import { cg, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray, CustomPgnMove } from './config';
+import { cg, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray, CustomPgnMove, CustomShape, btn, setupCgwrap, NagData } from './config';
 import { highlightCurrentMove } from './pgnViewer';
-import { extendPuzzleTime, puzzleTimeout } from './timer';
+import { extendPuzzleTime, puzzleTimeout, startPuzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
 import { startAnalysis } from './handleStockfish';
 import { positionPromoteOverlay } from './initializeUI';
 import nags from '../nags.json' assert { type: 'json' };
-import type { Color, Key, DrawShape } from 'chessground';
+import type { Color, Key } from 'chessground/types';
 
 // --- Type Definitions ---
-interface NagData {
-  [nagKey: string]: [string, string, string?]; // [description, symbol, image_url?]
-}
 
 interface FindParentResult {
   key: string;
@@ -23,22 +20,30 @@ interface FindParentResult {
 function toggleClass(querySelector: string, className: string): void {
   document.querySelectorAll('.' + querySelector).forEach(el => el.classList.toggle(className));
 }
-
-function getElement<T extends HTMLElement>(selector: string): T | null {
-  return document.querySelector<T>(selector);
+function setButtonsDisabled(keys: (keyof typeof btn)[], isDisabled: boolean): void {
+  keys.forEach(key => {
+    const button = btn[key];
+    if (button) {
+      button.disabled = isDisabled;
+    }
+  });
 }
 
 // --- PGN State & Puzzle Logic ---
 
 function isEndOfLine(): boolean {
   const isEnd = !state.expectedMove || typeof state.expectedMove === 'string';
-  if (isEnd) document.querySelector("#navForward").disabled = true;
+  if (isEnd) setButtonsDisabled(['forward'], true);
   return isEnd
 }
 
 function handlePuzzleComplete(): void {
   state.puzzleComplete = true;
-  if (cgwrap) cgwrap.classList.remove('timerMode');
+  (async () => {
+    const cgwrap = await setupCgwrap();
+    positionPromoteOverlay(cgwrap);
+    cgwrap.classList.remove('timerMode');
+  })();
   htmlElement.style.setProperty('--border-color', state.solvedColour);
   cg.set({
     viewOnly: true
@@ -77,7 +82,7 @@ function isPuzzleFailed(isFailed: boolean): void {
 export function toDests(chess: Chess): Map<Key, Key[]> {
   const dests = new Map<Key, Key[]>();
   SQUARES.forEach(s => {
-    const ms = chess.moves({ square: s as Key, verbose: true });
+    const ms = chess.moves({ square: s, verbose: true }) as Move[];
     if (ms.length) dests.set(s as Key, ms.map(m => m.to));
   });
     return dests;
@@ -93,7 +98,8 @@ function getOpponentColor(chess: Chess): 'w' | 'b' {
 
 function getLastMove(chess: Chess): Move | false {
   const allMoves = chess.history({ verbose: true });
-  return allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
+  const lastMove = allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
+  return lastMove
 }
 
 // --- Drawing & Shapes ---
@@ -101,19 +107,11 @@ function getLastMove(chess: Chess): Move | false {
 function filterShapes(filterKey: ShapeFilter): void {
   let brushesToRemove = shapeArray[filterKey];
 
-  // Check for removing all non custom shapes
   const shouldFilterDrawn = brushesToRemove.includes('userDrawn');
   if (shouldFilterDrawn) brushesToRemove = shapeArray[ShapeFilter.All];
 
-  // Separate the customSvgs from standard brush filters.
-  const shouldFilterMoveType = brushesToRemove.includes('moveType');
-  const normalBrushesToRemove = brushesToRemove.filter(b => b !== 'moveType');
-
   const filteredShapes = state.chessGroundShapes.filter(shape => {
-    const isNormalBrushMatch = normalBrushesToRemove.includes(shape.brush);
-    const isMoveTypeMatch = shouldFilterMoveType && shape.customSvg?.brush === 'moveType';
-
-    const shouldRemove = isNormalBrushMatch || isMoveTypeMatch;
+    const shouldRemove = brushesToRemove.includes(shape.brush!);
     if (shouldFilterDrawn) {
       return shouldRemove
     } else {
@@ -151,11 +149,11 @@ export function drawArrows(redraw?: boolean): void {
       parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
       if (parentOfChild) {
         for (var i = 0; i < 2; i++) {
-          parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
+          parentOfChild = findParentLine(parsedPGN.moves, parentOfChild!.parent);
 
         };
-        expectedLine = parentOfChild.parent;
-        count = parentOfChild.key;
+        expectedLine = parentOfChild!.parent;
+        count = parentOfChild!.key as unknown as number;
         expectedMove = expectedLine[count];
       }
     }
@@ -164,7 +162,8 @@ export function drawArrows(redraw?: boolean): void {
     }
     expectedMove = expectedLine[count];
     if (expectedMove) {
-      puzzleMove = chess.undo().san;
+      puzzleMove = chess.undo();
+      if (puzzleMove) puzzleMove = puzzleMove.san;
     }
   }
 
@@ -180,7 +179,7 @@ export function drawArrows(redraw?: boolean): void {
     for (const variation of expectedMove.variations) {
       const alternateMove = tempChess.move(variation[0].notation.notation);
       const isBlunder = variation[0].nag?.some(nags => state.blunderNags.includes(nags));
-      let brushType = 'altLine';
+      let brushType: string | null = 'altLine';
       if (isBlunder) brushType = 'blunderLine';
       if (isBlunder && config.boardMode === 'Puzzle') brushType = null;
       if (alternateMove && (alternateMove.san !== puzzleMove) && brushType) {
@@ -192,12 +191,12 @@ export function drawArrows(redraw?: boolean): void {
         });
       } else if (variation[0].nag && (alternateMove.san === puzzleMove)) {
         const foundNag = variation[0].nag?.find(key => key in nags);
-        if (foundNag && nags[foundNag] && nags[foundNag][2]) {
+        if (foundNag && (nags as unknown as NagData)[foundNag] && (nags as unknown as NagData)[foundNag][2]) {
           state.chessGroundShapes.push({
             orig: alternateMove.to, // The square to anchor the image to
+            brush: 'moveType',
             customSvg: {
-              html: `<image href="${nags[foundNag][2]}" width="40" height="40" />'`,
-              brush: 'moveType'
+              html: `<image href="${(nags as unknown as NagData)[foundNag][2]}" width="40" height="40" />'`,
             }
           })
         }
@@ -218,12 +217,12 @@ export function drawArrows(redraw?: boolean): void {
     state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: 'mainLine', san: mainMoveAttempt.san });
   } else if (expectedMove.nag && mainMoveAttempt && (mainMoveAttempt.san === puzzleMove)) {
     const foundNag = expectedMove.nag?.find(key => key in nags);
-    if (foundNag && nags[foundNag] && nags[foundNag][2]) {
+    if (foundNag && (nags as unknown as NagData)[foundNag] && (nags as unknown as NagData)[foundNag][2]) {
       state.chessGroundShapes.push({
         orig: mainMoveAttempt.to, // The square to anchor the image to
+        brush: 'moveType',
         customSvg: {
-          html: `<image href="${nags[foundNag][2]}" width="40" height="40" />'`,
-          brush: 'moveType'
+          html: `<image href="${(nags as unknown as NagData)[foundNag][2]}" width="40" height="40" />'`,
         }
       })
     }
@@ -239,7 +238,7 @@ export function drawArrows(redraw?: boolean): void {
 // --- Board Interaction & Move Handling ---
 
 function updateBoard(move: Move, backwardPromote: boolean = false): void {
-  function cancelDefaultAnimation(chessInstance) {
+  function cancelDefaultAnimation(chessInstance: Chess): void {
     cg.set({ animation: { enabled: false} })
     cg.set({
       fen: chessInstance.fen(),
@@ -249,9 +248,9 @@ function updateBoard(move: Move, backwardPromote: boolean = false): void {
   if (!state.pgnState) {
     state.chessGroundShapes = [];
   }
-  state.lastMove = getLastMove(chess).san;
-  if (state.pgnState && state.lastMove === state.expectedMove?.notation.notation ) {
-    state.pgnPath = state.expectedMove.pgnPath;
+  state.lastMove = getLastMove(chess);
+  if (state.pgnState && state.lastMove && state.lastMove?.san === state.expectedMove?.notation.notation && !isEndOfLine()) {
+    state.pgnPath = state.expectedMove!.pgnPath!;
     window.parent.postMessage(state, '*');
   }
   if (move.flags.includes("p") && state.promoteAnimate && !backwardPromote) {
@@ -300,9 +299,8 @@ function updateBoard(move: Move, backwardPromote: boolean = false): void {
          },
          lastMove: [move.from, move.to]
   });
-  document.querySelector("#navBackward").disabled = false;
-  document.querySelector("#resetBoard").disabled = false;
-  if (config.boardMode === "Viewer" && state.pgnState && !isEndOfLine()) highlightCurrentMove(state.expectedMove.pgnPath);
+  setButtonsDisabled(['back', 'reset'], false);
+  if (config.boardMode === "Viewer" && state.pgnState && !isEndOfLine()) highlightCurrentMove(state.expectedMove!.pgnPath!);
   startAnalysis(config.analysisTime);
 }
 
@@ -314,12 +312,12 @@ function makeMove(move: string | { from: Key; to: Key; promotion?: PieceSymbol }
   return moveResult;
 }
 
-function puzzlePlay(delay: number, orig: Key | { san: string }, dest?: Key): void {
+function puzzlePlay(delay: number | null, orig: Key | CustomShape | Move, dest?: Key | null): void {
   const tempChess = new Chess(chess.fen());
-  let tempMove = false;
-  if (dest) {
+  let tempMove: Move | null = null;
+  if (dest && typeof orig === 'string') {
     tempMove = tempChess.move({ from: orig, to: dest, promotion: 'q' });
-  } else {
+  } else if (typeof orig === 'object' && orig && 'san' in orig && orig.san) {
     tempMove = tempChess.move(orig.san);
   }
   if (!tempMove) {
@@ -329,22 +327,25 @@ function puzzlePlay(delay: number, orig: Key | { san: string }, dest?: Key): voi
     return
   };
   if (tempMove.flags.includes("p") && delay && dest) {
-    promotePopup(orig, dest, delay);
+    promotePopup(tempMove.from, tempMove.to, delay);
   } else {
     checkUserMove(tempMove.san, delay);
   }
 }
 
-function handleViewerMove(orig: Key | { san: string }, dest?: Key): void {
+function handleViewerMove(orig: Key | CustomShape | Move, dest?: Key | null): void {
   const tempChess = new Chess(chess.fen());
-  const move = typeof orig === 'string'
-  ? tempChess.move({ from: orig, to: dest!, promotion: 'q' })
-  : tempChess.move(orig.san);
+  let move: Move | null = null;
+  if (dest && typeof orig === 'string') {
+    move = tempChess.move({ from: orig, to: dest, promotion: 'q' });
+  } else if (typeof orig === 'object' && orig && 'san' in orig && orig.san) {
+    move = tempChess.move(orig.san);
+  }
 
   if (!move) return;
 
   if (move.flags.includes("p") && dest) {
-    promotePopup(orig as Key, dest, null);
+    promotePopup(move.from, move.to, null);
   } else {
     checkUserMove(move.san, null);
     isEndOfLine();
@@ -355,15 +356,15 @@ function playAiMove(delay: number): void {
   setTimeout(() => {
     if (isEndOfLine()) return;
     state.errorCount = 0;
-    if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
-      const moveVar = Math.floor(Math.random() * (state.expectedMove.variations.length + 1));
-      if (moveVar !== state.expectedMove.variations.length) {
+    if (state.expectedMove!.variations && state.expectedMove!.variations.length > 0 && config.acceptVariations) {
+      const moveVar = Math.floor(Math.random() * (state.expectedMove!.variations.length + 1));
+      if (moveVar !== state.expectedMove!.variations.length) {
         state.count = 0;
-        state.expectedLine = state.expectedMove.variations[moveVar];
+        state.expectedLine = state.expectedMove!.variations[moveVar];
         state.expectedMove = state.expectedLine[0];
       }
     }
-    makeMove(state.expectedMove.notation.notation);
+    makeMove(state.expectedMove!.notation.notation);
     state.count++;
     state.expectedMove = state.expectedLine[state.count];
 
@@ -376,9 +377,8 @@ function playAiMove(delay: number): void {
 function playUserCorrectMove(delay: number): void {
   setTimeout(() => {
     cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
-    if (isEndOfLine()) return;
     // Make the move without the AI's variation-selection logic
-    makeMove(state.expectedMove.notation.notation);
+    makeMove(state.expectedMove!.notation.notation);
     state.count++;
     state.expectedMove = state.expectedLine[state.count];
     if (isEndOfLine()) {
@@ -415,9 +415,9 @@ function handleWrongMove(move: Move): void {
 
 function checkUserMove(moveSan: string, delay: number | null): boolean {
   const tempChess = new Chess(chess.fen());
-  const moveAttempt = tempChess.move(moveSan);
 
-  if (!moveAttempt) return;
+  const moveAttempt = tempChess.move(moveSan);
+  if (!moveAttempt) return false;
 
   let foundVariation = false;
   if (state.expectedMove?.notation.notation === moveAttempt.san && state.pgnState) {
@@ -434,9 +434,9 @@ function checkUserMove(moveSan: string, delay: number | null): boolean {
     }
   }
   if (foundVariation) {
-    const isBlunder = state.expectedMove.nag?.some(nags => state.blunderNags.includes(nags));
+    const isBlunder = state.expectedMove?.nag?.some(nags => state.blunderNags.includes(nags));
     if (isBlunder) isPuzzleFailed(true);
-    extendPuzzleTime(cgwrap, config.increment);
+    extendPuzzleTime(config.increment);
     makeMove(moveAttempt);
     state.count++;
     state.expectedMove = state.expectedLine[state.count];
@@ -471,31 +471,42 @@ function promotePopup(orig: Key, dest: Key, delay: number | null): void {
     toggleClass('showHide', 'hidden');
     drawArrows()
   }
-  const promoteButtons = document.querySelectorAll("#promoteButtons > button");
-  const overlay = document.querySelector("#overlay");
-  for (var i=0; i<promoteButtons.length; i++){
-    promoteButtons[i].onclick = function(){
-      state.promoteAnimate = false
+  const promoteButtons = document.querySelectorAll<HTMLButtonElement>("#promoteButtons > button");
+  const overlay = document.querySelector<HTMLDivElement>("#overlay");
+  promoteButtons.forEach(button => {
+    button.onclick = (event: MouseEvent) => {
+      // 'event.currentTarget' is the element the listener is attached to
+      const clickedButton = event.currentTarget as HTMLButtonElement;
+
+      state.promoteAnimate = false;
       event.stopPropagation();
-      state.promoteChoice=this.value;
+      state.promoteChoice = clickedButton.value as 'q' | 'r' | 'b' | 'n';
+
       const tempChess = new Chess(chess.fen());
-      const move = tempChess.move({ from: orig, to: dest, promotion: state.promoteChoice} );
+      const move = tempChess.move({ from: orig, to: dest, promotion: state.promoteChoice });
+
       if (config.boardMode === 'Puzzle') {
         puzzlePlay(300, move, null);
       } else if (config.boardMode === 'Viewer') {
         handleViewerMove(move, null);
       }
       cancelPopup();
-    }
+    };
+  });
+
+  if (overlay) {
     overlay.onclick = function() {
       cancelPopup();
-      setTimeout(() => { // que after select: event
+      setTimeout(() => {
         state.debounceCheck = false;
       }, 0);
-    }
+    };
   }
   toggleClass('showHide', 'hidden');
-  positionPromoteOverlay(cgwrap);
+  (async () => {
+    const cgwrap = await setupCgwrap();
+    positionPromoteOverlay(cgwrap);
+  })();
 }
 
 function findParentLine(obj: any, targetChild: CustomPgnMove[]): FindParentResult | null {
@@ -523,8 +534,7 @@ function findParentLine(obj: any, targetChild: CustomPgnMove[]): FindParentResul
 
 function handlePgnState(pgnState: boolean): void {
   state.pgnState = pgnState;
-  const forwardButton = getElement<HTMLButtonElement>("#navForward");
-  if (forwardButton) forwardButton.disabled = !pgnState;
+  setButtonsDisabled(['forward'], !pgnState);
 }
 
 export function navBackward(): void {
@@ -540,23 +550,24 @@ export function navBackward(): void {
         let parentOfChild = findParentLine(parsedPGN.moves, state.expectedLine);
         if (parentOfChild) {
           for (var i = 0; i < 2; i++) {
-            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
+            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild!.parent);
 
           };
-          state.expectedLine = parentOfChild.parent;
-          state.count = parentOfChild.key;
+          state.expectedLine = parentOfChild!.parent;
+          state.count = parentOfChild!.key as unknown as number;
           state.expectedMove = state.expectedLine[state.count];
         }
       }
     }
+    const firstMoveCheck = getLastMove(chess);
     if (state.count === 0 && state.ankiFen !== chess.fen()) {
       return;
-    } else if (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === getLastMove(chess).san) {
+    } else if (firstMoveCheck && (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === firstMoveCheck.san) ) {
       handlePgnState(true);
     }
   }
   drawArrows();
-  if (config.boardMode === "Viewer") {
+  if (config.boardMode === "Viewer" && !isEndOfLine()) {
     let expectedMove = state.expectedMove;
     let expectedLine = state.expectedLine;
     if (expectedLine[state.count - 1]?.notation?.notation) {
@@ -565,18 +576,18 @@ export function navBackward(): void {
         let parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
         if (parentOfChild) {
           for (var i = 0; i < 2; i++) {
-            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
+            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild!.parent);
 
           };
-          expectedLine = parentOfChild.parent;
-          const count = parentOfChild.key;
+          expectedLine = parentOfChild!.parent;
+          const count = parentOfChild!.key as unknown as number;
           expectedMove = expectedLine[count];
         }
       }
-      highlightCurrentMove(expectedMove.pgnPath);
+      highlightCurrentMove(expectedMove!.pgnPath!);
     } else { // no moves played clear highlight
       document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-      document.querySelectorAll('#navBackward, #resetBoard').forEach(el => el.disabled = true);
+      setButtonsDisabled(['back', 'reset'], true);
     }
   }
   startAnalysis(config.analysisTime);
@@ -590,8 +601,7 @@ export function navForward(): void {
     puzzlePlay(null, move.from, move.to);
   }
   isEndOfLine();
-  document.querySelector("#navBackward").disabled = false;
-  document.querySelector("#resetBoard").disabled = false;
+  setButtonsDisabled(['back', 'reset'], false);
 }
 
 // --- Board Actions ---
@@ -620,8 +630,7 @@ export function resetBoard(): void {
          }
   });
   document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-  document.querySelector("#navBackward").disabled = true;
-  document.querySelector("#resetBoard").disabled = true;
+  setButtonsDisabled(['back', 'reset'], true);
   startAnalysis(config.analysisTime);
   drawArrows();
 }
@@ -658,7 +667,7 @@ export function reload(): void {
 
   cg.set({
     fen: state.ankiFen,
-    orientation: config.randomOrientation ? ['black', 'white'][Math.floor(Math.random() * 2)] : state.playerColour,
+    orientation: config.randomOrientation ? ['black', 'white'][Math.floor(Math.random() * 2)] as Color : state.playerColour as Color,
          turnColor: toColor(chess),
          events: {
            change: () => {
@@ -675,8 +684,8 @@ export function reload(): void {
 
                const priority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
                const arrowMove = state.chessGroundShapes
-               .filter(shape => shape.dest === key && priority.includes(shape.brush))
-               .sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
+               .filter(shape => shape.dest === key && shape.brush && priority.includes(shape.brush))
+               .sort((a, b) => priority.indexOf(a.brush!) - priority.indexOf(b.brush!));
                if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
                  // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
                  if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
@@ -724,11 +733,14 @@ export function reload(): void {
         enabled: false
       }
     });
-    document.querySelector("#navBackward").disabled = true;
-    document.querySelector("#resetBoard").disabled = true;
+    setButtonsDisabled(['back', 'reset'], true);
   } else if (!chess.isGameOver() && config.flipBoard) {
     playAiMove(300);
   }
   drawArrows();
-
+  (async () => {
+    const cgwrap = await setupCgwrap();
+    positionPromoteOverlay(cgwrap);
+    startPuzzleTimeout(config.timer);
+  })();
 }
