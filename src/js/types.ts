@@ -46,7 +46,7 @@ export interface State {
     expectedMove: CustomPgnMove | null;
     lastMove: Move | false;
     errorCount: number;
-    promoteChoice: 'q' | 'r' | 'b' | 'n';
+    promoteChoice: PromotionPieces;
     promoteAnimate: boolean;
     debounceCheck: boolean;
     navTimeout: number | null;
@@ -65,6 +65,8 @@ export interface NagData {
 }
 
 // --- types ---
+export type PromotionPieces = 'q' | 'r' | 'b' | 'n';
+
 export type booleanValues = "true" | "false" | boolean | null;
 
 export type Api = ReturnType<typeof Chessground>;
