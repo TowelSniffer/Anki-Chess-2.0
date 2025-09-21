@@ -1,5 +1,6 @@
 import { Chess, SQUARES, Move, PieceSymbol } from 'chess.js';
-import { cg, chess, config, state, parsedPGN, htmlElement, ShapeFilter, shapeArray, CustomPgnMove, CustomShape, btn, setupCgwrap, NagData } from './config';
+import { cg, chess, config, state, parsedPGN, htmlElement, btn, setupCgwrap } from './config';
+import { CustomPgnMove, CustomShape, NagData } from './types';
 import { highlightCurrentMove } from './pgnViewer';
 import { extendPuzzleTime, puzzleTimeout, startPuzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
@@ -14,6 +15,32 @@ interface FindParentResult {
   key: string;
   parent: any;
 }
+
+// --- enumes for function instructions ---
+enum ShapeFilter {
+  All = "All",
+  Stockfish = "Stockfish",
+  PGN = "PGN",
+  Nag = "Nag",
+  Drawn = "Drawn",
+}
+
+enum instruct {
+  All = "All",
+  Stockfish = "Stockfish",
+  PGN = "PGN",
+  Nag = "Nag",
+  Drawn = "Drawn",
+}
+
+// Chesground Shapes
+const shapeArray: Record<ShapeFilter, string[]> = {
+  [ShapeFilter.All]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
+  [ShapeFilter.Stockfish]: ["stockfish", "stockfinished"],
+  [ShapeFilter.PGN]: ["mainLine", "altLine", "blunderLine", "moveType"],
+  [ShapeFilter.Nag]: ["moveType"],
+  [ShapeFilter.Drawn]: ["userDrawn"],
+};
 
 // --- DOM & UI Helpers ---
 

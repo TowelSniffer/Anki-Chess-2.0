@@ -1,16 +1,8 @@
 import { toColor, toDests, drawArrows } from './chessFunctions';
-import { state, parsedPGN, config, cg, chess, CustomPgnMove } from './config';
+import { state, parsedPGN, config, cg, chess } from './config';
 import { startAnalysis } from './handleStockfish';
+import { NagData, CustomPgnMove } from './types';
 import nags from '../nags.json' assert { type: 'json' };
-
-// --- Type Definitions ---
-
-// Define the shape of the imported nags.json file.
-interface NagData {
-    [nagKey: string]: string[]; // [description, symbol/sub array of symbols]
-}
-
-
 
 // --- PGN Rendering ---
 

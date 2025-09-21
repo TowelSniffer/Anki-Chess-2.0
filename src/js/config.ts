@@ -1,99 +1,8 @@
 import { Chessground } from 'chessground';
-import { Chess, Move } from 'chess.js';
+import { Chess } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
-import { PgnReaderMove, PgnGame } from '@mliebelt/pgn-types';
-import type { Color, Key } from 'chessground/types';
-import type { DrawShape } from 'chessground/draw';
+import { Config, State, Api, booleanValues, CustomPgnGame } from './types';
 import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights, MirrorState } from './mirror';
-
-// --- Type Definitions ---
-export type Api = ReturnType<typeof Chessground>;
-
-export type CustomPgnMove = Omit<PgnReaderMove, 'pgnPath' | `variations`> & {
-    pgnPath?: (string | number)[];
-    variations?: CustomPgnMove[][];
-};
-export type CustomPgnGame = Omit<PgnGame, 'moves'> & {
-    moves: CustomPgnMove[];
-};
-
-// --- Chesground Shapes ---
-enum ShapeFilter {
-    All = "All",
-    Stockfish = "Stockfish",
-    PGN = "PGN",
-    Nag = "Nag",
-    Drawn = "Drawn",
-}
-
-export interface CustomShape extends DrawShape {
-    san?: string
-}
-
-export interface NagData {
-    [nagKey: string]: string[];
-}
-
-type booleanValues = "true" | "false" | boolean | null;
-interface Config {
-    pgn: string;
-    fontSize: number;
-    ankiText: string | null;
-    frontText: boolean;
-    muteAudio: boolean;
-    showDests: boolean;
-    handicap: number;
-    strictScoring: boolean;
-    acceptVariations: boolean;
-    disableArrows: boolean;
-    flipBoard: boolean;
-    boardMode: 'Viewer' | 'Puzzle';
-    background: string;
-    mirror: boolean;
-    randomOrientation: boolean;
-    autoAdvance: boolean;
-    handicapAdvance: boolean;
-    timer: number;
-    increment: number;
-    timerAdvance: boolean;
-    timerScore: boolean;
-    analysisTime: number;
-}
-
-interface State {
-    ankiFen: string;
-    boardRotation: Color;
-    playerColour: Color;
-    opponentColour: Color;
-    solvedColour: string;
-    errorTrack: "correct" | "correctTime" | booleanValues;
-    count: number;
-    pgnState: boolean;
-    chessGroundShapes: CustomShape[];
-    expectedLine: CustomPgnMove[];
-    expectedMove: CustomPgnMove | null;
-    lastMove: Move | false;
-    errorCount: number;
-    promoteChoice: 'q' | 'r' | 'b' | 'n';
-    promoteAnimate: boolean;
-    debounceCheck: boolean;
-    navTimeout: number | null;
-    isStockfishBusy: boolean;
-    analysisFen: string | booleanValues;
-    analysisToggledOn: boolean;
-    pgnPath: string | (string | number)[] | null;
-    mirrorState: MirrorState | null;
-    blunderNags: string[];
-    puzzleComplete: string | boolean;
-}
-
-const shapeArray: Record<ShapeFilter, string[]> = {
-    [ShapeFilter.All]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
-    [ShapeFilter.Stockfish]: ["stockfish", "stockfinished"],
-    [ShapeFilter.PGN]: ["mainLine", "altLine", "blunderLine", "moveType"],
-    [ShapeFilter.Nag]: ["moveType"],
-    [ShapeFilter.Drawn]: ["userDrawn"],
-};
 
 // --- URL Parameter Helper ---
 const urlParams = new URLSearchParams(window.location.search);
@@ -107,20 +16,14 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
 const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.02.24"]
+    [Date "2025.09.21"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "r7/p1pnkppp/4b3/2p5/N2pP3/1P3P2/P1P1B1PP/2KR4 w - - 0 17"]
-    [SetUp "1"]
 
-    17. Bb5 Kd6! {EV: 14.8%, N: 84.79% of 315k} (17... c6 {EV: 14.7%, N: 9.92% of
-        315k} 18. Bxc6 {EV: 84.9%, N: 98.99% of 49.4k} Rc8 {EV: 15.6%, N: 98.06% of
-            58.7k} 19. Bb5 {EV: 80.2%, N: 7.41% of 483k} (19. Bxd7 {EV: 83.9%, N: 91.06% of
-                483k} Bxd7 {EV: 16.3%, N: 98.49% of 447k}) Ne5 {EV: 20.5%, N: 92.74% of 140k})
-    18. c3 {EV: 83.9%, N: 95.46% of 62.5k} c6 {EV: 16.2%, N: 92.94% of 58.0k} 19.
-    Ba6 {EV: 86.3%, N: 94.71% of 572k} Nb6 {EV: 17.1%, N: 79.75% of 2.8k} *`),
+    1. e4 e5 2. f4 Bd6 3. fxe5 Bxe5 4. g3 *
+    `),
     fontSize: parseInt(getUrlParam("fontSize", '16') as string, 10),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'false') === 'true',
@@ -254,4 +157,4 @@ export async function setupCgwrap(): Promise<HTMLDivElement> {
     return element as HTMLDivElement;
 }
 
-export { parsedPGN, config, state, cg, chess, htmlElement, ShapeFilter, shapeArray }
+export { parsedPGN, config, state, cg, chess, htmlElement }

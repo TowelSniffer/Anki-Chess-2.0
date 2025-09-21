@@ -13840,7 +13840,7 @@ ${contextLines.join("\n")}`;
     const element = await waitForElement(".cg-wrap");
     return element;
   }
-  var import_pgn_parser, shapeArray, urlParams, config, parsedPGN, state, boardElement, cg, htmlElement, chess, btn;
+  var import_pgn_parser, urlParams, config, parsedPGN, state, boardElement, cg, htmlElement, chess, btn;
   var init_config2 = __esm({
     "src/js/config.ts"() {
       "use strict";
@@ -13848,31 +13848,18 @@ ${contextLines.join("\n")}`;
       init_chess();
       import_pgn_parser = __toESM(require_index_umd());
       init_mirror();
-      shapeArray = {
-        ["All" /* All */]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
-        ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
-        ["PGN" /* PGN */]: ["mainLine", "altLine", "blunderLine", "moveType"],
-        ["Nag" /* Nag */]: ["moveType"],
-        ["Drawn" /* Drawn */]: ["userDrawn"]
-      };
       urlParams = new URLSearchParams(window.location.search);
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.02.24"]
+    [Date "2025.09.21"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "r7/p1pnkppp/4b3/2p5/N2pP3/1P3P2/P1P1B1PP/2KR4 w - - 0 17"]
-    [SetUp "1"]
 
-    17. Bb5 Kd6! {EV: 14.8%, N: 84.79% of 315k} (17... c6 {EV: 14.7%, N: 9.92% of
-        315k} 18. Bxc6 {EV: 84.9%, N: 98.99% of 49.4k} Rc8 {EV: 15.6%, N: 98.06% of
-            58.7k} 19. Bb5 {EV: 80.2%, N: 7.41% of 483k} (19. Bxd7 {EV: 83.9%, N: 91.06% of
-                483k} Bxd7 {EV: 16.3%, N: 98.49% of 447k}) Ne5 {EV: 20.5%, N: 92.74% of 140k})
-    18. c3 {EV: 83.9%, N: 95.46% of 62.5k} c6 {EV: 16.2%, N: 92.94% of 58.0k} 19.
-    Ba6 {EV: 86.3%, N: 94.71% of 572k} Nb6 {EV: 17.1%, N: 79.75% of 2.8k} *`),
+    1. e4 e5 2. f4 Bd6 3. fxe5 Bxe5 4. g3 *
+    `),
         fontSize: parseInt(getUrlParam("fontSize", "16"), 10),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "false") === "true",
@@ -15142,6 +15129,7 @@ ${contextLines.join("\n")}`;
       startPuzzleTimeout(config.timer);
     })();
   }
+  var shapeArray;
   var init_chessFunctions = __esm({
     "src/js/chessFunctions.ts"() {
       "use strict";
@@ -15153,6 +15141,13 @@ ${contextLines.join("\n")}`;
       init_handleStockfish();
       init_initializeUI();
       init_nags();
+      shapeArray = {
+        ["All" /* All */]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
+        ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
+        ["PGN" /* PGN */]: ["mainLine", "altLine", "blunderLine", "moveType"],
+        ["Nag" /* Nag */]: ["moveType"],
+        ["Drawn" /* Drawn */]: ["userDrawn"]
+      };
     }
   });
 
