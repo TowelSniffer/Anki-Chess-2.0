@@ -123,6 +123,7 @@ const cg: Api = Chessground(boardElement, {
         },
     },
 });
+const shapePriority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
 
 const htmlElement: HTMLElement = document.documentElement;
 const chess = new Chess();
@@ -144,4 +145,4 @@ export async function defineDynamicElement(dynamicElement: string): Promise<HTML
     return element as HTMLDivElement;
 }
 
-export { parsedPGN, config, state, cg, chess, htmlElement }
+export { parsedPGN, config, state, cg, chess, htmlElement, shapePriority }

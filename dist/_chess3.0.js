@@ -13847,7 +13847,7 @@ ${contextLines.join("\n")}`;
     const element = await waitForElement(dynamicElement);
     return element;
   }
-  var import_pgn_parser, urlParams, config, parsedPGN, state, boardElement, cg, htmlElement, chess, btn;
+  var import_pgn_parser, urlParams, config, parsedPGN, state, boardElement, cg, shapePriority, htmlElement, chess, btn;
   var init_config2 = __esm({
     "src/js/config.ts"() {
       "use strict";
@@ -13959,6 +13959,7 @@ ${contextLines.join("\n")}`;
           }
         }
       });
+      shapePriority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
       htmlElement = document.documentElement;
       chess = new Chess();
       btn = {
@@ -14488,6 +14489,27 @@ ${contextLines.join("\n")}`;
       }
     });
   }
+  function findParentLine(obj, targetChild) {
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        const value = obj[key];
+        if (typeof value === "object" && value !== null) {
+          if (value === targetChild) {
+            return {
+              key,
+              parent: obj
+              // This is the direct parent
+            };
+          }
+          const foundParent = findParentLine(value, targetChild);
+          if (foundParent) {
+            return foundParent;
+          }
+        }
+      }
+    }
+    return null;
+  }
   function isEndOfLine() {
     const isEnd = !state.expectedMove || typeof state.expectedMove === "string";
     if (isEnd) setButtonsDisabled(["forward"], true);
@@ -14504,6 +14526,32 @@ ${contextLines.join("\n")}`;
     cg.set({
       viewOnly: true
     });
+  }
+  function getLegalMoveFromTo(orig, dest) {
+    const tempChess = new Chess(chess.fen());
+    return tempChess.move({ from: orig, to: dest });
+  }
+  function getLegalMoveBySan(moveSan) {
+    const tempChess = new Chess(chess.fen());
+    return tempChess.move(moveSan);
+  }
+  function getLegalPromotion(orig, dest, promotion) {
+    const tempChess = new Chess(chess.fen());
+    return tempChess.move({ from: orig, to: dest, promotion });
+  }
+  function isPromotion(orig, dest) {
+    if (SQUARES.includes(orig)) {
+      const piece = chess.get(orig);
+      if (!piece || piece.type !== "p") {
+        return false;
+      }
+      const rank2 = dest.charAt(1);
+      if (piece.color === "w" && rank2 === "8") return true;
+      if (piece.color === "b" && rank2 === "1") return true;
+    } else {
+      console.error("Invalid square passed:", orig);
+    }
+    return false;
   }
   function isPuzzleFailed(isFailed) {
     if (isFailed) {
@@ -14610,10 +14658,9 @@ ${contextLines.join("\n")}`;
       cg.set({ drawable: { shapes: state.chessGroundShapes } });
       return;
     }
-    const tempChess = new Chess(chess.fen());
     if (expectedMove?.variations) {
       for (const variation of expectedMove.variations) {
-        const alternateMove = tempChess.move(variation[0].notation.notation);
+        const alternateMove = getLegalMoveBySan(variation[0].notation.notation);
         const isBlunder = variation[0].nag?.some((nags) => state.blunderNags.includes(nags));
         let brushType = "altLine";
         if (isBlunder) brushType = "blunderLine";
@@ -14625,7 +14672,7 @@ ${contextLines.join("\n")}`;
             brush: brushType,
             san: alternateMove.san
           });
-        } else if (variation[0].nag && alternateMove.san === puzzleMove) {
+        } else if (variation[0].nag && alternateMove && alternateMove.san === puzzleMove) {
           const foundNag = variation[0].nag?.find((key) => key in nags_default);
           if (foundNag && nags_default[foundNag] && nags_default[foundNag][2]) {
             state.chessGroundShapes.push({
@@ -14638,15 +14685,9 @@ ${contextLines.join("\n")}`;
             });
           }
         }
-        tempChess.undo();
       }
     }
-    let mainMoveAttempt;
-    if (tempChess.moves().includes(expectedMove.notation.notation)) {
-      mainMoveAttempt = tempChess.move(expectedMove.notation.notation);
-    } else {
-      mainMoveAttempt = null;
-    }
+    const mainMoveAttempt = getLegalMoveBySan(expectedMove.notation.notation);
     if (mainMoveAttempt && mainMoveAttempt.san !== puzzleMove) {
       state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: "mainLine", san: mainMoveAttempt.san });
     } else if (expectedMove.nag && mainMoveAttempt && mainMoveAttempt.san === puzzleMove) {
@@ -14694,7 +14735,7 @@ ${contextLines.join("\n")}`;
       setTimeout(() => {
         cancelDefaultAnimation(chess);
         drawArrows();
-      }, config.animationTime);
+      }, 200);
     } else if (move3.flags.includes("p") && backwardPromote) {
       const FENpos = chess.fen();
       const tempChess = new Chess(chess.fen());
@@ -14738,48 +14779,85 @@ ${contextLines.join("\n")}`;
     if (moveResult) {
       updateBoard(moveResult);
     }
-    return moveResult;
   }
-  function puzzlePlay(delay, orig, dest) {
-    const tempChess = new Chess(chess.fen());
-    let tempMove = null;
-    if (dest && typeof orig === "string") {
-      tempMove = tempChess.move({ from: orig, to: dest, promotion: "q" });
-    } else if (typeof orig === "object" && orig && "san" in orig && orig.san) {
-      tempMove = tempChess.move(orig.san);
-    }
-    if (!tempMove) {
-      setTimeout(() => {
+  function puzzlePlayFromTo(delay, orig, dest) {
+    if (isPromotion(orig, dest)) {
+      promotePopup(orig, dest);
+    } else {
+      const tempMove = getLegalMoveFromTo(orig, dest);
+      if (tempMove) {
+        checkMove(tempMove, delay);
+      } else {
         state.debounceCheck = false;
-      }, 0);
-      return;
-    }
-    ;
-    if (tempMove.flags.includes("p") && delay && dest) {
-      promotePopup(tempMove.from, tempMove.to, delay);
-    } else {
-      checkUserMove(tempMove.san, delay);
+      }
     }
   }
-  function handleViewerMove(orig, dest) {
-    const tempChess = new Chess(chess.fen());
-    let move3 = null;
-    if (dest && typeof orig === "string") {
-      move3 = tempChess.move({ from: orig, to: dest, promotion: "q" });
-    } else if (typeof orig === "object" && orig && "san" in orig && orig.san) {
-      move3 = tempChess.move(orig.san);
+  function puzzlePlaySan(delay, move3) {
+    const tempMove = getLegalMoveBySan(move3);
+    if (tempMove) {
+      checkMove(tempMove, delay);
     }
-    if (!move3) return;
-    if (move3.flags.includes("p") && dest) {
-      promotePopup(move3.from, move3.to, null);
+  }
+  function handleViewerMoveFromTo(orig, dest) {
+    if (isPromotion(orig, dest)) {
+      promotePopup(orig, dest);
     } else {
-      checkUserMove(move3.san, null);
+      const moveCheck = getLegalMoveFromTo(orig, dest);
+      if (moveCheck) {
+        checkMove(moveCheck, 0);
+        isEndOfLine();
+      } else {
+        state.debounceCheck = false;
+      }
+    }
+  }
+  function handleViewerMoveSan(move3) {
+    const moveCheck = getLegalMoveBySan(move3);
+    if (moveCheck) {
+      checkMove(moveCheck, 0);
       isEndOfLine();
+    }
+  }
+  function checkMove(move3, delay) {
+    if (!move3 || !move3.san) return;
+    let foundVariation = false;
+    if (state.expectedMove?.notation.notation === move3.san && state.pgnState) {
+      foundVariation = true;
+    } else if (state.expectedMove?.variations && config.acceptVariations && state.pgnState) {
+      for (let i = 0; i < state.expectedMove.variations.length; i++) {
+        if (move3.san === state.expectedMove.variations[i][0].notation.notation) {
+          state.count = 0;
+          state.expectedLine = state.expectedMove.variations[i];
+          state.expectedMove = state.expectedLine[state.count];
+          foundVariation = true;
+          break;
+        }
+      }
+    }
+    if (foundVariation) {
+      const isBlunder = state.expectedMove?.nag?.some((nags) => state.blunderNags.includes(nags));
+      if (isBlunder) isPuzzleFailed(true);
+      extendPuzzleTime(config.increment);
+      makeMove(move3.san);
+      state.count++;
+      state.expectedMove = state.expectedLine[state.count];
+      if (state.expectedMove && delay) {
+        playAiMove(delay);
+      } else if (delay) {
+        isPuzzleFailed(false);
+      }
+      drawArrows();
+    } else if (delay) {
+      handleWrongMove(move3);
+      drawArrows(true);
+    } else if (!delay) {
+      handlePgnState(false);
+      makeMove(move3.san);
     }
   }
   function playAiMove(delay) {
     setTimeout(() => {
-      if (isEndOfLine()) return;
+      if (isEndOfLine() || !state.expectedMove) return;
       state.errorCount = 0;
       if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
         const moveVar = Math.floor(Math.random() * (state.expectedMove.variations.length + 1));
@@ -14794,7 +14872,6 @@ ${contextLines.join("\n")}`;
       state.expectedMove = state.expectedLine[state.count];
       if (isEndOfLine()) isPuzzleFailed(false);
       drawArrows(true);
-      state.debounceCheck = false;
     }, delay);
   }
   function playUserCorrectMove(delay) {
@@ -14822,56 +14899,9 @@ ${contextLines.join("\n")}`;
       cg.set({ viewOnly: true });
       playUserCorrectMove(300);
       playAiMove(600);
-      setTimeout(() => {
-        state.debounceCheck = false;
-      }, 0);
-    } else {
-      setTimeout(() => {
-        state.debounceCheck = false;
-      }, 0);
     }
   }
-  function checkUserMove(moveSan, delay) {
-    const tempChess = new Chess(chess.fen());
-    const moveAttempt = tempChess.move(moveSan);
-    if (!moveAttempt) return false;
-    let foundVariation = false;
-    if (state.expectedMove?.notation.notation === moveAttempt.san && state.pgnState) {
-      foundVariation = true;
-    } else if (state.expectedMove?.variations && config.acceptVariations && state.pgnState) {
-      for (let i = 0; i < state.expectedMove.variations.length; i++) {
-        if (moveAttempt.san === state.expectedMove.variations[i][0].notation.notation) {
-          state.count = 0;
-          state.expectedLine = state.expectedMove.variations[i];
-          state.expectedMove = state.expectedLine[state.count];
-          foundVariation = true;
-          break;
-        }
-      }
-    }
-    if (foundVariation) {
-      const isBlunder = state.expectedMove?.nag?.some((nags) => state.blunderNags.includes(nags));
-      if (isBlunder) isPuzzleFailed(true);
-      extendPuzzleTime(config.increment);
-      makeMove(moveAttempt);
-      state.count++;
-      state.expectedMove = state.expectedLine[state.count];
-      if (state.expectedMove && delay) {
-        playAiMove(delay);
-      } else if (delay) {
-        isPuzzleFailed(false);
-      }
-      drawArrows();
-    } else if (delay) {
-      handleWrongMove(moveAttempt);
-      drawArrows(true);
-    } else if (!delay) {
-      handlePgnState(false);
-      makeMove(moveAttempt);
-    }
-    return foundVariation;
-  }
-  function promotePopup(orig, dest, delay) {
+  function promotePopup(orig, dest) {
     const cancelPopup = function() {
       state.promoteAnimate = true;
       cg.set({
@@ -14893,12 +14923,11 @@ ${contextLines.join("\n")}`;
         state.promoteAnimate = false;
         event.stopPropagation();
         state.promoteChoice = clickedButton.value;
-        const tempChess = new Chess(chess.fen());
-        const move3 = tempChess.move({ from: orig, to: dest, promotion: state.promoteChoice });
-        if (config.boardMode === "Puzzle") {
-          puzzlePlay(300, move3, null);
-        } else if (config.boardMode === "Viewer") {
-          handleViewerMove(move3, null);
+        const move3 = getLegalPromotion(orig, dest, state.promoteChoice);
+        if (move3 && config.boardMode === "Puzzle") {
+          puzzlePlaySan(300, move3.san);
+        } else if (move3 && config.boardMode === "Viewer") {
+          handleViewerMoveSan(move3.san);
         }
         cancelPopup();
       };
@@ -14906,9 +14935,6 @@ ${contextLines.join("\n")}`;
     if (overlay) {
       overlay.onclick = function() {
         cancelPopup();
-        setTimeout(() => {
-          state.debounceCheck = false;
-        }, 0);
       };
     }
     toggleClass("showHide", "hidden");
@@ -14916,27 +14942,6 @@ ${contextLines.join("\n")}`;
       const cgwrap = await defineDynamicElement(".cg-wrap");
       positionPromoteOverlay(cgwrap);
     })();
-  }
-  function findParentLine(obj, targetChild) {
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
-        if (typeof value === "object" && value !== null) {
-          if (value === targetChild) {
-            return {
-              key,
-              parent: obj
-              // This is the direct parent
-            };
-          }
-          const foundParent = findParentLine(value, targetChild);
-          if (foundParent) {
-            return foundParent;
-          }
-        }
-      }
-    }
-    return null;
   }
   function handlePgnState(pgnState) {
     state.pgnState = pgnState;
@@ -15000,13 +15005,12 @@ ${contextLines.join("\n")}`;
   }
   function navForward() {
     if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
-    const tempChess = new Chess(chess.fen());
-    const move3 = tempChess.move(state.expectedMove?.notation?.notation);
-    if (move3) {
-      puzzlePlay(null, move3.from, move3.to);
+    const move3 = state.expectedMove?.notation?.notation;
+    if (move3 && getLegalMoveBySan(move3)) {
+      puzzlePlaySan(0, move3);
+      isEndOfLine();
+      setButtonsDisabled(["back", "reset"], false);
     }
-    isEndOfLine();
-    setButtonsDisabled(["back", "reset"], false);
   }
   function rotateBoard() {
     state.boardRotation = state.boardRotation === "white" ? "black" : "white";
@@ -15083,21 +15087,20 @@ ${contextLines.join("\n")}`;
           cg.set({ drawable: { shapes: state.chessGroundShapes } });
           setTimeout(() => {
             if (state.debounceCheck) return;
-            const priority = ["mainLine", "altLine", "blunderLine", "stockfinished", "stockfish"];
-            const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && shape.brush && priority.includes(shape.brush)).sort((a, b) => priority.indexOf(a.brush) - priority.indexOf(b.brush));
+            const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && shape.brush && shapePriority.includes(shape.brush)).sort((a, b) => shapePriority.indexOf(a.brush) - shapePriority.indexOf(b.brush));
             if (arrowMove.length > 0 && config.boardMode === "Viewer") {
               if (arrowMove[0].brush === "stockfish" || arrowMove[0].brush === "stockfinished") {
                 handlePgnState(false);
               }
-              handleViewerMove(arrowMove[0], null);
+              handleViewerMoveSan(arrowMove[0].san);
             } else {
               const allMoves = chess.moves({ verbose: true });
               const movesToSquare = allMoves.filter((move3) => move3.to === key);
               if (movesToSquare.length === 1) {
                 if (config.boardMode === "Puzzle") {
-                  puzzlePlay(300, movesToSquare[0], null);
+                  puzzlePlaySan(300, movesToSquare[0].san);
                 } else if (config.boardMode === "Viewer") {
-                  handleViewerMove(movesToSquare[0], null);
+                  handleViewerMoveSan(movesToSquare[0].san);
                 }
               }
             }
@@ -15111,13 +15114,13 @@ ${contextLines.join("\n")}`;
           after: (orig, dest) => {
             state.debounceCheck = true;
             if (config.boardMode === "Puzzle") {
-              puzzlePlay(300, orig, dest);
-            } else {
-              handleViewerMove(orig, dest);
-              setTimeout(() => {
-                state.debounceCheck = false;
-              }, 0);
+              puzzlePlayFromTo(300, orig, dest);
+            } else if (config.boardMode === "Viewer") {
+              handleViewerMoveFromTo(orig, dest);
             }
+            setTimeout(() => {
+              state.debounceCheck = false;
+            }, 0);
           }
         }
       },
@@ -15140,7 +15143,7 @@ ${contextLines.join("\n")}`;
       startPuzzleTimeout(config.timer);
     })();
   }
-  var shapeArray, Instruct;
+  var shapeArray;
   var init_chessFunctions = __esm({
     "src/js/chessFunctions.ts"() {
       "use strict";
@@ -15159,11 +15162,6 @@ ${contextLines.join("\n")}`;
         ["Nag" /* Nag */]: ["moveType"],
         ["Drawn" /* Drawn */]: ["userDrawn"]
       };
-      Instruct = ((Instruct2) => {
-        Instruct2[Instruct2["Delay"] = config.animationTime + 100] = "Delay";
-        Instruct2[Instruct2["NoDelay"] = 0] = "NoDelay";
-        return Instruct2;
-      })(Instruct || {});
     }
   });
 
