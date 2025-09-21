@@ -17,17 +17,19 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
 const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.09.21"]
+    [Date "2023.02.13"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
+    [FEN "3r2k1/7p/pp2r1p1/2p2p2/2Pp4/P2P2P1/1P2PPKP/3RR3 b - - 0 29"]
+    [SetUp "1"]
 
-    1. e4 e5 2. f4 Bd6 3. fxe5 Bxe5 4. g3 *
-    `),
+    29... Rde8 30. Rd2 {EV: 89.2%, N: 92.16% of 123k} g5 {EV: 10.8%, N: 32.60% of
+        223k} 31. b4 {EV: 89.6%, N: 96.63% of 142k} *`),
     fontSize: parseInt(getUrlParam("fontSize", '16') as string, 10),
     ankiText: getUrlParam("userText", null),
-    frontText: getUrlParam("frontText", 'false') === 'true',
+    frontText: getUrlParam("frontText", 'true') === 'true',
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
     showDests: getUrlParam("showDests", 'true') === 'true',
     handicap: parseInt(getUrlParam("handicap", '1') as string, 10),
@@ -35,7 +37,7 @@ const config: Config = {
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'true') === 'true',
-    boardMode: getUrlParam("boardMode", 'Viewer') as 'Viewer' | 'Puzzle',
+    boardMode: getUrlParam("boardMode", 'Puzzle') as 'Viewer' | 'Puzzle',
     background: getUrlParam("background", "#2C2C2C") as string,
     mirror: getUrlParam("mirror", 'true') === 'true',
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
@@ -46,6 +48,7 @@ const config: Config = {
     timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
     timerScore: getUrlParam("timerScore", 'false') === 'true',
     analysisTime: parseInt(getUrlParam("analysisTime", '4') as string, 10) * 1000,
+    animationTime: parseInt(getUrlParam("animationTime", '200') as string, 10),
 };
 
 const parsedPGN = parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame;

@@ -13860,17 +13860,19 @@ ${contextLines.join("\n")}`;
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.09.21"]
+    [Date "2023.02.13"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
+    [FEN "3r2k1/7p/pp2r1p1/2p2p2/2Pp4/P2P2P1/1P2PPKP/3RR3 b - - 0 29"]
+    [SetUp "1"]
 
-    1. e4 e5 2. f4 Bd6 3. fxe5 Bxe5 4. g3 *
-    `),
+    29... Rde8 30. Rd2 {EV: 89.2%, N: 92.16% of 123k} g5 {EV: 10.8%, N: 32.60% of
+        223k} 31. b4 {EV: 89.6%, N: 96.63% of 142k} *`),
         fontSize: parseInt(getUrlParam("fontSize", "16"), 10),
         ankiText: getUrlParam("userText", null),
-        frontText: getUrlParam("frontText", "false") === "true",
+        frontText: getUrlParam("frontText", "true") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
         showDests: getUrlParam("showDests", "true") === "true",
         handicap: parseInt(getUrlParam("handicap", "1"), 10),
@@ -13878,7 +13880,7 @@ ${contextLines.join("\n")}`;
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Viewer"),
+        boardMode: getUrlParam("boardMode", "Puzzle"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
@@ -13888,7 +13890,8 @@ ${contextLines.join("\n")}`;
         increment: parseInt(getUrlParam("increment", "2"), 10) * 1e3,
         timerAdvance: getUrlParam("timerAdvance", "false") === "true",
         timerScore: getUrlParam("timerScore", "false") === "true",
-        analysisTime: parseInt(getUrlParam("analysisTime", "4"), 10) * 1e3
+        analysisTime: parseInt(getUrlParam("analysisTime", "4"), 10) * 1e3,
+        animationTime: parseInt(getUrlParam("animationTime", "200"), 10)
       };
       parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
       state = {
@@ -14691,7 +14694,7 @@ ${contextLines.join("\n")}`;
       setTimeout(() => {
         cancelDefaultAnimation(chess);
         drawArrows();
-      }, 200);
+      }, config.animationTime);
     } else if (move3.flags.includes("p") && backwardPromote) {
       const FENpos = chess.fen();
       const tempChess = new Chess(chess.fen());
@@ -15137,7 +15140,7 @@ ${contextLines.join("\n")}`;
       startPuzzleTimeout(config.timer);
     })();
   }
-  var shapeArray;
+  var shapeArray, Instruct;
   var init_chessFunctions = __esm({
     "src/js/chessFunctions.ts"() {
       "use strict";
@@ -15156,6 +15159,11 @@ ${contextLines.join("\n")}`;
         ["Nag" /* Nag */]: ["moveType"],
         ["Drawn" /* Drawn */]: ["userDrawn"]
       };
+      Instruct = ((Instruct2) => {
+        Instruct2[Instruct2["Delay"] = config.animationTime + 100] = "Delay";
+        Instruct2[Instruct2["NoDelay"] = 0] = "NoDelay";
+        return Instruct2;
+      })(Instruct || {});
     }
   });
 
