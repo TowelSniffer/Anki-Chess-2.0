@@ -1,5 +1,5 @@
 import { Chess, SQUARES, Move, PieceSymbol } from 'chess.js';
-import { cg, chess, config, state, parsedPGN, htmlElement, btn, setupCgwrap } from './config';
+import { cg, chess, config, state, parsedPGN, htmlElement, btn, defineDynamicElement } from './config';
 import { CustomPgnMove, CustomShape, NagData } from './types';
 import { highlightCurrentMove } from './pgnViewer';
 import { extendPuzzleTime, puzzleTimeout, startPuzzleTimeout } from './timer';
@@ -67,7 +67,7 @@ function isEndOfLine(): boolean {
 function handlePuzzleComplete(): void {
   state.puzzleComplete = true;
   (async () => {
-    const cgwrap = await setupCgwrap();
+    const cgwrap = await defineDynamicElement('.cg-wrap');
     positionPromoteOverlay(cgwrap);
     cgwrap.classList.remove('timerMode');
   })();
@@ -530,7 +530,7 @@ function promotePopup(orig: Key, dest: Key, delay: number | null): void {
   }
   toggleClass('showHide', 'hidden');
   (async () => {
-    const cgwrap = await setupCgwrap();
+    const cgwrap = await defineDynamicElement('.cg-wrap');
     positionPromoteOverlay(cgwrap);
   })();
 }
@@ -780,7 +780,7 @@ export function reload(): void {
   }
   drawArrows();
   (async () => {
-    const cgwrap = await setupCgwrap();
+    const cgwrap = await defineDynamicElement('.cg-wrap');
     positionPromoteOverlay(cgwrap);
     startPuzzleTimeout(config.timer);
   })();

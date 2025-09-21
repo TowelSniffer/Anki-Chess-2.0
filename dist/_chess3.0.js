@@ -13697,6 +13697,29 @@ ${contextLines.join("\n")}`;
     }
   });
 
+  // src/js/toolbox.ts
+  function waitForElement(selector) {
+    return new Promise((resolve) => {
+      const element = document.querySelector(selector);
+      if (element) {
+        return resolve(element);
+      }
+      const observer = new MutationObserver(() => {
+        const element2 = document.querySelector(selector);
+        if (element2) {
+          observer.disconnect();
+          resolve(element2);
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+  var init_toolbox = __esm({
+    "src/js/toolbox.ts"() {
+      "use strict";
+    }
+  });
+
   // src/js/mirror.ts
   function assignMirrorState() {
     const states = ["original", "original_mirror", "invert", "invert_mirror"];
@@ -13820,24 +13843,8 @@ ${contextLines.join("\n")}`;
     const value = urlParams.get(name);
     return value !== null ? value : defaultValue;
   }
-  function waitForElement(selector) {
-    return new Promise((resolve) => {
-      const element = document.querySelector(selector);
-      if (element) {
-        return resolve(element);
-      }
-      const observer = new MutationObserver(() => {
-        const element2 = document.querySelector(selector);
-        if (element2) {
-          observer.disconnect();
-          resolve(element2);
-        }
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-    });
-  }
-  async function setupCgwrap() {
-    const element = await waitForElement(".cg-wrap");
+  async function defineDynamicElement(dynamicElement) {
+    const element = await waitForElement(dynamicElement);
     return element;
   }
   var import_pgn_parser, urlParams, config, parsedPGN, state, boardElement, cg, htmlElement, chess, btn;
@@ -13847,6 +13854,7 @@ ${contextLines.join("\n")}`;
       init_chessground();
       init_chess();
       import_pgn_parser = __toESM(require_index_umd());
+      init_toolbox();
       init_mirror();
       urlParams = new URLSearchParams(window.location.search);
       config = {
@@ -13999,7 +14007,7 @@ ${contextLines.join("\n")}`;
     }
   }
   async function startPuzzleTimeout(delay) {
-    const cgwrap = await setupCgwrap();
+    const cgwrap = await defineDynamicElement(".cg-wrap");
     if (config.boardMode === "Viewer" || !config.timer) return;
     if (puzzleTimeout) clearTimeout(puzzleTimeout);
     if (puzzleIncrement) clearInterval(puzzleIncrement);
@@ -14485,7 +14493,7 @@ ${contextLines.join("\n")}`;
   function handlePuzzleComplete() {
     state.puzzleComplete = true;
     (async () => {
-      const cgwrap = await setupCgwrap();
+      const cgwrap = await defineDynamicElement(".cg-wrap");
       positionPromoteOverlay(cgwrap);
       cgwrap.classList.remove("timerMode");
     })();
@@ -14902,7 +14910,7 @@ ${contextLines.join("\n")}`;
     }
     toggleClass("showHide", "hidden");
     (async () => {
-      const cgwrap = await setupCgwrap();
+      const cgwrap = await defineDynamicElement(".cg-wrap");
       positionPromoteOverlay(cgwrap);
     })();
   }
@@ -15124,7 +15132,7 @@ ${contextLines.join("\n")}`;
     }
     drawArrows();
     (async () => {
-      const cgwrap = await setupCgwrap();
+      const cgwrap = await defineDynamicElement(".cg-wrap");
       positionPromoteOverlay(cgwrap);
       startPuzzleTimeout(config.timer);
     })();
@@ -15415,7 +15423,7 @@ ${contextLines.join("\n")}`;
         initializeUI();
         augmentPgnTree(parsedPGN.moves);
         await reload();
-        const cgwrap = await setupCgwrap();
+        const cgwrap = await defineDynamicElement(".cg-wrap");
         setupEventListeners(cgwrap);
         initPgnViewer();
         if (state.pgnPath && state.pgnPath !== "null" && typeof state.pgnPath !== "object") {
