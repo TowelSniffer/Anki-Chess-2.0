@@ -1,4 +1,4 @@
-import { CustomPgnMove } from './config';
+import { CustomPgnMove } from './types';
 
 // Define a specific type for the possible mirror states for type safety.
 export type MirrorState = "original" | "original_mirror" | "invert" | "invert_mirror";
