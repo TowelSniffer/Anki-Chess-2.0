@@ -1,6 +1,7 @@
 import { Chess, SQUARES, Move, PieceSymbol, Square } from 'chess.js';
 import { cg, chess, config, state, parsedPGN, htmlElement, btn, defineDynamicElement, shapePriority } from './config';
 import { CustomPgnMove, NagData, PromotionPieces } from './types';
+import { findParentLine } from './toolbox';
 import { highlightCurrentMove } from './pgnViewer';
 import { extendPuzzleTime, puzzleTimeout, startPuzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
@@ -8,13 +9,6 @@ import { startAnalysis } from './handleStockfish';
 import { positionPromoteOverlay } from './initializeUI';
 import nags from '../nags.json' assert { type: 'json' };
 import type { Color, Key } from 'chessground/types';
-
-// --- Type Definitions ---
-
-interface FindParentResult {
-  key: string;
-  parent: any;
-}
 
 // --- enum/array defs for clearer function instructions ---
 // Chesground Shapes
@@ -46,28 +40,6 @@ function setButtonsDisabled(keys: (keyof typeof btn)[], isDisabled: boolean): vo
     }
   });
 }
-
-function findParentLine(obj: any, targetChild: CustomPgnMove[]): FindParentResult | null {
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const value = obj[key];
-
-      if (typeof value === 'object' && value !== null) {
-        if (value === targetChild) {
-          return {
-            key: key,
-            parent: obj // This is the direct parent
-          };
-        }
-        const foundParent = findParentLine(value, targetChild);
-        if (foundParent) {
-          return foundParent;
-        }
-      }
-    }
-  }
-  return null;
-};
 
 // --- PGN State & Puzzle Logic ---
 
@@ -214,24 +186,22 @@ export function drawArrows(redraw?: boolean): void {
   let expectedLine = state.expectedLine;
   let puzzleMove;
   let count = state.count;
-  let parentOfChild;
 
   if (config.boardMode === 'Puzzle') {
     count--;
-    if (count === 0) {
-      parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
+    if (count === 0) { // check if branching move
+      let parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
       if (parentOfChild) {
         for (var i = 0; i < 2; i++) {
-          parentOfChild = findParentLine(parsedPGN.moves, parentOfChild!.parent);
-
+          //
+          if (!parentOfChild) break
+          const parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
+          if (typeof parentOfChild.key === 'number')
         };
-        expectedLine = parentOfChild!.parent;
-        count = parentOfChild!.key as unknown as number;
+        expectedLine = parentOfChild.parent;
+        count = parentOfChild.key;
         expectedMove = expectedLine[count];
       }
-    }
-    if (parentOfChild?.parent) {
-      expectedLine = parentOfChild.parent;
     }
     expectedMove = expectedLine[count];
     if (expectedMove) {
@@ -580,11 +550,11 @@ export function navBackward(): void {
         let parentOfChild = findParentLine(parsedPGN.moves, state.expectedLine);
         if (parentOfChild) {
           for (var i = 0; i < 2; i++) {
-            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild!.parent);
+            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
 
           };
-          state.expectedLine = parentOfChild!.parent;
-          state.count = parentOfChild!.key as unknown as number;
+          state.expectedLine = parentOfChild.parent;
+          state.count = parentOfChild.key;
           state.expectedMove = state.expectedLine[state.count];
         }
       }
@@ -608,11 +578,11 @@ export function navBackward(): void {
         let parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
         if (parentOfChild) {
           for (var i = 0; i < 2; i++) {
-            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild!.parent);
+            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
 
           };
-          expectedLine = parentOfChild!.parent;
-          const count = parentOfChild!.key as unknown as number;
+          expectedLine = parentOfChild.parent;
+          const count = parentOfChild.key;
           expectedMove = expectedLine[count];
         }
       }
