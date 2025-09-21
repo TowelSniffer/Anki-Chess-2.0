@@ -90,13 +90,13 @@ function handlePuzzleComplete(): void {
   });
 }
 
-function isLegalMoveFromTo(orig, dest): boolean {
+function isLegalMoveFromTo(orig: Key, dest: Key): boolean {
   const tempChess = new Chess(chess.fen());
   const moveAttempt = tempChess.move({ from: orig, to: dest });
   if (!moveAttempt) return false;
 }
 
-function isLegalMoveSan(moveSan): boolean {
+function isLegalMoveSan(moveSan: string): boolean {
   const tempChess = new Chess(chess.fen());
   const moveAttempt = tempChess.move(moveSan);
   if (!moveAttempt) return false;
