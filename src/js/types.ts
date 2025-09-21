@@ -29,6 +29,7 @@ export interface Config {
     timerAdvance: boolean;
     timerScore: boolean;
     analysisTime: number;
+    animationTime: number;
 }
 
 export interface State {

@@ -16,7 +16,8 @@ interface FindParentResult {
   parent: any;
 }
 
-// --- enumes for function instructions ---
+// --- enum/array defs for clearer function instructions ---
+// Chesground Shapes
 enum ShapeFilter {
   All = "All",
   Stockfish = "Stockfish",
@@ -24,22 +25,27 @@ enum ShapeFilter {
   Nag = "Nag",
   Drawn = "Drawn",
 }
-
-enum instruct {
-  All = "All",
-  Stockfish = "Stockfish",
-  PGN = "PGN",
-  Nag = "Nag",
-  Drawn = "Drawn",
-}
-
-// Chesground Shapes
 const shapeArray: Record<ShapeFilter, string[]> = {
   [ShapeFilter.All]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
   [ShapeFilter.Stockfish]: ["stockfish", "stockfinished"],
   [ShapeFilter.PGN]: ["mainLine", "altLine", "blunderLine", "moveType"],
   [ShapeFilter.Nag]: ["moveType"],
   [ShapeFilter.Drawn]: ["userDrawn"],
+};
+
+enum Instruct {
+  NoDest,
+  Delay,
+  NoDelay,
+  PuzzleFailed,
+  PuzzlePassed,
+}
+const shapeArray: Record<Instruct, number | null | boolean> = {
+  Instruct.NoDest: null,
+  Instruct.Delay: 300,
+  Instruct.NoDelay: null,
+  Instruct.PuzzleFailed: true,
+  Instruct.PuzzlePassed: false,
 };
 
 // --- DOM & UI Helpers ---
@@ -338,7 +344,22 @@ function makeMove(move: string | { from: Key; to: Key; promotion?: PieceSymbol }
   return moveResult;
 }
 
-function puzzlePlay(delay: number | null, orig: Key | CustomShape | Move, dest?: Key | null): void {
+function isPromotion(orig: Key, dest: Key): boolean {
+  const piece = chess.get(orig);
+  // It's not a promotion if there's no piece or it's not a pawn
+  if (!piece || piece.type !== 'p') {
+    return false;
+  }
+
+  // Check if the dest is back rank
+  const rank = dest.charAt(1);
+  if (piece.color === 'w' && rank === '8') return true;
+  if (piece.color === 'b' && rank === '1') return true;
+
+  return false;
+}
+
+function puzzlePlay(delay: number, orig: Key | CustomShape | Move, dest?: Key | null): void {
   const tempChess = new Chess(chess.fen());
   let tempMove: Move | null = null;
   if (dest && typeof orig === 'string') {
@@ -353,13 +374,27 @@ function puzzlePlay(delay: number | null, orig: Key | CustomShape | Move, dest?:
     return
   };
   if (tempMove.flags.includes("p") && delay && dest) {
-    promotePopup(tempMove.from, tempMove.to, delay);
+    // delay and dest will be true for standard after: move
+    promotePopup(tempMove.from, tempMove.to);
   } else {
     checkUserMove(tempMove.san, delay);
   }
 }
 
-function handleViewerMove(orig: Key | CustomShape | Move, dest?: Key | null): void {
+function handleViewerMoveFromTo(orig: Key, dest: Key): void {
+  const tempChess = new Chess(chess.fen());
+  const moveCheck: tempChess.move({ from: orig, to: dest, promotion: 'q' });
+  if (!moveCheck) return;
+
+  if (moveCheck.flags.includes("p")) {
+    promotePopup(orig, dest);
+  } else {
+    checkUserMove(moveCheck.san, 0);
+    isEndOfLine();
+  }
+}
+
+function handleViewerMoveSan(orig: CustomShape | Move): void {
   const tempChess = new Chess(chess.fen());
   let move: Move | null = null;
   if (dest && typeof orig === 'string') {
@@ -371,9 +406,9 @@ function handleViewerMove(orig: Key | CustomShape | Move, dest?: Key | null): vo
   if (!move) return;
 
   if (move.flags.includes("p") && dest) {
-    promotePopup(move.from, move.to, null);
+    promotePopup(move.from, move.to);
   } else {
-    checkUserMove(move.san, null);
+    checkUserMove(move.san, 0);
     isEndOfLine();
   }
 }
@@ -439,7 +474,7 @@ function handleWrongMove(move: Move): void {
 }
 
 
-function checkUserMove(moveSan: string, delay: number | null): boolean {
+function checkUserMove(moveSan: string, delay: number): boolean {
   const tempChess = new Chess(chess.fen());
 
   const moveAttempt = tempChess.move(moveSan);
@@ -475,7 +510,8 @@ function checkUserMove(moveSan: string, delay: number | null): boolean {
   } else if (delay) {
     handleWrongMove(moveAttempt);
     drawArrows(true);
-  } else if (!delay) { // no delay passed from viewer mode
+  } else if (!delay) {
+    // no delay passed when we don't want Ai response
     handlePgnState(false);
     makeMove(moveAttempt);
   }
@@ -483,7 +519,7 @@ function checkUserMove(moveSan: string, delay: number | null): boolean {
 }
 
 
-function promotePopup(orig: Key, dest: Key, delay: number | null): void {
+function promotePopup(orig: Key, dest: Key): void {
   const cancelPopup = function(){
     state.promoteAnimate = true;
     cg.set({
@@ -626,7 +662,7 @@ export function navForward(): void {
   const tempChess = new Chess(chess.fen());
   const move = tempChess.move(state.expectedMove?.notation?.notation);
   if (move) {
-    puzzlePlay(null, move.from, move.to);
+    puzzlePlay(0, move.from, move.to);
   }
   isEndOfLine();
   setButtonsDisabled(['back', 'reset'], false);
