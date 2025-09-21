@@ -1,6 +1,6 @@
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
-import { state, config, cg, parsedPGN, setupCgwrap } from './js/config';
+import { state, config, cg, parsedPGN, defineDynamicElement } from './js/config';
 import { augmentPgnTree, highlightCurrentMove, initPgnViewer, getFullMoveSequenceFromPath, onPgnMoveClick } from './js/pgnViewer';
 import { toggleStockfishAnalysis, handleStockfishCrash } from './js/handleStockfish';
 import { initializeUI, positionPromoteOverlay } from './js/initializeUI';
@@ -136,7 +136,7 @@ async function loadElements(): Promise<void> {
     initializeUI();
     augmentPgnTree(parsedPGN.moves);
     await reload();
-    const cgwrap = await setupCgwrap();
+    const cgwrap = await defineDynamicElement('.cg-wrap');
     setupEventListeners(cgwrap);
     initPgnViewer();
     if (state.pgnPath && state.pgnPath !== 'null' && typeof state.pgnPath !== 'object') {

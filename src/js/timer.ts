@@ -1,4 +1,4 @@
-import { state, config, cg, setupCgwrap } from './config';
+import { state, config, cg, defineDynamicElement } from './config';
 
 // --- Module-level timer variables with explicit types ---
 export let puzzleTimeout: number | null = null;
@@ -39,7 +39,7 @@ export function extendPuzzleTime(additionalTime: number): void {
 }
 
 export async function startPuzzleTimeout(delay: number): Promise<void> {
-    const cgwrap = await setupCgwrap();
+    const cgwrap = await defineDynamicElement('.cg-wrap');
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     // Clear any existing timers before starting a new one

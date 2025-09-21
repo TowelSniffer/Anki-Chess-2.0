@@ -2,6 +2,7 @@ import { Chessground } from 'chessground';
 import { Chess } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
 import { Config, State, Api, booleanValues, CustomPgnGame } from './types';
+import { waitForElement } from './toolbox';
 import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights, MirrorState } from './mirror';
 
 // --- URL Parameter Helper ---
@@ -125,23 +126,6 @@ const chess = new Chess();
 // gloabal chessground board
 let cgwrap: HTMLDivElement | null = null;
 
-function waitForElement<T extends Element>(selector: string): Promise<T> {
-    return new Promise(resolve => {
-        const element = document.querySelector<T>(selector);
-        if (element) {
-            return resolve(element);
-        }
-        const observer = new MutationObserver(() => {
-            const element = document.querySelector<T>(selector);
-            if (element) {
-                observer.disconnect();
-                resolve(element);
-            }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-    });
-}
-
 // --- HTML defs ---
 export const btn = {
     get reset() { return document.querySelector<HTMLButtonElement>("#resetBoard"); },
@@ -152,8 +136,8 @@ export const btn = {
     get flip() { return document.querySelector<HTMLButtonElement>("#rotateBoard"); },
 };
 
-export async function setupCgwrap(): Promise<HTMLDivElement> {
-    const element = await waitForElement('.cg-wrap');
+export async function defineDynamicElement(dynamicElement: string): Promise<HTMLDivElement> {
+    const element = await waitForElement(dynamicElement);
     return element as HTMLDivElement;
 }
 
