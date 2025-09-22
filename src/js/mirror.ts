@@ -6,7 +6,6 @@ export type MirrorState = "original" | "original_mirror" | "invert" | "invert_mi
 // A map for character-to-character substitution.
 type NotationMap = { [key: string]: string };
 
-
 // The _pgn parameter is prefixed with an underscore indicates it's intentionally unused
 export function assignMirrorState(): MirrorState {
   const states: MirrorState[] = ["original", "original_mirror", "invert", "invert_mirror"];
