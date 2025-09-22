@@ -1,7 +1,7 @@
 import { Chess, SQUARES, Move, PieceSymbol, Square } from 'chess.js';
-import { cg, chess, config, state, parsedPGN, htmlElement, btn, defineDynamicElement, shapePriority } from './config';
+import { cg, chess, config, state, parsedPGN, htmlElement, btn, defineDynamicElement, shapePriority, delayTime } from './config';
 import { CustomPgnMove, NagData, PromotionPieces } from './types';
-import { findParentLine } from './toolbox';
+import { findMoveInGame } from './toolbox';
 import { highlightCurrentMove } from './pgnViewer';
 import { extendPuzzleTime, puzzleTimeout, startPuzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
@@ -47,6 +47,16 @@ function isEndOfLine(): boolean {
   const isEnd = !state.expectedMove || typeof state.expectedMove === 'string';
   if (isEnd) setButtonsDisabled(['forward'], true);
   return isEnd
+}
+
+function getParentLine(): void {
+  if (!state.expectedMove) return
+  const isVariation = findMoveInGame(parsedPGN, state.expectedMove);
+  if (isVariation) {
+    state.expectedLine = isVariation.line;
+    state.count = isVariation.index;
+    state.expectedMove = state.expectedLine[state.count];
+  }
 }
 
 function handlePuzzleComplete(): void {
@@ -102,7 +112,7 @@ function isPuzzleFailed(isFailed: boolean): void {
     state.solvedColour = "#b31010";
     if (config.handicapAdvance) {
       handlePuzzleComplete();
-      setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+      setTimeout(() => { window.parent.postMessage(state, '*'); }, delayTime);
     } else {
       window.parent.postMessage(state, '*');
     }
@@ -113,7 +123,7 @@ function isPuzzleFailed(isFailed: boolean): void {
       state.errorTrack = "correctTime";
     }
     if (config.autoAdvance) {
-      setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+      setTimeout(() => { window.parent.postMessage(state, '*'); }, delayTime);
     } else {
       window.parent.postMessage(state, '*');
     }
@@ -189,21 +199,15 @@ export function drawArrows(redraw?: boolean): void {
 
   if (config.boardMode === 'Puzzle') {
     count--;
-    if (count === 0) { // check if branching move
-      let parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
-      if (parentOfChild) {
-        for (var i = 0; i < 2; i++) {
-          //
-          if (!parentOfChild) break
-          const parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
-          if (typeof parentOfChild.key === 'number')
-        };
-        expectedLine = parentOfChild.parent;
-        count = parentOfChild.key;
+    if (count === 0 && expectedMove) {
+      const isVariation = findMoveInGame(parsedPGN, expectedMove);
+      if (isVariation) {
+        console.log(isVariation.line[isVariation.index])
+        expectedLine = isVariation.line;
+        count = isVariation.index;
         expectedMove = expectedLine[count];
       }
-    }
-    expectedMove = expectedLine[count];
+    };
     if (expectedMove) {
       puzzleMove = chess.undo();
       if (puzzleMove) puzzleMove = puzzleMove.san;
@@ -245,8 +249,6 @@ export function drawArrows(redraw?: boolean): void {
       }
     }
   }
-
-
   // Draw the main line's move as a green arrow, ensuring it's on top
   const mainMoveAttempt = getLegalMoveBySan(expectedMove.notation.notation);
   if (mainMoveAttempt && (mainMoveAttempt.san !== puzzleMove)) {
@@ -263,7 +265,6 @@ export function drawArrows(redraw?: boolean): void {
       })
     }
   }
-
   if (config.boardMode === 'Puzzle' && puzzleMove) {
     chess.move(puzzleMove);
   }
@@ -422,7 +423,6 @@ function checkMove(move: Move, delay: number): void {
     drawArrows();
   } else if (delay) {
     handleWrongMove(move);
-    drawArrows(true);
   } else if (!delay) {
     // no delay passed when we don't want Ai response
     handlePgnState(false);
@@ -460,7 +460,7 @@ function playUserCorrectMove(delay: number): void {
     state.expectedMove = state.expectedLine[state.count];
     if (isEndOfLine()) {
       handlePuzzleComplete();
-      setTimeout(() => { window.parent.postMessage(state, '*'); }, 300);
+      setTimeout(() => { window.parent.postMessage(state, '*'); }, delayTime);
     }
   }, delay);
 }
@@ -477,8 +477,8 @@ function handleWrongMove(move: Move): void {
   // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
   if (state.errorCount > config.handicap) {
     cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
-    playUserCorrectMove(300); // Show the correct user move
-    playAiMove(600); // Then play the AI's response
+    playUserCorrectMove(delayTime); // Show the correct user move
+    playAiMove(delayTime * 2); // Then play the AI's response
   }
 }
 
@@ -510,7 +510,7 @@ function promotePopup(orig: Key, dest: Key): void {
       const move = getLegalPromotion(orig, dest, state.promoteChoice);
 
       if (move && config.boardMode === 'Puzzle') {
-        puzzlePlaySan(300, move.san);
+        puzzlePlaySan(delayTime, move.san);
       } else if (move && config.boardMode === 'Viewer') {
         handleViewerMoveSan(move.san);
       }
@@ -538,25 +538,15 @@ function handlePgnState(pgnState: boolean): void {
 }
 
 export function navBackward(): void {
-
-  if (config.boardMode === 'Puzzle') return;
   const lastMove = chess.undo();
   if (lastMove) {
     updateBoard(lastMove, true)
     if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
       state.count--
-      state.expectedMove = state.expectedLine[state.count];
       if (state.count === 0) {
-        let parentOfChild = findParentLine(parsedPGN.moves, state.expectedLine);
-        if (parentOfChild) {
-          for (var i = 0; i < 2; i++) {
-            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
-
-          };
-          state.expectedLine = parentOfChild.parent;
-          state.count = parentOfChild.key;
-          state.expectedMove = state.expectedLine[state.count];
-        }
+        getParentLine()
+      } else {
+        state.expectedMove = state.expectedLine[state.count];
       }
     }
     const firstMoveCheck = getLastMove(chess);
@@ -574,18 +564,6 @@ export function navBackward(): void {
     let expectedLine = state.expectedLine;
     if (expectedLine[state.count - 1]?.notation?.notation) {
       expectedMove = expectedLine[state.count - 1];
-      if (state.count === 0) {
-        let parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
-        if (parentOfChild) {
-          for (var i = 0; i < 2; i++) {
-            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
-
-          };
-          expectedLine = parentOfChild.parent;
-          const count = parentOfChild.key;
-          expectedMove = expectedLine[count];
-        }
-      }
       highlightCurrentMove(expectedMove!.pgnPath!);
     } else { // no moves played clear highlight
       document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
@@ -694,29 +672,28 @@ export function reload(): void {
              filterShapes(ShapeFilter.Drawn);
              cg.set({drawable: {shapes: state.chessGroundShapes}});
              setTimeout(() => { // 0ms timout to run thise after "after:" event
-               if (state.debounceCheck) return;
-
-               const arrowMove = state.chessGroundShapes
-               .filter(shape => shape.dest === key && shape.brush && shapePriority.includes(shape.brush))
-               .sort((a, b) => shapePriority.indexOf(a.brush!) - shapePriority.indexOf(b.brush!));
-               if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
-                 // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
-                 if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
-                   handlePgnState(false);
-                 }
-                 handleViewerMoveSan(arrowMove[0].san!);
-               } else { // No arrow was clicked, check if there's only one legal play to this square.
-                 const allMoves = chess.moves({ verbose: true });
-                 const movesToSquare = allMoves.filter(move => move.to === key);
-                 if (movesToSquare.length === 1) {
-                   // If only one piece can move to this square, play that move.
-                   if (config.boardMode === 'Puzzle') {
-                     puzzlePlaySan(300, movesToSquare[0].san);
-                   } else if (config.boardMode === 'Viewer') {
-                     handleViewerMoveSan(movesToSquare[0].san);
-                   }
-                 }
-               }
+                if (state.debounceCheck) return;
+                const arrowMove = state.chessGroundShapes
+                .filter(shape => shape.dest === key && shape.brush && shapePriority.includes(shape.brush))
+                .sort((a, b) => shapePriority.indexOf(a.brush!) - shapePriority.indexOf(b.brush!));
+                if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
+                  // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
+                  if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
+                    handlePgnState(false);
+                  }
+                  handleViewerMoveSan(arrowMove[0].san!);
+                } else { // No arrow was clicked, check if there's only one legal play to this square.
+                  const allMoves = chess.moves({ verbose: true });
+                  const movesToSquare = allMoves.filter(move => move.to === key);
+                  if (movesToSquare.length === 1) {
+                    // If only one piece can move to this square, play that move.
+                    if (config.boardMode === 'Puzzle') {
+                      puzzlePlaySan(delayTime, movesToSquare[0].san);
+                    } else if (config.boardMode === 'Viewer') {
+                      handleViewerMoveSan(movesToSquare[0].san);
+                    }
+                  }
+                }
              }, 0);
            },
          },
@@ -727,7 +704,7 @@ export function reload(): void {
               after: (orig, dest) => {
                 state.debounceCheck = true;
                 if (config.boardMode === 'Puzzle') {
-                  puzzlePlayFromTo(300, orig, dest);
+                  puzzlePlayFromTo(delayTime, orig, dest);
                 } else if (config.boardMode === 'Viewer') {
                   handleViewerMoveFromTo(orig, dest);
                 }
@@ -740,6 +717,7 @@ export function reload(): void {
          check: chess.inCheck(),
   });
   if (config.boardMode === 'Viewer') {
+    drawArrows();
     cg.set({
       premovable: {
         enabled: false
@@ -747,9 +725,8 @@ export function reload(): void {
     });
     setButtonsDisabled(['back', 'reset'], true);
   } else if (!chess.isGameOver() && config.flipBoard) {
-    playAiMove(300);
+    playAiMove(delayTime);
   }
-  drawArrows();
   (async () => {
     const cgwrap = await defineDynamicElement('.cg-wrap');
     positionPromoteOverlay(cgwrap);

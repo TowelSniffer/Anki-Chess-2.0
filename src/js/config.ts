@@ -17,16 +17,17 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
 const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2023.02.13"]
+    [Date "2025.09.22"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "3r2k1/7p/pp2r1p1/2p2p2/2Pp4/P2P2P1/1P2PPKP/3RR3 b - - 0 29"]
+    [FEN "3rr3/1p2ppkp/p2p2p1/2pP4/2P2P2/PP2R1P1/7P/4R1K1 b - - 1 29"]
     [SetUp "1"]
 
-    29... Rde8 30. Rd2 {EV: 89.2%, N: 92.16% of 123k} g5 {EV: 10.8%, N: 32.60% of
-        223k} 31. b4 {EV: 89.6%, N: 96.63% of 142k} *`),
+    29... Rd7 30. Rxe7 (30. g4 h5 31. gxh5 gxh5 32. h4 Kh6 (32... f6) 33. f5) Rexe7
+    31. Rxe7 Rxe7 (31... g5) *
+    `),
     fontSize: parseInt(getUrlParam("fontSize", '16') as string, 10),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'true') === 'true',
@@ -39,7 +40,7 @@ const config: Config = {
     flipBoard: getUrlParam("flip", 'true') === 'true',
     boardMode: getUrlParam("boardMode", 'Puzzle') as 'Viewer' | 'Puzzle',
     background: getUrlParam("background", "#2C2C2C") as string,
-    mirror: getUrlParam("mirror", 'true') === 'true',
+    mirror: getUrlParam("mirror", 'false') === 'true',
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
     handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
@@ -51,6 +52,7 @@ const config: Config = {
     animationTime: parseInt(getUrlParam("animationTime", '200') as string, 10),
 };
 
+const delayTime = config.animationTime + 100;
 const parsedPGN = parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame;
 
 // --- Global State ---
@@ -145,4 +147,4 @@ export async function defineDynamicElement(dynamicElement: string): Promise<HTML
     return element as HTMLDivElement;
 }
 
-export { parsedPGN, config, state, cg, chess, htmlElement, shapePriority }
+export { parsedPGN, config, state, cg, chess, htmlElement, shapePriority, delayTime }

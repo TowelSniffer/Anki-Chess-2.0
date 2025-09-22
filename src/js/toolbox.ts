@@ -1,4 +1,9 @@
-import { CustomPgnMove } from './types';
+import { CustomPgnMove, CustomPgnGame } from './types';
+
+export interface FindMoveResult {
+    line: CustomPgnMove[];
+    index: number;
+}
 
 export function waitForElement<T extends Element>(selector: string): Promise<T> {
     return new Promise(resolve => {
@@ -17,19 +22,19 @@ export function waitForElement<T extends Element>(selector: string): Promise<T> 
     });
 }
 
-function findParentCustomMove(movesToSearch: CustomPgnMove[], targetMove: CustomPgnMove): CustomPgnMove | null {
-    for (const move of movesToSearch) {
+function searchInLine(line: CustomPgnMove[], targetMove: CustomPgnMove): FindMoveResult | null {
+    for (let i = 0; i < line.length; i++) {
+        if (line[i] === targetMove) {
+            return { line: line, index: i };
+        }
+    }
+
+    for (const move of line) {
         if (move.variations) {
             for (const variationLine of move.variations) {
-                // Check if this specific line contains the target move.
-                if (variationLine.includes(targetMove)) {
-                    return move; // 'move' is the parent.
-                }
-
-                // If not, recurse into this line to check its children's variations.
-                const foundParent = findParentCustomMove(variationLine, targetMove);
-                if (foundParent) {
-                    return foundParent; // Pass the result up.
+                const result = searchInLine(variationLine, targetMove);
+                if (result) {
+                    return result;
                 }
             }
         }
@@ -37,3 +42,10 @@ function findParentCustomMove(movesToSearch: CustomPgnMove[], targetMove: Custom
 
     return null;
 }
+
+//Finds a specific move within a CustomPgnGame structure.
+export function findMoveInGame(game: CustomPgnGame, targetMove: CustomPgnMove): FindMoveResult | null {
+    return searchInLine(game.moves, targetMove);
+}
+
+
