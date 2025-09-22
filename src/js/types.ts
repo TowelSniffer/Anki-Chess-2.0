@@ -2,7 +2,7 @@ import { Chessground } from 'chessground';
 import type { Color, Key } from 'chessground/types';
 import { Move } from 'chess.js';
 import type { DrawShape } from 'chessground/draw';
-import { PgnReaderMove, PgnGame } from '@mliebelt/pgn-types';
+import { PgnMove, PgnGame } from '@mliebelt/pgn-types';
 import { MirrorState } from './mirror';
 
 // --- interface ---
@@ -71,7 +71,8 @@ export type booleanValues = "true" | "false" | boolean | null;
 
 export type Api = ReturnType<typeof Chessground>;
 
-export type CustomPgnMove = Omit<PgnReaderMove, 'pgnPath' | `variations`> & {
+export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber'> & {
+    moveNumber: number | null;
     pgnPath?: (string | number)[];
     variations?: CustomPgnMove[][];
 };

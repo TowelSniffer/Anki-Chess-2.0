@@ -13714,6 +13714,27 @@ ${contextLines.join("\n")}`;
       observer.observe(document.body, { childList: true, subtree: true });
     });
   }
+  function searchInLine(line, targetMove) {
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === targetMove) {
+        return { line, index: i };
+      }
+    }
+    for (const move3 of line) {
+      if (move3.variations) {
+        for (const variationLine of move3.variations) {
+          const result = searchInLine(variationLine, targetMove);
+          if (result) {
+            return result;
+          }
+        }
+      }
+    }
+    return null;
+  }
+  function findMoveInGame(game, targetMove) {
+    return searchInLine(game.moves, targetMove);
+  }
   var init_toolbox = __esm({
     "src/js/toolbox.ts"() {
       "use strict";
@@ -13799,7 +13820,7 @@ ${contextLines.join("\n")}`;
             move3.moveNumber--;
             lastValidMoveNumber = move3.moveNumber;
           } else {
-            move3.moveNumber = void 0;
+            move3.moveNumber = null;
           }
         } else {
           move3.turn = "w";
@@ -13821,7 +13842,7 @@ ${contextLines.join("\n")}`;
           }
         } else {
           move3.turn = "b";
-          move3.moveNumber = void 0;
+          move3.moveNumber = null;
         }
       });
     }
@@ -13847,7 +13868,7 @@ ${contextLines.join("\n")}`;
     const element = await waitForElement(dynamicElement);
     return element;
   }
-  var import_pgn_parser, urlParams, config, parsedPGN, state, boardElement, cg, shapePriority, htmlElement, chess, btn;
+  var import_pgn_parser, urlParams, config, delayTime, parsedPGN, state, boardElement, cg, shapePriority, htmlElement, chess, btn;
   var init_config2 = __esm({
     "src/js/config.ts"() {
       "use strict";
@@ -13860,16 +13881,17 @@ ${contextLines.join("\n")}`;
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2023.02.13"]
+    [Date "2025.09.22"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "3r2k1/7p/pp2r1p1/2p2p2/2Pp4/P2P2P1/1P2PPKP/3RR3 b - - 0 29"]
+    [FEN "3rr3/1p2ppkp/p2p2p1/2pP4/2P2P2/PP2R1P1/7P/4R1K1 b - - 1 29"]
     [SetUp "1"]
 
-    29... Rde8 30. Rd2 {EV: 89.2%, N: 92.16% of 123k} g5 {EV: 10.8%, N: 32.60% of
-        223k} 31. b4 {EV: 89.6%, N: 96.63% of 142k} *`),
+    29... Rd7 30. Rxe7 (30. g4 h5 31. gxh5 gxh5 32. h4 Kh6 (32... f6) 33. f5) Rexe7
+    31. Rxe7 Rxe7 (31... g5) *
+    `),
         fontSize: parseInt(getUrlParam("fontSize", "16"), 10),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "true") === "true",
@@ -13882,7 +13904,7 @@ ${contextLines.join("\n")}`;
         flipBoard: getUrlParam("flip", "true") === "true",
         boardMode: getUrlParam("boardMode", "Puzzle"),
         background: getUrlParam("background", "#2C2C2C"),
-        mirror: getUrlParam("mirror", "true") === "true",
+        mirror: getUrlParam("mirror", "false") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
         autoAdvance: getUrlParam("autoAdvance", "false") === "true",
         handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
@@ -13893,6 +13915,7 @@ ${contextLines.join("\n")}`;
         analysisTime: parseInt(getUrlParam("analysisTime", "4"), 10) * 1e3,
         animationTime: parseInt(getUrlParam("animationTime", "200"), 10)
       };
+      delayTime = config.animationTime + 100;
       parsedPGN = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
       state = {
         ankiFen: parsedPGN.tags?.FEN ? parsedPGN.tags.FEN : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
@@ -14489,31 +14512,19 @@ ${contextLines.join("\n")}`;
       }
     });
   }
-  function findParentLine(obj, targetChild) {
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
-        if (typeof value === "object" && value !== null) {
-          if (value === targetChild) {
-            return {
-              key,
-              parent: obj
-              // This is the direct parent
-            };
-          }
-          const foundParent = findParentLine(value, targetChild);
-          if (foundParent) {
-            return foundParent;
-          }
-        }
-      }
-    }
-    return null;
-  }
   function isEndOfLine() {
     const isEnd = !state.expectedMove || typeof state.expectedMove === "string";
     if (isEnd) setButtonsDisabled(["forward"], true);
     return isEnd;
+  }
+  function getParentLine() {
+    if (!state.expectedMove) return;
+    const isVariation = findMoveInGame(parsedPGN, state.expectedMove);
+    if (isVariation) {
+      state.expectedLine = isVariation.line;
+      state.count = isVariation.index;
+      state.expectedMove = state.expectedLine[state.count];
+    }
   }
   function handlePuzzleComplete() {
     state.puzzleComplete = true;
@@ -14561,7 +14572,7 @@ ${contextLines.join("\n")}`;
         handlePuzzleComplete();
         setTimeout(() => {
           window.parent.postMessage(state, "*");
-        }, 300);
+        }, delayTime);
       } else {
         window.parent.postMessage(state, "*");
       }
@@ -14574,7 +14585,7 @@ ${contextLines.join("\n")}`;
       if (config.autoAdvance) {
         setTimeout(() => {
           window.parent.postMessage(state, "*");
-        }, 300);
+        }, delayTime);
       } else {
         window.parent.postMessage(state, "*");
       }
@@ -14630,25 +14641,18 @@ ${contextLines.join("\n")}`;
     let expectedLine = state.expectedLine;
     let puzzleMove;
     let count = state.count;
-    let parentOfChild;
     if (config.boardMode === "Puzzle") {
       count--;
-      if (count === 0) {
-        parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
-        if (parentOfChild) {
-          for (var i = 0; i < 2; i++) {
-            parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
-          }
-          ;
-          expectedLine = parentOfChild.parent;
-          count = parentOfChild.key;
+      if (count === 0 && expectedMove) {
+        const isVariation = findMoveInGame(parsedPGN, expectedMove);
+        if (isVariation) {
+          console.log(isVariation.line[isVariation.index]);
+          expectedLine = isVariation.line;
+          count = isVariation.index;
           expectedMove = expectedLine[count];
         }
       }
-      if (parentOfChild?.parent) {
-        expectedLine = parentOfChild.parent;
-      }
-      expectedMove = expectedLine[count];
+      ;
       if (expectedMove) {
         puzzleMove = chess.undo();
         if (puzzleMove) puzzleMove = puzzleMove.san;
@@ -14849,7 +14853,6 @@ ${contextLines.join("\n")}`;
       drawArrows();
     } else if (delay) {
       handleWrongMove(move3);
-      drawArrows(true);
     } else if (!delay) {
       handlePgnState(false);
       makeMove(move3.san);
@@ -14884,7 +14887,7 @@ ${contextLines.join("\n")}`;
         handlePuzzleComplete();
         setTimeout(() => {
           window.parent.postMessage(state, "*");
-        }, 300);
+        }, delayTime);
       }
     }, delay);
   }
@@ -14897,8 +14900,8 @@ ${contextLines.join("\n")}`;
     updateBoard(move3);
     if (state.errorCount > config.handicap) {
       cg.set({ viewOnly: true });
-      playUserCorrectMove(300);
-      playAiMove(600);
+      playUserCorrectMove(delayTime);
+      playAiMove(delayTime * 2);
     }
   }
   function promotePopup(orig, dest) {
@@ -14925,7 +14928,7 @@ ${contextLines.join("\n")}`;
         state.promoteChoice = clickedButton.value;
         const move3 = getLegalPromotion(orig, dest, state.promoteChoice);
         if (move3 && config.boardMode === "Puzzle") {
-          puzzlePlaySan(300, move3.san);
+          puzzlePlaySan(delayTime, move3.san);
         } else if (move3 && config.boardMode === "Viewer") {
           handleViewerMoveSan(move3.san);
         }
@@ -14948,24 +14951,15 @@ ${contextLines.join("\n")}`;
     setButtonsDisabled(["forward"], !pgnState);
   }
   function navBackward() {
-    if (config.boardMode === "Puzzle") return;
     const lastMove = chess.undo();
     if (lastMove) {
       updateBoard(lastMove, true);
       if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
         state.count--;
-        state.expectedMove = state.expectedLine[state.count];
         if (state.count === 0) {
-          let parentOfChild = findParentLine(parsedPGN.moves, state.expectedLine);
-          if (parentOfChild) {
-            for (var i = 0; i < 2; i++) {
-              parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
-            }
-            ;
-            state.expectedLine = parentOfChild.parent;
-            state.count = parentOfChild.key;
-            state.expectedMove = state.expectedLine[state.count];
-          }
+          getParentLine();
+        } else {
+          state.expectedMove = state.expectedLine[state.count];
         }
       }
       const firstMoveCheck = getLastMove(chess);
@@ -14983,18 +14977,6 @@ ${contextLines.join("\n")}`;
       let expectedLine = state.expectedLine;
       if (expectedLine[state.count - 1]?.notation?.notation) {
         expectedMove = expectedLine[state.count - 1];
-        if (state.count === 0) {
-          let parentOfChild = findParentLine(parsedPGN.moves, expectedLine);
-          if (parentOfChild) {
-            for (var i = 0; i < 2; i++) {
-              parentOfChild = findParentLine(parsedPGN.moves, parentOfChild.parent);
-            }
-            ;
-            expectedLine = parentOfChild.parent;
-            const count = parentOfChild.key;
-            expectedMove = expectedLine[count];
-          }
-        }
         highlightCurrentMove(expectedMove.pgnPath);
       } else {
         document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
@@ -15098,7 +15080,7 @@ ${contextLines.join("\n")}`;
               const movesToSquare = allMoves.filter((move3) => move3.to === key);
               if (movesToSquare.length === 1) {
                 if (config.boardMode === "Puzzle") {
-                  puzzlePlaySan(300, movesToSquare[0].san);
+                  puzzlePlaySan(delayTime, movesToSquare[0].san);
                 } else if (config.boardMode === "Viewer") {
                   handleViewerMoveSan(movesToSquare[0].san);
                 }
@@ -15114,7 +15096,7 @@ ${contextLines.join("\n")}`;
           after: (orig, dest) => {
             state.debounceCheck = true;
             if (config.boardMode === "Puzzle") {
-              puzzlePlayFromTo(300, orig, dest);
+              puzzlePlayFromTo(delayTime, orig, dest);
             } else if (config.boardMode === "Viewer") {
               handleViewerMoveFromTo(orig, dest);
             }
@@ -15127,6 +15109,7 @@ ${contextLines.join("\n")}`;
       check: chess.inCheck()
     });
     if (config.boardMode === "Viewer") {
+      drawArrows();
       cg.set({
         premovable: {
           enabled: false
@@ -15134,9 +15117,8 @@ ${contextLines.join("\n")}`;
       });
       setButtonsDisabled(["back", "reset"], true);
     } else if (!chess.isGameOver() && config.flipBoard) {
-      playAiMove(300);
+      playAiMove(delayTime);
     }
-    drawArrows();
     (async () => {
       const cgwrap = await defineDynamicElement(".cg-wrap");
       positionPromoteOverlay(cgwrap);
@@ -15149,6 +15131,7 @@ ${contextLines.join("\n")}`;
       "use strict";
       init_chess();
       init_config2();
+      init_toolbox();
       init_pgnViewer();
       init_timer();
       init_audio();
