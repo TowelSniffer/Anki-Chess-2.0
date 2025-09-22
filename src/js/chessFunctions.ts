@@ -194,7 +194,7 @@ export function drawArrows(redraw?: boolean): void {
     if (count === 0 && expectedLine) {
       const isVariation = findMoveContext(parsedPGN, expectedMove);
       if (isVariation?.parent) {
-        expectedLine = isVariation.parent.variations[isVariation.index];
+        expectedLine = isVariation.parentLine;
         count = isVariation.index;
         expectedMove = isVariation.parent;
       }
@@ -622,7 +622,6 @@ export function resetBoard(): void {
   startAnalysis(config.analysisTime);
   drawArrows();
 }
-
 
 export function copyFen(): boolean {
   let textarea = document.createElement("textarea");

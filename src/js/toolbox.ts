@@ -1,9 +1,5 @@
 import { CustomPgnMove, CustomPgnGame, ParentContext } from './types';
 
-
-
-
-
 export function waitForElement<T extends Element>(selector: string): Promise<T> {
     return new Promise(resolve => {
         const element = document.querySelector<T>(selector);
@@ -20,9 +16,6 @@ export function waitForElement<T extends Element>(selector: string): Promise<T> 
         observer.observe(document.body, { childList: true, subtree: true });
     });
 }
-
-
-
 
 // Finds the parent of a target move's line, and the line that contains that parent.
 export function findMoveContext(game: CustomPgnGame, targetMove: CustomPgnMove): ParentContext | null {
