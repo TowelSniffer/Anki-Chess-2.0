@@ -64,6 +64,12 @@ export interface NagData {
     [nagKey: string]: string[]; // [description, symbol/sub array of symbols]
 }
 
+export interface ParentContext {
+    parent: CustomPgnMove;
+    parentLine: CustomPgnMove[];
+    index: number;
+}
+
 // --- types ---
 export type PromotionPieces = 'q' | 'r' | 'b' | 'n';
 
@@ -74,7 +80,7 @@ export type Api = ReturnType<typeof Chessground>;
 export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber'> & {
     moveNumber: number | null;
     pgnPath?: (string | number)[];
-    variations?: CustomPgnMove[][];
+    variations: CustomPgnMove[][];
 };
 export type CustomPgnGame = Omit<PgnGame, 'moves'> & {
     moves: CustomPgnMove[];
