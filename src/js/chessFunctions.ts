@@ -270,6 +270,7 @@ export function drawArrows(redraw?: boolean): void {
 // --- Board Interaction & Move Handling ---
 
 function updateBoard(move: Move, backwardPromote: boolean = false): void {
+  console.log(move.flags, state.debounceCheck, state.promoteAnimate)
   // animate Board chanes
   function cancelDefaultAnimation(chessInstance: Chess): void {
     cg.set({ animation: { enabled: false} })
@@ -315,11 +316,13 @@ function updateBoard(move: Move, backwardPromote: boolean = false): void {
     cg.set({
       fen: FENpos
     });
-  } else if (move.flags.includes("e")) {
+    state.promoteAnimate = false;
+  } else if (move.flags.includes("e") && state.promoteAnimate) {
     cancelDefaultAnimation(chess)
     cg.set({
       fen: chess.fen(),
     });
+    state.promoteAnimate = false;
   } else {
     cg.set({ fen: chess.fen() });
   }
@@ -353,12 +356,17 @@ function handleMoveAttempt(delay: number, orig: Key, dest: Key, moveSan: string 
     const moveCheck = getLegalMoveBySan(moveSan);
     if (moveCheck) {
       state.debounceCheck = moveCheck;
-      if (isPromotion(moveCheck.from, moveCheck.to)) {
+      if (isPromotion(moveCheck.from, moveCheck.to) && state.promoteAnimate !== null) {
         state.debounceCheck = true;
         setTimeout(() => {
+          state.promoteAnimate = true;
           if (state.debounceCheck === true) checkMove(moveCheck, delay);
         }, 0);
       } else {
+        if (moveCheck.flags.includes("e")) state.promoteAnimate = false;
+        cg.set({
+          fen: chess.fen(),
+        });
         checkMove(moveCheck, delay);
       }
     }
@@ -366,7 +374,6 @@ function handleMoveAttempt(delay: number, orig: Key, dest: Key, moveSan: string 
     const moveCheck = getLegalMoveFromTo(orig, dest);
     if (moveCheck) {
       if (typeof state.debounceCheck !== 'boolean' && state.debounceCheck.san === moveCheck.san) return;
-      console.log("here")
       checkMove(moveCheck, delay);
     }
   }
@@ -434,6 +441,7 @@ function playAiMove(delay: number): void {
 }
 function playUserCorrectMove(delay: number): void {
   setTimeout(() => {
+    state.debounceCheck = false;
     cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
     // Make the move without the AI's variation-selection logic
     if (isEndOfLine()) return;
@@ -467,7 +475,7 @@ function handleWrongMove(move: Move): void {
 
 function promotePopup(orig: Key, dest: Key): void {
   const cancelPopup = function(){
-    state.promoteAnimate = true;
+    state.promoteAnimate = false;
     cg.set({
       fen: chess.fen(),
            turnColor: toColor(chess),
@@ -485,11 +493,9 @@ function promotePopup(orig: Key, dest: Key): void {
     button.onclick = (event: MouseEvent) => {
       // 'event.currentTarget' is the element the listener is attached to
       const clickedButton = event.currentTarget as HTMLButtonElement;
-
-      state.promoteAnimate = false;
       event.stopPropagation();
       state.promoteChoice = clickedButton.value as PromotionPieces;
-
+      state.promoteAnimate = null;
       const move = getLegalPromotion(orig, dest, state.promoteChoice);
 
       if (move && config.boardMode === 'Puzzle') {
@@ -521,8 +527,10 @@ function handlePgnState(pgnState: boolean): void {
 }
 
 export function navBackward(): void {
+  if (config.boardMode === 'Puzzle') return;
   const lastMove = chess.undo();
   if (lastMove) {
+    state.debounceCheck = false;
     updateBoard(lastMove, true)
     if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
       state.count--
@@ -566,7 +574,7 @@ export function navForward(): void {
   if (!expectedMove) return;
   const move = getLegalMoveBySan(expectedMove);
   if (move) {
-    handleMoveAttempt(0, move.from, move.to);
+    handleMoveAttempt(0, move.from, move.to, move.san);
     isEndOfLine();
     setButtonsDisabled(['back', 'reset'], false);
   }
