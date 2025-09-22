@@ -14733,7 +14733,6 @@ ${contextLines.join("\n")}`;
     cg.set({ drawable: { shapes: state.chessGroundShapes } });
   }
   function updateBoard(move3, backwardPromote = false) {
-    console.log(move3.flags, state.debounceCheck, state.promoteAnimate);
     function cancelDefaultAnimation(chessInstance) {
       cg.set({ animation: { enabled: false } });
       cg.set({
@@ -14876,7 +14875,7 @@ ${contextLines.join("\n")}`;
     }
   }
   function playAiMove(delay) {
-    setTimeout(() => {
+    aiTimeout = setTimeout(() => {
       if (isEndOfLine() || !state.expectedMove) return;
       state.errorCount = 0;
       if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
@@ -14892,6 +14891,7 @@ ${contextLines.join("\n")}`;
       state.expectedMove = state.expectedLine[state.count];
       if (isEndOfLine()) isPuzzleFailed(false);
       drawArrows(true);
+      aiTimeout = null;
     }, delay);
   }
   function playUserCorrectMove(delay) {
@@ -15093,6 +15093,7 @@ ${contextLines.join("\n")}`;
         select: (key) => {
           filterShapes("Drawn" /* Drawn */);
           cg.set({ drawable: { shapes: state.chessGroundShapes } });
+          if (aiTimeout) return;
           const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && shape.brush && shapePriority.includes(shape.brush)).sort((a, b) => shapePriority.indexOf(a.brush) - shapePriority.indexOf(b.brush));
           if (arrowMove.length > 0 && config.boardMode === "Viewer") {
             if (arrowMove[0].brush === "stockfish" || arrowMove[0].brush === "stockfinished") {
@@ -15146,7 +15147,7 @@ ${contextLines.join("\n")}`;
       startPuzzleTimeout(config.timer);
     })();
   }
-  var shapeArray;
+  var shapeArray, aiTimeout;
   var init_chessFunctions = __esm({
     "src/js/chessFunctions.ts"() {
       "use strict";
@@ -15166,6 +15167,7 @@ ${contextLines.join("\n")}`;
         ["Nag" /* Nag */]: ["moveType"],
         ["Drawn" /* Drawn */]: ["userDrawn"]
       };
+      aiTimeout = null;
     }
   });
 

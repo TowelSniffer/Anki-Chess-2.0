@@ -270,7 +270,6 @@ export function drawArrows(redraw?: boolean): void {
 // --- Board Interaction & Move Handling ---
 
 function updateBoard(move: Move, backwardPromote: boolean = false): void {
-  console.log(move.flags, state.debounceCheck, state.promoteAnimate)
   // animate Board chanes
   function cancelDefaultAnimation(chessInstance: Chess): void {
     cg.set({ animation: { enabled: false} })
@@ -417,9 +416,9 @@ function checkMove(move: Move, delay: number): void {
     makeMove(move.san);
   }
 }
-
+let aiTimeout : number | null = null;
 function playAiMove(delay: number): void {
-  setTimeout(() => {
+  aiTimeout = setTimeout(() => {
     if (isEndOfLine() || !state.expectedMove) return;
     state.errorCount = 0;
     if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
@@ -435,8 +434,8 @@ function playAiMove(delay: number): void {
     state.expectedMove = state.expectedLine[state.count];
 
     if (isEndOfLine()) isPuzzleFailed(false);
-
     drawArrows(true);
+    aiTimeout = null;
   }, delay);
 }
 function playUserCorrectMove(delay: number): void {
@@ -667,6 +666,7 @@ export function reload(): void {
            select: (key) => {
              filterShapes(ShapeFilter.Drawn);
              cg.set({drawable: {shapes: state.chessGroundShapes}});
+              if (aiTimeout) return;
               const arrowMove = state.chessGroundShapes
               .filter(shape => shape.dest === key && shape.brush && shapePriority.includes(shape.brush))
               .sort((a, b) => shapePriority.indexOf(a.brush!) - shapePriority.indexOf(b.brush!));
