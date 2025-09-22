@@ -14733,6 +14733,7 @@ ${contextLines.join("\n")}`;
     cg.set({ drawable: { shapes: state.chessGroundShapes } });
   }
   function updateBoard(move3, backwardPromote = false) {
+    console.log(move3.flags, state.debounceCheck, state.promoteAnimate);
     function cancelDefaultAnimation(chessInstance) {
       cg.set({ animation: { enabled: false } });
       cg.set({
@@ -14777,11 +14778,13 @@ ${contextLines.join("\n")}`;
       cg.set({
         fen: FENpos
       });
-    } else if (move3.flags.includes("e")) {
+      state.promoteAnimate = false;
+    } else if (move3.flags.includes("e") && state.promoteAnimate) {
       cancelDefaultAnimation(chess);
       cg.set({
         fen: chess.fen()
       });
+      state.promoteAnimate = false;
     } else {
       cg.set({ fen: chess.fen() });
     }
@@ -14813,12 +14816,17 @@ ${contextLines.join("\n")}`;
       const moveCheck = getLegalMoveBySan(moveSan);
       if (moveCheck) {
         state.debounceCheck = moveCheck;
-        if (isPromotion(moveCheck.from, moveCheck.to)) {
+        if (isPromotion(moveCheck.from, moveCheck.to) && state.promoteAnimate !== null) {
           state.debounceCheck = true;
           setTimeout(() => {
+            state.promoteAnimate = true;
             if (state.debounceCheck === true) checkMove(moveCheck, delay);
           }, 0);
         } else {
+          if (moveCheck.flags.includes("e")) state.promoteAnimate = false;
+          cg.set({
+            fen: chess.fen()
+          });
           checkMove(moveCheck, delay);
         }
       }
@@ -14826,7 +14834,6 @@ ${contextLines.join("\n")}`;
       const moveCheck = getLegalMoveFromTo(orig, dest);
       if (moveCheck) {
         if (typeof state.debounceCheck !== "boolean" && state.debounceCheck.san === moveCheck.san) return;
-        console.log("here");
         checkMove(moveCheck, delay);
       }
     }
@@ -14889,6 +14896,7 @@ ${contextLines.join("\n")}`;
   }
   function playUserCorrectMove(delay) {
     setTimeout(() => {
+      state.debounceCheck = false;
       cg.set({ viewOnly: false });
       if (isEndOfLine()) return;
       makeMove(state.expectedMove.notation.notation);
@@ -14918,7 +14926,7 @@ ${contextLines.join("\n")}`;
   }
   function promotePopup(orig, dest) {
     const cancelPopup = function() {
-      state.promoteAnimate = true;
+      state.promoteAnimate = false;
       cg.set({
         fen: chess.fen(),
         turnColor: toColor(chess),
@@ -14935,9 +14943,9 @@ ${contextLines.join("\n")}`;
     promoteButtons.forEach((button) => {
       button.onclick = (event) => {
         const clickedButton = event.currentTarget;
-        state.promoteAnimate = false;
         event.stopPropagation();
         state.promoteChoice = clickedButton.value;
+        state.promoteAnimate = null;
         const move3 = getLegalPromotion(orig, dest, state.promoteChoice);
         if (move3 && config.boardMode === "Puzzle") {
           handleMoveAttempt(delayTime, move3.from, move3.to, move3.san);
@@ -14963,8 +14971,10 @@ ${contextLines.join("\n")}`;
     setButtonsDisabled(["forward"], !pgnState);
   }
   function navBackward() {
+    if (config.boardMode === "Puzzle") return;
     const lastMove = chess.undo();
     if (lastMove) {
+      state.debounceCheck = false;
       updateBoard(lastMove, true);
       if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
         state.count--;
@@ -15005,7 +15015,7 @@ ${contextLines.join("\n")}`;
     if (!expectedMove) return;
     const move3 = getLegalMoveBySan(expectedMove);
     if (move3) {
-      handleMoveAttempt(0, move3.from, move3.to);
+      handleMoveAttempt(0, move3.from, move3.to, move3.san);
       isEndOfLine();
       setButtonsDisabled(["back", "reset"], false);
     }
