@@ -13714,26 +13714,51 @@ ${contextLines.join("\n")}`;
       observer.observe(document.body, { childList: true, subtree: true });
     });
   }
-  function searchInLine(line, targetMove) {
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === targetMove) {
-        return { line, index: i };
-      }
-    }
-    for (const move3 of line) {
-      if (move3.variations) {
-        for (const variationLine of move3.variations) {
-          const result = searchInLine(variationLine, targetMove);
-          if (result) {
-            return result;
+  function findMoveContext(game, targetMove) {
+    const moveLocation = findMoveInGame(game, targetMove);
+    if (!moveLocation) return null;
+    const lineParentResult = findParentMoveOfLine(game, moveLocation.line);
+    if (!lineParentResult) return null;
+    const parentMove = lineParentResult.parent;
+    const parentMoveLocation = findMoveInGame(game, parentMove);
+    if (!parentMoveLocation) return null;
+    return {
+      parent: parentMove,
+      parentLine: parentMoveLocation.line,
+      index: parentMoveLocation.index
+    };
+  }
+  function findMoveInGame(game, targetMove) {
+    function search(line) {
+      const index = line.indexOf(targetMove);
+      if (index !== -1) return { line, index };
+      for (const move3 of line) {
+        if (move3.variations) {
+          for (const variationLine of move3.variations) {
+            const result = search(variationLine);
+            if (result) return result;
           }
         }
       }
+      return null;
     }
-    return null;
+    return search(game.moves);
   }
-  function findMoveInGame(game, targetMove) {
-    return searchInLine(game.moves, targetMove);
+  function findParentMoveOfLine(game, targetLine) {
+    function search(moves) {
+      for (const move3 of moves) {
+        if (move3.variations) {
+          const index = move3.variations.indexOf(targetLine);
+          if (index !== -1) return { parent: move3, variationIndex: index };
+          for (const variationLine of move3.variations) {
+            const result = search(variationLine);
+            if (result) return result;
+          }
+        }
+      }
+      return null;
+    }
+    return search(game.moves);
   }
   var init_toolbox = __esm({
     "src/js/toolbox.ts"() {
@@ -13902,9 +13927,9 @@ ${contextLines.join("\n")}`;
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Puzzle"),
+        boardMode: getUrlParam("boardMode", "Viewer"),
         background: getUrlParam("background", "#2C2C2C"),
-        mirror: getUrlParam("mirror", "false") === "true",
+        mirror: getUrlParam("mirror", "true") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
         autoAdvance: getUrlParam("autoAdvance", "false") === "true",
         handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
@@ -14517,15 +14542,6 @@ ${contextLines.join("\n")}`;
     if (isEnd) setButtonsDisabled(["forward"], true);
     return isEnd;
   }
-  function getParentLine() {
-    if (!state.expectedMove) return;
-    const isVariation = findMoveInGame(parsedPGN, state.expectedMove);
-    if (isVariation) {
-      state.expectedLine = isVariation.line;
-      state.count = isVariation.index;
-      state.expectedMove = state.expectedLine[state.count];
-    }
-  }
   function handlePuzzleComplete() {
     state.puzzleComplete = true;
     (async () => {
@@ -14639,17 +14655,17 @@ ${contextLines.join("\n")}`;
     if (config.boardMode === "Puzzle" && config.disableArrows) return;
     let expectedMove = state.expectedMove;
     let expectedLine = state.expectedLine;
-    let puzzleMove;
     let count = state.count;
+    let puzzleMove;
     if (config.boardMode === "Puzzle") {
       count--;
-      if (count === 0 && expectedMove) {
-        const isVariation = findMoveInGame(parsedPGN, expectedMove);
-        if (isVariation) {
-          console.log(isVariation.line[isVariation.index]);
-          expectedLine = isVariation.line;
+      expectedMove = expectedLine[count];
+      if (count === 0 && expectedLine) {
+        const isVariation = findMoveContext(parsedPGN, expectedMove);
+        if (isVariation?.parent) {
+          expectedLine = isVariation.parent.variations[isVariation.index];
           count = isVariation.index;
-          expectedMove = expectedLine[count];
+          expectedMove = isVariation.parent;
         }
       }
       ;
@@ -14892,6 +14908,7 @@ ${contextLines.join("\n")}`;
     }, delay);
   }
   function handleWrongMove(move3) {
+    state.chessGroundShapes = [];
     state.errorCount++;
     cg.move(move3.from, move3.to);
     playSound("Error");
@@ -14956,8 +14973,14 @@ ${contextLines.join("\n")}`;
       updateBoard(lastMove, true);
       if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
         state.count--;
-        if (state.count === 0) {
-          getParentLine();
+        state.expectedMove = state.expectedLine[state.count];
+        if (state.count === 0 && state.expectedMove) {
+          const isVariation = findMoveContext(parsedPGN, state.expectedMove);
+          if (isVariation?.parent) {
+            state.count = isVariation.index;
+            state.expectedLine = isVariation.parentLine;
+            state.expectedMove = isVariation.parent;
+          }
         } else {
           state.expectedMove = state.expectedLine[state.count];
         }
@@ -14972,16 +14995,12 @@ ${contextLines.join("\n")}`;
       }
     }
     drawArrows();
-    if (config.boardMode === "Viewer" && !isEndOfLine()) {
-      let expectedMove = state.expectedMove;
-      let expectedLine = state.expectedLine;
-      if (expectedLine[state.count - 1]?.notation?.notation) {
-        expectedMove = expectedLine[state.count - 1];
-        highlightCurrentMove(expectedMove.pgnPath);
-      } else {
-        document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-        setButtonsDisabled(["back", "reset"], true);
-      }
+    if (state.expectedLine[state.count - 1]?.notation?.notation) {
+      const expectedMove = state.expectedLine[state.count - 1];
+      highlightCurrentMove(expectedMove.pgnPath);
+    } else {
+      document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+      setButtonsDisabled(["back", "reset"], true);
     }
     startAnalysis(config.analysisTime);
   }

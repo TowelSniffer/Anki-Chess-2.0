@@ -1,7 +1,7 @@
 import { Chess, SQUARES, Move, PieceSymbol, Square } from 'chess.js';
 import { cg, chess, config, state, parsedPGN, htmlElement, btn, defineDynamicElement, shapePriority, delayTime } from './config';
 import { CustomPgnMove, NagData, PromotionPieces } from './types';
-import { findMoveInGame } from './toolbox';
+import { findMoveContext } from './toolbox';
 import { highlightCurrentMove } from './pgnViewer';
 import { extendPuzzleTime, puzzleTimeout, startPuzzleTimeout } from './timer';
 import { playSound, changeAudio } from './audio';
@@ -47,16 +47,6 @@ function isEndOfLine(): boolean {
   const isEnd = !state.expectedMove || typeof state.expectedMove === 'string';
   if (isEnd) setButtonsDisabled(['forward'], true);
   return isEnd
-}
-
-function getParentLine(): void {
-  if (!state.expectedMove) return
-  const isVariation = findMoveInGame(parsedPGN, state.expectedMove);
-  if (isVariation) {
-    state.expectedLine = isVariation.line;
-    state.count = isVariation.index;
-    state.expectedMove = state.expectedLine[state.count];
-  }
 }
 
 function handlePuzzleComplete(): void {
@@ -194,18 +184,19 @@ export function drawArrows(redraw?: boolean): void {
 
   let expectedMove = state.expectedMove;
   let expectedLine = state.expectedLine;
-  let puzzleMove;
   let count = state.count;
+  let puzzleMove;
+
 
   if (config.boardMode === 'Puzzle') {
     count--;
-    if (count === 0 && expectedMove) {
-      const isVariation = findMoveInGame(parsedPGN, expectedMove);
-      if (isVariation) {
-        console.log(isVariation.line[isVariation.index])
-        expectedLine = isVariation.line;
+    expectedMove = expectedLine[count];
+    if (count === 0 && expectedLine) {
+      const isVariation = findMoveContext(parsedPGN, expectedMove);
+      if (isVariation?.parent) {
+        expectedLine = isVariation.parent.variations[isVariation.index];
         count = isVariation.index;
-        expectedMove = expectedLine[count];
+        expectedMove = isVariation.parent;
       }
     };
     if (expectedMove) {
@@ -466,6 +457,7 @@ function playUserCorrectMove(delay: number): void {
 }
 
 function handleWrongMove(move: Move): void {
+  state.chessGroundShapes = [];
   state.errorCount++;
   cg.move(move.from, move.to)
   playSound("Error");
@@ -543,8 +535,15 @@ export function navBackward(): void {
     updateBoard(lastMove, true)
     if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
       state.count--
-      if (state.count === 0) {
-        getParentLine()
+      state.expectedMove = state.expectedLine[state.count];
+      if (state.count === 0 && state.expectedMove) {
+        const isVariation = findMoveContext(parsedPGN, state.expectedMove);
+        if (isVariation?.parent) {
+          state.count = isVariation.index;
+          state.expectedLine = isVariation.parentLine;
+          state.expectedMove = isVariation.parent;
+        }
+
       } else {
         state.expectedMove = state.expectedLine[state.count];
       }
@@ -559,16 +558,13 @@ export function navBackward(): void {
     }
   }
   drawArrows();
-  if (config.boardMode === "Viewer" && !isEndOfLine()) {
-    let expectedMove = state.expectedMove;
-    let expectedLine = state.expectedLine;
-    if (expectedLine[state.count - 1]?.notation?.notation) {
-      expectedMove = expectedLine[state.count - 1];
-      highlightCurrentMove(expectedMove!.pgnPath!);
-    } else { // no moves played clear highlight
-      document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-      setButtonsDisabled(['back', 'reset'], true);
-    }
+  if (state.expectedLine[state.count - 1]?.notation?.notation) {
+
+    const expectedMove = state.expectedLine[state.count - 1];
+    highlightCurrentMove(expectedMove.pgnPath!);
+  } else { // no moves played clear highlight
+    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
+    setButtonsDisabled(['back', 'reset'], true);
   }
   startAnalysis(config.analysisTime);
 }
