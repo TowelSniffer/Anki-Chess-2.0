@@ -13927,7 +13927,7 @@ ${contextLines.join("\n")}`;
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Viewer"),
+        boardMode: getUrlParam("boardMode", "Puzzle"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
@@ -14663,7 +14663,7 @@ ${contextLines.join("\n")}`;
       if (count === 0 && expectedLine) {
         const isVariation = findMoveContext(parsedPGN, expectedMove);
         if (isVariation?.parent) {
-          expectedLine = isVariation.parent.variations[isVariation.index];
+          expectedLine = isVariation.parentLine;
           count = isVariation.index;
           expectedMove = isVariation.parent;
         }
