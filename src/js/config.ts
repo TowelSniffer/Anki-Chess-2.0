@@ -22,11 +22,11 @@ const config: Config = {
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "3rr3/1p2ppkp/p2p2p1/2pP4/2P2P2/PP2R1P1/7P/4R1K1 b - - 1 29"]
+    [FEN "r1b1kbnr/p1pp1N1p/2n5/1p1B4/4P1pq/5p2/PPPP2PP/RNBQ1K1R w kq - 0 9"]
     [SetUp "1"]
 
-    29... Rd7 30. Rxe7 (30. g4 h5 31. gxh5 gxh5 32. h4 Kh6 (32... f6) 33. f5) Rexe7
-    31. Rxe7 Rxe7 (31... g5) *
+    9. Qe1 fxg2+! (9... Qd8 10. h4 gxh3 11. g3) 10. Ke2 gxh1=Q (10... g1=N+ 11. Kd1)
+    (10... gxh1=B 11. Qxh1 Qf2+) *
     `),
     fontSize: parseInt(getUrlParam("fontSize", '16') as string, 10),
     ankiText: getUrlParam("userText", null),
