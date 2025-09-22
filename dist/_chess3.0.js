@@ -13911,11 +13911,11 @@ ${contextLines.join("\n")}`;
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "3rr3/1p2ppkp/p2p2p1/2pP4/2P2P2/PP2R1P1/7P/4R1K1 b - - 1 29"]
+    [FEN "r1b1kbnr/p1pp1N1p/2n5/1p1B4/4P1pq/5p2/PPPP2PP/RNBQ1K1R w kq - 0 9"]
     [SetUp "1"]
 
-    29... Rd7 30. Rxe7 (30. g4 h5 31. gxh5 gxh5 32. h4 Kh6 (32... f6) 33. f5) Rexe7
-    31. Rxe7 Rxe7 (31... g5) *
+    9. Qe1 fxg2+! (9... Qd8 10. h4 gxh3 11. g3) 10. Ke2 gxh1=Q (10... g1=N+ 11. Kd1)
+    (10... gxh1=B 11. Qxh1 Qf2+) *
     `),
         fontSize: parseInt(getUrlParam("fontSize", "16"), 10),
         ankiText: getUrlParam("userText", null),
@@ -14554,6 +14554,10 @@ ${contextLines.join("\n")}`;
       viewOnly: true
     });
   }
+  function isMoveLegal(chess2, orig, dest) {
+    const allMoves = chess2.moves({ verbose: true });
+    return allMoves.some((move3) => move3.from === orig && move3.to === dest);
+  }
   function getLegalMoveFromTo(orig, dest) {
     const tempChess = new Chess(chess.fen());
     return tempChess.move({ from: orig, to: dest });
@@ -14773,7 +14777,7 @@ ${contextLines.join("\n")}`;
       cg.set({
         fen: FENpos
       });
-    } else if (move3.flags.includes("e") && state.debounceCheck) {
+    } else if (move3.flags.includes("e")) {
       cancelDefaultAnimation(chess);
       cg.set({
         fen: chess.fen()
@@ -14800,43 +14804,33 @@ ${contextLines.join("\n")}`;
       updateBoard(moveResult);
     }
   }
-  function puzzlePlayFromTo(delay, orig, dest) {
-    if (isPromotion(orig, dest)) {
+  function handleMoveAttempt(delay, orig, dest, moveSan = null) {
+    if (!isMoveLegal(chess, orig, dest)) return;
+    if (!moveSan && isPromotion(orig, dest)) {
+      state.debounceCheck = false;
       promotePopup(orig, dest);
-    } else {
-      const tempMove = getLegalMoveFromTo(orig, dest);
-      if (tempMove) {
-        checkMove(tempMove, delay);
-      } else {
-        state.debounceCheck = false;
+    } else if (moveSan) {
+      const moveCheck = getLegalMoveBySan(moveSan);
+      if (moveCheck) {
+        state.debounceCheck = moveCheck;
+        if (isPromotion(moveCheck.from, moveCheck.to)) {
+          state.debounceCheck = true;
+          setTimeout(() => {
+            if (state.debounceCheck === true) checkMove(moveCheck, delay);
+          }, 0);
+        } else {
+          checkMove(moveCheck, delay);
+        }
       }
-    }
-  }
-  function puzzlePlaySan(delay, move3) {
-    const tempMove = getLegalMoveBySan(move3);
-    if (tempMove) {
-      checkMove(tempMove, delay);
-    }
-  }
-  function handleViewerMoveFromTo(orig, dest) {
-    if (isPromotion(orig, dest)) {
-      promotePopup(orig, dest);
     } else {
       const moveCheck = getLegalMoveFromTo(orig, dest);
       if (moveCheck) {
-        checkMove(moveCheck, 0);
-        isEndOfLine();
-      } else {
-        state.debounceCheck = false;
+        if (typeof state.debounceCheck !== "boolean" && state.debounceCheck.san === moveCheck.san) return;
+        console.log("here");
+        checkMove(moveCheck, delay);
       }
     }
-  }
-  function handleViewerMoveSan(move3) {
-    const moveCheck = getLegalMoveBySan(move3);
-    if (moveCheck) {
-      checkMove(moveCheck, 0);
-      isEndOfLine();
-    }
+    isEndOfLine();
   }
   function checkMove(move3, delay) {
     if (!move3 || !move3.san) return;
@@ -14896,6 +14890,7 @@ ${contextLines.join("\n")}`;
   function playUserCorrectMove(delay) {
     setTimeout(() => {
       cg.set({ viewOnly: false });
+      if (isEndOfLine()) return;
       makeMove(state.expectedMove.notation.notation);
       state.count++;
       state.expectedMove = state.expectedLine[state.count];
@@ -14945,9 +14940,9 @@ ${contextLines.join("\n")}`;
         state.promoteChoice = clickedButton.value;
         const move3 = getLegalPromotion(orig, dest, state.promoteChoice);
         if (move3 && config.boardMode === "Puzzle") {
-          puzzlePlaySan(delayTime, move3.san);
+          handleMoveAttempt(delayTime, move3.from, move3.to, move3.san);
         } else if (move3 && config.boardMode === "Viewer") {
-          handleViewerMoveSan(move3.san);
+          handleMoveAttempt(0, move3.from, move3.to, move3.san);
         }
         cancelPopup();
       };
@@ -15006,9 +15001,11 @@ ${contextLines.join("\n")}`;
   }
   function navForward() {
     if (config.boardMode === "Puzzle" || !state.pgnState || !state.expectedMove?.notation) return;
-    const move3 = state.expectedMove?.notation?.notation;
-    if (move3 && getLegalMoveBySan(move3)) {
-      puzzlePlaySan(0, move3);
+    const expectedMove = state.expectedMove?.notation?.notation;
+    if (!expectedMove) return;
+    const move3 = getLegalMoveBySan(expectedMove);
+    if (move3) {
+      handleMoveAttempt(0, move3.from, move3.to);
       isEndOfLine();
       setButtonsDisabled(["back", "reset"], false);
     }
@@ -15086,26 +15083,25 @@ ${contextLines.join("\n")}`;
         select: (key) => {
           filterShapes("Drawn" /* Drawn */);
           cg.set({ drawable: { shapes: state.chessGroundShapes } });
-          setTimeout(() => {
-            if (state.debounceCheck) return;
-            const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && shape.brush && shapePriority.includes(shape.brush)).sort((a, b) => shapePriority.indexOf(a.brush) - shapePriority.indexOf(b.brush));
-            if (arrowMove.length > 0 && config.boardMode === "Viewer") {
-              if (arrowMove[0].brush === "stockfish" || arrowMove[0].brush === "stockfinished") {
-                handlePgnState(false);
-              }
-              handleViewerMoveSan(arrowMove[0].san);
-            } else {
-              const allMoves = chess.moves({ verbose: true });
-              const movesToSquare = allMoves.filter((move3) => move3.to === key);
-              if (movesToSquare.length === 1) {
-                if (config.boardMode === "Puzzle") {
-                  puzzlePlaySan(delayTime, movesToSquare[0].san);
-                } else if (config.boardMode === "Viewer") {
-                  handleViewerMoveSan(movesToSquare[0].san);
-                }
+          const arrowMove = state.chessGroundShapes.filter((shape) => shape.dest === key && shape.brush && shapePriority.includes(shape.brush)).sort((a, b) => shapePriority.indexOf(a.brush) - shapePriority.indexOf(b.brush));
+          if (arrowMove.length > 0 && config.boardMode === "Viewer") {
+            if (arrowMove[0].brush === "stockfish" || arrowMove[0].brush === "stockfinished") {
+              handlePgnState(false);
+            }
+            if (arrowMove[0].dest) {
+              handleMoveAttempt(0, arrowMove[0].orig, arrowMove[0].dest, arrowMove[0].san);
+            }
+          } else {
+            const allMoves = chess.moves({ verbose: true });
+            const movesToSquare = allMoves.filter((move3) => move3.to === key);
+            if (movesToSquare.length === 1) {
+              if (config.boardMode === "Puzzle") {
+                handleMoveAttempt(delayTime, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
+              } else if (config.boardMode === "Viewer") {
+                handleMoveAttempt(0, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
               }
             }
-          }, 0);
+          }
         }
       },
       movable: {
@@ -15113,15 +15109,11 @@ ${contextLines.join("\n")}`;
         dests: toDests(chess),
         events: {
           after: (orig, dest) => {
-            state.debounceCheck = true;
             if (config.boardMode === "Puzzle") {
-              puzzlePlayFromTo(delayTime, orig, dest);
+              handleMoveAttempt(delayTime, orig, dest);
             } else if (config.boardMode === "Viewer") {
-              handleViewerMoveFromTo(orig, dest);
+              handleMoveAttempt(0, orig, dest);
             }
-            setTimeout(() => {
-              state.debounceCheck = false;
-            }, 0);
           }
         }
       },

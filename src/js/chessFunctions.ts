@@ -62,6 +62,11 @@ function handlePuzzleComplete(): void {
   });
 }
 
+function isMoveLegal(chess: Chess, orig: Key, dest: Key): boolean {
+  const allMoves: Move[] = chess.moves({ verbose: true });
+  return allMoves.some(move => move.from === orig && move.to === dest);
+}
+
 function getLegalMoveFromTo(orig: Key, dest: Key): Move | null {
   const tempChess = new Chess(chess.fen());
   return tempChess.move({ from: orig, to: dest });
@@ -310,7 +315,7 @@ function updateBoard(move: Move, backwardPromote: boolean = false): void {
     cg.set({
       fen: FENpos
     });
-  } else if (move.flags.includes("e") && state.debounceCheck) {
+  } else if (move.flags.includes("e")) {
     cancelDefaultAnimation(chess)
     cg.set({
       fen: chess.fen(),
@@ -339,48 +344,33 @@ function makeMove(move: string): void{
   }
 }
 
-function puzzlePlayFromTo(delay: number, orig: Key, dest: Key): void {
-  // Used only in after: event
-  if (isPromotion(orig, dest)) {
+function handleMoveAttempt(delay: number, orig: Key, dest: Key, moveSan: string | null = null): void {
+  if (!isMoveLegal(chess, orig, dest)) return;
+  if (!moveSan && isPromotion(orig, dest)) {
+    state.debounceCheck = false;
     promotePopup(orig, dest);
-  } else {
-    const tempMove = getLegalMoveFromTo(orig, dest)
-    if (tempMove) {
-      checkMove(tempMove, delay)
-    } else {
-      state.debounceCheck = false; // enable select: event check
+  } else if (moveSan) {
+    const moveCheck = getLegalMoveBySan(moveSan);
+    if (moveCheck) {
+      state.debounceCheck = moveCheck;
+      if (isPromotion(moveCheck.from, moveCheck.to)) {
+        state.debounceCheck = true;
+        setTimeout(() => {
+          if (state.debounceCheck === true) checkMove(moveCheck, delay);
+        }, 0);
+      } else {
+        checkMove(moveCheck, delay);
+      }
     }
-  }
-}
-
-function puzzlePlaySan(delay: number, move: string): void {
-  const tempMove = getLegalMoveBySan(move);
-  if (tempMove) {
-    checkMove(tempMove, delay);
-  }
-}
-
-function handleViewerMoveFromTo(orig: Key, dest: Key): void {
-  // Used only in after: event
-  if (isPromotion(orig, dest)) {
-    promotePopup(orig, dest);
   } else {
     const moveCheck = getLegalMoveFromTo(orig, dest);
     if (moveCheck) {
-      checkMove(moveCheck, 0);
-      isEndOfLine();
-    } else {
-      state.debounceCheck = false; // enable select: event check
+      if (typeof state.debounceCheck !== 'boolean' && state.debounceCheck.san === moveCheck.san) return;
+      console.log("here")
+      checkMove(moveCheck, delay);
     }
   }
-}
-
-function handleViewerMoveSan(move: string): void {
-  const moveCheck = getLegalMoveBySan(move);
-  if (moveCheck) {
-    checkMove(moveCheck, 0);
-    isEndOfLine();
-  }
+  isEndOfLine();
 }
 
 function checkMove(move: Move, delay: number): void {
@@ -446,6 +436,7 @@ function playUserCorrectMove(delay: number): void {
   setTimeout(() => {
     cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
     // Make the move without the AI's variation-selection logic
+    if (isEndOfLine()) return;
     makeMove(state.expectedMove!.notation.notation);
     state.count++;
     state.expectedMove = state.expectedLine[state.count];
@@ -502,9 +493,9 @@ function promotePopup(orig: Key, dest: Key): void {
       const move = getLegalPromotion(orig, dest, state.promoteChoice);
 
       if (move && config.boardMode === 'Puzzle') {
-        puzzlePlaySan(delayTime, move.san);
+        handleMoveAttempt(delayTime, move.from, move.to, move.san);
       } else if (move && config.boardMode === 'Viewer') {
-        handleViewerMoveSan(move.san);
+        handleMoveAttempt(0, move.from, move.to, move.san);
       }
       cancelPopup();
     };
@@ -571,9 +562,11 @@ export function navBackward(): void {
 
 export function navForward(): void {
   if (config.boardMode === 'Puzzle' || !state.pgnState || !state.expectedMove?.notation) return;
-  const move = state.expectedMove?.notation?.notation;
-  if (move && getLegalMoveBySan(move)) {
-    puzzlePlaySan(0, move);
+  const expectedMove = state.expectedMove?.notation?.notation;
+  if (!expectedMove) return;
+  const move = getLegalMoveBySan(expectedMove);
+  if (move) {
+    handleMoveAttempt(0, move.from, move.to);
     isEndOfLine();
     setButtonsDisabled(['back', 'reset'], false);
   }
@@ -666,46 +659,41 @@ export function reload(): void {
            select: (key) => {
              filterShapes(ShapeFilter.Drawn);
              cg.set({drawable: {shapes: state.chessGroundShapes}});
-             setTimeout(() => { // 0ms timout to run thise after "after:" event
-                if (state.debounceCheck) return;
-                const arrowMove = state.chessGroundShapes
-                .filter(shape => shape.dest === key && shape.brush && shapePriority.includes(shape.brush))
-                .sort((a, b) => shapePriority.indexOf(a.brush!) - shapePriority.indexOf(b.brush!));
-                if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
-                  // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
-                  if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
-                    handlePgnState(false);
-                  }
-                  handleViewerMoveSan(arrowMove[0].san!);
-                } else { // No arrow was clicked, check if there's only one legal play to this square.
-                  const allMoves = chess.moves({ verbose: true });
-                  const movesToSquare = allMoves.filter(move => move.to === key);
-                  if (movesToSquare.length === 1) {
-                    // If only one piece can move to this square, play that move.
-                    if (config.boardMode === 'Puzzle') {
-                      puzzlePlaySan(delayTime, movesToSquare[0].san);
-                    } else if (config.boardMode === 'Viewer') {
-                      handleViewerMoveSan(movesToSquare[0].san);
-                    }
+              const arrowMove = state.chessGroundShapes
+              .filter(shape => shape.dest === key && shape.brush && shapePriority.includes(shape.brush))
+              .sort((a, b) => shapePriority.indexOf(a.brush!) - shapePriority.indexOf(b.brush!));
+              if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
+                // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
+                if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
+                  handlePgnState(false);
+                }
+                if (arrowMove[0].dest) {
+                  handleMoveAttempt(0, arrowMove[0].orig, arrowMove[0].dest, arrowMove[0].san);
+                }
+              } else { // No arrow was clicked, check if there's only one legal play to this square.
+                const allMoves = chess.moves({ verbose: true });
+                const movesToSquare = allMoves.filter(move => move.to === key);
+                if (movesToSquare.length === 1) {
+                  // If only one piece can move to this square, play that move.
+                  if (config.boardMode === 'Puzzle') {
+                    handleMoveAttempt(delayTime, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
+                  } else if (config.boardMode === 'Viewer') {
+                    handleMoveAttempt(0, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
                   }
                 }
-             }, 0);
-           },
+              }
+            },
          },
          movable: {
             color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(chess),
             dests: toDests(chess),
             events: {
               after: (orig, dest) => {
-                state.debounceCheck = true;
                 if (config.boardMode === 'Puzzle') {
-                  puzzlePlayFromTo(delayTime, orig, dest);
+                  handleMoveAttempt(delayTime, orig, dest);
                 } else if (config.boardMode === 'Viewer') {
-                  handleViewerMoveFromTo(orig, dest);
+                  handleMoveAttempt(0, orig, dest);
                 }
-                setTimeout(() => { // que after select: event
-                  state.debounceCheck = false;
-                }, 0);
               },
             }
          },

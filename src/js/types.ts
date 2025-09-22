@@ -48,7 +48,7 @@ export interface State {
     errorCount: number;
     promoteChoice: PromotionPieces;
     promoteAnimate: boolean;
-    debounceCheck: boolean;
+    debounceCheck: boolean | Move;
     navTimeout: number | null;
     isStockfishBusy: boolean;
     analysisFen: string | booleanValues;
