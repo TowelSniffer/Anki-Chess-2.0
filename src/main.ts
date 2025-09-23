@@ -3,7 +3,7 @@ import 'chessground/assets/chessground.base.css';
 import './custom.css';
 import type { Api } from 'chessground/api';
 import { state, config, parsedPGN, htmlElement } from './js/config';
-import { augmentPgnTree, highlightCurrentMove, initPgnViewer, onPgnMoveClick, getFullMoveSequenceFromPath, createPgnPathString, isPgnPathArray, createPgnPathArray } from './js/pgnViewer';
+import { augmentPgnTree, highlightCurrentMove, initPgnViewer, onPgnMoveClick, navigateFullMoveSequenceFromPath, navigateNextMove, createPgnPathString, createPgnPathArray } from './js/pgnViewer';
 import { playSound } from './js/audio';
 import { toggleStockfishAnalysis, handleStockfishCrash, startAnalysis } from './js/handleStockfish';
 import { initializeUI, positionPromoteOverlay } from './js/initializeUI';
@@ -55,13 +55,19 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
     }
 
     function navForward(): void {
-        if (config.boardMode === 'Puzzle' || !state.pgnState || isEndOfLine()) return;
-        const expectedMove = state.expectedMove?.notation?.notation;
-        if (!expectedMove) return;
-        const move = getLegalMoveBySan(chess, expectedMove);
-        if (move) {
-            handleMoveAttempt(cg, chess, cgwrap, 0, move.from, move.to, move.san);
-            setButtonsDisabled(['back', 'reset'], false);
+        if(!state.expectedMove?.pgnPath) return;
+        const navCheck = navigateNextMove(chess, state.pgnPath);
+        if (navCheck) {
+            cg.set({
+                fen: chess.fen(),
+                   check: chess.inCheck(),
+                   turnColor: toColor(chess),
+                   movable: {
+                       color: toColor(chess),
+                   dests: toDests(chess)
+                   },
+            });
+            // drawArrows(cg, chess);
         }
     }
 
@@ -261,18 +267,11 @@ function loadElements(): void {
     const [cg, chess, cgwrap] = loadChessgroundBoard();
     setupEventListeners(cgwrap, cg, chess);
     initPgnViewer();
-    const rawPath = state.pgnPath;
-    let finalPath;
-    if (rawPath) {
-        if (typeof rawPath === 'string') {
-            const pathString = createPgnPathString(rawPath);
-            if (pathString) finalPath = createPgnPathArray(pathString)
-        }
-        if (finalPath && isPgnPathArray(finalPath)) {
-            cg.set({ animation: { enabled: false } }); // disable animation for inital startup
-            getFullMoveSequenceFromPath(chess, cg, finalPath);
-            cg.set({ animation: { enabled: true } });
-        }
+    const path = state.pgnPath;
+    if (path) {
+        cg.set({ animation: { enabled: false } }); // disable animation for inital startup
+        navigateFullMoveSequenceFromPath(chess, path);
+        cg.set({ animation: { enabled: true } });
     }
 }
 

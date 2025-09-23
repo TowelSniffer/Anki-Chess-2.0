@@ -77,7 +77,7 @@ const state: State = {
     isStockfishBusy: false,
     analysisFen: null,
     analysisToggledOn: false,
-    pgnPath: getUrlParam("pgnPath", null) as PgnPathString | null,
+    pgnPath: getUrlParam("pgnPath", "0") as PgnPathString,
     mirrorState: getUrlParam("mirrorState", null) as MirrorState | null,
     blunderNags: ['$2', '$4', '$6', '$9'],
     puzzleComplete: false,

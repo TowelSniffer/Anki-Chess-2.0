@@ -8329,7 +8329,7 @@ ${contextLines.join("\n")}`;
         isStockfishBusy: false,
         analysisFen: null,
         analysisToggledOn: false,
-        pgnPath: getUrlParam("pgnPath", null),
+        pgnPath: getUrlParam("pgnPath", "0"),
         mirrorState: getUrlParam("mirrorState", null),
         blunderNags: ["$2", "$4", "$6", "$9"],
         puzzleComplete: false
@@ -15132,40 +15132,76 @@ ${contextLines.join("\n")}`;
     }
     return html;
   }
-  function getFullMoveSequenceFromPath(chess, cg, path) {
-    state.chessGroundShapes = [];
-    state.pgnState = true;
+  function navigateFullMoveSequenceFromPath(chess, path) {
+    if (!path) return null;
+    let finalPath = path;
+    const pathCheck = path;
+    if (typeof pathCheck === "string") {
+      const pathString = createPgnPathString(pathCheck);
+      if (pathString) finalPath = createPgnPathArray(pathString);
+    }
     chess.reset();
     chess.load(state.ankiFen);
     let currentLine = parsedPGN.moves;
     let parentMove = null;
-    for (let i = 0; i < path.length; i++) {
-      const segment = path[i];
-      if (segment === "v" && typeof path[++i] === "number") {
+    for (let i = 0; i < finalPath.length; i++) {
+      const segment = finalPath[i];
+      if (segment === "v" && typeof finalPath[++i] === "number") {
         if (parentMove?.variations) {
-          const varIndex = path[i++];
+          const varIndex = finalPath[i++];
           console.log(varIndex);
           if (typeof varIndex !== "number") {
-            console.error("Invalid PGN path:", path);
-            return;
+            console.error("Invalid PGN path:", finalPath);
+            return null;
           }
           currentLine = parentMove.variations[varIndex];
+          state.expectedLine = currentLine;
         }
       } else if (typeof segment === "number") {
         const movesDownCurrentLine = segment;
         for (let i2 = 0; i2 <= movesDownCurrentLine; i2++) {
           const move3 = currentLine?.[i2];
           if (move3?.notation?.notation) {
-            console.log(move3?.notation?.notation);
             chess.move(move3.notation.notation);
             parentMove = move3;
           } else {
-            console.error("Invalid PGN path or move not found at:", path.slice(0, i2 + 1));
           }
         }
       }
     }
-    console.log(chess.fen());
+    state.expectedMove = parentMove;
+    if (!parentMove) return null;
+    return parentMove.pgnPath;
+  }
+  function navigateNextMove(chess, path) {
+    let movePath = navigateFullMoveSequenceFromPath(chess, path);
+    if (!movePath) return false;
+    let currentLinePosition = movePath.at(-1);
+    if (typeof currentLinePosition === "number") {
+      const nextMovePath = movePath.with(-1, ++currentLinePosition);
+      state.pgnPath = nextMovePath;
+    }
+    setButtonsDisabled(["back", "reset"], false);
+    return true;
+  }
+  function onPgnMoveClick(event, cg, chess) {
+    state.chessGroundShapes = [];
+    state.pgnState = true;
+    const target = event.target;
+    if (!target || !target.classList.contains("move")) return;
+    document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
+    target.classList.add("current");
+    if (target.dataset.path) {
+      const pathStr = createPgnPathString(target.dataset.path);
+      if (pathStr) {
+        const pathArray = createPgnPathArray(pathStr);
+        if (pathArray) navigateFullMoveSequenceFromPath(chess, pathArray);
+      } else {
+        return;
+      }
+    }
+    const forwardButton = document.querySelector("#navForward");
+    if (forwardButton) forwardButton.disabled = !state.expectedMove;
     cg.set({
       fen: chess.fen(),
       check: chess.inCheck(),
@@ -15176,25 +15212,8 @@ ${contextLines.join("\n")}`;
       }
     });
     document.querySelectorAll("#navBackward, #resetBoard").forEach((el) => el.disabled = false);
-    if (state.analysisToggledOn) {
-      startAnalysis(chess, config.analysisTime);
-    }
-  }
-  function onPgnMoveClick(event, cg, chess) {
-    const target = event.target;
-    if (!target || !target.classList.contains("move")) return;
-    document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
-    target.classList.add("current");
-    if (target.dataset.path) {
-      const pathStr = createPgnPathString(target.dataset.path);
-      if (pathStr) {
-        const pathArray = createPgnPathArray(pathStr);
-        if (pathArray) getFullMoveSequenceFromPath(chess, cg, pathArray);
-      }
-    }
-    const forwardButton = document.querySelector("#navForward");
-    if (forwardButton) forwardButton.disabled = !state.expectedMove;
     drawArrows(cg, chess);
+    startAnalysis(chess, config.analysisTime);
   }
   function augmentPgnTree(moves, path = []) {
     if (!moves) return;
@@ -15233,6 +15252,7 @@ ${contextLines.join("\n")}`;
       init_chessFunctions();
       init_arrows();
       init_config();
+      init_toolbox();
       init_handleStockfish();
       init_nags();
     }
@@ -15292,13 +15312,19 @@ ${contextLines.join("\n")}`;
           startAnalysis(chess, config.analysisTime);
         }
         function navForward() {
-          if (config.boardMode === "Puzzle" || !state.pgnState || isEndOfLine()) return;
-          const expectedMove = state.expectedMove?.notation?.notation;
-          if (!expectedMove) return;
-          const move3 = getLegalMoveBySan(chess, expectedMove);
-          if (move3) {
-            handleMoveAttempt(cg, chess, cgwrap, 0, move3.from, move3.to, move3.san);
-            setButtonsDisabled(["back", "reset"], false);
+          if (!state.expectedMove?.pgnPath) return;
+          const navCheck = navigateNextMove(chess, state.pgnPath);
+          if (navCheck) {
+            cg.set({
+              fen: chess.fen(),
+              check: chess.inCheck(),
+              turnColor: toColor(chess),
+              movable: {
+                color: toColor(chess),
+                dests: toDests(chess)
+              }
+            });
+            drawArrows(cg, chess);
           }
         }
         function resetBoard() {
@@ -15468,18 +15494,11 @@ ${contextLines.join("\n")}`;
         const [cg, chess, cgwrap] = loadChessgroundBoard();
         setupEventListeners(cgwrap, cg, chess);
         initPgnViewer();
-        const rawPath = state.pgnPath;
-        let finalPath;
-        if (rawPath) {
-          if (typeof rawPath === "string") {
-            const pathString = createPgnPathString(rawPath);
-            if (pathString) finalPath = createPgnPathArray(pathString);
-          }
-          if (finalPath && isPgnPathArray(finalPath)) {
-            cg.set({ animation: { enabled: false } });
-            getFullMoveSequenceFromPath(chess, cg, finalPath);
-            cg.set({ animation: { enabled: true } });
-          }
+        const path = state.pgnPath;
+        if (path) {
+          cg.set({ animation: { enabled: false } });
+          navigateFullMoveSequenceFromPath(chess, path);
+          cg.set({ animation: { enabled: true } });
         }
       }
       loadElements();
