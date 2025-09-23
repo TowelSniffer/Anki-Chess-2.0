@@ -1,9 +1,9 @@
-import { Chessground } from 'chessground';
-import { Chess } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
-import { Config, State, Api, booleanValues, CustomPgnGame } from './types';
-import { waitForElement } from './toolbox';
+import type { Config as CgConfig } from 'chessground/config';
+import type { Api } from 'chessground/api';
+import { Config, State, booleanValues, CustomPgnGame } from './types';
 import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights, MirrorState } from './mirror';
+import type { PgnPathString, PgnPath } from './pgnViewer';
 
 // --- URL Parameter Helper ---
 const urlParams = new URLSearchParams(window.location.search);
@@ -77,7 +77,7 @@ const state: State = {
     isStockfishBusy: false,
     analysisFen: null,
     analysisToggledOn: false,
-    pgnPath: getUrlParam("pgnPath", null),
+    pgnPath: getUrlParam("pgnPath", null) as PgnPathString | null,
     mirrorState: getUrlParam("mirrorState", null) as MirrorState | null,
     blunderNags: ['$2', '$4', '$6', '$9'],
     puzzleComplete: false,
@@ -93,13 +93,9 @@ if (config.mirror && !checkCastleRights(state.ankiFen)) {
 }
 
 // --- Global Variables & Initialization ---
-const boardElement = document.getElementById('board');
-if (!boardElement) {
-    throw new Error("Fatal: Board element with id 'board' not found in the DOM.");
-}
 
-const cg: Api = Chessground(boardElement, {
-    fen: state.ankiFen,
+const cgDefaults: CgConfig = {
+    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     premovable: {
         enabled: true,
     },
@@ -124,13 +120,9 @@ const cg: Api = Chessground(boardElement, {
             yellow:  { key: 'yellow',color: 'yellow',  opacity: 0.7, lineWidth: 9 },
         },
     },
-});
-const shapePriority = ['mainLine', 'altLine', 'blunderLine', 'stockfinished', 'stockfish'];
+};
 
 const htmlElement: HTMLElement = document.documentElement;
-const chess = new Chess();
-// gloabal chessground board
-let cgwrap: HTMLDivElement | null = null;
 
 // --- HTML defs ---
 export const btn = {
@@ -142,9 +134,4 @@ export const btn = {
     get flip() { return document.querySelector<HTMLButtonElement>("#rotateBoard"); },
 };
 
-export async function defineDynamicElement(dynamicElement: string): Promise<HTMLDivElement> {
-    const element = await waitForElement(dynamicElement);
-    return element as HTMLDivElement;
-}
-
-export { parsedPGN, config, state, cg, chess, htmlElement, shapePriority, delayTime }
+export { parsedPGN, config, state, htmlElement, delayTime, cgDefaults }

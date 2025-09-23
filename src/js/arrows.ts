@@ -1,8 +1,9 @@
-import { state, parsedPGN, config, cg, chess } from './config';
+import type { Chess } from 'chess.js';
+import type { Api } from 'chessground/api';
+import { state, parsedPGN, config } from './config';
 import { getLegalMoveBySan } from './chessFunctions';
 import { findMoveContext } from './toolbox';
 import nags from '../nags.json' assert { type: 'json' };
-
 export interface NagData {
     [nagKey: string]: string[]; // [description, symbol/sub array of symbols]
 }
@@ -16,6 +17,8 @@ export enum ShapeFilter {
     Nag = "Nag",
     Drawn = "Drawn",
 }
+
+export const shapePriority = ["mainLine", "altLine", "blunderLine"];
 
 export function filterShapes(filterKey: ShapeFilter): void {
     const shapeArray: Record<ShapeFilter, string[]> = {
@@ -43,7 +46,7 @@ export function filterShapes(filterKey: ShapeFilter): void {
     state.chessGroundShapes = filteredShapes;
 }
 
-export function drawArrows(redraw?: boolean): void {
+export function drawArrows(cg: Api, chess: Chess, redraw: boolean = false): void {
     filterShapes(ShapeFilter.Stockfish)
     if (redraw) {
         cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -89,7 +92,7 @@ export function drawArrows(redraw?: boolean): void {
     if (expectedMove?.variations) {
         // Draw blue arrows for all variations
         for (const variation of expectedMove.variations) {
-            const alternateMove = getLegalMoveBySan(variation[0].notation.notation);
+            const alternateMove = getLegalMoveBySan(chess, variation[0].notation.notation);
             const isBlunder = variation[0].nag?.some(nags => state.blunderNags.includes(nags));
             let brushType: string | null = 'altLine';
             if (isBlunder) brushType = 'blunderLine';
@@ -116,7 +119,7 @@ export function drawArrows(redraw?: boolean): void {
         }
     }
     // Draw the main line's move as a green arrow, ensuring it's on top
-    const mainMoveAttempt = getLegalMoveBySan(expectedMove.notation.notation);
+    const mainMoveAttempt = getLegalMoveBySan(chess, expectedMove.notation.notation);
     if (mainMoveAttempt && (mainMoveAttempt.san !== puzzleMove)) {
         state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: 'mainLine', san: mainMoveAttempt.san });
     } else if (expectedMove.nag && mainMoveAttempt && (mainMoveAttempt.san === puzzleMove)) {

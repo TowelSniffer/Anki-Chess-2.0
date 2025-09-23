@@ -1,9 +1,10 @@
 import { Chessground } from 'chessground';
-import type { Color, Key } from 'chessground/types';
+import type { Color } from 'chessground/types';
 import { Move } from 'chess.js';
 import type { DrawShape } from 'chessground/draw';
 import { PgnMove, PgnGame } from '@mliebelt/pgn-types';
 import type { MirrorState } from './mirror';
+import type { PgnPathString, PgnPath } from './pgnViewer';
 
 // --- interface ---
 export interface Config {
@@ -53,22 +54,21 @@ export interface State {
     isStockfishBusy: boolean;
     analysisFen: string | booleanValues;
     analysisToggledOn: boolean;
-    pgnPath: string | (string | number)[] | null;
+    pgnPath: PgnPathString | PgnPath | null;
     mirrorState: MirrorState | null;
     blunderNags: string[];
     puzzleComplete: string | boolean;
 }
 
 // --- types ---
+
 export type PromotionPieces = 'q' | 'r' | 'b' | 'n';
 
 export type booleanValues = "true" | "false" | boolean | null;
 
-export type Api = ReturnType<typeof Chessground>;
-
 export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber'> & {
     moveNumber: number | null;
-    pgnPath?: (string | number)[];
+    pgnPath?: PgnPath;
     variations: CustomPgnMove[][];
 };
 export type CustomPgnGame = Omit<PgnGame, 'moves'> & {

@@ -1,11 +1,72 @@
+import type { Chess } from 'chess.js';
+import type { Api } from 'chessground/api';
 import { toColor, toDests } from './chessFunctions';
 import { drawArrows } from './arrows';
 import type { NagData } from './arrows';
-import { state, parsedPGN, config, cg, chess } from './config';
-import { startAnalysis } from './handleStockfish';
+import { state, parsedPGN, config } from './config';
 import type { CustomPgnMove } from './types';
+import { startAnalysis } from './handleStockfish';
 import nags from '../nags.json' assert { type: 'json' };
 
+// --- Types ---
+export type PgnPathString = string & { readonly __brand: 'pgnPathString' };
+export type PgnPath = ("v" | number)[];
+
+// type filter functions
+function isPgnPathString(str: string): str is PgnPathString {
+    // checks if string contains only numbers, 'v', and commas
+    return /^[0-9,v]+$/.test(str);
+}
+export function createPgnPathString(str: string): PgnPathString | null {
+    if (isPgnPathString(str)) {
+        return str as PgnPathString;
+    }
+    return null;
+}
+
+export function isPgnPathArray(arr: (string | number)[]): arr is PgnPath {
+    return arr.every(item => typeof item === 'number' || item === 'v');
+}
+
+export function createPgnPathArray(pathStr: PgnPathString): PgnPath {
+    const pathArray = pathStr.split(',')
+    .filter(segment => segment !== '' && (segment === 'v' || !isNaN(Number(segment))))
+    .map(segment => {
+        const num = Number(segment);
+        return !isNaN(num) ? num : segment;
+    });
+    return pathArray as PgnPath;
+}
+
+
+// --- PGN tracking ---
+function getMoveFromPath(path: (string | number)[]): CustomPgnMove | null {
+    if (!path || path.length === 0) return null;
+
+    let moves = parsedPGN.moves;
+    let move: CustomPgnMove | null = null;
+
+    for (let i = 0; i < path.length; i++) {
+        const segment = path[i];
+        if (segment === 'v') {
+            const varIndex = path[++i];
+            if (typeof varIndex !== 'number') return null;
+            if (move && move.variations) {
+                moves = move.variations[varIndex];
+            } else {
+                return null;
+            }
+        } else if (typeof segment === 'number') {
+            const moveIndex = segment;
+            if (moves && moves[moveIndex]) {
+                move = moves[moveIndex];
+            } else {
+                return null;
+            }
+        }
+    }
+    return move;
+}
 // --- PGN Rendering ---
 
 function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], altLine?: boolean): string {
@@ -61,39 +122,46 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
 
 // --- PGN Navigation ---
 
-export function getFullMoveSequenceFromPath(path: string[]): string[] {
-    state.count = 0;
+export function getFullMoveSequenceFromPath(chess: Chess, cg: Api, path: PgnPath): void {
     state.chessGroundShapes = [];
-    state.expectedLine = parsedPGN.moves;
-    state.expectedMove = state.expectedLine[state.count];
     state.pgnState = true;
 
     chess.reset();
     chess.load(state.ankiFen);
 
-    let branchIndex: number | null = null;
-    for (let i = 0; i < path.length; i++) {
-        const pathCount = parseInt(path[i], 10);
-        if (path[i + 1] === 'v') {
-            branchIndex = parseInt(path[i + 2], 10);
-            i += 2; // Skip 'v' and branch index
-        }
 
-        for (let j = 0; j <= pathCount; j++) {
-            if (branchIndex !== null && j === pathCount) {
-                if (state.expectedMove?.variations) {
-                    state.count = 0;
-                    state.expectedLine = state.expectedMove.variations[branchIndex];
-                    state.expectedMove = state.expectedLine[0];
-                    branchIndex = null;
+    // --- Start of rewritten logic ---
+    let currentLine = parsedPGN.moves;
+    let parentMove: CustomPgnMove | null = null; // To access variations from
+
+    for (let i = 0; i < path.length; i++) {
+        const segment = path[i];
+        if (segment === 'v' && typeof path[++i] === 'number') {
+            if (parentMove?.variations) {
+                const varIndex = path[i++]; // second ++ to skip branching number
+                console.log(varIndex)
+                if (typeof varIndex !== 'number') {
+                    console.error("Invalid PGN path:", path);
+                    return
                 }
-            } else if (state.expectedMove?.notation) {
-                chess.move(state.expectedMove.notation.notation);
-                state.count++;
-                state.expectedMove = state.expectedLine[state.count];
+                currentLine = parentMove.variations[varIndex];
+            }
+        } else if (typeof segment === 'number') {
+            const movesDownCurrentLine = segment;
+            for (let i = 0; i <= movesDownCurrentLine; i++) {
+                const move = currentLine?.[i];
+                if (move?.notation?.notation) {
+                    console.log(move?.notation?.notation)
+                    chess.move(move.notation.notation);
+                    parentMove = move;
+                } else {
+                    console.error("Invalid PGN path or move not found at:", path.slice(0, i + 1));
+                }
             }
         }
     }
+
+    console.log(chess.fen())
 
     cg.set({
         fen: chess.fen(),
@@ -105,30 +173,38 @@ export function getFullMoveSequenceFromPath(path: string[]): string[] {
            },
     });
 
-    const forwardButton = document.querySelector<HTMLButtonElement>("#navForward");
-    if (forwardButton) forwardButton.disabled = !state.expectedMove;
+
 
     document.querySelectorAll<HTMLButtonElement>('#navBackward, #resetBoard')
     .forEach(el => el.disabled = false);
 
     if (state.analysisToggledOn) {
-        startAnalysis(config.analysisTime);
+        startAnalysis(chess, config.analysisTime);
     }
-    drawArrows();
-    return chess.moves();
 }
 
-export function onPgnMoveClick(event: Event): void {
+function navigatePgnPath(moveList: string[]): void {
+
+
+}
+
+export function onPgnMoveClick(event: Event, cg: Api, chess: Chess): void {
     const target = event.target as HTMLElement;
     if (!target || !target.classList.contains('move')) return;
 
     document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
     target.classList.add('current');
-
-    const pathStr = target.dataset.path;
-    if (pathStr) {
-        getFullMoveSequenceFromPath(pathStr.split(','));
+    if (target.dataset.path) {
+        const pathStr = createPgnPathString(target.dataset.path);
+        if (pathStr) {
+            const pathArray = createPgnPathArray(pathStr);
+            if (pathArray) getFullMoveSequenceFromPath(chess, cg, pathArray);
+        }
     }
+    const forwardButton = document.querySelector<HTMLButtonElement>("#navForward");
+    if (forwardButton) forwardButton.disabled = !state.expectedMove;
+
+    drawArrows(cg, chess);
 }
 
 // --- PGN Data Augmentation ---
@@ -138,8 +214,7 @@ export function augmentPgnTree(moves: CustomPgnMove[], path: (string | number)[]
     for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
         const currentPath = [...path, i];
-        move.pgnPath = currentPath;
-
+        if(isPgnPathArray(currentPath)) move.pgnPath = currentPath;
         if (move.variations) {
             move.variations.forEach((variation, varIndex) => {
                 const variationPath = [...currentPath, 'v', varIndex];

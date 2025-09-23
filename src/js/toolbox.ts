@@ -1,3 +1,4 @@
+import { btn } from './config';
 import type { CustomPgnMove, CustomPgnGame } from './types';
 
 interface ParentContext {
@@ -6,20 +7,12 @@ interface ParentContext {
     index: number;
 }
 
-export function waitForElement<T extends Element>(selector: string): Promise<T> {
-    return new Promise(resolve => {
-        const element = document.querySelector<T>(selector);
-        if (element) {
-            return resolve(element);
+export function setButtonsDisabled(keys: (keyof typeof btn)[], isDisabled: boolean): void {
+    keys.forEach(key => {
+        const button = btn[key];
+        if (button) {
+            button.disabled = isDisabled;
         }
-        const observer = new MutationObserver(() => {
-            const element = document.querySelector<T>(selector);
-            if (element) {
-                observer.disconnect();
-                resolve(element);
-            }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
     });
 }
 
@@ -79,5 +72,4 @@ function findParentMoveOfLine(game: CustomPgnGame, targetLine: CustomPgnMove[]):
     }
     return search(game.moves);
 }
-
 
