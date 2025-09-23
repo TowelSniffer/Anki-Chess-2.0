@@ -1,9 +1,5 @@
 import { config } from './config';
-
-interface GameMove {
-    san: string;
-    flags?: string;    // optional string
-}
+import type { Move } from 'chess.js';
 
 // --- Audio Handling ---
 
@@ -31,7 +27,8 @@ export function playSound(soundName: string): void {
     }
 }
 
-export function changeAudio(gameState: GameMove): void {
+export function changeAudio(gameState: Move): void {
+    if (config.muteAudio) return;
     const soundMap: Record<string, string> = {
         "#": "checkmate",
         "+": "move-check",
