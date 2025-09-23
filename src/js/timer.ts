@@ -1,4 +1,5 @@
-import { state, config, cg, defineDynamicElement } from './config';
+import { state, config } from './config';
+import type { Api } from 'chessground/api';
 
 // --- Module-level timer variables with explicit types ---
 export let puzzleTimeout: number | null = null;
@@ -22,7 +23,7 @@ function handleOutOfTime(): void {
     document.documentElement.style.setProperty('--remainingTime', '100%');
 }
 
-export function extendPuzzleTime(additionalTime: number): void {
+export function extendPuzzleTime(additionalTime: number, cg: Api, cgwrap: HTMLDivElement): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     if (puzzleTimeout) {
@@ -33,13 +34,12 @@ export function extendPuzzleTime(additionalTime: number): void {
 
         // Ensure the new delay is not negative before restarting the timer
         if (newDelay >= 0) {
-            startPuzzleTimeout(newDelay);
+            startPuzzleTimeout(newDelay, cg, cgwrap);
         }
     }
 }
 
-export async function startPuzzleTimeout(delay: number): Promise<void> {
-    const cgwrap = await defineDynamicElement('.cg-wrap');
+export async function startPuzzleTimeout(delay: number, cg: Api, cgwrap: HTMLDivElement): Promise<void> {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     // Clear any existing timers before starting a new one
@@ -77,7 +77,7 @@ export async function startPuzzleTimeout(delay: number): Promise<void> {
 
         // extend time when it's not the player's turn
         if (state.playerColour !== cg.state.turnColor) {
-            extendPuzzleTime(10);
+            extendPuzzleTime(10, cg, cgwrap);
             return;
         }
 

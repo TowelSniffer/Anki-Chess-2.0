@@ -1,10 +1,11 @@
 import { Chess } from 'chess.js';
 import { toColor } from './chessFunctions';
-import { state, config, cg, chess } from './config';
+import { state, config } from './config';
+import type { Api } from 'chessground/api';
 
 let stockfish: Worker | null = null;
 
-function convertCpToWinPercentage(cp: number): string {
+function convertCpToWinPercentage(chess: Chess, cp: number): string {
     // This sigmoid function estimates win probability from centipawn advantage.
     const probability = 1 / (1 + Math.pow(10, -cp / 400));
     let percentage = probability * 100;
@@ -16,7 +17,7 @@ function convertCpToWinPercentage(cp: number): string {
     return `${percentage.toFixed(1)}%`;
 }
 
-function handleStockfishMessages(event: MessageEvent): void {
+function handleStockfishMessages(event: MessageEvent, cg: Api, chess: Chess): void {
     const message = event.data;
     if (typeof message !== 'string') {
         console.warn("Received a non-string message from the Stockfish worker:", message);
@@ -40,7 +41,7 @@ function handleStockfishMessages(event: MessageEvent): void {
                 }
                 advantage = `${advantage.toFixed(1)}%`
             } else {
-                advantage = convertCpToWinPercentage(cp);
+                advantage = convertCpToWinPercentage(chess, cp);
             }
             const pvDepth = parts[pvDepthIndex + 1];
             if (state.analysisFen !== 'none') document.documentElement.style.setProperty('--centipawn', advantage);
@@ -64,7 +65,7 @@ function handleStockfishMessages(event: MessageEvent): void {
         state.isStockfishBusy = false;
         if (state.analysisFen === 'none') {
             state.analysisFen = true;
-            startAnalysis(config.analysisTime);
+            startAnalysis(chess, config.analysisTime);
         }
         const bestMoveUci = message.split(' ')[1];
         if (state.analysisFen === chess.fen()) {
@@ -88,16 +89,16 @@ function handleStockfishMessages(event: MessageEvent): void {
     }
 }
 
-export function handleStockfishCrash(source: string): void {
+export function handleStockfishCrash(source: string, cg: Api, chess: Chess): void {
     console.error(`Stockfish engine crashed. Source: ${source}.`);
     if (!state.analysisToggledOn) return;
 
     console.log("Attempting to restart the engine...");
     state.isStockfishBusy = false;
-    setTimeout(initializeStockfish, 250); // Give the browser a moment to recover
+    setTimeout(() => initializeStockfish(cg, chess), 250); // Give the browser a moment to recover
 }
 
-export function initializeStockfish(): Promise<void> {
+export function initializeStockfish(cg: Api, chess: Chess): Promise<void> {
     return new Promise((resolve, reject) => {
         // Terminate existing worker if it exists
         if (stockfish) stockfish.terminate();
@@ -111,15 +112,15 @@ export function initializeStockfish(): Promise<void> {
             if (message === 'uciok') {
                 stockfish!.postMessage('isready'); // Ensure the engine is fully ready
             } else if (message === 'readyok') {
-                stockfish!.onmessage = handleStockfishMessages; // Re-assign main handler
-                stockfish!.onerror = () => handleStockfishCrash("stockfish.onerror");
+                stockfish!.onmessage = ((event) => {handleStockfishMessages(event, cg, chess);})
+                stockfish!.onerror = () => handleStockfishCrash("stockfish.onerror", cg, chess);
                 resolve();
             }
         };
 
         stockfish.onerror = (error) => {
             console.error("Stockfish failed to initialize.", error);
-            handleStockfishCrash("stockfish.on-init-error");
+            handleStockfishCrash("stockfish.on-init-error", cg, chess);
             reject(error);
         };
 
@@ -127,7 +128,7 @@ export function initializeStockfish(): Promise<void> {
     });
 }
 
-export function startAnalysis(movetime: number): void {
+export function startAnalysis(chess: Chess, movetime: number): void {
     if (chess.moves().length === 0 || state.analysisFen === 'none' || !state.analysisToggledOn || !stockfish) return;
 
     if (state.isStockfishBusy) {
@@ -145,13 +146,13 @@ export function startAnalysis(movetime: number): void {
 }
 
 
-export function toggleStockfishAnalysis(cgwrap: HTMLDivElement): void {
+export function toggleStockfishAnalysis(cgwrap: HTMLDivElement, cg: Api, chess: Chess): void {
     if (!cgwrap) return;
     if (!stockfish) {
-        initializeStockfish().then(() => {
+        initializeStockfish(cg, chess).then(() => {
             // After initialization, re-run the toggle logic
             state.analysisToggledOn = false; // It will be flipped to true below
-            toggleStockfishAnalysis(cgwrap);
+            toggleStockfishAnalysis(cgwrap, cg, chess);
         });
         return;
     }
@@ -169,7 +170,7 @@ export function toggleStockfishAnalysis(cgwrap: HTMLDivElement): void {
     cgwrap.classList.toggle('analysisMode', state.analysisToggledOn);
 
     if (state.analysisToggledOn) {
-        startAnalysis(config.analysisTime);
+        startAnalysis(chess, config.analysisTime);
     } else {
         if (state.isStockfishBusy) {
             stockfish.postMessage('stop');
