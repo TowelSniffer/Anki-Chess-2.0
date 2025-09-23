@@ -1,4 +1,10 @@
-import { CustomPgnMove, CustomPgnGame, ParentContext } from './types';
+import type { CustomPgnMove, CustomPgnGame } from './types';
+
+interface ParentContext {
+    parent: CustomPgnMove;
+    parentLine: CustomPgnMove[];
+    index: number;
+}
 
 export function waitForElement<T extends Element>(selector: string): Promise<T> {
     return new Promise(resolve => {

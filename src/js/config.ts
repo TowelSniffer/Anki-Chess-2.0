@@ -38,7 +38,7 @@ const config: Config = {
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'true') === 'true',
-    boardMode: getUrlParam("boardMode", 'Puzzle') as 'Viewer' | 'Puzzle',
+    boardMode: getUrlParam("boardMode", 'Viewer') as 'Viewer' | 'Puzzle',
     background: getUrlParam("background", "#2C2C2C") as string,
     mirror: getUrlParam("mirror", 'true') === 'true',
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',

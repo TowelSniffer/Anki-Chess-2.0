@@ -1,7 +1,9 @@
-import { toColor, toDests, drawArrows } from './chessFunctions';
+import { toColor, toDests } from './chessFunctions';
+import { drawArrows } from './arrows';
+import type { NagData } from './arrows';
 import { state, parsedPGN, config, cg, chess } from './config';
 import { startAnalysis } from './handleStockfish';
-import { NagData, CustomPgnMove } from './types';
+import type { CustomPgnMove } from './types';
 import nags from '../nags.json' assert { type: 'json' };
 
 // --- PGN Rendering ---

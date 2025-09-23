@@ -13927,7 +13927,7 @@ ${contextLines.join("\n")}`;
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
-        boardMode: getUrlParam("boardMode", "Puzzle"),
+        boardMode: getUrlParam("boardMode", "Viewer"),
         background: getUrlParam("background", "#2C2C2C"),
         mirror: getUrlParam("mirror", "true") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
@@ -14033,6 +14033,273 @@ ${contextLines.join("\n")}`;
     }
   });
 
+  // src/nags.json
+  var nags_default;
+  var init_nags = __esm({
+    "src/nags.json"() {
+      nags_default = {
+        $1: ["Good move", "!", "_good.webp"],
+        $2: ["Poor move", "?", "_mistake.webp"],
+        $3: ["Excellent move", "!!", "_brilliant.webp"],
+        $4: ["Blunder", "??", "_blunder.webp"],
+        $5: ["Interesting move", "!?"],
+        $6: ["Dubious move", "?!", "_dubious.webp"],
+        $7: ["Forced move", "+"],
+        $8: ["The only move", "\u25A1"],
+        $9: ["Worst move", "???", "_blunder.webp"],
+        $10: ["Drawish position", "="],
+        $11: ["Equal chances, quiet position", "="],
+        $12: ["Equal chances, active position", "\u2189"],
+        $13: ["Unclear position", "\u221E"],
+        $14: ["White has a slight advantage", "\u2A72"],
+        $15: ["Black has a slight advantage", "\u2A71"],
+        $16: ["White has a moderate advantage", "\xB1"],
+        $17: ["Black has a moderate advantage", "\u2213"],
+        $18: ["White has a decisive advantage", "+-"],
+        $19: ["Black has a decisive advantage", "-+"],
+        $20: ["White has a crushing advantage", "+--"],
+        $21: ["Black has a crushing advantage", "--+"],
+        $22: ["White is in zugzwang", "\u2A00"],
+        $23: ["Black is in zugzwang", "\u2A00"],
+        $24: ["White has a slight space advantage", "\u25CB"],
+        $25: ["Black has a slight space advantage", "\u25CB"],
+        $26: ["White has a moderate space advantage", "\u25CB\u25CB"],
+        $27: ["Black has a moderate space advantage", "\u25CB\u25CB"],
+        $28: ["White has a decisive space advantage", "\u25CB\u25CB\u25CB"],
+        $29: ["Black has a decisive space advantage", "\u25CB\u25CB\u25CB"],
+        $30: ["White has a slight development advantage", "\u21BB"],
+        $31: ["Black has a slight development advantage", "\u21BA"],
+        $32: ["White has a moderate development advantage", "\u27F3"],
+        $33: ["Black has a moderate development advantage", "\u27F3"],
+        $34: ["White has a decisive development advantage", "\u21BB\u21BB\u21BB"],
+        $35: ["Black has a decisive development advantage", "\u21BA\u21BA\u21BA"],
+        $36: ["White has the initiative", "\u2191"],
+        $37: ["Black has the initiative", "\u2193"],
+        $38: ["White has a lasting initiative", "\u21D1"],
+        $39: ["Black has a lasting initiative", "\u21D3"],
+        $40: ["White has the attack", "\u2192"],
+        $41: ["Black has the attack", "\u2190"],
+        $42: ["White has insufficient compensation", "\u2BDA"],
+        $43: ["Black has insufficient compensation", "\u2BDA"],
+        $44: ["White has sufficient compensation", "=/="],
+        $45: ["Black has sufficient compensation", "=/="],
+        $46: ["White has more than adequate compensation", "$"],
+        $47: ["Black has more than adequate compensation", "$"],
+        $48: ["White has a slight center control advantage", "\u229E"],
+        $49: ["Black has a slight center control advantage", "\u229E"],
+        $50: ["White has a moderate center control advantage", "\u229E\u229E"],
+        $51: ["Black has a moderate center control advantage", "\u229E\u229E"],
+        $52: ["White has a decisive center control advantage", "\u229E\u229E\u229E"],
+        $53: ["Black has a decisive center control advantage", "\u229E\u229E\u229E"],
+        $54: ["White has a slight kingside control advantage", "\u29E9"],
+        $55: ["Black has a slight kingside control advantage", "\u29E9"],
+        $56: ["White has a moderate kingside control advantage", "\u29EB"],
+        $57: ["Black has a moderate kingside control advantage", "\u29EB"],
+        $58: ["White has a decisive kingside control advantage", "\u22D9"],
+        $59: ["Black has a decisive kingside control advantage", "\u22D9"],
+        $60: ["White has a slight queenside control advantage", "\u29E8"],
+        $61: ["Black has a slight queenside control advantage", "\u29E8"],
+        $62: ["White has a moderate queenside control advantage", "\u29EA"],
+        $63: ["Black has a moderate queenside control advantage", "\u29EA"],
+        $64: ["White has a decisive queenside control advantage", "\u22D8"],
+        $65: ["Black has a decisive queenside control advantage", "\u22D8"],
+        $66: ["White has a vulnerable first rank", "+"],
+        $67: ["Black has a vulnerable first rank", "+"],
+        $68: ["White has a well protected first rank", "+"],
+        $69: ["Black has a well protected first rank", "+"],
+        $70: ["White has a poorly protected king", "+"],
+        $71: ["Black has a poorly protected king", "+"],
+        $72: ["White has a well protected king", "+"],
+        $73: ["Black has a well protected king", "+"],
+        $74: ["White has a poorly placed king", "+"],
+        $75: ["Black has a poorly placed king", "+"],
+        $76: ["White has a well placed king", "+"],
+        $77: ["Black has a well placed king", "+"],
+        $78: ["White has a very weak pawn structure", "+"],
+        $79: ["Black has a very weak pawn structure", "+"],
+        $80: ["White has a moderately weak pawn structure", "+"],
+        $81: ["Black has a moderately weak pawn structure", "+"],
+        $82: ["White has a moderately strong pawn structure", "+"],
+        $83: ["Black has a moderately strong pawn structure", "+"],
+        $84: ["White has a very strong pawn structure", "+"],
+        $85: ["Black has a very strong pawn structure", "+"],
+        $86: ["White has poor knight placement", "+"],
+        $87: ["Black has poor knight placement", "+"],
+        $88: ["White has good knight placement", "+"],
+        $89: ["Black has good knight placement", "+"],
+        $90: ["White has poor bishop placement", "+"],
+        $91: ["Black has poor bishop placement", "+"],
+        $92: ["White has good bishop placement", "\u2197"],
+        $93: ["Black has good bishop placement", "\u2196"],
+        $94: ["White has poor rook placement", "+"],
+        $95: ["Black has poor rook placement", "+"],
+        $96: ["White has good rook placement", "\u21C8"],
+        $97: ["Black has good rook placement", "\u21CA"],
+        $98: ["White has poor queen placement", "+"],
+        $99: ["Black has poor queen placement", "+"],
+        $100: ["White has good queen placement", "+"],
+        $101: ["Black has good queen placement", "+"],
+        $102: ["White has poor piece coordination", "+"],
+        $103: ["Black has poor piece coordination", "+"],
+        $104: ["White has good piece coordination", "+"],
+        $105: ["Black has good piece coordination", "+"],
+        $106: ["White has played the opening very poorly", "+"],
+        $107: ["Black has played the opening very poorly", "+"],
+        $108: ["White has played the opening poorly", "+"],
+        $109: ["Black has played the opening poorly", "+"],
+        $110: ["White has played the opening well", "+"],
+        $111: ["Black has played the opening well", "+"],
+        $112: ["White has played the opening very well", "+"],
+        $113: ["Black has played the opening very well", "+"],
+        $114: ["White has played the middlegame very poorly", "+"],
+        $115: ["Black has played the middlegame very poorly", "+"],
+        $116: ["White has played the middlegame poorly", "+"],
+        $117: ["Black has played the middlegame poorly", "+"],
+        $118: ["White has played the middlegame well", "+"],
+        $119: ["Black has played the middlegame well", "+"],
+        $120: ["White has played the middlegame very well", "+"],
+        $121: ["Black has played the middlegame very well", "+"],
+        $122: ["White has played the ending very poorly", "+"],
+        $123: ["Black has played the ending very poorly", "+"],
+        $124: ["White has played the ending poorly", "+"],
+        $125: ["Black has played the ending poorly", "+"],
+        $126: ["White has played the ending well", "+"],
+        $127: ["Black has played the ending well", "+"],
+        $128: ["White has played the ending very well", "+"],
+        $129: ["Black has played the ending very well", "+"],
+        $130: ["White has slight counterplay", "\u21C4"],
+        $131: ["Black has slight counterplay", "\u21C4"],
+        $132: ["White has moderate counterplay", "\u21C4\u21C4"],
+        $133: ["Black has moderate counterplay", "\u21C4\u21C4"],
+        $134: ["White has decisive counterplay", "\u21C4\u21C4\u21C4"],
+        $135: ["Black has decisive counterplay", "\u21C4\u21C4\u21C4"],
+        $136: ["White has moderate time control pressure", "\u2295"],
+        $137: ["Black has moderate time control pressure", "\u2296"],
+        $138: ["White has severe time control pressure", "\u2295\u2295"],
+        $139: ["Black has severe time control pressure", "\u2296\u2296"]
+      };
+    }
+  });
+
+  // src/js/arrows.ts
+  function filterShapes(filterKey) {
+    const shapeArray = {
+      ["All" /* All */]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
+      ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
+      ["PGN" /* PGN */]: ["mainLine", "altLine", "blunderLine", "moveType"],
+      ["Nag" /* Nag */]: ["moveType"],
+      ["Drawn" /* Drawn */]: ["userDrawn"]
+    };
+    let brushesToRemove = shapeArray[filterKey];
+    const shouldFilterDrawn = brushesToRemove.includes("userDrawn");
+    if (shouldFilterDrawn) brushesToRemove = shapeArray["All" /* All */];
+    const filteredShapes = state.chessGroundShapes.filter((shape) => {
+      const shouldRemove = brushesToRemove.includes(shape.brush);
+      if (shouldFilterDrawn) {
+        return shouldRemove;
+      } else {
+        return !shouldRemove;
+      }
+    });
+    state.chessGroundShapes = filteredShapes;
+  }
+  function drawArrows(redraw) {
+    filterShapes("Stockfish" /* Stockfish */);
+    if (redraw) {
+      cg.set({ drawable: { shapes: state.chessGroundShapes } });
+      return;
+    }
+    if (!state.pgnState) {
+      state.chessGroundShapes = [];
+      return;
+    }
+    filterShapes("All" /* All */);
+    if (config.boardMode === "Puzzle" && config.disableArrows) return;
+    let expectedMove = state.expectedMove;
+    let expectedLine = state.expectedLine;
+    let count = state.count;
+    let puzzleMove;
+    if (config.boardMode === "Puzzle") {
+      count--;
+      expectedMove = expectedLine[count];
+      if (count === 0 && expectedLine) {
+        const isVariation = findMoveContext(parsedPGN, expectedMove);
+        if (isVariation?.parent) {
+          expectedLine = isVariation.parentLine;
+          count = isVariation.index;
+          expectedMove = isVariation.parent;
+        }
+      }
+      ;
+      if (expectedMove) {
+        puzzleMove = chess.undo();
+        if (puzzleMove) puzzleMove = puzzleMove.san;
+      }
+    }
+    if (!expectedMove || typeof expectedMove === "string") {
+      cg.set({ drawable: { shapes: state.chessGroundShapes } });
+      return;
+    }
+    if (expectedMove?.variations) {
+      for (const variation of expectedMove.variations) {
+        const alternateMove = getLegalMoveBySan(variation[0].notation.notation);
+        const isBlunder = variation[0].nag?.some((nags) => state.blunderNags.includes(nags));
+        let brushType = "altLine";
+        if (isBlunder) brushType = "blunderLine";
+        if (isBlunder && config.boardMode === "Puzzle") brushType = null;
+        if (alternateMove && alternateMove.san !== puzzleMove && brushType) {
+          state.chessGroundShapes.push({
+            orig: alternateMove.from,
+            dest: alternateMove.to,
+            brush: brushType,
+            san: alternateMove.san
+          });
+        } else if (variation[0].nag && alternateMove && alternateMove.san === puzzleMove) {
+          const foundNag = variation[0].nag?.find((key) => key in nags_default);
+          if (foundNag && nags_default[foundNag] && nags_default[foundNag][2]) {
+            state.chessGroundShapes.push({
+              orig: alternateMove.to,
+              // The square to anchor the image to
+              brush: "moveType",
+              customSvg: {
+                html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`
+              }
+            });
+          }
+        }
+      }
+    }
+    const mainMoveAttempt = getLegalMoveBySan(expectedMove.notation.notation);
+    if (mainMoveAttempt && mainMoveAttempt.san !== puzzleMove) {
+      state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: "mainLine", san: mainMoveAttempt.san });
+    } else if (expectedMove.nag && mainMoveAttempt && mainMoveAttempt.san === puzzleMove) {
+      const foundNag = expectedMove.nag?.find((key) => key in nags_default);
+      if (foundNag && nags_default[foundNag] && nags_default[foundNag][2]) {
+        state.chessGroundShapes.push({
+          orig: mainMoveAttempt.to,
+          // The square to anchor the image to
+          brush: "moveType",
+          customSvg: {
+            html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`
+          }
+        });
+      }
+    }
+    if (config.boardMode === "Puzzle" && puzzleMove) {
+      chess.move(puzzleMove);
+    }
+    cg.set({ drawable: { shapes: state.chessGroundShapes } });
+  }
+  var init_arrows = __esm({
+    "src/js/arrows.ts"() {
+      "use strict";
+      init_config2();
+      init_chessFunctions();
+      init_toolbox();
+      init_nags();
+    }
+  });
+
   // src/js/timer.ts
   function handleOutOfTime() {
     if (config.timerScore) {
@@ -14126,6 +14393,25 @@ ${contextLines.join("\n")}`;
     if (audio) {
       audio.cloneNode().play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
     }
+  }
+  function changeAudio(gameState) {
+    if (config.muteAudio) return;
+    const soundMap = {
+      "#": "checkmate",
+      "+": "move-check",
+      "x": "Capture",
+      "k": "castle",
+      "q": "castle",
+      "p": "promote"
+    };
+    let sound = "Move";
+    for (const flag in soundMap) {
+      if (gameState.san.includes(flag) || gameState.flags && gameState.flags.includes(flag)) {
+        sound = soundMap[flag];
+        break;
+      }
+    }
+    playSound(sound);
   }
   var audioMap;
   var init_audio = __esm({
@@ -14377,154 +14663,6 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/nags.json
-  var nags_default;
-  var init_nags = __esm({
-    "src/nags.json"() {
-      nags_default = {
-        $1: ["Good move", "!", "_good.webp"],
-        $2: ["Poor move", "?", "_mistake.webp"],
-        $3: ["Excellent move", "!!", "_brilliant.webp"],
-        $4: ["Blunder", "??", "_blunder.webp"],
-        $5: ["Interesting move", "!?"],
-        $6: ["Dubious move", "?!", "_dubious.webp"],
-        $7: ["Forced move", "+"],
-        $8: ["The only move", "\u25A1"],
-        $9: ["Worst move", "???", "_blunder.webp"],
-        $10: ["Drawish position", "="],
-        $11: ["Equal chances, quiet position", "="],
-        $12: ["Equal chances, active position", "\u2189"],
-        $13: ["Unclear position", "\u221E"],
-        $14: ["White has a slight advantage", "\u2A72"],
-        $15: ["Black has a slight advantage", "\u2A71"],
-        $16: ["White has a moderate advantage", "\xB1"],
-        $17: ["Black has a moderate advantage", "\u2213"],
-        $18: ["White has a decisive advantage", "+-"],
-        $19: ["Black has a decisive advantage", "-+"],
-        $20: ["White has a crushing advantage", "+--"],
-        $21: ["Black has a crushing advantage", "--+"],
-        $22: ["White is in zugzwang", "\u2A00"],
-        $23: ["Black is in zugzwang", "\u2A00"],
-        $24: ["White has a slight space advantage", "\u25CB"],
-        $25: ["Black has a slight space advantage", "\u25CB"],
-        $26: ["White has a moderate space advantage", "\u25CB\u25CB"],
-        $27: ["Black has a moderate space advantage", "\u25CB\u25CB"],
-        $28: ["White has a decisive space advantage", "\u25CB\u25CB\u25CB"],
-        $29: ["Black has a decisive space advantage", "\u25CB\u25CB\u25CB"],
-        $30: ["White has a slight development advantage", "\u21BB"],
-        $31: ["Black has a slight development advantage", "\u21BA"],
-        $32: ["White has a moderate development advantage", "\u27F3"],
-        $33: ["Black has a moderate development advantage", "\u27F3"],
-        $34: ["White has a decisive development advantage", "\u21BB\u21BB\u21BB"],
-        $35: ["Black has a decisive development advantage", "\u21BA\u21BA\u21BA"],
-        $36: ["White has the initiative", "\u2191"],
-        $37: ["Black has the initiative", "\u2193"],
-        $38: ["White has a lasting initiative", "\u21D1"],
-        $39: ["Black has a lasting initiative", "\u21D3"],
-        $40: ["White has the attack", "\u2192"],
-        $41: ["Black has the attack", "\u2190"],
-        $42: ["White has insufficient compensation", "\u2BDA"],
-        $43: ["Black has insufficient compensation", "\u2BDA"],
-        $44: ["White has sufficient compensation", "=/="],
-        $45: ["Black has sufficient compensation", "=/="],
-        $46: ["White has more than adequate compensation", "$"],
-        $47: ["Black has more than adequate compensation", "$"],
-        $48: ["White has a slight center control advantage", "\u229E"],
-        $49: ["Black has a slight center control advantage", "\u229E"],
-        $50: ["White has a moderate center control advantage", "\u229E\u229E"],
-        $51: ["Black has a moderate center control advantage", "\u229E\u229E"],
-        $52: ["White has a decisive center control advantage", "\u229E\u229E\u229E"],
-        $53: ["Black has a decisive center control advantage", "\u229E\u229E\u229E"],
-        $54: ["White has a slight kingside control advantage", "\u29E9"],
-        $55: ["Black has a slight kingside control advantage", "\u29E9"],
-        $56: ["White has a moderate kingside control advantage", "\u29EB"],
-        $57: ["Black has a moderate kingside control advantage", "\u29EB"],
-        $58: ["White has a decisive kingside control advantage", "\u22D9"],
-        $59: ["Black has a decisive kingside control advantage", "\u22D9"],
-        $60: ["White has a slight queenside control advantage", "\u29E8"],
-        $61: ["Black has a slight queenside control advantage", "\u29E8"],
-        $62: ["White has a moderate queenside control advantage", "\u29EA"],
-        $63: ["Black has a moderate queenside control advantage", "\u29EA"],
-        $64: ["White has a decisive queenside control advantage", "\u22D8"],
-        $65: ["Black has a decisive queenside control advantage", "\u22D8"],
-        $66: ["White has a vulnerable first rank", "+"],
-        $67: ["Black has a vulnerable first rank", "+"],
-        $68: ["White has a well protected first rank", "+"],
-        $69: ["Black has a well protected first rank", "+"],
-        $70: ["White has a poorly protected king", "+"],
-        $71: ["Black has a poorly protected king", "+"],
-        $72: ["White has a well protected king", "+"],
-        $73: ["Black has a well protected king", "+"],
-        $74: ["White has a poorly placed king", "+"],
-        $75: ["Black has a poorly placed king", "+"],
-        $76: ["White has a well placed king", "+"],
-        $77: ["Black has a well placed king", "+"],
-        $78: ["White has a very weak pawn structure", "+"],
-        $79: ["Black has a very weak pawn structure", "+"],
-        $80: ["White has a moderately weak pawn structure", "+"],
-        $81: ["Black has a moderately weak pawn structure", "+"],
-        $82: ["White has a moderately strong pawn structure", "+"],
-        $83: ["Black has a moderately strong pawn structure", "+"],
-        $84: ["White has a very strong pawn structure", "+"],
-        $85: ["Black has a very strong pawn structure", "+"],
-        $86: ["White has poor knight placement", "+"],
-        $87: ["Black has poor knight placement", "+"],
-        $88: ["White has good knight placement", "+"],
-        $89: ["Black has good knight placement", "+"],
-        $90: ["White has poor bishop placement", "+"],
-        $91: ["Black has poor bishop placement", "+"],
-        $92: ["White has good bishop placement", "\u2197"],
-        $93: ["Black has good bishop placement", "\u2196"],
-        $94: ["White has poor rook placement", "+"],
-        $95: ["Black has poor rook placement", "+"],
-        $96: ["White has good rook placement", "\u21C8"],
-        $97: ["Black has good rook placement", "\u21CA"],
-        $98: ["White has poor queen placement", "+"],
-        $99: ["Black has poor queen placement", "+"],
-        $100: ["White has good queen placement", "+"],
-        $101: ["Black has good queen placement", "+"],
-        $102: ["White has poor piece coordination", "+"],
-        $103: ["Black has poor piece coordination", "+"],
-        $104: ["White has good piece coordination", "+"],
-        $105: ["Black has good piece coordination", "+"],
-        $106: ["White has played the opening very poorly", "+"],
-        $107: ["Black has played the opening very poorly", "+"],
-        $108: ["White has played the opening poorly", "+"],
-        $109: ["Black has played the opening poorly", "+"],
-        $110: ["White has played the opening well", "+"],
-        $111: ["Black has played the opening well", "+"],
-        $112: ["White has played the opening very well", "+"],
-        $113: ["Black has played the opening very well", "+"],
-        $114: ["White has played the middlegame very poorly", "+"],
-        $115: ["Black has played the middlegame very poorly", "+"],
-        $116: ["White has played the middlegame poorly", "+"],
-        $117: ["Black has played the middlegame poorly", "+"],
-        $118: ["White has played the middlegame well", "+"],
-        $119: ["Black has played the middlegame well", "+"],
-        $120: ["White has played the middlegame very well", "+"],
-        $121: ["Black has played the middlegame very well", "+"],
-        $122: ["White has played the ending very poorly", "+"],
-        $123: ["Black has played the ending very poorly", "+"],
-        $124: ["White has played the ending poorly", "+"],
-        $125: ["Black has played the ending poorly", "+"],
-        $126: ["White has played the ending well", "+"],
-        $127: ["Black has played the ending well", "+"],
-        $128: ["White has played the ending very well", "+"],
-        $129: ["Black has played the ending very well", "+"],
-        $130: ["White has slight counterplay", "\u21C4"],
-        $131: ["Black has slight counterplay", "\u21C4"],
-        $132: ["White has moderate counterplay", "\u21C4\u21C4"],
-        $133: ["Black has moderate counterplay", "\u21C4\u21C4"],
-        $134: ["White has decisive counterplay", "\u21C4\u21C4\u21C4"],
-        $135: ["Black has decisive counterplay", "\u21C4\u21C4\u21C4"],
-        $136: ["White has moderate time control pressure", "\u2295"],
-        $137: ["Black has moderate time control pressure", "\u2296"],
-        $138: ["White has severe time control pressure", "\u2295\u2295"],
-        $139: ["Black has severe time control pressure", "\u2296\u2296"]
-      };
-    }
-  });
-
   // src/js/chessFunctions.ts
   function toggleClass(querySelector, className) {
     document.querySelectorAll("." + querySelector).forEach((el) => el.classList.toggle(className));
@@ -14631,107 +14769,6 @@ ${contextLines.join("\n")}`;
     const lastMove = allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
     return lastMove;
   }
-  function filterShapes(filterKey) {
-    let brushesToRemove = shapeArray[filterKey];
-    const shouldFilterDrawn = brushesToRemove.includes("userDrawn");
-    if (shouldFilterDrawn) brushesToRemove = shapeArray["All" /* All */];
-    const filteredShapes = state.chessGroundShapes.filter((shape) => {
-      const shouldRemove = brushesToRemove.includes(shape.brush);
-      if (shouldFilterDrawn) {
-        return shouldRemove;
-      } else {
-        return !shouldRemove;
-      }
-    });
-    state.chessGroundShapes = filteredShapes;
-  }
-  function drawArrows(redraw) {
-    filterShapes("Stockfish" /* Stockfish */);
-    if (redraw) {
-      cg.set({ drawable: { shapes: state.chessGroundShapes } });
-      return;
-    }
-    if (!state.pgnState) {
-      state.chessGroundShapes = [];
-      return;
-    }
-    filterShapes("All" /* All */);
-    if (config.boardMode === "Puzzle" && config.disableArrows) return;
-    let expectedMove = state.expectedMove;
-    let expectedLine = state.expectedLine;
-    let count = state.count;
-    let puzzleMove;
-    if (config.boardMode === "Puzzle") {
-      count--;
-      expectedMove = expectedLine[count];
-      if (count === 0 && expectedLine) {
-        const isVariation = findMoveContext(parsedPGN, expectedMove);
-        if (isVariation?.parent) {
-          expectedLine = isVariation.parentLine;
-          count = isVariation.index;
-          expectedMove = isVariation.parent;
-        }
-      }
-      ;
-      if (expectedMove) {
-        puzzleMove = chess.undo();
-        if (puzzleMove) puzzleMove = puzzleMove.san;
-      }
-    }
-    if (!expectedMove || typeof expectedMove === "string") {
-      cg.set({ drawable: { shapes: state.chessGroundShapes } });
-      return;
-    }
-    if (expectedMove?.variations) {
-      for (const variation of expectedMove.variations) {
-        const alternateMove = getLegalMoveBySan(variation[0].notation.notation);
-        const isBlunder = variation[0].nag?.some((nags) => state.blunderNags.includes(nags));
-        let brushType = "altLine";
-        if (isBlunder) brushType = "blunderLine";
-        if (isBlunder && config.boardMode === "Puzzle") brushType = null;
-        if (alternateMove && alternateMove.san !== puzzleMove && brushType) {
-          state.chessGroundShapes.push({
-            orig: alternateMove.from,
-            dest: alternateMove.to,
-            brush: brushType,
-            san: alternateMove.san
-          });
-        } else if (variation[0].nag && alternateMove && alternateMove.san === puzzleMove) {
-          const foundNag = variation[0].nag?.find((key) => key in nags_default);
-          if (foundNag && nags_default[foundNag] && nags_default[foundNag][2]) {
-            state.chessGroundShapes.push({
-              orig: alternateMove.to,
-              // The square to anchor the image to
-              brush: "moveType",
-              customSvg: {
-                html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`
-              }
-            });
-          }
-        }
-      }
-    }
-    const mainMoveAttempt = getLegalMoveBySan(expectedMove.notation.notation);
-    if (mainMoveAttempt && mainMoveAttempt.san !== puzzleMove) {
-      state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: "mainLine", san: mainMoveAttempt.san });
-    } else if (expectedMove.nag && mainMoveAttempt && mainMoveAttempt.san === puzzleMove) {
-      const foundNag = expectedMove.nag?.find((key) => key in nags_default);
-      if (foundNag && nags_default[foundNag] && nags_default[foundNag][2]) {
-        state.chessGroundShapes.push({
-          orig: mainMoveAttempt.to,
-          // The square to anchor the image to
-          brush: "moveType",
-          customSvg: {
-            html: `<image href="${nags_default[foundNag][2]}" width="40" height="40" />'`
-          }
-        });
-      }
-    }
-    if (config.boardMode === "Puzzle" && puzzleMove) {
-      chess.move(puzzleMove);
-    }
-    cg.set({ drawable: { shapes: state.chessGroundShapes } });
-  }
   function updateBoard(move3, backwardPromote = false) {
     function cancelDefaultAnimation(chessInstance) {
       cg.set({ animation: { enabled: false } });
@@ -14796,6 +14833,7 @@ ${contextLines.join("\n")}`;
       },
       lastMove: [move3.from, move3.to]
     });
+    changeAudio(move3);
     setButtonsDisabled(["back", "reset"], false);
     if (config.boardMode === "Viewer" && state.pgnState && !isEndOfLine()) highlightCurrentMove(state.expectedMove.pgnPath);
     startAnalysis(config.analysisTime);
@@ -15147,26 +15185,19 @@ ${contextLines.join("\n")}`;
       startPuzzleTimeout(config.timer);
     })();
   }
-  var shapeArray, aiTimeout;
+  var aiTimeout;
   var init_chessFunctions = __esm({
     "src/js/chessFunctions.ts"() {
       "use strict";
       init_chess();
       init_config2();
       init_toolbox();
+      init_arrows();
       init_pgnViewer();
       init_timer();
       init_audio();
       init_handleStockfish();
       init_initializeUI();
-      init_nags();
-      shapeArray = {
-        ["All" /* All */]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
-        ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
-        ["PGN" /* PGN */]: ["mainLine", "altLine", "blunderLine", "moveType"],
-        ["Nag" /* Nag */]: ["moveType"],
-        ["Drawn" /* Drawn */]: ["userDrawn"]
-      };
       aiTimeout = null;
     }
   });
@@ -15311,6 +15342,7 @@ ${contextLines.join("\n")}`;
     "src/js/pgnViewer.ts"() {
       "use strict";
       init_chessFunctions();
+      init_arrows();
       init_config2();
       init_handleStockfish();
       init_nags();

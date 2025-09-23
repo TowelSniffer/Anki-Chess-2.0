@@ -3,7 +3,7 @@ import type { Color, Key } from 'chessground/types';
 import { Move } from 'chess.js';
 import type { DrawShape } from 'chessground/draw';
 import { PgnMove, PgnGame } from '@mliebelt/pgn-types';
-import { MirrorState } from './mirror';
+import type { MirrorState } from './mirror';
 
 // --- interface ---
 export interface Config {
@@ -57,17 +57,6 @@ export interface State {
     mirrorState: MirrorState | null;
     blunderNags: string[];
     puzzleComplete: string | boolean;
-}
-
-// Define the shape of the imported nags.json file.
-export interface NagData {
-    [nagKey: string]: string[]; // [description, symbol/sub array of symbols]
-}
-
-export interface ParentContext {
-    parent: CustomPgnMove;
-    parentLine: CustomPgnMove[];
-    index: number;
 }
 
 // --- types ---
