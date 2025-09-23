@@ -54,7 +54,7 @@ export interface State {
     isStockfishBusy: boolean;
     analysisFen: string | booleanValues;
     analysisToggledOn: boolean;
-    pgnPath: PgnPathString | PgnPath | null;
+    pgnPath: PgnPathString | PgnPath;
     mirrorState: MirrorState | null;
     blunderNags: string[];
     puzzleComplete: string | boolean;
@@ -68,7 +68,7 @@ export type booleanValues = "true" | "false" | boolean | null;
 
 export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber'> & {
     moveNumber: number | null;
-    pgnPath?: PgnPath;
+    pgnPath: PgnPath;
     variations: CustomPgnMove[][];
 };
 export type CustomPgnGame = Omit<PgnGame, 'moves'> & {

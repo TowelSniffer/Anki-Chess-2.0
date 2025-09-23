@@ -5,6 +5,7 @@ import { drawArrows } from './arrows';
 import type { NagData } from './arrows';
 import { state, parsedPGN, config } from './config';
 import type { CustomPgnMove } from './types';
+import { setButtonsDisabled } from './toolbox';
 import { startAnalysis } from './handleStockfish';
 import nags from '../nags.json' assert { type: 'json' };
 
@@ -39,34 +40,6 @@ export function createPgnPathArray(pathStr: PgnPathString): PgnPath {
 }
 
 
-// --- PGN tracking ---
-function getMoveFromPath(path: (string | number)[]): CustomPgnMove | null {
-    if (!path || path.length === 0) return null;
-
-    let moves = parsedPGN.moves;
-    let move: CustomPgnMove | null = null;
-
-    for (let i = 0; i < path.length; i++) {
-        const segment = path[i];
-        if (segment === 'v') {
-            const varIndex = path[++i];
-            if (typeof varIndex !== 'number') return null;
-            if (move && move.variations) {
-                moves = move.variations[varIndex];
-            } else {
-                return null;
-            }
-        } else if (typeof segment === 'number') {
-            const moveIndex = segment;
-            if (moves && moves[moveIndex]) {
-                move = moves[moveIndex];
-            } else {
-                return null;
-            }
-        }
-    }
-    return move;
-}
 // --- PGN Rendering ---
 
 function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], altLine?: boolean): string {
@@ -122,73 +95,67 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
 
 // --- PGN Navigation ---
 
-export function getFullMoveSequenceFromPath(chess: Chess, cg: Api, path: PgnPath): void {
-    state.chessGroundShapes = [];
-    state.pgnState = true;
-
+export function navigateFullMoveSequenceFromPath(chess: Chess, path: string | PgnPath): PgnPath | null {
+    if (!path) return null;
+    let finalPath = path;
+    const pathCheck = path;
+    if (typeof pathCheck === 'string') {
+        const pathString = createPgnPathString(pathCheck);
+        if (pathString) finalPath = createPgnPathArray(pathString)
+    }
     chess.reset();
     chess.load(state.ankiFen);
-
-
-    // --- Start of rewritten logic ---
     let currentLine = parsedPGN.moves;
-    let parentMove: CustomPgnMove | null = null; // To access variations from
+    let parentMove: CustomPgnMove | null = null;
 
-    for (let i = 0; i < path.length; i++) {
-        const segment = path[i];
-        if (segment === 'v' && typeof path[++i] === 'number') {
+    for (let i = 0; i < finalPath.length; i++) {
+        const segment = finalPath[i];
+        if (segment === 'v' && typeof finalPath[++i] === 'number') {
             if (parentMove?.variations) {
-                const varIndex = path[i++]; // second ++ to skip branching number
+                const varIndex = finalPath[i++]; // second ++ to skip branching number
                 console.log(varIndex)
                 if (typeof varIndex !== 'number') {
-                    console.error("Invalid PGN path:", path);
-                    return
+                    console.error("Invalid PGN path:", finalPath);
+                    return null;
                 }
                 currentLine = parentMove.variations[varIndex];
+                state.expectedLine = currentLine;
             }
         } else if (typeof segment === 'number') {
             const movesDownCurrentLine = segment;
             for (let i = 0; i <= movesDownCurrentLine; i++) {
                 const move = currentLine?.[i];
                 if (move?.notation?.notation) {
-                    console.log(move?.notation?.notation)
                     chess.move(move.notation.notation);
                     parentMove = move;
                 } else {
-                    console.error("Invalid PGN path or move not found at:", path.slice(0, i + 1));
+                    // last move of PGN
+
                 }
             }
         }
     }
-
-    console.log(chess.fen())
-
-    cg.set({
-        fen: chess.fen(),
-           check: chess.inCheck(),
-           turnColor: toColor(chess),
-           movable: {
-               color: toColor(chess),
-           dests: toDests(chess)
-           },
-    });
-
-
-
-    document.querySelectorAll<HTMLButtonElement>('#navBackward, #resetBoard')
-    .forEach(el => el.disabled = false);
-
-    if (state.analysisToggledOn) {
-        startAnalysis(chess, config.analysisTime);
-    }
+    state.expectedMove = parentMove;
+    if (!parentMove) return null;
+    return parentMove.pgnPath
 }
 
-function navigatePgnPath(moveList: string[]): void {
-
-
+export function navigateNextMove(chess: Chess, path: string | PgnPath): boolean {
+    let movePath = navigateFullMoveSequenceFromPath(chess, path);
+    if (!movePath) return false;
+    let currentLinePosition = movePath.at(-1);
+    if (typeof currentLinePosition === 'number') {
+        const nextMovePath = movePath.with(-1, ++currentLinePosition);
+        state.pgnPath = nextMovePath;
+    }
+    setButtonsDisabled(['back', 'reset'], false);
+    return true;
 }
 
 export function onPgnMoveClick(event: Event, cg: Api, chess: Chess): void {
+    state.chessGroundShapes = [];
+    state.pgnState = true;
+
     const target = event.target as HTMLElement;
     if (!target || !target.classList.contains('move')) return;
 
@@ -198,13 +165,27 @@ export function onPgnMoveClick(event: Event, cg: Api, chess: Chess): void {
         const pathStr = createPgnPathString(target.dataset.path);
         if (pathStr) {
             const pathArray = createPgnPathArray(pathStr);
-            if (pathArray) getFullMoveSequenceFromPath(chess, cg, pathArray);
+            if (pathArray) navigateFullMoveSequenceFromPath(chess, pathArray);
+        } else {
+            return;
         }
     }
     const forwardButton = document.querySelector<HTMLButtonElement>("#navForward");
     if (forwardButton) forwardButton.disabled = !state.expectedMove;
+    cg.set({
+        fen: chess.fen(),
+           check: chess.inCheck(),
+           turnColor: toColor(chess),
+           movable: {
+               color: toColor(chess),
+           dests: toDests(chess)
+           },
+    });
+    document.querySelectorAll<HTMLButtonElement>('#navBackward, #resetBoard')
+    .forEach(el => el.disabled = false);
 
     drawArrows(cg, chess);
+    startAnalysis(chess, config.analysisTime);
 }
 
 // --- PGN Data Augmentation ---
