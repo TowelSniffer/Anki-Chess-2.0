@@ -402,6 +402,7 @@ export function loadChessgroundBoard(): void {
              // will call on any user move.
            },
            select: (key) => {
+             console.log(state.cg.state.selected);
              filterShapes(ShapeFilter.Drawn);
              state.cg.set({drawable: {shapes: state.chessGroundShapes}});
               if (aiTimeout) return;

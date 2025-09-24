@@ -108,21 +108,12 @@ const state: State = {
         },
     }),
     chess: new Chess(),
-    selected: undefined,
+    selectTrack: undefined,
     parsedPGN: parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame,
     delayTime: config.animationTime + 100,
 };
-// Mirror PGN if applicable
-if (config.mirror && !checkCastleRights(state.ankiFen)) {
-    if (!state.mirrorState) {
-        state.mirrorState = assignMirrorState();
-    }
-    window.parent.postMessage(state, '*');
-    mirrorPgnTree(state.parsedPGN.moves, state.mirrorState);
-    state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
-}
-state.ankiFen = state.parsedPGN.tags.FEN
 
+state.ankiFen = state.parsedPGN.tags.FEN
 
 // --- Global Chess & Board Initialization ---
 

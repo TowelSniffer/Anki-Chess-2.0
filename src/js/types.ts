@@ -62,7 +62,7 @@ export interface State {
     cgwrap: HTMLDivElement;
     cg: Api;
     chess: Chess;
-    selected?: Key;
+    selectTrack?: Key;
     parsedPGN: CustomPgnGame;
     delayTime: number;
 }
