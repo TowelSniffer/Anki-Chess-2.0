@@ -11812,7 +11812,7 @@ ${contextLines.join("\n")}`;
   // node_modules/chessground/dist/board.js
   function callUserFunction(f, ...args) {
     if (f)
-      setTimeout(() => f(...args), 1);
+      f(...args);
   }
   function toggleOrientation(state2) {
     state2.orientation = opposite(state2.orientation);
@@ -13697,124 +13697,6 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/mirror.ts
-  function assignMirrorState() {
-    const states = ["original", "original_mirror", "invert", "invert_mirror"];
-    const mirrorRandom = Math.floor(Math.random() * states.length);
-    return states[mirrorRandom];
-  }
-  function mirrorFenRow(row) {
-    return row.split("").reverse().join("");
-  }
-  function mirrorFen(fullFen, mirrorState) {
-    if (mirrorState === "original") {
-      return fullFen;
-    }
-    const fenParts = fullFen.split(" ");
-    const fenBoard = fenParts[0];
-    const fenColor = fenParts[1];
-    const fenRest = fenParts.slice(2).join(" ");
-    const fenRows = fenBoard.split("/");
-    const fenBoardInverted = swapCase(fenBoard.split("").reverse().join(""));
-    const fenBoardMirrored = fenRows.map(mirrorFenRow).join("/");
-    const fenBoardMirroredInverted = swapCase(fenBoardMirrored.split("").reverse().join(""));
-    const fenColorSwapped = fenColor === "w" ? "b" : "w";
-    switch (mirrorState) {
-      case "invert_mirror":
-        return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
-      case "invert":
-        return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
-      case "original_mirror":
-        return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
-      default:
-        return fullFen;
-    }
-  }
-  function swapCase(str) {
-    return str.split("").map(
-      (ch) => ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
-    ).join("");
-  }
-  function mirrorMove(move3, mirrorState) {
-    const notationMaps = {
-      "invert_mirror": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", "1": "8", "2": "7", "3": "6", "4": "5", "5": "4", "6": "3", "7": "2", "8": "1" },
-      "invert": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", "1": "8", "2": "7", "3": "6", "4": "5", "5": "4", "6": "3", "7": "2", "8": "1" },
-      "original_mirror": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" },
-      "original": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" }
-    };
-    const notationMap = notationMaps[mirrorState];
-    const transform = (val) => {
-      return val?.split("").map((char) => notationMap[char] || char).join("");
-    };
-    move3.notation.disc = transform(move3.notation.disc);
-    move3.notation.col = transform(move3.notation.col);
-    move3.notation.row = transform(move3.notation.row);
-    move3.notation.notation = transform(move3.notation.notation) ?? move3.notation.notation;
-  }
-  function mirrorPgnTree(moves, mirrorState, parentMove = null) {
-    if (!moves || moves.length === 0) return;
-    for (const move3 of moves) {
-      if (move3.variations) {
-        move3.variations.forEach((variation) => {
-          mirrorPgnTree(variation, mirrorState, move3);
-        });
-      }
-    }
-    const isInverted = mirrorState === "invert" || mirrorState === "invert_mirror";
-    if (!isInverted) {
-      for (const move3 of moves) mirrorMove(move3, mirrorState);
-      return;
-    }
-    let lastValidMoveNumber;
-    const startsWithWhite = moves[0].turn === "w";
-    if (startsWithWhite) {
-      moves.forEach((move3, index) => {
-        mirrorMove(move3, mirrorState);
-        if (move3.turn === "w") {
-          move3.turn = "b";
-          if (index === 0) {
-            move3.moveNumber--;
-            lastValidMoveNumber = move3.moveNumber;
-          } else {
-            move3.moveNumber = null;
-          }
-        } else {
-          move3.turn = "w";
-          move3.moveNumber = lastValidMoveNumber + 1;
-          lastValidMoveNumber = move3.moveNumber;
-        }
-      });
-    } else {
-      lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber ?? 0;
-      moves.forEach((move3, index) => {
-        mirrorMove(move3, mirrorState);
-        if (move3.turn === "b") {
-          move3.turn = "w";
-          if (move3.moveNumber) {
-            lastValidMoveNumber = move3.moveNumber;
-          } else {
-            move3.moveNumber = index === 0 ? lastValidMoveNumber : lastValidMoveNumber + 1;
-            lastValidMoveNumber = move3.moveNumber;
-          }
-        } else {
-          move3.turn = "b";
-          move3.moveNumber = null;
-        }
-      });
-    }
-  }
-  function checkCastleRights(fen) {
-    const fenParts = fen.split(" ");
-    if (fenParts.length < 3) return false;
-    const castlingPart = fenParts[2];
-    return castlingPart !== "-";
-  }
-  var init_mirror = __esm({
-    "src/js/mirror.ts"() {
-      "use strict";
-    }
-  });
-
   // src/js/config.ts
   function getUrlParam(name, defaultValue) {
     const value = urlParams.get(name);
@@ -13827,7 +13709,6 @@ ${contextLines.join("\n")}`;
       init_chess();
       import_pgn_parser = __toESM(require_index_umd());
       init_chessground();
-      init_mirror();
       urlParams = new URLSearchParams(window.location.search);
       cgwrap = document.getElementById("board");
       config = {
@@ -13921,18 +13802,10 @@ ${contextLines.join("\n")}`;
           }
         }),
         chess: new Chess(),
-        selected: void 0,
+        selectTrack: void 0,
         parsedPGN: (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" }),
         delayTime: config.animationTime + 100
       };
-      if (config.mirror && !checkCastleRights(state.ankiFen)) {
-        if (!state.mirrorState) {
-          state.mirrorState = assignMirrorState();
-        }
-        window.parent.postMessage(state, "*");
-        mirrorPgnTree(state.parsedPGN.moves, state.mirrorState);
-        state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
-      }
       state.ankiFen = state.parsedPGN.tags.FEN;
       htmlElement = document.documentElement;
     }
@@ -14997,6 +14870,7 @@ ${contextLines.join("\n")}`;
         move: (orig, dest, capturedPiece) => {
         },
         select: (key) => {
+          console.log(state.cg.state.selected);
           filterShapes("Drawn" /* Drawn */);
           state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
           if (aiTimeout) return;
