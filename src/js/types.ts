@@ -1,8 +1,9 @@
-import { Chessground } from 'chessground';
-import type { Color } from 'chessground/types';
-import { Move } from 'chess.js';
+import type { Chessground } from 'chessground';
+import type { Color, Key } from 'chessground/types';
+import type { Api } from 'chessground/api';
+import type { Move, Chess } from 'chess.js';
 import type { DrawShape } from 'chessground/draw';
-import { PgnMove, PgnGame } from '@mliebelt/pgn-types';
+import type { PgnMove, PgnGame, Tags } from '@mliebelt/pgn-types';
 import type { MirrorState } from './mirror';
 import type { PgnPathString, PgnPath } from './pgnViewer';
 
@@ -58,6 +59,12 @@ export interface State {
     mirrorState: MirrorState | null;
     blunderNags: string[];
     puzzleComplete: string | boolean;
+    cgwrap: HTMLDivElement;
+    cg: Api;
+    chess: Chess;
+    selected?: Key;
+    parsedPGN: CustomPgnGame;
+    delayTime: number;
 }
 
 // --- types ---
@@ -71,7 +78,8 @@ export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber'> & {
     pgnPath: PgnPath;
     variations: CustomPgnMove[][];
 };
-export type CustomPgnGame = Omit<PgnGame, 'moves'> & {
+export type CustomPgnGame = Omit<PgnGame, 'moves' | 'tags'> & {
+    tags: Tags;
     moves: CustomPgnMove[];
 };
 

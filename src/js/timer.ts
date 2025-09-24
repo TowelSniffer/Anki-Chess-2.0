@@ -23,7 +23,7 @@ function handleOutOfTime(): void {
     document.documentElement.style.setProperty('--remainingTime', '100%');
 }
 
-export function extendPuzzleTime(additionalTime: number, cg: Api, cgwrap: HTMLDivElement): void {
+export function extendPuzzleTime(additionalTime: number): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     if (puzzleTimeout) {
@@ -34,12 +34,12 @@ export function extendPuzzleTime(additionalTime: number, cg: Api, cgwrap: HTMLDi
 
         // Ensure the new delay is not negative before restarting the timer
         if (newDelay >= 0) {
-            startPuzzleTimeout(newDelay, cg, cgwrap);
+            startPuzzleTimeout(newDelay);
         }
     }
 }
 
-export async function startPuzzleTimeout(delay: number, cg: Api, cgwrap: HTMLDivElement): Promise<void> {
+export async function startPuzzleTimeout(delay: number): Promise<void> {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
     // Clear any existing timers before starting a new one
@@ -50,7 +50,7 @@ export async function startPuzzleTimeout(delay: number, cg: Api, cgwrap: HTMLDiv
         const timerColor = config.randomOrientation ? "#2CBFA7" : state.opponentColour;
         document.documentElement.style.setProperty('--timer-color', timerColor);
     }
-    cgwrap.classList.add('timerMode');
+    state.cgwrap.classList.add('timerMode');
 
     puzzleTimeout = window.setTimeout(handleOutOfTime, delay);
 
@@ -66,7 +66,7 @@ export async function startPuzzleTimeout(delay: number, cg: Api, cgwrap: HTMLDiv
 
     puzzleIncrement = window.setInterval(() => {
         if (state.puzzleComplete) {
-            cgwrap.classList.remove('timerMode');
+            state.cgwrap.classList.remove('timerMode');
             if (puzzleTimeout) clearTimeout(puzzleTimeout);
             if (puzzleIncrement) clearInterval(puzzleIncrement);
             return;
@@ -76,8 +76,8 @@ export async function startPuzzleTimeout(delay: number, cg: Api, cgwrap: HTMLDiv
         remainingTime = Math.max(0, totalTime - elapsedTime - usedTime);
 
         // extend time when it's not the player's turn
-        if (state.playerColour !== cg.state.turnColor) {
-            extendPuzzleTime(10, cg, cgwrap);
+        if (state.playerColour !== state.cg.state.turnColor) {
+            extendPuzzleTime(10);
             return;
         }
 

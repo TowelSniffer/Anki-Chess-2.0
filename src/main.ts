@@ -2,7 +2,7 @@ import type { Chess } from 'chess.js';
 import 'chessground/assets/chessground.base.css';
 import './custom.css';
 import type { Api } from 'chessground/api';
-import { state, config, parsedPGN, htmlElement } from './js/config';
+import { state, config, htmlElement } from './js/config';
 import { augmentPgnTree, highlightCurrentMove, initPgnViewer, onPgnMoveClick, navigateFullMoveSequenceFromPath, navigateNextMove, createPgnPathString, createPgnPathArray } from './js/pgnViewer';
 import { playSound } from './js/audio';
 import { toggleStockfishAnalysis, handleStockfishCrash, startAnalysis } from './js/handleStockfish';
@@ -11,18 +11,18 @@ import { loadChessgroundBoard, toDests, toColor, isEndOfLine, handlePgnState, ha
 import { drawArrows } from './js/arrows';
 import { findMoveContext, setButtonsDisabled } from './js/toolbox';
 
-function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): void {
+function setupEventListeners(): void {
     function navBackward(): void {
         if (config.boardMode === 'Puzzle') return;
-        const lastMove = chess.undo();
+        const lastMove = state.chess.undo();
         if (lastMove) {
             state.debounceCheck = false;
-            updateBoard(cg, chess, lastMove, true)
+            updateBoard(lastMove, true)
             if (state.expectedLine[state.count - 1]?.notation?.notation === lastMove.san) {
                 state.count--
                 state.expectedMove = state.expectedLine[state.count];
                 if (state.count === 0 && state.expectedMove) {
-                    const isVariation = findMoveContext(parsedPGN, state.expectedMove);
+                    const isVariation = findMoveContext(state.parsedPGN, state.expectedMove);
                     if (isVariation?.parent) {
                         state.count = isVariation.index;
                         state.expectedLine = isVariation.parentLine;
@@ -33,8 +33,8 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
                     state.expectedMove = state.expectedLine[state.count];
                 }
             }
-            const firstMoveCheck = getLastMove(chess);
-            if (state.count === 0 && state.ankiFen !== chess.fen()) {
+            const firstMoveCheck = getLastMove();
+            if (state.count === 0 && state.ankiFen !== state.chess.fen()) {
                 return;
             } else if (firstMoveCheck && (state.count === 0 || state.expectedLine[state.count - 1]?.notation.notation === firstMoveCheck.san) ) {
                 handlePgnState(true);
@@ -42,7 +42,7 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
                 handlePgnState(true)
             }
         }
-        drawArrows(cg, chess);
+        drawArrows();
         if (state.expectedLine[state.count - 1]?.notation?.notation) {
 
             const expectedMove = state.expectedLine[state.count - 1];
@@ -51,48 +51,48 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
             document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
             setButtonsDisabled(['back', 'reset'], true);
         }
-        startAnalysis(chess, config.analysisTime);
+        startAnalysis(config.analysisTime);
     }
 
     function navForward(): void {
         if(!state.expectedMove?.pgnPath) return;
-        const navCheck = navigateNextMove(chess, state.pgnPath);
+        const navCheck = navigateNextMove(state.pgnPath);
         if (navCheck) {
-            cg.set({
-                fen: chess.fen(),
-                   check: chess.inCheck(),
-                   turnColor: toColor(chess),
+            state.cg.set({
+                fen: state.chess.fen(),
+                   check: state.chess.inCheck(),
+                   turnColor: toColor(),
                    movable: {
-                       color: toColor(chess),
-                   dests: toDests(chess)
+                       color: toColor(),
+                   dests: toDests()
                    },
             });
-            // drawArrows(cg, chess);
+            // drawArrows();
         }
     }
 
     function resetBoard(): void {
         state.count = 0; // Int so we can track on which move we are.
         state.chessGroundShapes = [];
-        state.expectedLine = parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
-        state.expectedMove = parsedPGN.moves[state.count]; // Set the expected move according to PGN
+        state.expectedLine = state.parsedPGN.moves; // Set initially to the mainline of pgn but can change path with variations
+        state.expectedMove = state.parsedPGN.moves[state.count]; // Set the expected move according to PGN
         handlePgnState(true);
-        chess.reset();
-        chess.load(state.ankiFen);
-        cg.set({
-            fen: chess.fen(),
-               check: chess.inCheck(),
-               turnColor: toColor(chess),
+        state.chess.reset();
+        state.chess.load(state.ankiFen);
+        state.cg.set({
+            fen: state.chess.fen(),
+               check: state.chess.inCheck(),
+               turnColor: toColor(),
                orientation: state.boardRotation,
                movable: {
-                   color: toColor(chess),
-               dests: toDests(chess)
+                   color: toColor(),
+               dests: toDests()
                }
         });
         document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
         setButtonsDisabled(['back', 'reset'], true);
-        startAnalysis(chess, config.analysisTime);
-        drawArrows(cg, chess);
+        startAnalysis(config.analysisTime);
+        drawArrows();
     }
 
     function rotateBoard(): void {
@@ -103,7 +103,7 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
         htmlElement.style.setProperty("--coord-white", coordBlack);
         htmlElement.style.setProperty("--coord-black", coordWhite);
 
-        cg.set({ orientation: state.boardRotation });
+        state.cg.set({ orientation: state.boardRotation });
 
         const flipButton = document.querySelector<HTMLElement>(".flipBoardIcon");
         if (flipButton && flipButton.style.transform.includes("90deg")) {
@@ -115,7 +115,7 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
 
     function copyFen(): boolean {
         let textarea = document.createElement("textarea");
-        textarea.value = chess.fen();
+        textarea.value = state.chess.fen();
         // Make the textarea invisible and off-screen
         textarea.style.position = "absolute";
         textarea.style.left = "-9999px";
@@ -138,7 +138,7 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
     const pgnContainer = document.getElementById('pgnComment');
     if (pgnContainer) {
         pgnContainer.addEventListener('click', (event) => {
-            onPgnMoveClick(event, cg, chess);
+            onPgnMoveClick(event);
         });
     }
 
@@ -189,7 +189,7 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
         'navForward': navForward,
         'rotateBoard': rotateBoard,
         'copyFen': copyFen,
-        'stockfishToggle': () => toggleStockfishAnalysis(cgwrap, cg, chess)
+        'stockfishToggle': () => toggleStockfishAnalysis()
     };
 
     document.querySelector<HTMLElement>('#buttons-container')?.addEventListener('click', (event: MouseEvent) => {
@@ -204,7 +204,7 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
     });
 
     // --- Board navigation ---
-    cgwrap.addEventListener('wheel', (event: WheelEvent) => {
+    state.cgwrap.addEventListener('wheel', (event: WheelEvent) => {
         event.preventDefault();
         if (event.deltaY < 0) {
             navBackward();
@@ -242,7 +242,7 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
         } else {
             console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
         }
-        handleStockfishCrash("window.onerror", cg, chess);
+        handleStockfishCrash("window.onerror");
     }
     });
     // mirrorPgnTree
@@ -251,27 +251,27 @@ function setupEventListeners(cgwrap: HTMLDivElement, cg: Api, chess: Chess): voi
         if (isUpdateScheduled) return;
         isUpdateScheduled = true;
         requestAnimationFrame(() => {
-            positionPromoteOverlay(cgwrap);
+            positionPromoteOverlay();
             isUpdateScheduled = false;
         });
     };
     const resizeObserver = new ResizeObserver(handleReposition);
-    resizeObserver.observe(cgwrap);
+    resizeObserver.observe(state.cgwrap);
     window.addEventListener('resize', handleReposition);
     document.addEventListener('scroll', handleReposition, true);
 }
 
 function loadElements(): void {
     initializeUI();
-    augmentPgnTree(parsedPGN.moves);
-    const [cg, chess, cgwrap] = loadChessgroundBoard();
-    setupEventListeners(cgwrap, cg, chess);
+    augmentPgnTree(state.parsedPGN.moves);
+    loadChessgroundBoard();
+    setupEventListeners();
     initPgnViewer();
     const path = state.pgnPath;
     if (path) {
-        cg.set({ animation: { enabled: false } }); // disable animation for inital startup
-        navigateFullMoveSequenceFromPath(chess, path);
-        cg.set({ animation: { enabled: true } });
+        state.cg.set({ animation: { enabled: false } }); // disable animation for inital startup
+        navigateFullMoveSequenceFromPath(path);
+        state.cg.set({ animation: { enabled: true } });
     }
 }
 

@@ -3,7 +3,7 @@ import type { Api } from 'chessground/api';
 import { toColor, toDests } from './chessFunctions';
 import { drawArrows } from './arrows';
 import type { NagData } from './arrows';
-import { state, parsedPGN, config } from './config';
+import { state, config } from './config';
 import type { CustomPgnMove } from './types';
 import { setButtonsDisabled } from './toolbox';
 import { startAnalysis } from './handleStockfish';
@@ -95,7 +95,7 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
 
 // --- PGN Navigation ---
 
-export function navigateFullMoveSequenceFromPath(chess: Chess, path: string | PgnPath): PgnPath | null {
+export function navigateFullMoveSequenceFromPath(path: string | PgnPath): PgnPath | null {
     if (!path) return null;
     let finalPath = path;
     const pathCheck = path;
@@ -103,9 +103,9 @@ export function navigateFullMoveSequenceFromPath(chess: Chess, path: string | Pg
         const pathString = createPgnPathString(pathCheck);
         if (pathString) finalPath = createPgnPathArray(pathString)
     }
-    chess.reset();
-    chess.load(state.ankiFen);
-    let currentLine = parsedPGN.moves;
+    state.chess.reset();
+    state.chess.load(state.ankiFen);
+    let currentLine = state.parsedPGN.moves;
     let parentMove: CustomPgnMove | null = null;
 
     for (let i = 0; i < finalPath.length; i++) {
@@ -126,7 +126,7 @@ export function navigateFullMoveSequenceFromPath(chess: Chess, path: string | Pg
             for (let i = 0; i <= movesDownCurrentLine; i++) {
                 const move = currentLine?.[i];
                 if (move?.notation?.notation) {
-                    chess.move(move.notation.notation);
+                    state.chess.move(move.notation.notation);
                     parentMove = move;
                 } else {
                     // last move of PGN
@@ -140,8 +140,8 @@ export function navigateFullMoveSequenceFromPath(chess: Chess, path: string | Pg
     return parentMove.pgnPath
 }
 
-export function navigateNextMove(chess: Chess, path: string | PgnPath): boolean {
-    let movePath = navigateFullMoveSequenceFromPath(chess, path);
+export function navigateNextMove(path: string | PgnPath): boolean {
+    let movePath = navigateFullMoveSequenceFromPath(path);
     if (!movePath) return false;
     let currentLinePosition = movePath.at(-1);
     if (typeof currentLinePosition === 'number') {
@@ -152,7 +152,7 @@ export function navigateNextMove(chess: Chess, path: string | PgnPath): boolean 
     return true;
 }
 
-export function onPgnMoveClick(event: Event, cg: Api, chess: Chess): void {
+export function onPgnMoveClick(event: Event): void {
     state.chessGroundShapes = [];
     state.pgnState = true;
 
@@ -165,27 +165,27 @@ export function onPgnMoveClick(event: Event, cg: Api, chess: Chess): void {
         const pathStr = createPgnPathString(target.dataset.path);
         if (pathStr) {
             const pathArray = createPgnPathArray(pathStr);
-            if (pathArray) navigateFullMoveSequenceFromPath(chess, pathArray);
+            if (pathArray) navigateFullMoveSequenceFromPath(pathArray);
         } else {
             return;
         }
     }
     const forwardButton = document.querySelector<HTMLButtonElement>("#navForward");
     if (forwardButton) forwardButton.disabled = !state.expectedMove;
-    cg.set({
-        fen: chess.fen(),
-           check: chess.inCheck(),
-           turnColor: toColor(chess),
+    state.cg.set({
+        fen: state.chess.fen(),
+           check: state.chess.inCheck(),
+           turnColor: toColor(),
            movable: {
-               color: toColor(chess),
-           dests: toDests(chess)
+               color: toColor(),
+           dests: toDests()
            },
     });
     document.querySelectorAll<HTMLButtonElement>('#navBackward, #resetBoard')
     .forEach(el => el.disabled = false);
 
-    drawArrows(cg, chess);
-    startAnalysis(chess, config.analysisTime);
+    drawArrows();
+    startAnalysis(config.analysisTime);
 }
 
 // --- PGN Data Augmentation ---
@@ -222,8 +222,8 @@ export function initPgnViewer(): void {
     if (!pgnContainer) return;
 
     pgnContainer.innerHTML = '';
-    if (parsedPGN.gameComment) {
-        pgnContainer.innerHTML += `<span class="comment"> ${parsedPGN.gameComment.comment} </span>`;
+    if (state.parsedPGN.gameComment) {
+        pgnContainer.innerHTML += `<span class="comment"> ${state.parsedPGN.gameComment.comment} </span>`;
     }
-    pgnContainer.innerHTML += buildPgnHtml(parsedPGN.moves);
+    pgnContainer.innerHTML += buildPgnHtml(state.parsedPGN.moves);
 }
