@@ -1,6 +1,6 @@
 import type { Chess } from 'chess.js';
 import type { Api } from 'chessground/api';
-import { state, parsedPGN, config } from './config';
+import { state, config } from './config';
 import { getLegalMoveBySan } from './chessFunctions';
 import { findMoveContext } from './toolbox';
 import nags from '../nags.json' assert { type: 'json' };
@@ -46,10 +46,10 @@ export function filterShapes(filterKey: ShapeFilter): void {
     state.chessGroundShapes = filteredShapes;
 }
 
-export function drawArrows(cg: Api, chess: Chess, redraw: boolean = false): void {
+export function drawArrows(redraw: boolean = false): void {
     filterShapes(ShapeFilter.Stockfish)
     if (redraw) {
-        cg.set({ drawable: { shapes: state.chessGroundShapes } });
+        state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
         return;
     }
     if (!state.pgnState) {
@@ -70,7 +70,7 @@ export function drawArrows(cg: Api, chess: Chess, redraw: boolean = false): void
         count--;
         expectedMove = expectedLine[count];
         if (count === 0 && expectedLine) {
-            const isVariation = findMoveContext(parsedPGN, expectedMove);
+            const isVariation = findMoveContext(state.parsedPGN, expectedMove);
             if (isVariation?.parent) {
                 expectedLine = isVariation.parentLine;
                 count = isVariation.index;
@@ -78,21 +78,21 @@ export function drawArrows(cg: Api, chess: Chess, redraw: boolean = false): void
             }
         };
         if (expectedMove) {
-            puzzleMove = chess.undo();
+            puzzleMove = state.chess.undo();
             if (puzzleMove) puzzleMove = puzzleMove.san;
         }
     }
 
     // --- Arrow Display ---
     if (!expectedMove || typeof expectedMove === 'string') {
-        cg.set({ drawable: { shapes: state.chessGroundShapes } }); // Clear any existing arrows
+        state.cg.set({ drawable: { shapes: state.chessGroundShapes } }); // Clear any existing arrows
         return;
     }
     // --- Arrow Drawing Logic ---
     if (expectedMove?.variations) {
         // Draw blue arrows for all variations
         for (const variation of expectedMove.variations) {
-            const alternateMove = getLegalMoveBySan(chess, variation[0].notation.notation);
+            const alternateMove = getLegalMoveBySan(variation[0].notation.notation);
             const isBlunder = variation[0].nag?.some(nags => state.blunderNags.includes(nags));
             let brushType: string | null = 'altLine';
             if (isBlunder) brushType = 'blunderLine';
@@ -119,7 +119,7 @@ export function drawArrows(cg: Api, chess: Chess, redraw: boolean = false): void
         }
     }
     // Draw the main line's move as a green arrow, ensuring it's on top
-    const mainMoveAttempt = getLegalMoveBySan(chess, expectedMove.notation.notation);
+    const mainMoveAttempt = getLegalMoveBySan(expectedMove.notation.notation);
     if (mainMoveAttempt && (mainMoveAttempt.san !== puzzleMove)) {
         state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: 'mainLine', san: mainMoveAttempt.san });
     } else if (expectedMove.nag && mainMoveAttempt && (mainMoveAttempt.san === puzzleMove)) {
@@ -135,7 +135,7 @@ export function drawArrows(cg: Api, chess: Chess, redraw: boolean = false): void
         }
     }
     if (config.boardMode === 'Puzzle' && puzzleMove) {
-        chess.move(puzzleMove);
+        state.chess.move(puzzleMove);
     }
-    cg.set({ drawable: { shapes: state.chessGroundShapes } });
+    state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
 }

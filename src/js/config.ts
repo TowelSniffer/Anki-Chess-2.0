@@ -1,5 +1,6 @@
+import { Chess } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
-import type { Config as CgConfig } from 'chessground/config';
+import { Chessground } from 'chessground';
 import type { Api } from 'chessground/api';
 import { Config, State, booleanValues, CustomPgnGame } from './types';
 import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights, MirrorState } from './mirror';
@@ -12,7 +13,7 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
     const value = urlParams.get(name);
     return value !== null ? value : defaultValue;
 }
-
+const cgwrap = document.getElementById('board') as HTMLDivElement;
 // --- Configuration ---
 const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
@@ -52,12 +53,9 @@ const config: Config = {
     animationTime: parseInt(getUrlParam("animationTime", '200') as string, 10),
 };
 
-const delayTime = config.animationTime + 100;
-const parsedPGN = parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame;
-
 // --- Global State ---
 const state: State = {
-    ankiFen: parsedPGN.tags?.FEN ? parsedPGN.tags.FEN as string : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    ankiFen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     boardRotation: "black",
     playerColour: "white",
     opponentColour: "black",
@@ -81,6 +79,38 @@ const state: State = {
     mirrorState: getUrlParam("mirrorState", null) as MirrorState | null,
     blunderNags: ['$2', '$4', '$6', '$9'],
     puzzleComplete: false,
+    cgwrap: cgwrap,
+    cg: Chessground(cgwrap, {
+        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        premovable: {
+            enabled: true,
+        },
+        movable: {
+            free: false,
+            showDests: config.showDests,
+        },
+        highlight: { check: true },
+        drawable: {
+            enabled: true,
+            brushes: {
+                stockfish: { key: 'stockfish', color: '#e5e5e5', opacity: 1, lineWidth: 7 },
+                stockfinished: { key: 'stockfinished', color: 'white', opacity: 1, lineWidth: 7 },
+                mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
+                altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
+                blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 9 },
+                moveType: { key: 'moveType', color: 'transparant',   opacity: 0.7, lineWidth: 9 },
+                // default
+                green:   { key: 'green', color: 'green',   opacity: 0.7, lineWidth: 9 },
+                red:     { key: 'red',   color: 'red',     opacity: 0.7, lineWidth: 9 },
+                blue:    { key: 'blue',  color: 'blue',    opacity: 0.7, lineWidth: 9 },
+                yellow:  { key: 'yellow',color: 'yellow',  opacity: 0.7, lineWidth: 9 },
+            },
+        },
+    }),
+    chess: new Chess(),
+    selected: undefined,
+    parsedPGN: parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame,
+    delayTime: config.animationTime + 100,
 };
 // Mirror PGN if applicable
 if (config.mirror && !checkCastleRights(state.ankiFen)) {
@@ -88,50 +118,15 @@ if (config.mirror && !checkCastleRights(state.ankiFen)) {
         state.mirrorState = assignMirrorState();
     }
     window.parent.postMessage(state, '*');
-    mirrorPgnTree(parsedPGN.moves, state.mirrorState);
+    mirrorPgnTree(state.parsedPGN.moves, state.mirrorState);
     state.ankiFen = mirrorFen(state.ankiFen, state.mirrorState);
 }
+state.ankiFen = state.parsedPGN.tags.FEN
 
-// --- Global Variables & Initialization ---
 
-const cgDefaults: CgConfig = {
-    fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    premovable: {
-        enabled: true,
-    },
-    movable: {
-        free: false,
-        showDests: config.showDests,
-    },
-    highlight: { check: true },
-    drawable: {
-        enabled: true,
-        brushes: {
-            stockfish: { key: 'stockfish', color: '#e5e5e5', opacity: 1, lineWidth: 7 },
-            stockfinished: { key: 'stockfinished', color: 'white', opacity: 1, lineWidth: 7 },
-            mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
-            altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
-            blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 9 },
-            moveType: { key: 'moveType', color: 'transparant',   opacity: 0.7, lineWidth: 9 },
-            // default
-            green:   { key: 'green', color: 'green',   opacity: 0.7, lineWidth: 9 },
-            red:     { key: 'red',   color: 'red',     opacity: 0.7, lineWidth: 9 },
-            blue:    { key: 'blue',  color: 'blue',    opacity: 0.7, lineWidth: 9 },
-            yellow:  { key: 'yellow',color: 'yellow',  opacity: 0.7, lineWidth: 9 },
-        },
-    },
-};
+// --- Global Chess & Board Initialization ---
 
 const htmlElement: HTMLElement = document.documentElement;
 
-// --- HTML defs ---
-export const btn = {
-    get reset() { return document.querySelector<HTMLButtonElement>("#resetBoard"); },
-    get back() { return document.querySelector<HTMLButtonElement>("#navBackward"); },
-    get forward() { return document.querySelector<HTMLButtonElement>("#navForward"); },
-    get copy() { return document.querySelector<HTMLButtonElement>("#copyFen"); },
-    get stockfish() { return document.querySelector<HTMLButtonElement>("#stockfishToggle"); },
-    get flip() { return document.querySelector<HTMLButtonElement>("#rotateBoard"); },
-};
 
-export { parsedPGN, config, state, htmlElement, delayTime, cgDefaults }
+export { config, state, htmlElement }

@@ -1,4 +1,3 @@
-import { btn } from './config';
 import type { CustomPgnMove, CustomPgnGame } from './types';
 
 interface ParentContext {
@@ -6,6 +5,15 @@ interface ParentContext {
     parentLine: CustomPgnMove[];
     index: number;
 }
+
+const btn = {
+    get reset() { return document.querySelector<HTMLButtonElement>("#resetBoard"); },
+    get back() { return document.querySelector<HTMLButtonElement>("#navBackward"); },
+    get forward() { return document.querySelector<HTMLButtonElement>("#navForward"); },
+    get copy() { return document.querySelector<HTMLButtonElement>("#copyFen"); },
+    get stockfish() { return document.querySelector<HTMLButtonElement>("#stockfishToggle"); },
+    get flip() { return document.querySelector<HTMLButtonElement>("#rotateBoard"); },
+};
 
 export function setButtonsDisabled(keys: (keyof typeof btn)[], isDisabled: boolean): void {
     keys.forEach(key => {

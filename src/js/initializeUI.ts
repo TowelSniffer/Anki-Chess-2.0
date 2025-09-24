@@ -91,11 +91,11 @@ export function initializeUI(): void {
     }
 }
 
-export function positionPromoteOverlay(cgwrap: HTMLDivElement): void {
+export function positionPromoteOverlay(): void {
     const promoteOverlay = document.getElementById('promoteButtons');
-    if (!promoteOverlay || promoteOverlay.classList.contains("hidden") || !cgwrap) return;
+    if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
 
-    const rect = cgwrap.getBoundingClientRect();
+    const rect = state.cgwrap.getBoundingClientRect();
     promoteOverlay.style.top = `${rect.top + 8}px`;
     promoteOverlay.style.left = `${rect.left + 8}px`;
 }
