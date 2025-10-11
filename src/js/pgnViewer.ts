@@ -1,54 +1,29 @@
-import type { Chess } from 'chess.js';
-import type { Api } from 'chessground/api';
-import { toColor, toDests } from './chessFunctions';
-import { drawArrows } from './arrows';
-import type { NagData } from './arrows';
-import { state, config } from './config';
+import type { Move } from 'chess.js';
+import { Chess } from 'chess.js';
+import { state, stateProxy } from './config';
+import type { PgnMove } from '@mliebelt/pgn-types';
 import type { CustomPgnMove } from './types';
-import { setButtonsDisabled } from './toolbox';
-import { startAnalysis } from './handleStockfish';
 import nags from '../nags.json' assert { type: 'json' };
 
 // --- Types ---
-export type PgnPathString = string & { readonly __brand: 'pgnPathString' };
+export type NagKey = keyof typeof nags;
+
 export type PgnPath = ("v" | number)[];
 
-// type filter functions
-function isPgnPathString(str: string): str is PgnPathString {
-    // checks if string contains only numbers, 'v', and commas
-    return /^[0-9,v]+$/.test(str);
-}
-export function createPgnPathString(str: string): PgnPathString | null {
-    if (isPgnPathString(str)) {
-        return str as PgnPathString;
-    }
-    return null;
-}
+// type guard functions
 
-export function isPgnPathArray(arr: (string | number)[]): arr is PgnPath {
-    return arr.every(item => typeof item === 'number' || item === 'v');
+export function isNagKey(key: string): key is NagKey {
+    return key in nags;
 }
-
-export function createPgnPathArray(pathStr: PgnPathString): PgnPath {
-    const pathArray = pathStr.split(',')
-    .filter(segment => segment !== '' && (segment === 'v' || !isNaN(Number(segment))))
-    .map(segment => {
-        const num = Number(segment);
-        return !isNaN(num) ? num : segment;
-    });
-    return pathArray as PgnPath;
-}
-
 
 // --- PGN Rendering ---
 
-function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], altLine?: boolean): string {
+function buildPgnHtml(moves: CustomPgnMove[], altLine?: boolean): string {
     let html = '';
     if (!moves || moves.length === 0) return '';
-    let lineClass
-    if (moves[0].turn === 'b' && path.length <= 1) {
+    if (moves[0].turn === 'b' && moves[0].pgnPath.at(-1) === 0) {
         const moveNumber = moves[0].moveNumber;
-        html += `<span class="move-number">${moveNumber}</span><span class="nullMove">...</span> `;
+        html += `<span class="move-number">${moveNumber}.</span><span class="nullMove">...</span> `;
     }
 
     for (let i = 0; i < moves.length; i++) {
@@ -61,14 +36,18 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
         let nagCheck = '';
         let nagTitle = null;
         if (move.nag) {
-            const foundNagKey = move.nag?.find((key: string) => key in nags);
+            const foundNagKey = move.nag.find(isNagKey);
             if (foundNagKey) {
-                nagCheck = (nags as NagData)[foundNagKey]?.[1] ?? '';
-                nagTitle = (nags as NagData)[foundNagKey]?.[0] ?? '';
+                nagCheck = nags[foundNagKey]?.[1] ?? '';
+                nagTitle = nags[foundNagKey]?.[0] ?? '';
             }
         }
         nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : '';
-        html += ` <span class="move" data-path="${move.pgnPath?.join(',')}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
+        const pathKey = move.pgnPath?.join(',');
+        if (pathKey && move.pgnPath) {
+            state.pgnPathMap.set(pathKey, move);
+            html += ` <span class="move" data-path-key="${pathKey}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
+        }
 
         if (move.commentAfter) {
             if (move.turn === 'w' && !altLine) html += `<span class="nullMove">|...|</span>`;
@@ -82,7 +61,7 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
                 html += `<div class="altLine">`;
             }
             move.variations.forEach(variation => {
-                html += `(${buildPgnHtml(variation, [], true)})`;
+                html += `<span class="altLineBracket">(</span>${buildPgnHtml(variation, true)}<span class="altLineBracket">)</span>`;
             });
             if (!altLine) {
                 html += `</div>`;
@@ -95,128 +74,277 @@ function buildPgnHtml(moves: CustomPgnMove[], path: (string | number)[] = [], al
 
 // --- PGN Navigation ---
 
-export function navigateFullMoveSequenceFromPath(path: string | PgnPath): PgnPath | null {
-    if (!path) return null;
-    let finalPath = path;
-    const pathCheck = path;
-    if (typeof pathCheck === 'string') {
-        const pathString = createPgnPathString(pathCheck);
-        if (pathString) finalPath = createPgnPathArray(pathString)
-    }
-    state.chess.reset();
-    state.chess.load(state.ankiFen);
+export function isEndOfLine(path: PgnPath): boolean {
+    const nextMovePath = navigateNextMove(path);
+    const nextMoveCheck = state.pgnPathMap.get(nextMovePath.join(','))?.pgnPath;
+    return nextMoveCheck ? false : true;
+}
+
+function navigateFullMoveSequenceFromPath(path: PgnPath): PgnPath {
+    const finalPath = path;
+    if (!finalPath.length) return [];
+
     let currentLine = state.parsedPGN.moves;
     let parentMove: CustomPgnMove | null = null;
 
     for (let i = 0; i < finalPath.length; i++) {
         const segment = finalPath[i];
-        if (segment === 'v' && typeof finalPath[++i] === 'number') {
+        if (finalPath[i] === 'v' && typeof finalPath[++i] === 'number') {
             if (parentMove?.variations) {
                 const varIndex = finalPath[i++]; // second ++ to skip branching number
-                console.log(varIndex)
                 if (typeof varIndex !== 'number') {
                     console.error("Invalid PGN path:", finalPath);
-                    return null;
+                    return [];
                 }
+
                 currentLine = parentMove.variations[varIndex];
-                state.expectedLine = currentLine;
+                i--
             }
         } else if (typeof segment === 'number') {
             const movesDownCurrentLine = segment;
             for (let i = 0; i <= movesDownCurrentLine; i++) {
                 const move = currentLine?.[i];
                 if (move?.notation?.notation) {
-                    state.chess.move(move.notation.notation);
                     parentMove = move;
                 } else {
-                    // last move of PGN
-
+                    // at last move of PGN
                 }
             }
         }
     }
-    state.expectedMove = parentMove;
-    if (!parentMove) return null;
+    if (!parentMove) return [];
     return parentMove.pgnPath
 }
 
-export function navigateNextMove(path: string | PgnPath): boolean {
-    let movePath = navigateFullMoveSequenceFromPath(path);
-    if (!movePath) return false;
-    let currentLinePosition = movePath.at(-1);
-    if (typeof currentLinePosition === 'number') {
-        const nextMovePath = movePath.with(-1, ++currentLinePosition);
-        state.pgnPath = nextMovePath;
+export function addMoveToPgn(move: Move): PgnPath {
+
+    const chess = new Chess()
+    chess.load(move.before);
+    const chessState = chess.moveNumber();
+    const currentPath = state.pgnPath;
+    let currentLinePosition = currentPath.at(-1) as number;
+    if (currentLinePosition === null) currentLinePosition = 0;
+
+    let nextMovePath: PgnPath;
+    if (!currentPath.length) {
+        // first move
+        nextMovePath = [0];
+    } else {
+        nextMovePath = currentPath.with(-1, ++currentLinePosition);
     }
-    setButtonsDisabled(['back', 'reset'], false);
-    return true;
+
+    const pgnMove = state.pgnPathMap.get(nextMovePath.join(','));
+
+    const isVariation = pgnMove?.turn === move.color;
+
+    nextMovePath = isVariation
+    ? [...nextMovePath, 'v', pgnMove.variations.length, 0]
+    : nextMovePath;
+    const newCustomPgnMove: CustomPgnMove = {
+        moveNumber: chessState,
+        notation: {
+            notation: move.san,
+            fig: move.piece,
+            strike: move.san.includes("x") ? "x" : null,
+            col: move.to[0],
+            row: move.to[1],
+            promotion: move.promotion ? move.promotion : null
+        },
+        turn: move.color,
+        before: move.before,
+        after: move.after,
+        from: move.from,
+        to: move.to,
+        flags: move.flags,
+        san: move.san,
+        variations: [],
+        nag: [],
+        pgnPath: nextMovePath,
+    };
+    const parentPath = navigateFullMoveSequenceFromPath(nextMovePath);
+    if (nextMovePath.length === 1) {
+        state.parsedPGN.moves.push(newCustomPgnMove);
+    } else if (isVariation) {
+        const parentMove = state.pgnPathMap.get(parentPath.join(','));
+        parentMove!.variations.push([newCustomPgnMove]);
+    } else {
+        const variationLine = parentPath.slice(0, -3);
+        const parentLine = state.pgnPathMap.get(variationLine.join(','));
+        parentLine!.variations[parentPath.at(-2) as number].push(newCustomPgnMove);
+    }
+
+    state.pgnPathMap.set(nextMovePath.join(','), newCustomPgnMove);
+
+    renderNewPgnMove(newCustomPgnMove, nextMovePath);
+    return nextMovePath;
+}
+
+
+function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
+
+    const moveHtml = buildPgnHtml([newMove]);
+    if (newMovePath.length === 1) {
+        const pgnContainer = document.getElementById('pgnComment');
+        pgnContainer?.insertAdjacentHTML('beforeend', moveHtml);
+        return;
+    }
+    const pathIndex = newMovePath.at(-1) as number;
+    const parentPath = newMovePath.slice(0, -3);
+
+
+    // Continuing an existing line or variation
+    if (pathIndex && pathIndex > 0) {
+        // adding move to existing variation
+        const previousMoveEl = document.querySelector(`[data-path-key="${newMovePath.with(-1, pathIndex -1).join(',')}"]`);
+        if (previousMoveEl) previousMoveEl.insertAdjacentHTML('afterend', `${moveHtml}`);
+        return;
+    } else if (pathIndex === 0) {
+        const newVarHtml = `<span class="altLineBracket">(</span>${moveHtml}<span class="altLineBracket">)</span>`;
+        const newVarDivHtml = `<div class="altLine">${newVarHtml}</div>`;
+        // adding new variation
+        const variationMoveEl = document.querySelector(`[data-path-key="${parentPath.join(',')}"]`);
+        if (!variationMoveEl) return;
+        let nextAltLineEl = variationMoveEl.nextElementSibling;
+        while(nextAltLineEl) {
+            if (nextAltLineEl.classList.contains('altLine') ||
+                (nextAltLineEl.localName === 'span' && !nextAltLineEl.classList.contains('nullMove'))) {
+                break;
+            }
+            nextAltLineEl = nextAltLineEl.nextElementSibling;
+        }
+        if (!nextAltLineEl) {
+            // create new variation div
+            variationMoveEl.insertAdjacentHTML('afterend', newVarDivHtml);
+            return;
+        }
+        if (nextAltLineEl.classList.contains('altLine')) {
+            nextAltLineEl.insertAdjacentHTML('beforeend', newVarHtml);
+        } else if (parentPath.length === 1 && nextAltLineEl.classList.contains('move')) {
+            // insert new variation div in middle of main line White
+            let insertVarDivHtml = `<span class="nullMove">|...|</span>`;
+            insertVarDivHtml += newVarDivHtml;
+            insertVarDivHtml += `<span class="move-number">${parentPath.at(-1)}.</span> <span class="nullMove">...</span>`
+            variationMoveEl.insertAdjacentHTML('afterend', insertVarDivHtml);
+        } else if (parentPath.length === 1 && nextAltLineEl.classList.contains('move-number')) {
+            // insert new variation div in middle of main line Black
+            variationMoveEl.insertAdjacentHTML('afterend', newVarDivHtml);
+        } else {
+            // insert new variation within existing variation div
+            variationMoveEl.insertAdjacentHTML('afterend', newVarHtml);
+        }
+    }
+
+}
+
+export function navigateNextMove(path: PgnPath): PgnPath {
+    const pathCheck = path;
+    let movePath: PgnPath;
+    if (!pathCheck.length) { // No moves played
+        movePath = [0];
+    } else {
+        let currentLinePosition = pathCheck.at(-1) as number;
+        movePath = pathCheck.with(-1, ++currentLinePosition);
+
+    }
+    return movePath;
+}
+
+export function navigatePrevMove(path: PgnPath): PgnPath {
+    const movePath = path;
+    if (!movePath.length) return movePath;
+    let currentLinePosition = movePath.at(-1);
+    if (currentLinePosition === 0) {
+        if (movePath.length === 1) {
+            return [];
+        } else {
+            currentLinePosition = movePath.at(-4);
+            // ie 2 in: 4, "v", 0, 2, "v", 1, 0
+            if (currentLinePosition === 0) {
+                // must be first move
+                return [];
+            }
+            if (typeof currentLinePosition === 'number') {
+                const prevMovePath = [...movePath.slice(0, -4), --currentLinePosition];
+                return prevMovePath;
+            }
+        }
+    }
+    if (typeof currentLinePosition === 'number') {
+        const prevMovePath = movePath.with(-1, --currentLinePosition);
+        return prevMovePath;
+    } else {
+        return [];
+    }
 }
 
 export function onPgnMoveClick(event: Event): void {
-    state.chessGroundShapes = [];
-    state.pgnState = true;
-
-    const target = event.target as HTMLElement;
-    if (!target || !target.classList.contains('move')) return;
-
-    document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    target.classList.add('current');
-    if (target.dataset.path) {
-        const pathStr = createPgnPathString(target.dataset.path);
-        if (pathStr) {
-            const pathArray = createPgnPathArray(pathStr);
-            if (pathArray) navigateFullMoveSequenceFromPath(pathArray);
+    const target = event.target;
+    if (!(target instanceof HTMLSpanElement) || !target.classList.contains('move')) return;
+    const pathKey = target.dataset.pathKey;
+    if (pathKey) {
+        const move = state.pgnPathMap.get(pathKey);
+        if (move) {
+            stateProxy.pgnPath = move.pgnPath;
         } else {
             return;
         }
     }
-    const forwardButton = document.querySelector<HTMLButtonElement>("#navForward");
-    if (forwardButton) forwardButton.disabled = !state.expectedMove;
-    state.cg.set({
-        fen: state.chess.fen(),
-           check: state.chess.inCheck(),
-           turnColor: toColor(),
-           movable: {
-               color: toColor(),
-           dests: toDests()
-           },
-    });
-    document.querySelectorAll<HTMLButtonElement>('#navBackward, #resetBoard')
-    .forEach(el => el.disabled = false);
-
-    drawArrows();
-    startAnalysis(config.analysisTime);
 }
 
 // --- PGN Data Augmentation ---
+export function augmentPgnTree(moves: PgnMove[], path: PgnPath = []): void {
+    const chess = new Chess(state.startFen);
+    _augmentAndGenerateFen(moves, path, chess);
+}
 
-export function augmentPgnTree(moves: CustomPgnMove[], path: (string | number)[] = []): void {
+export function _augmentAndGenerateFen(moves: PgnMove[], path: PgnPath = [], chess: Chess): void {
     if (!moves) return;
+
     for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
-        const currentPath = [...path, i];
-        if(isPgnPathArray(currentPath)) move.pgnPath = currentPath;
+        const currentPath: PgnPath = [...path, i];
+
+        const moveResult = chess.move(move.notation.notation);
+        if (!moveResult) {
+            console.error(`Invalid move ${move.notation.notation} at path ${currentPath}`);
+            continue; // Skip invalid moves
+        }
+
+        (move as CustomPgnMove).pgnPath = currentPath;
+        (move as CustomPgnMove).before = moveResult.before;
+        (move as CustomPgnMove).after = moveResult.after;
+        (move as CustomPgnMove).from = moveResult.from;
+        (move as CustomPgnMove).to = moveResult.to;
+        (move as CustomPgnMove).flags = moveResult.flags;
+        (move as CustomPgnMove).san = moveResult.san;
         if (move.variations) {
             move.variations.forEach((variation, varIndex) => {
-                const variationPath = [...currentPath, 'v', varIndex];
-                augmentPgnTree(variation, variationPath);
+                const variationPath: PgnPath = [...currentPath, 'v', varIndex];
+                // undo the parent move
+                chess.undo();
+                _augmentAndGenerateFen(variation, variationPath, chess);
+                // After the variation is done, re-apply the parent move
+                chess.move(move.notation.notation);
             });
         }
     }
+    // after iterating through a line, undo all its moves to backtrack correctly
+    for (let i = 0; i < moves.length; i++) {
+        chess.undo();
+    }
 }
 
-export function highlightCurrentMove(pgnPath: (string | number)[]): void {
+export function highlightCurrentMove(pgnPath: PgnPath): void {
     document.querySelectorAll('#pgnComment .move.current').forEach(el => el.classList.remove('current'));
-    const currentMoveEl = document.querySelector(`[data-path="${pgnPath.join(',')}"]`);
-    if (currentMoveEl) {
-        currentMoveEl.classList.add("current");
+    const pgnMoveEl = document.querySelector(`[data-path-key="${pgnPath.join(',')}"]`);
+    if (pgnMoveEl) {
+        pgnMoveEl.classList.add("current");
     }
 }
 
 // --- Initialization ---
 
 export function initPgnViewer(): void {
-    if (config.boardMode === 'Puzzle') return;
 
     const pgnContainer = document.getElementById('pgnComment');
     if (!pgnContainer) return;
