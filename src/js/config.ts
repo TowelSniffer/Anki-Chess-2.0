@@ -64,17 +64,17 @@ const cgwrap = document.getElementById('board') as HTMLDivElement;
 export const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.10.06"]
+    [Date "2023.02.13"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "rnbq1bnr/ppp1kppp/8/4p3/P3P3/5N2/2pPKPPP/RNB2B1R b - - 0 7"]
+    [FEN "r1b1k1nN/p1pp3p/2n5/1p1B4/3bP1pq/5p2/PPP3PP/RNBQ1K1R w q - 0 11"]
     [SetUp "1"]
 
-    7... cxb1=Q (7... f5! 8. exf5 g6 (8... h6?)) (7... h5) 8. a5 (8. d4?? exd4) (8. Nxe5
-    ) a6?! (8... b6) *
-    `),
+    11. g3 Qh3+ {EV: 93.8%, N: 99.68% of 13.8k} 12. Ke1 {EV: 5.5%, N: 100.00% of
+        31.4k} Qg2 {EV: 95.4%, N: 98.09% of 54.1k} 13. Rf1 {EV: 4.8%, N: 73.44% of 110k}
+        Ba6 {EV: 96.4%, N: 97.11% of 116k} *`),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'true') === 'true',
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',

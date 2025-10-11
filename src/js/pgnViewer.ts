@@ -183,19 +183,23 @@ export function addMoveToPgn(move: Move): PgnPath {
 function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
 
     const moveHtml = buildPgnHtml([newMove]);
+    const pathIndex = newMovePath.at(-1) as number;
+    const previousMoveEl = document.querySelector(`[data-path-key="${newMovePath.with(-1, pathIndex -1).join(',')}"]`);
     if (newMovePath.length === 1) {
         const pgnContainer = document.getElementById('pgnComment');
+        if (newMove.turn === 'b' && previousMoveEl?.nextElementSibling) {
+            // need to add white null move is last move has variation/comment
+            pgnContainer?.insertAdjacentHTML('beforeend', `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`);
+        }
         pgnContainer?.insertAdjacentHTML('beforeend', moveHtml);
         return;
     }
-    const pathIndex = newMovePath.at(-1) as number;
-    const parentPath = newMovePath.slice(0, -3);
 
+    const parentPath = newMovePath.slice(0, -3);
 
     // Continuing an existing line or variation
     if (pathIndex && pathIndex > 0) {
         // adding move to existing variation
-        const previousMoveEl = document.querySelector(`[data-path-key="${newMovePath.with(-1, pathIndex -1).join(',')}"]`);
         if (previousMoveEl) previousMoveEl.insertAdjacentHTML('afterend', `${moveHtml}`);
         return;
     } else if (pathIndex === 0) {
@@ -207,27 +211,35 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
         let nextAltLineEl = variationMoveEl.nextElementSibling;
         while(nextAltLineEl) {
             if (nextAltLineEl.classList.contains('altLine') ||
-                (nextAltLineEl.localName === 'span' && !nextAltLineEl.classList.contains('nullMove'))) {
+                (nextAltLineEl.localName === 'span' &&
+                !nextAltLineEl.classList.contains('nullMove') &&
+                !nextAltLineEl.classList.contains('comment'))
+            ) {
                 break;
             }
             nextAltLineEl = nextAltLineEl.nextElementSibling;
+            console.log(nextAltLineEl)
         }
-        if (!nextAltLineEl) {
-            // create new variation div
-            variationMoveEl.insertAdjacentHTML('afterend', newVarDivHtml);
-            return;
-        }
-        if (nextAltLineEl.classList.contains('altLine')) {
+        if (nextAltLineEl?.classList.contains('altLine')) {
             nextAltLineEl.insertAdjacentHTML('beforeend', newVarHtml);
-        } else if (parentPath.length === 1 && nextAltLineEl.classList.contains('move')) {
+        } else if (
+            parentPath.length === 1 &&
+            ( !nextAltLineEl || nextAltLineEl.classList.contains('move') )
+        ) {
             // insert new variation div in middle of main line White
-            let insertVarDivHtml = `<span class="nullMove">|...|</span>`;
+            let insertVarDivHtml = ``;
+            if (nextAltLineEl || (!nextAltLineEl && newMove.turn === 'w')) insertVarDivHtml += `<span class="nullMove">|...|</span>`;
             insertVarDivHtml += newVarDivHtml;
-            insertVarDivHtml += `<span class="move-number">${parentPath.at(-1)}.</span> <span class="nullMove">...</span>`
+            if (nextAltLineEl) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`
             variationMoveEl.insertAdjacentHTML('afterend', insertVarDivHtml);
-        } else if (parentPath.length === 1 && nextAltLineEl.classList.contains('move-number')) {
+        } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains('move-number')) {
             // insert new variation div in middle of main line Black
-            variationMoveEl.insertAdjacentHTML('afterend', newVarDivHtml);
+            if (variationMoveEl.nextElementSibling?.classList.contains('nullMove')) {
+                // null move can be made when moves have comments but no variations
+                variationMoveEl.nextElementSibling.insertAdjacentHTML('afterend', newVarDivHtml);
+            } else{
+                variationMoveEl.insertAdjacentHTML('afterend', newVarDivHtml);
+            }
         } else {
             // insert new variation within existing variation div
             variationMoveEl.insertAdjacentHTML('afterend', newVarHtml);
