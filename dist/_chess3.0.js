@@ -13988,15 +13988,18 @@ ${contextLines.join("\n")}`;
   }
   function renderNewPgnMove(newMove, newMovePath) {
     const moveHtml = buildPgnHtml([newMove]);
+    const pathIndex = newMovePath.at(-1);
+    const previousMoveEl = document.querySelector(`[data-path-key="${newMovePath.with(-1, pathIndex - 1).join(",")}"]`);
     if (newMovePath.length === 1) {
       const pgnContainer = document.getElementById("pgnComment");
+      if (newMove.turn === "b" && previousMoveEl?.nextElementSibling) {
+        pgnContainer?.insertAdjacentHTML("beforeend", `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">...</span>`);
+      }
       pgnContainer?.insertAdjacentHTML("beforeend", moveHtml);
       return;
     }
-    const pathIndex = newMovePath.at(-1);
     const parentPath = newMovePath.slice(0, -3);
     if (pathIndex && pathIndex > 0) {
-      const previousMoveEl = document.querySelector(`[data-path-key="${newMovePath.with(-1, pathIndex - 1).join(",")}"]`);
       if (previousMoveEl) previousMoveEl.insertAdjacentHTML("afterend", `${moveHtml}`);
       return;
     } else if (pathIndex === 0) {
@@ -14006,24 +14009,26 @@ ${contextLines.join("\n")}`;
       if (!variationMoveEl) return;
       let nextAltLineEl = variationMoveEl.nextElementSibling;
       while (nextAltLineEl) {
-        if (nextAltLineEl.classList.contains("altLine") || nextAltLineEl.localName === "span" && !nextAltLineEl.classList.contains("nullMove")) {
+        if (nextAltLineEl.classList.contains("altLine") || nextAltLineEl.localName === "span" && !nextAltLineEl.classList.contains("nullMove") && !nextAltLineEl.classList.contains("comment")) {
           break;
         }
         nextAltLineEl = nextAltLineEl.nextElementSibling;
+        console.log(nextAltLineEl);
       }
-      if (!nextAltLineEl) {
-        variationMoveEl.insertAdjacentHTML("afterend", newVarDivHtml);
-        return;
-      }
-      if (nextAltLineEl.classList.contains("altLine")) {
+      if (nextAltLineEl?.classList.contains("altLine")) {
         nextAltLineEl.insertAdjacentHTML("beforeend", newVarHtml);
-      } else if (parentPath.length === 1 && nextAltLineEl.classList.contains("move")) {
-        let insertVarDivHtml = `<span class="nullMove">|...|</span>`;
+      } else if (parentPath.length === 1 && (!nextAltLineEl || nextAltLineEl.classList.contains("move"))) {
+        let insertVarDivHtml = ``;
+        if (nextAltLineEl || !nextAltLineEl && newMove.turn === "w") insertVarDivHtml += `<span class="nullMove">|...|</span>`;
         insertVarDivHtml += newVarDivHtml;
-        insertVarDivHtml += `<span class="move-number">${parentPath.at(-1)}.</span> <span class="nullMove">...</span>`;
+        if (nextAltLineEl) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">...</span>`;
         variationMoveEl.insertAdjacentHTML("afterend", insertVarDivHtml);
-      } else if (parentPath.length === 1 && nextAltLineEl.classList.contains("move-number")) {
-        variationMoveEl.insertAdjacentHTML("afterend", newVarDivHtml);
+      } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains("move-number")) {
+        if (variationMoveEl.nextElementSibling?.classList.contains("nullMove")) {
+          variationMoveEl.nextElementSibling.insertAdjacentHTML("afterend", newVarDivHtml);
+        } else {
+          variationMoveEl.insertAdjacentHTML("afterend", newVarDivHtml);
+        }
       } else {
         variationMoveEl.insertAdjacentHTML("afterend", newVarHtml);
       }
@@ -15139,17 +15144,17 @@ ${contextLines.join("\n")}`;
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.10.06"]
+    [Date "2023.02.13"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "rnbq1bnr/ppp1kppp/8/4p3/P3P3/5N2/2pPKPPP/RNB2B1R b - - 0 7"]
+    [FEN "r1b1k1nN/p1pp3p/2n5/1p1B4/3bP1pq/5p2/PPP3PP/RNBQ1K1R w q - 0 11"]
     [SetUp "1"]
 
-    7... cxb1=Q (7... f5! 8. exf5 g6 (8... h6?)) (7... h5) 8. a5 (8. d4?? exd4) (8. Nxe5
-    ) a6?! (8... b6) *
-    `),
+    11. g3 Qh3+ {EV: 93.8%, N: 99.68% of 13.8k} 12. Ke1 {EV: 5.5%, N: 100.00% of
+        31.4k} Qg2 {EV: 95.4%, N: 98.09% of 54.1k} 13. Rf1 {EV: 4.8%, N: 73.44% of 110k}
+        Ba6 {EV: 96.4%, N: 97.11% of 116k} *`),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "true") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
