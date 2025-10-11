@@ -1,12 +1,21 @@
-import type { Chess } from 'chess.js';
-import type { Api } from 'chessground/api';
+import type { Move } from 'chess.js';
+import type { CustomPgnMove } from './types';
+import type { DrawShape } from 'chessground/draw';
+import type { PgnPath } from './pgnViewer';
 import { state, config } from './config';
-import { getLegalMoveBySan } from './chessFunctions';
-import { findMoveContext } from './toolbox';
+import { navigateNextMove, isNagKey } from './pgnViewer';
 import nags from '../nags.json' assert { type: 'json' };
+
+export type CustomShape = Omit<DrawShape, 'brush'> & {
+    san?: string;
+    brush?: CustomShapeBrushes;
+};
+
 export interface NagData {
-    [nagKey: string]: string[]; // [description, symbol/sub array of symbols]
+    [nagKey: string]: string[];
 }
+
+const blunderNags = ['$2', '$4', '$6', '$9'];
 
 // --- enum/array defs for clearer function instructions ---
 // Chesground Shapes
@@ -14,27 +23,40 @@ export enum ShapeFilter {
     All = "All",
     Stockfish = "Stockfish",
     PGN = "PGN",
-    Nag = "Nag",
     Drawn = "Drawn",
 }
 
-export const shapePriority = ["mainLine", "altLine", "blunderLine"];
+export const shapePriority: (CustomShapeBrushes)[] = ["mainLine", "altLine", "blunderLine", "stockfish", "stockfinished"];
+
+type CustomShapeBrushes =
+    "stockfish" |
+    "stockfinished" |
+    "mainLine" |
+    "altLine" |
+    "blunderLine" |
+    "userDrawn";
+const customShapeBrushes: CustomShapeBrushes[] = [
+    "stockfish",
+    "stockfinished",
+    "mainLine",
+    "altLine",
+    "blunderLine"
+]
+const shapeArray: Record<ShapeFilter, CustomShapeBrushes[]> = {
+    [ShapeFilter.All]: customShapeBrushes,
+    [ShapeFilter.Stockfish]: ["stockfish", "stockfinished"],
+    [ShapeFilter.PGN]: ["mainLine", "altLine", "blunderLine"],
+    [ShapeFilter.Drawn]: ["userDrawn"],
+};
 
 export function filterShapes(filterKey: ShapeFilter): void {
-    const shapeArray: Record<ShapeFilter, string[]> = {
-        [ShapeFilter.All]: ["stockfish", "stockfinished", "mainLine", "altLine", "blunderLine", "moveType"],
-        [ShapeFilter.Stockfish]: ["stockfish", "stockfinished"],
-        [ShapeFilter.PGN]: ["mainLine", "altLine", "blunderLine", "moveType"],
-        [ShapeFilter.Nag]: ["moveType"],
-        [ShapeFilter.Drawn]: ["userDrawn"],
-    };
-    let brushesToRemove = shapeArray[filterKey];
 
+    let brushesToRemove = shapeArray[filterKey];
     const shouldFilterDrawn = brushesToRemove.includes('userDrawn');
     if (shouldFilterDrawn) brushesToRemove = shapeArray[ShapeFilter.All];
 
     const filteredShapes = state.chessGroundShapes.filter(shape => {
-        const shouldRemove = brushesToRemove.includes(shape.brush!);
+        const shouldRemove = !shape.brush || brushesToRemove.includes(shape.brush);
         if (shouldFilterDrawn) {
             return shouldRemove
         } else {
@@ -46,96 +68,63 @@ export function filterShapes(filterKey: ShapeFilter): void {
     state.chessGroundShapes = filteredShapes;
 }
 
-export function drawArrows(redraw: boolean = false): void {
-    filterShapes(ShapeFilter.Stockfish)
-    if (redraw) {
+export function pushShapes(move: CustomPgnMove | Move, brush: CustomShapeBrushes): void {
+    let targetImage: string | undefined;
+    if ('nag' in move && move.nag) {
+        const foundNagKey = move.nag.find(isNagKey);
+        if (foundNagKey && nags[foundNagKey][2]) {
+            targetImage += `<image href="${nags[foundNagKey][2]}" width="50%" height="50%" />`
+        }
+    }
+
+    state.chessGroundShapes.push({
+        orig: move.from,
+        dest: move.to,
+        brush: brush,
+        san: move.san,
+        customSvg: targetImage ? { html: targetImage, center: "dest" } : undefined
+    });
+}
+
+export function drawArrows(pgnPath: PgnPath): void {
+    filterShapes(ShapeFilter.Drawn);
+    if (config.boardMode === 'Puzzle' && config.disableArrows) return;
+    let nextMovePath = navigateNextMove(state.pgnPath);
+    if (config.boardMode === 'Viewer') {
+        nextMovePath = navigateNextMove(pgnPath);
+    } else if (state.playerColour === state.cg.state.turnColor) {
         state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
         return;
     }
-    if (!state.pgnState) {
-        state.chessGroundShapes = [];
-        return
-    }
     filterShapes(ShapeFilter.All);
+    const mainLine = state.pgnPathMap.get(nextMovePath.join(','));
+    if (!mainLine) return;
+    if (mainLine.variations.length) {
+        mainLine.variations.forEach(variation => {
+            const varMove = variation[0]
+            const isBlunder = blunderNags.some(blunder => varMove.nag?.includes(blunder));
+            pushShapes(varMove, isBlunder ? "blunderLine" : "altLine")
+        });
+    }
+    const isBlunder = blunderNags.some(blunder => mainLine.nag?.includes(blunder));
+    pushShapes(mainLine, isBlunder ? "blunderLine" : "mainLine");
 
-    if (config.boardMode === 'Puzzle' && config.disableArrows) return;
+    if (config.boardMode === 'Puzzle') { // remove played arrow
+        const parentMove = state.pgnPathMap.get(pgnPath.join(','));
+        const puzzleMoveShapes = state.chessGroundShapes
+        .filter(shape => shape.san !== parentMove?.san)
 
-    let expectedMove = state.expectedMove;
-    let expectedLine = state.expectedLine;
-    let count = state.count;
-    let puzzleMove;
-
-
-    if (config.boardMode === 'Puzzle') {
-        count--;
-        expectedMove = expectedLine[count];
-        if (count === 0 && expectedLine) {
-            const isVariation = findMoveContext(state.parsedPGN, expectedMove);
-            if (isVariation?.parent) {
-                expectedLine = isVariation.parentLine;
-                count = isVariation.index;
-                expectedMove = isVariation.parent;
-            }
-        };
-        if (expectedMove) {
-            puzzleMove = state.chess.undo();
-            if (puzzleMove) puzzleMove = puzzleMove.san;
-        }
+        state.chessGroundShapes
+        .filter(shape => shape.san === parentMove?.san)
+        .forEach(filteredShape => {
+            if (filteredShape.customSvg) puzzleMoveShapes.push({
+                orig: filteredShape.orig,
+                dest: filteredShape.dest,
+                customSvg: filteredShape.customSvg
+            });
+        });
+        state.chessGroundShapes = puzzleMoveShapes ?? [];
     }
 
-    // --- Arrow Display ---
-    if (!expectedMove || typeof expectedMove === 'string') {
-        state.cg.set({ drawable: { shapes: state.chessGroundShapes } }); // Clear any existing arrows
-        return;
-    }
-    // --- Arrow Drawing Logic ---
-    if (expectedMove?.variations) {
-        // Draw blue arrows for all variations
-        for (const variation of expectedMove.variations) {
-            const alternateMove = getLegalMoveBySan(variation[0].notation.notation);
-            const isBlunder = variation[0].nag?.some(nags => state.blunderNags.includes(nags));
-            let brushType: string | null = 'altLine';
-            if (isBlunder) brushType = 'blunderLine';
-            if (isBlunder && config.boardMode === 'Puzzle') brushType = null;
-            if (alternateMove && (alternateMove.san !== puzzleMove) && brushType) {
-                state.chessGroundShapes.push({
-                    orig: alternateMove.from,
-                    dest: alternateMove.to,
-                    brush: brushType,
-                    san: alternateMove.san
-                });
-            } else if (variation[0].nag && alternateMove && (alternateMove.san === puzzleMove)) {
-                const foundNag = variation[0].nag?.find(key => key in nags);
-                if (foundNag && (nags as unknown as NagData)[foundNag] && (nags as unknown as NagData)[foundNag][2]) {
-                    state.chessGroundShapes.push({
-                        orig: alternateMove.to, // The square to anchor the image to
-                        brush: 'moveType',
-                        customSvg: {
-                            html: `<image href="${(nags as unknown as NagData)[foundNag][2]}" width="40" height="40" />'`,
-                        }
-                    })
-                }
-            }
-        }
-    }
-    // Draw the main line's move as a green arrow, ensuring it's on top
-    const mainMoveAttempt = getLegalMoveBySan(expectedMove.notation.notation);
-    if (mainMoveAttempt && (mainMoveAttempt.san !== puzzleMove)) {
-        state.chessGroundShapes.push({ orig: mainMoveAttempt.from, dest: mainMoveAttempt.to, brush: 'mainLine', san: mainMoveAttempt.san });
-    } else if (expectedMove.nag && mainMoveAttempt && (mainMoveAttempt.san === puzzleMove)) {
-        const foundNag = expectedMove.nag?.find(key => key in nags);
-        if (foundNag && (nags as unknown as NagData)[foundNag] && (nags as unknown as NagData)[foundNag][2]) {
-            state.chessGroundShapes.push({
-                orig: mainMoveAttempt.to, // The square to anchor the image to
-                brush: 'moveType',
-                customSvg: {
-                    html: `<image href="${(nags as unknown as NagData)[foundNag][2]}" width="40" height="40" />'`,
-                }
-            })
-        }
-    }
-    if (config.boardMode === 'Puzzle' && puzzleMove) {
-        state.chess.move(puzzleMove);
-    }
     state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
 }

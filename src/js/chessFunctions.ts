@@ -1,16 +1,32 @@
 import { Chess, SQUARES } from 'chess.js';
-import type { Move, PieceSymbol, Square } from 'chess.js';
-import { config, state, htmlElement } from './config';
-import type { CustomPgnMove, PromotionPieces } from './types';
-import { setButtonsDisabled } from './toolbox';
-import { drawArrows, filterShapes, ShapeFilter, shapePriority } from './arrows';
-import type { NagData } from './arrows';
-import { highlightCurrentMove } from './pgnViewer';
-import { extendPuzzleTime, puzzleTimeout, startPuzzleTimeout } from './timer';
-import { playSound, changeAudio } from './audio';
-import { startAnalysis } from './handleStockfish';
+import type { Move, Square } from 'chess.js';
+import type { Color, Key } from 'chessground/types';
+import { config, state, stateProxy } from './config';
+import { addMoveToPgn, navigateNextMove } from './pgnViewer';
+import { drawArrows, filterShapes, shapePriority, ShapeFilter } from './arrows';
+import type { PgnPath } from './pgnViewer';
+import type { CustomPgnMove } from './types';
+import { puzzleIncrement, startPuzzleTimeout, extendPuzzleTime } from './timer';
+import { playSound } from './audio';
+// import { startAnalysis } from './handleStockfish';
 import { positionPromoteOverlay } from './initializeUI';
-import type { Color } from 'chessground/types';
+
+// --- Types ---
+type Promotions = 'q' | 'r' | 'b' | 'n';
+
+type MoveInput = string | { from: Square; to: Square; promotion?: Promotions };
+
+// --- type guarding ---
+
+// chess.js Square doesn't include a0
+function isSquare(key: Key): key is Square {
+  return key !== 'a0';
+}
+
+// checks if an object is Move
+function isMoveObject(move: object): move is Move {
+  return typeof move === 'object' && move !== null;
+}
 
 // --- Utility ---
 
@@ -18,47 +34,83 @@ function toggleClass(querySelector: string, className: string): void {
   document.querySelectorAll('.' + querySelector).forEach(el => el.classList.toggle(className));
 }
 
-// --- PGN State & Puzzle Logic ---
-
-export function isEndOfLine(): boolean {
-  const isEnd = !state.expectedMove?.notation;
-  if (isEnd) setButtonsDisabled(['forward'], true);
-  return isEnd
+// return ts randomOrientation
+function randomOrientation(): Color {
+  const orientations = ['black', 'white'] as const;
+  const orientation = orientations[Math.floor(Math.random() * 2)];
+  return orientation;
 }
 
-function handlePuzzleComplete(): void {
-  state.puzzleComplete = true;
-  positionPromoteOverlay();
+// --- PGN State & Puzzle Logic ---
+
+function setBoard(FEN: string): void {
+  state.cg.set({
+    fen: FEN,
+    turnColor: toColor(),
+    movable: {
+      color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
+      dests: toDests()
+    },
+    drawable: {
+      shapes: state.chessGroundShapes
+    }
+  });
+}
+
+export function handlePuzzleComplete(): void {
   state.cgwrap.classList.remove('timerMode');
-  htmlElement.style.setProperty('--border-color', state.solvedColour);
+  if (puzzleIncrement) clearInterval(puzzleIncrement);
+  state.puzzleTime = -1;
+  document.documentElement.style.setProperty('--border-color', state.solvedColour);
   state.cg.set({
     viewOnly: true
   });
 }
 
-function isMoveLegal(orig: Square, dest: Square): boolean {
-  const allMoves: Move[] = state.chess.moves({ verbose: true });
-  return allMoves.some(move => move.from === orig && move.to === dest);
+export function areMovesEqual(move1: Move | CustomPgnMove | null, move2: Move | CustomPgnMove | null): boolean {
+  // Check for null or undefined moves
+  if (!move1 || !move2) {
+    return false;
+  }
+
+  return move1.before === move2.before &&
+  move1.after === move2.after
 }
 
-function getLegalMoveFromTo(orig: Square, dest: Square): Move | null {
-  const tempChess = new Chess(state.chess.fen());
-  return tempChess.move({ from: orig, to: dest });
+function isMoveLegal(moveInput: MoveInput): boolean {
+  const legalMoves = state.chess.moves({ verbose: true });
+
+  if (typeof moveInput === 'string') {
+    // lan of san
+    return legalMoves.some(move => move.san === moveInput || move.lan === moveInput);
+  } else {
+    // chess.js move object
+    return legalMoves.some(move =>
+    move.from === moveInput.from &&
+    move.to === moveInput.to &&
+    (move.promotion || 'q') === (moveInput.promotion || 'q') // Default to queen for comparison
+    );
+  }
 }
 
-export function getLegalMoveBySan(moveSan: string): Move | null {
-  const tempChess = new Chess(state.chess.fen());
-  return tempChess.move(moveSan);
-}
-
-function getLegalPromotion(orig: Square, dest: Square, promotion: PromotionPieces): Move | null {
+function getLegalPromotion(orig: Square, dest: Square, promotion: string): Move | null {
   const tempChess = new Chess(state.chess.fen());
   return tempChess.move({ from: orig, to: dest, promotion: promotion });
 }
 
+export function getLegalMove(moveInput: MoveInput): Move | null {
+  if (!isMoveLegal(moveInput)) {
+    return null;
+  }
+
+  // Since we know the move is legal, we can safely make it.
+  const tempChess = new Chess(state.chess.fen());
+  return tempChess.move(moveInput);
+}
+
 function isPromotion(orig: Square, dest: Square): boolean {
   // check if 'orig' is a valid square name for ts
-  if ((SQUARES as readonly string[]).includes(orig)) {
+  if (SQUARES.includes(orig)) {
     const piece = state.chess.get(orig);
     // It's not a promotion if there's no piece or it's not a pawn
     if (!piece || piece.type !== 'p') {
@@ -76,25 +128,30 @@ function isPromotion(orig: Square, dest: Square): boolean {
 }
 
 function isPuzzleFailed(isFailed: boolean): void {
+  const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
   if (isFailed) { // manually fail
     state.errorTrack = true;
     state.solvedColour = "#b31010";
     if (config.handicapAdvance) {
       handlePuzzleComplete();
-      setTimeout(() => { window.parent.postMessage(state, '*'); }, state.delayTime);
+      setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
     } else {
-      window.parent.postMessage(state, '*');
+      window.parent.postMessage(stateCopy, '*');
     }
   } else { // correct
     state.errorTrack = state.errorTrack ? true : "correct";
-    if (config.timer && !config.timerScore && state.errorTrack === "correct" && puzzleTimeout) {
-      state.solvedColour = "#2CBFA7";
+    if (
+      config.timer &&
+      !config.timerScore &&
+      state.errorTrack === "correct" &&
+      puzzleIncrement
+    ) {
       state.errorTrack = "correctTime";
     }
     if (config.autoAdvance) {
-      setTimeout(() => { window.parent.postMessage(state, '*'); }, state.delayTime);
+      setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
     } else {
-      window.parent.postMessage(state, '*');
+      window.parent.postMessage(stateCopy, '*');
     }
     handlePuzzleComplete();
   }
@@ -106,8 +163,9 @@ function isPuzzleFailed(isFailed: boolean): void {
 export function toDests(): Map<Square, Square[]> {
   const dests = new Map<Square, Square[]>();
   SQUARES.forEach(s => {
-    const ms = state.chess.moves({ square: s, verbose: true }) as Move[];
-    if (ms.length) dests.set(s, ms.map(m => m.to));
+    const ms = state.chess.moves({ square: s, verbose: true });
+    const moveObjects = ms.filter(isMoveObject);
+    if (moveObjects.length) dests.set(s, moveObjects.map(m => m.to));
   });
     return dests;
 }
@@ -116,217 +174,104 @@ export function toColor(): Color {
   return state.chess.turn() === 'w' ? 'white' : 'black';
 }
 
-function getOpponentColor(): 'w' | 'b' {
-  return state.chess.turn() === 'w' ? 'b' : 'w';
-}
-
-export function getLastMove(): Move | false {
+export function getLastMove(): Move | null {
   const allMoves = state.chess.history({ verbose: true });
-  const lastMove = allMoves.length > 0 ? allMoves[allMoves.length - 1] : false;
+  const lastMove = allMoves.length > 0 ? allMoves[allMoves.length - 1] : null;
   return lastMove
 }
 
 // --- Board Interaction & Move Handling ---
 
-
-
-export function updateBoard(move: Move, backwardPromote: boolean = false): void {
-  // animate Board chanes
-  function cancelDefaultAnimation(): void {
-    state.cg.set({ animation: { enabled: false} })
-    state.cg.set({
-      fen: state.chess.fen(),
-    });
-    state.cg.set({ animation: { enabled: true} })
-  }
-  if (!state.pgnState) {
-    state.chessGroundShapes = [];
-  }
-  state.lastMove = getLastMove();
-  if (state.pgnState && state.lastMove && state.lastMove?.san === state.expectedMove?.notation.notation && !isEndOfLine()) {
-    state.pgnPath = state.expectedMove!.pgnPath!;
-    window.parent.postMessage(state, '*');
-  }
-  if (move.flags.includes("p") && state.promoteAnimate && !backwardPromote) {
-    const tempChess = new Chess(state.chess.fen());
-    tempChess.load(state.chess.fen());
-    tempChess.remove(move.from);
-    tempChess.put({ type: 'p', color: getOpponentColor() }, move.to);
-    state.cg.set({
-      fen: tempChess.fen(),
-    });
-    setTimeout(() => {
-      cancelDefaultAnimation()
-      drawArrows();
-    }, 200)
-  } else if (move.flags.includes("p") && backwardPromote) { // nav back promote
-    const FENpos = state.chess.fen(); // used to track when udoing captured with promoted piece
-    const tempChess = new Chess(state.chess.fen()); // new chess instance to no break old one
-    tempChess.load(FENpos);
-    tempChess.remove(move.to);
-    tempChess.remove(move.from);
-    tempChess.put({ type: 'p', color: state.chess.turn() }, move.to);
-    state.cg.set({ animation: { enabled: false} })
-    state.cg.set({
-      fen: tempChess.fen(),
-    });
-    tempChess.remove(move.to);
-    tempChess.put({ type: 'p', color: state.chess.turn() }, move.from);
-    state.cg.set({ animation: { enabled: true} })
-    state.cg.set({
-      fen: FENpos
-    });
-    state.promoteAnimate = false;
-  } else if (move.flags.includes("e") && state.promoteAnimate) {
-    cancelDefaultAnimation()
-    state.cg.set({
-      fen: state.chess.fen(),
-    });
-    state.promoteAnimate = false;
+function handleMoveAttempt(delay: number, orig: Square, dest: Square, moveSan: string | null = null): void {
+  let moveCheck;
+  if (moveSan){
+    moveCheck = getLegalMove(moveSan)
   } else {
-    state.cg.set({ fen: state.chess.fen() });
+    if (isPromotion(orig, dest)) {
+      promotePopup(orig, dest);
+      return;
+    }
+    moveCheck = getLegalMove({ from: orig, to: dest })
+  };
+  if (!moveCheck) return;
+  let nextMovePath: PgnPath = [];
+  let foundVar = false;
+  let currentLinePosition = state.pgnPath.at(-1) as number;
+  if (!state.pgnPath.length) {
+    nextMovePath = [0];
+  } else {
+    nextMovePath = state.pgnPath.with(-1, ++currentLinePosition);
   }
-  state.cg.set({
-    check: state.chess.inCheck(),
-         turnColor: toColor(),
-         movable: {
-           dests: toDests(),
-         color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
-         },
-         lastMove: [move.from, move.to]
-  });
-  changeAudio(move);
-  setButtonsDisabled(['back', 'reset'], false);
-  if (config.boardMode === "Viewer" && state.pgnState && !isEndOfLine()) highlightCurrentMove(state.expectedMove!.pgnPath!);
-  startAnalysis(config.analysisTime);
-}
-
-function makeMove(move: string): void{
-  const moveResult = state.chess.move(move);
-  if (moveResult) {
-    updateBoard(moveResult);
-  }
-}
-
-export function handleMoveAttempt(delay: number, orig: Square, dest: Square, moveSan: string | null = null): void {
-  if (!isMoveLegal(orig, dest)) return;
-  if (!moveSan && isPromotion(orig, dest)) {
-    state.debounceCheck = false;
-    promotePopup(orig, dest);
-  } else if (moveSan) {
-    const moveCheck = getLegalMoveBySan(moveSan);
-    if (moveCheck) {
-      state.debounceCheck = moveCheck;
-      if (isPromotion(moveCheck.from, moveCheck.to) && state.promoteAnimate !== null) {
-        state.debounceCheck = true;
-        setTimeout(() => {
-          state.promoteAnimate = true;
-          if (state.debounceCheck === true) checkMove(moveCheck, delay);
-        }, 0);
-      } else {
-        if (moveCheck.flags.includes("e")) state.promoteAnimate = false;
-        state.cg.set({
-          fen: state.chess.fen(),
-        });
-        checkMove(moveCheck, delay);
+  const pathKey = nextMovePath.join(',');
+  const pathMove = state.pgnPathMap.get(pathKey);
+  if (pathMove && areMovesEqual(moveCheck, pathMove)) {
+    foundVar = true;
+  } else if (pathMove?.variations) {
+    for (const variation of pathMove.variations) {
+      if (variation[0].notation.notation === moveCheck.san ) {
+        if (areMovesEqual(moveCheck, variation[0])) {
+          nextMovePath = variation[0].pgnPath;
+          foundVar = true;
+          break;
+        }
       }
+    };
+  }
+  if (!foundVar) {
+    if (config.boardMode === 'Viewer') {
+      // Add move to state.parsedPGN
+      nextMovePath = addMoveToPgn(moveCheck);
+      stateProxy.pgnPath = nextMovePath;
+    } else {
+      handleWrongMove(moveCheck);
     }
   } else {
-    const moveCheck = getLegalMoveFromTo(orig, dest);
-    if (moveCheck) {
-      if (typeof state.debounceCheck !== 'boolean' && state.debounceCheck.san === moveCheck.san) return;
-      checkMove(moveCheck, delay);
+    stateProxy.pgnPath = nextMovePath;
+    if (config.boardMode === 'Puzzle') {
+      extendPuzzleTime(config.increment);
+      playAiMove(state.delayTime);
     }
+
   }
 }
 
-function checkMove(move: Move, delay: number): void {
-  if (!move || !move.san) return;
-  let foundVariation = false;
-  if (state.expectedMove?.notation.notation === move.san && state.pgnState) {
-    foundVariation = true;
-  } else if (state.expectedMove?.variations && config.acceptVariations && state.pgnState) {
-    for (let i = 0; i < state.expectedMove.variations.length; i++) {
-      if (move.san === state.expectedMove.variations[i][0].notation.notation) {
-        state.count = 0;
-        state.expectedLine = state.expectedMove.variations[i];
-        state.expectedMove = state.expectedLine[state.count];
-        foundVariation = true;
-        break;
-      }
-    }
-  }
-  if (foundVariation) {
-    const isBlunder = state.expectedMove?.nag?.some(nags => state.blunderNags.includes(nags));
-    if (isBlunder) isPuzzleFailed(true);
-    extendPuzzleTime(config.increment);
-    makeMove(move.san);
-    state.count++;
-    state.expectedMove = state.expectedLine[state.count];
-    if (state.expectedMove && delay) {
-      playAiMove(delay);
-    } else if (delay) {
-      isPuzzleFailed(false)
-    }
-    drawArrows();
-  } else if (delay) {
-    handleWrongMove(move);
-  } else if (!delay) {
-    // no delay passed when we don't want Ai response
-    handlePgnState(false);
-    makeMove(move.san);
-  }
-}
-let aiTimeout : number | null = null;
 function playAiMove(delay: number): void {
-  aiTimeout = setTimeout(() => {
-    if (isEndOfLine() || !state.expectedMove) return;
-    state.errorCount = 0;
-    if (state.expectedMove.variations && state.expectedMove.variations.length > 0 && config.acceptVariations) {
-      const moveVar = Math.floor(Math.random() * (state.expectedMove!.variations.length + 1));
-      if (moveVar !== state.expectedMove!.variations.length) {
-        state.count = 0;
-        state.expectedLine = state.expectedMove!.variations[moveVar];
-        state.expectedMove = state.expectedLine[0];
-      }
+  setTimeout(() => {
+    const nextMovePath: (PgnPath)[] = [];
+    const nextMovePathCheck = navigateNextMove(state.pgnPath);
+    const nextMove = state.pgnPathMap.get(nextMovePathCheck.join(','));
+    if (nextMove && nextMove.turn === state.opponentColour[0]) {
+      nextMovePath.push(nextMovePathCheck);
+      nextMove.variations.forEach(variation => {
+        nextMovePath.push(variation[0].pgnPath)
+      });
+      const randomIndex = Math.floor(Math.random() * nextMovePath.length);
+      stateProxy.pgnPath = nextMovePath[randomIndex];
+      state.cg.playPremove();
     }
-    makeMove(state.expectedMove.notation.notation);
-    state.count++;
-    state.expectedMove = state.expectedLine[state.count];
-
-    if (isEndOfLine()) isPuzzleFailed(false);
-    drawArrows(true);
-    aiTimeout = null;
   }, delay);
 }
+
 function playUserCorrectMove(delay: number): void {
   setTimeout(() => {
-    state.debounceCheck = false;
     state.cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
     // Make the move without the AI's variation-selection logic
-    if (isEndOfLine()) return;
-    makeMove(state.expectedMove!.notation.notation);
-    state.count++;
-    state.expectedMove = state.expectedLine[state.count];
-    if (isEndOfLine()) {
-      handlePuzzleComplete();
-      setTimeout(() => { window.parent.postMessage(state, '*'); }, state.delayTime);
-    }
+    const nextMovePath = navigateNextMove(state.pgnPath);
+    stateProxy.pgnPath = nextMovePath;
   }, delay);
 }
 
 function handleWrongMove(move: Move): void {
-  state.chessGroundShapes = [];
   state.errorCount++;
   state.cg.move(move.from, move.to)
   playSound("Error");
+  setBoard(state.chess.fen());
   // A puzzle is "failed" for scoring purposes if strict mode is on, or the handicap is exceeded.
   const isFailed = config.strictScoring || state.errorCount > config.handicap;
   if (isFailed) isPuzzleFailed(true);
 
-  updateBoard(move);
-  // The puzzle interaction stops and the solution is shown only when the handicap is exceeded.
   if (state.errorCount > config.handicap) {
+    state.errorCount = 0;
     state.cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
     playUserCorrectMove(state.delayTime); // Show the correct user move
     playAiMove(state.delayTime * 2); // Then play the AI's response
@@ -335,33 +280,25 @@ function handleWrongMove(move: Move): void {
 
 function promotePopup(orig: Square, dest: Square): void {
   const cancelPopup = function(){
-    state.promoteAnimate = false;
-    state.cg.set({
-      fen: state.chess.fen(),
-           turnColor: toColor(),
-           movable: {
-             color: toColor(),
-           dests: toDests()
-           }
-    });
+    state.cg.set({ fen: state.chess.fen() });
     toggleClass('showHide', 'hidden');
-    drawArrows();
+    setBoard(state.chess.fen())
   }
   const promoteButtons = document.querySelectorAll<HTMLButtonElement>("#promoteButtons > button");
   const overlay = document.querySelector<HTMLDivElement>("#overlay");
   promoteButtons.forEach(button => {
     button.onclick = (event: MouseEvent) => {
       // 'event.currentTarget' is the element the listener is attached to
-      const clickedButton = event.currentTarget as HTMLButtonElement;
+      const clickedButton = event.currentTarget;
       event.stopPropagation();
-      state.promoteChoice = clickedButton.value as PromotionPieces;
-      state.promoteAnimate = null;
-      const move = getLegalPromotion(orig, dest, state.promoteChoice);
-
-      if (move && config.boardMode === 'Puzzle') {
-        handleMoveAttempt(state.delayTime, move.from, move.to, move.san);
-      } else if (move && config.boardMode === 'Viewer') {
-        handleMoveAttempt(0, move.from, move.to, move.san);
+      if (clickedButton instanceof HTMLButtonElement){
+        const promoteChoice = clickedButton.value;
+        const move = getLegalPromotion(orig, dest, promoteChoice);
+        if (move && config.boardMode === 'Puzzle') {
+          handleMoveAttempt(state.delayTime, move.from, move.to, move.san);
+        } else if (move && config.boardMode === 'Viewer') {
+          handleMoveAttempt(0, move.from, move.to, move.san);
+        }
       }
       cancelPopup();
     };
@@ -376,89 +313,83 @@ function promotePopup(orig: Square, dest: Square): void {
   positionPromoteOverlay();
 }
 
-// --- Navigation ---
-
-export function handlePgnState(pgnState: boolean): void {
-  state.pgnState = pgnState;
-  setButtonsDisabled(['forward'], !pgnState);
-}
-
 // --- Initialization ---
 export function loadChessgroundBoard(): void {
   // Load beggining state for pgn
-  state.count = 0;
-  state.expectedLine = state.parsedPGN.moves;
-  state.expectedMove = state.expectedLine[0];
-  state.chess.load(state.ankiFen);
+  let afterDebounce = false;
+  state.chess.load(state.startFen);
   state.cg.set({
-    fen: state.ankiFen,
-    orientation: config.randomOrientation ? ['black', 'white'][Math.floor(Math.random() * 2)] as Color : state.playerColour as Color,
-         turnColor: toColor(),
-         events: {
-           change: () => {
-             // called after the situation changes on the board
-           },
-           move: (orig, dest, capturedPiece) => {
-             // will call on any user move.
-           },
-           select: (key) => {
-             console.log(state.cg.state.selected);
-             filterShapes(ShapeFilter.Drawn);
-             state.cg.set({drawable: {shapes: state.chessGroundShapes}});
-              if (aiTimeout) return;
-              const arrowMove = state.chessGroundShapes
-              .filter(shape => shape.dest === key && shape.brush && shapePriority.includes(shape.brush))
-              .sort((a, b) => shapePriority.indexOf(a.brush!) - shapePriority.indexOf(b.brush!));
-              if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
-                // If the user clicks on a Stockfish-generated move, they are deviating from the PGN.
-                if (arrowMove[0].brush === 'stockfish' || arrowMove[0].brush === 'stockfinished') {
-                  handlePgnState(false);
-                }
-                if (arrowMove[0].dest) {
-                  handleMoveAttempt(0, (arrowMove[0].orig as Square), (arrowMove[0].dest as Square), arrowMove[0].san);
-                }
-              } else { // No arrow was clicked, check if there's only one legal play to this square.
-                const allMoves = state.chess.moves({ verbose: true });
-                const movesToSquare = allMoves.filter(move => move.to === key);
-                if (movesToSquare.length === 1) {
-                  // If only one piece can move to this square, play that move.
-                  if (config.boardMode === 'Puzzle') {
-                    handleMoveAttempt(state.delayTime, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
-                  } else if (config.boardMode === 'Viewer') {
-                    handleMoveAttempt(0, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
-                  }
-                }
-              }
-            },
-         },
-         movable: {
-            color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
-            dests: toDests(),
-            events: {
-              after: (orig, dest) => {
-                if (config.boardMode === 'Puzzle') {
-                  handleMoveAttempt(state.delayTime, (orig as Square), (dest as Square));
-                } else if (config.boardMode === 'Viewer') {
-                  handleMoveAttempt(0, (orig as Square), (dest as Square));
-                }
-              },
+    fen: state.startFen,
+    orientation: config.randomOrientation ? randomOrientation() : state.playerColour,
+    turnColor: toColor(),
+    events: {
+      select: (key) => {
+        filterShapes(ShapeFilter.Drawn)
+        state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+        if (!isSquare(key)) return;
+        const orig = state.cg.state.selected;
+        const dest = key;
+        if (orig && isSquare(orig)) {
+          const moveCheck = getLegalMove({ from: orig, to: dest})
+          if (!moveCheck || moveCheck.promotion) return;
+          // check if move should be handled by after: event
+          const delay = config.boardMode === 'Viewer' ? 0 : state.delayTime;
+
+          handleMoveAttempt(delay, orig, dest);
+          afterDebounce = true;
+          return
+
+        }
+        const arrowMove = state.chessGroundShapes
+        .filter(shape => shape.dest === dest && shape.brush && shapePriority.includes(shape.brush))
+        .sort((a, b) => shapePriority.indexOf(a.brush!) - shapePriority.indexOf(b.brush!));
+        if (arrowMove.length > 0 && config.boardMode === 'Viewer') {
+          if (arrowMove[0].dest && isSquare(arrowMove[0].orig) && isSquare(arrowMove[0].dest)) {
+            handleMoveAttempt(0, arrowMove[0].orig, arrowMove[0].dest, arrowMove[0].san);
+          }
+        } else if (config.singleClickMove) { // No arrow was clicked, check if there's only one legal play to this square.
+          const allMoves = state.chess.moves({ verbose: true });
+          const movesToSquare = allMoves.filter(move => move.to === dest);
+          if (movesToSquare.length === 1) {
+            // If only one piece can move to this square, play that move.
+            if (config.boardMode === 'Puzzle') {
+              handleMoveAttempt(state.delayTime, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
+            } else if (config.boardMode === 'Viewer') {
+              handleMoveAttempt(0, movesToSquare[0].from, movesToSquare[0].to, movesToSquare[0].san);
             }
-         },
-         check: state.chess.inCheck(),
-  });
-  if (config.boardMode === 'Viewer') {
-    drawArrows();
-    state.cg.set({
-      premovable: {
-        enabled: false
+          }
+        }
+      },
+    },
+    movable: {
+      color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
+      dests: toDests(),
+      events: {
+
+        after: (orig, dest) => {
+          if (!isSquare(orig) || !isSquare(dest)) return;
+          if (afterDebounce) {
+            setBoard(state.chess.fen());
+            afterDebounce = false;
+            return;
+          }
+          const delay = config.boardMode === 'Viewer' ? 0 : state.delayTime;
+          handleMoveAttempt(delay, orig, dest);
+          afterDebounce = false;
+        },
       }
-    });
-    setButtonsDisabled(['back', 'reset'], true);
-  } else if (!state.chess.isGameOver() && config.flipBoard) {
+    },
+    premovable: {
+      enabled: config.boardMode === 'Viewer' ? false : true,
+    },
+    check: state.chess.inCheck(),
+  });
+  if (!state.chess.isGameOver() && config.flipBoard) {
     playAiMove(state.delayTime);
   }
 
   positionPromoteOverlay();
-  startPuzzleTimeout(config.timer);
+  drawArrows([]);
+  startPuzzleTimeout();
   return;
 }

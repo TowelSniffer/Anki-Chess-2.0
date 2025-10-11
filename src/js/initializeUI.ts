@@ -1,19 +1,15 @@
-import { state, config, htmlElement } from './config';
+import { state, config } from './config';
 import type { Color } from 'chessground/types';
 
-/**
- * Safely finds and returns an HTML element, throwing an error if not found.
- * @param selector The CSS selector for the element.
- * @param type The element type constructor (e.g., HTMLDivElement).
- * @returns The found element.
- */
-function getElement<T extends HTMLElement>(selector: string, type: { new(): T }): T {
+function getElement<T extends HTMLElement>(selector: string, _type: { new(): T }): T {
     const element = document.querySelector<T>(selector);
     if (!element) {
         throw new Error(`Critical UI element not found: ${selector}`);
     }
     return element;
 }
+
+const htmlElement: HTMLElement = document.documentElement;
 
 export function initializeUI(): void {
 
@@ -27,9 +23,6 @@ export function initializeUI(): void {
     htmlElement.style.setProperty('--background-color', config.background);
 
     const commentBox = document.getElementById('commentBox');
-    if (commentBox) {
-        commentBox.style.fontSize = `${config.fontSize}px`;
-    }
 
     const textField = document.getElementById('textField');
     if (textField) {
@@ -54,7 +47,7 @@ export function initializeUI(): void {
     }
 
     // Determine board orientation
-    const fenParts = state.ankiFen.split(' ');
+    const fenParts = state.startFen.split(' ');
     let boardRotation: Color = (fenParts.length > 1 && fenParts[1] === 'w') ? 'white' : 'black';
 
     if (config.flipBoard) {
@@ -81,7 +74,7 @@ export function initializeUI(): void {
 
     // Update border color based on error tracking in Viewer mode
     if (config.boardMode === 'Viewer') {
-        if (state.errorTrack === 'true') {
+        if (state.errorTrack === true) {
             htmlElement.style.setProperty('--border-color', "#b31010");
         } else if (state.errorTrack === 'correctTime') {
             htmlElement.style.setProperty('--border-color', "#2CBFA7");

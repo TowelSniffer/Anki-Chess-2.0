@@ -62,13 +62,21 @@ function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
   };
 
   const notationMap = notationMaps[mirrorState];
-  const transform = (val: string | undefined): string | undefined => {
-    return val?.split('').map(char => notationMap[char] || char).join('');
+
+  // --- overloads for TypeGuarding ---
+  // Overload 1
+  function transform(val: string): string;
+  // Overload 2
+  function transform(val: undefined): undefined;
+
+  function transform(val: string | undefined): string | undefined {
+    if (val === undefined) return undefined;
+    return val.split('').map(char => notationMap[char] || char).join('');
   }
 
-  move.notation.disc = transform(move.notation.disc);
-  move.notation.col = transform(move.notation.col) as string;
-  move.notation.row = transform(move.notation.row) as string;
+  move.notation.disc = move.notation.disc ?? transform(move.notation.disc);
+  move.notation.col = transform(move.notation.col);
+  move.notation.row = move.notation.row ?? transform(move.notation.row);
   move.notation.notation = transform(move.notation.notation) ?? move.notation.notation;
 }
 
@@ -102,7 +110,7 @@ export function mirrorPgnTree(moves: CustomPgnMove[], mirrorState: MirrorState, 
           move.moveNumber!--;
           lastValidMoveNumber = move.moveNumber!;
         } else {
-          move.moveNumber = null;
+          delete move.moveNumber;
         }
       } else {
         move.turn = 'w';
@@ -125,7 +133,7 @@ export function mirrorPgnTree(moves: CustomPgnMove[], mirrorState: MirrorState, 
     }
       } else {
         move.turn = 'b';
-        move.moveNumber = null;
+        delete move.moveNumber;
       }
     });
   }

@@ -1,20 +1,45 @@
-import type { Chessground } from 'chessground';
-import type { Color, Key } from 'chessground/types';
+import type { Color } from 'chessground/types';
 import type { Api } from 'chessground/api';
-import type { Move, Chess } from 'chess.js';
-import type { DrawShape } from 'chessground/draw';
-import type { PgnMove, PgnGame, Tags } from '@mliebelt/pgn-types';
+import type { Chess, Square } from 'chess.js';
+import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
 import type { MirrorState } from './mirror';
-import type { PgnPathString, PgnPath } from './pgnViewer';
+import type { PgnPath } from './pgnViewer';
+import type { CustomShape } from './arrows';
+
+// --- types ---
+
+// config types
+export type BoardModes = "Viewer" | "Puzzle";
+
+export type ErrorTrack = boolean | "correct" | "correctTime";
+
+// custom Pgnviewer types
+export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber' | 'drawOffer' | 'commentDiag'> & {
+    before: string;
+    after: string;
+    from: Square;
+    to: Square;
+    flags: string;
+    san: string;
+    drawOffer?: boolean;
+    moveNumber?: number;
+    commentDiag?: GameComment;
+    pgnPath: PgnPath;
+    variations: CustomPgnMove[][];
+};
+
+export type CustomPgnGame = Omit<PgnGame, 'moves'> & {
+    moves: CustomPgnMove[];
+};
 
 // --- interface ---
 export interface Config {
     pgn: string;
-    fontSize: number;
     ankiText: string | null;
     frontText: boolean;
     muteAudio: boolean;
     showDests: boolean;
+    singleClickMove: boolean;
     handicap: number;
     strictScoring: boolean;
     acceptVariations: boolean;
@@ -35,54 +60,26 @@ export interface Config {
 }
 
 export interface State {
-    ankiFen: string;
+    startFen: string;
     boardRotation: Color;
     playerColour: Color;
     opponentColour: Color;
-    solvedColour: string;
-    errorTrack: "correct" | "correctTime" | booleanValues;
-    count: number;
-    pgnState: boolean;
+    solvedColour: "limegreen" | "#b31010" | "#2CBFA7";
+    errorTrack: ErrorTrack;
     chessGroundShapes: CustomShape[];
-    expectedLine: CustomPgnMove[];
-    expectedMove: CustomPgnMove | null;
-    lastMove: Move | false;
     errorCount: number;
-    promoteChoice: PromotionPieces;
-    promoteAnimate: boolean | null;
-    debounceCheck: boolean | Move;
+    puzzleTime: number;
     navTimeout: number | null;
     isStockfishBusy: boolean;
-    analysisFen: string | booleanValues;
+    stockfishRestart: boolean; // Error guard for stockfish
     analysisToggledOn: boolean;
-    pgnPath: PgnPathString | PgnPath;
+    pgnPath: PgnPath;
+    pgnPathMap: Map<string, CustomPgnMove>;
+    lastMove: CustomPgnMove | null;
     mirrorState: MirrorState | null;
-    blunderNags: string[];
-    puzzleComplete: string | boolean;
     cgwrap: HTMLDivElement;
     cg: Api;
     chess: Chess;
-    selectTrack?: Key;
     parsedPGN: CustomPgnGame;
     delayTime: number;
-}
-
-// --- types ---
-
-export type PromotionPieces = 'q' | 'r' | 'b' | 'n';
-
-export type booleanValues = "true" | "false" | boolean | null;
-
-export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber'> & {
-    moveNumber: number | null;
-    pgnPath: PgnPath;
-    variations: CustomPgnMove[][];
-};
-export type CustomPgnGame = Omit<PgnGame, 'moves' | 'tags'> & {
-    tags: Tags;
-    moves: CustomPgnMove[];
-};
-
-export interface CustomShape extends DrawShape {
-    san?: string
 }

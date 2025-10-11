@@ -1,10 +1,10 @@
-import type { CustomPgnMove, CustomPgnGame } from './types';
+import { state, stateProxy, config } from './config';
+import { onPgnMoveClick, navigateNextMove, navigatePrevMove } from './pgnViewer';
+import { positionPromoteOverlay } from './initializeUI';
+import { toggleStockfishAnalysis, handleStockfishCrash } from './handleStockfish';
+import { playSound } from './audio';
 
-interface ParentContext {
-    parent: CustomPgnMove;
-    parentLine: CustomPgnMove[];
-    index: number;
-}
+const htmlElement: HTMLElement = document.documentElement;
 
 const btn = {
     get reset() { return document.querySelector<HTMLButtonElement>("#resetBoard"); },
@@ -24,60 +24,194 @@ export function setButtonsDisabled(keys: (keyof typeof btn)[], isDisabled: boole
     });
 }
 
-// Finds the parent of a target move's line, and the line that contains that parent.
-export function findMoveContext(game: CustomPgnGame, targetMove: CustomPgnMove): ParentContext | null {
-    // Find the line where target move lives.
-    const moveLocation = findMoveInGame(game, targetMove);
-    if (!moveLocation) return null;
+function navBackward(): void {
+    if (config.boardMode === 'Puzzle') return;
+    const navCheck = navigatePrevMove(state.pgnPath);
+    if (!navCheck.length){
+        resetBoard();
+    } else {
+        stateProxy.pgnPath = navCheck;
+    }
+}
 
-    // Find the parent of that line.
-    const lineParentResult = findParentMoveOfLine(game, moveLocation.line);
-    if (!lineParentResult) return null; // No parent (it's the main line).
+function navForward(): void {
+    if (config.boardMode === 'Puzzle') return;
+    const navCheck = navigateNextMove(state.pgnPath);
+    stateProxy.pgnPath = navCheck;
+}
 
-    const parentMove = lineParentResult.parent;
+function resetBoard(): void {
+    if (config.boardMode === 'Puzzle') return;
+    stateProxy.pgnPath = [];
+}
 
-    // Find the line and index that contains the parentMove.
-    const parentMoveLocation = findMoveInGame(game, parentMove);
-    if (!parentMoveLocation) return null; // Should not happen in a valid tree.
+function rotateBoard(): void {
+    state.boardRotation = state.boardRotation === "white" ? "black" : "white";
 
-    return {
-        parent: parentMove,
-        parentLine: parentMoveLocation.line,
-        index: parentMoveLocation.index
+    const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
+    const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
+    htmlElement.style.setProperty("--coord-white", coordBlack);
+    htmlElement.style.setProperty("--coord-black", coordWhite);
+
+    state.cg.set({ orientation: state.boardRotation });
+
+    const flipButton = document.querySelector<HTMLElement>(".flipBoardIcon");
+    if (flipButton && flipButton.style.transform.includes("90deg")) {
+        flipButton.style.transform = "rotate(270deg)";
+    } else if (flipButton) {
+        flipButton.style.transform = "rotate(90deg)";
+    }
+}
+
+function copyFen(): boolean {
+    const textarea = document.createElement("textarea");
+    textarea.value = state.chess.fen();
+    // Make the textarea invisible and off-screen
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        playSound("computer-mouse-click")
+        return true;
+    } catch (err) {
+        playSound("Error")
+        console.error('Failed to copy text using execCommand:', err);
+        return false;
+    } finally {
+        document.body.removeChild(textarea);
+    }
+}
+
+export function setupEventListeners(): void {
+
+    // --- PGN viewer ---
+    const pgnContainer = document.getElementById('pgnComment');
+    if (pgnContainer) {
+        pgnContainer.addEventListener('click', (event) => {
+            onPgnMoveClick(event);
+        });
+    }
+
+    const commentBox = document.getElementById('commentBox');
+    if (!commentBox) return;
+
+    commentBox.addEventListener('mouseover', (event: MouseEvent) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+
+        const moveElement = target.closest<HTMLElement>('.move');
+        if (!moveElement) return;
+
+        const tooltip = moveElement.querySelector<HTMLElement>('.nagTooltip');
+        if (!tooltip || !tooltip.textContent?.trim()) return;
+
+        const itemRect = moveElement.getBoundingClientRect();
+        const tooltipWidth = tooltip.offsetWidth;
+        const commentBoxRect = commentBox.getBoundingClientRect();
+
+        let tooltipLeft = itemRect.left + (itemRect.width / 2) - (tooltipWidth / 2);
+        if (tooltipLeft < commentBoxRect.left) {
+            tooltipLeft = commentBoxRect.left;
+        } else if (tooltipLeft + tooltipWidth > commentBoxRect.right) {
+            tooltipLeft = commentBoxRect.right - tooltipWidth;
+        }
+
+        tooltip.style.left = `${tooltipLeft}px`;
+        tooltip.style.top = `${itemRect.top - tooltip.offsetHeight - 3}px`;
+        tooltip.style.display = 'block';
+        tooltip.style.visibility = 'visible';
+    });
+
+    commentBox.addEventListener('mouseout', (event: MouseEvent) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const moveElement = target.closest('.move');
+        if (!moveElement) return;
+
+        const tooltip = moveElement.querySelector<HTMLElement>('.nagTooltip');
+        if (tooltip) {
+            tooltip.style.visibility = 'hidden';
+        }
+    });
+
+    // --- Button Actions ---
+    const actions: Record<string, () => void> = {
+        'resetBoard': resetBoard,
+        'navBackward': navBackward,
+        'navForward': navForward,
+        'rotateBoard': rotateBoard,
+        'copyFen': copyFen,
+        'stockfishToggle': () => toggleStockfishAnalysis()
     };
-}
 
-function findMoveInGame(game: CustomPgnGame, targetMove: CustomPgnMove): { line: CustomPgnMove[]; index: number } | null {
-    function search(line: CustomPgnMove[]): { line: CustomPgnMove[]; index: number } | null {
-        const index = line.indexOf(targetMove);
-        if (index !== -1) return { line, index };
-        for (const move of line) {
-            if (move.variations) {
-                for (const variationLine of move.variations) {
-                    const result = search(variationLine);
-                    if (result) return result;
-                }
-            }
+    document.querySelector<HTMLDivElement>('#buttons-container')?.addEventListener('click', (event: MouseEvent) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const button = target.closest('button');
+        if (!button) return;
+        const handler = actions[button.id];
+        if (handler) {
+            handler();
         }
-        return null;
-    }
-    return search(game.moves);
-}
+    });
 
-function findParentMoveOfLine(game: CustomPgnGame, targetLine: CustomPgnMove[]): { parent: CustomPgnMove; variationIndex: number } | null {
-    function search(moves: CustomPgnMove[]): { parent: CustomPgnMove; variationIndex: number } | null {
-        for (const move of moves) {
-            if (move.variations) {
-                const index = move.variations.indexOf(targetLine);
-                if (index !== -1) return { parent: move, variationIndex: index };
-                for (const variationLine of move.variations) {
-                    const result = search(variationLine);
-                    if (result) return result;
-                }
-            }
+    // --- Board navigation ---
+    state.cgwrap.addEventListener('wheel', (event: WheelEvent) => {
+        event.preventDefault();
+        if (event.deltaY < 0) {
+            navBackward();
+        } else if (event.deltaY > 0) {
+            navForward();
         }
-        return null;
+    });
+
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+        switch (event.key) {
+            case 'ArrowLeft':
+                navBackward();
+                break;
+            case 'ArrowRight':
+                navForward();
+                break;
+            case 'ArrowDown':
+                resetBoard();
+                break;
+        }
+    });
+
+    // --- Error and Resize Handlers ---
+    window.addEventListener('error', (event: ErrorEvent) => {
+        const message = event.message || '';
+        const filename = event.filename || '';
+        const isDetailedStockfishCrash = message.includes('abort') && filename.includes('_stockfish.js');
+        const isGenericCrossOriginError = message === 'Script error.';
+
+    if (isDetailedStockfishCrash || isGenericCrossOriginError) {
+        event.preventDefault();
+        console.warn("Caught a fatal Stockfish crash via global error handler.");
+        if (isGenericCrossOriginError) {
+            console.log("generic message:", message);
+        } else {
+            console.log(`Crash details: Message: "${message}", Filename: "${filename}"`);
+        }
+        handleStockfishCrash("window.onerror");
     }
-    return search(game.moves);
+    });
+    // mirrorPgnTree
+    let isUpdateScheduled = false;
+    const handleReposition = (): void => {
+        if (isUpdateScheduled) return;
+        isUpdateScheduled = true;
+        requestAnimationFrame(() => {
+            positionPromoteOverlay();
+            isUpdateScheduled = false;
+        });
+    };
+    const resizeObserver = new ResizeObserver(handleReposition);
+    resizeObserver.observe(state.cgwrap);
+    window.addEventListener('resize', handleReposition);
+    document.addEventListener('scroll', handleReposition, true);
 }
 

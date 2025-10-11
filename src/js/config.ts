@@ -1,10 +1,56 @@
-import { Chess } from 'chess.js';
+import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
+import type { PgnGame, PgnMove } from '@mliebelt/pgn-types';
 import { Chessground } from 'chessground';
-import type { Api } from 'chessground/api';
-import { Config, State, booleanValues, CustomPgnGame } from './types';
-import { assignMirrorState, mirrorPgnTree, mirrorFen, checkCastleRights, MirrorState } from './mirror';
-import type { PgnPathString, PgnPath } from './pgnViewer';
+import type { Config, State, ErrorTrack, CustomPgnGame, BoardModes } from './types';
+import { toColor, toDests, handlePuzzleComplete } from './chessFunctions';
+import type { MirrorState } from './mirror';
+import { augmentPgnTree, highlightCurrentMove, isEndOfLine } from './pgnViewer';
+import { drawArrows } from './arrows';
+import { moveAudio } from './audio';
+import { setButtonsDisabled } from './toolbox';
+import { startAnalysis } from './handleStockfish';
+import type { PgnPath } from './pgnViewer';
+
+// --- Type Guards ---
+// boardMode
+function isBoardMode(mode: string): mode is BoardModes {
+    const boardModes = ['Viewer', 'Puzzle'];
+    const modeCheck = boardModes.includes(mode);
+    return modeCheck;
+}
+// errorTrack
+function isSolvedMode(solvedState: boolean | string): solvedState is ErrorTrack {
+    if (typeof solvedState === 'boolean') return solvedState;
+    const solvedModes = ['correct', 'correctTime'];
+    const modeCheck = solvedModes.includes(solvedState);
+    return modeCheck;
+}
+// mirrorState
+function isMirrorState(mirrorState: string): mirrorState is MirrorState {
+    const mirrorStates = ["original", "original_mirror", "invert", "invert_mirror"];
+    const mirrorStateCheck = mirrorStates.includes(mirrorState);
+    return mirrorStateCheck;
+}
+// PgnGame
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isPgnGame(pgn: any): pgn is PgnGame {
+    return pgn && Array.isArray(pgn.moves);
+}
+
+function initializePgnData(): CustomPgnGame {
+    const parsed = state.parsedPGN;
+
+    if (!isPgnGame(parsed)) {
+        console.error("Invalid PGN data provided.");
+        return { moves: [] };
+    }
+    if (parsed.tags) state.startFen = parsed.tags.FEN
+    state.cg.set({ fen: state.startFen });
+    augmentPgnTree(parsed.moves as PgnMove[]);
+
+    return parsed as unknown as CustomPgnGame;
+}
 
 // --- URL Parameter Helper ---
 const urlParams = new URLSearchParams(window.location.search);
@@ -15,73 +61,69 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
 }
 const cgwrap = document.getElementById('board') as HTMLDivElement;
 // --- Configuration ---
-const config: Config = {
+export const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.09.22"]
+    [Date "2025.10.06"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "r1b1kbnr/p1pp1N1p/2n5/1p1B4/4P1pq/5p2/PPPP2PP/RNBQ1K1R w kq - 0 9"]
+    [FEN "rnbq1bnr/ppp1kppp/8/4p3/P3P3/5N2/2pPKPPP/RNB2B1R b - - 0 7"]
     [SetUp "1"]
 
-    9. Qe1 fxg2+! (9... Qd8 10. h4 gxh3 11. g3) 10. Ke2 gxh1=Q (10... g1=N+ 11. Kd1)
-    (10... gxh1=B 11. Qxh1 Qf2+) *
+    7... cxb1=Q (7... f5! 8. exf5 g6 (8... h6?)) (7... h5) 8. a5 (8. d4?? exd4) (8. Nxe5
+    ) a6?! (8... b6) *
     `),
-    fontSize: parseInt(getUrlParam("fontSize", '16') as string, 10),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'true') === 'true',
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
     showDests: getUrlParam("showDests", 'true') === 'true',
-    handicap: parseInt(getUrlParam("handicap", '1') as string, 10),
+    singleClickMove: getUrlParam("singleClickMove", 'true') === 'true',
+    handicap: parseInt(getUrlParam("handicap", '1'), 10),
     strictScoring: getUrlParam("strictScoring", 'false') === 'true',
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
-    flipBoard: getUrlParam("flip", 'true') === 'true',
-    boardMode: getUrlParam("boardMode", 'Viewer') as 'Viewer' | 'Puzzle',
-    background: getUrlParam("background", "#2C2C2C") as string,
+    flipBoard: getUrlParam("flip", 'false') === 'true',
+    boardMode: 'Puzzle',
+    background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
     handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
-    timer: parseInt(getUrlParam("timer", '4') as string, 10) * 1000,
-    increment: parseInt(getUrlParam("increment", '2') as string, 10) * 1000,
+    timer: parseInt(getUrlParam("timer", '4'), 10) * 1000,
+    increment: parseInt(getUrlParam("increment", '2'), 10) * 1000,
     timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
     timerScore: getUrlParam("timerScore", 'false') === 'true',
-    analysisTime: parseInt(getUrlParam("analysisTime", '4') as string, 10) * 1000,
-    animationTime: parseInt(getUrlParam("animationTime", '200') as string, 10),
+    analysisTime: parseInt(getUrlParam("analysisTime", '4'), 10) * 1000,
+    animationTime: parseInt(getUrlParam("animationTime", '200'), 10),
 };
+(function setBoardMode() {
+    const mode = getUrlParam("boardMode", "Viewer");
+    if (mode && isBoardMode(mode)) config.boardMode = mode;
+})();
 
 // --- Global State ---
-const state: State = {
-    ankiFen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+export const state: State = {
+    startFen: DEFAULT_POSITION,
     boardRotation: "black",
     playerColour: "white",
     opponentColour: "black",
-    solvedColour: "limegreen",
-    errorTrack: getUrlParam("errorTrack", null) as "correct" | "correctTime" | booleanValues,
-    count: 0,
-    pgnState: true,
+    solvedColour: config.timer ? "#2CBFA7" : "limegreen",
+    errorTrack: false,
     chessGroundShapes: [],
-    expectedLine: [],
-    expectedMove: null,
-    lastMove: false,
     errorCount: 0,
-    promoteChoice: 'q',
-    promoteAnimate: true,
-    debounceCheck: false,
+    puzzleTime: config.timer,
     navTimeout: null,
     isStockfishBusy: false,
-    analysisFen: null,
+    stockfishRestart: false,
     analysisToggledOn: false,
-    pgnPath: getUrlParam("pgnPath", "0") as PgnPathString,
-    mirrorState: getUrlParam("mirrorState", null) as MirrorState | null,
-    blunderNags: ['$2', '$4', '$6', '$9'],
-    puzzleComplete: false,
+    pgnPath: [],
+    pgnPathMap: new Map(),
+    lastMove: null,
+    mirrorState: null,
     cgwrap: cgwrap,
     cg: Chessground(cgwrap, {
-        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         premovable: {
             enabled: true,
         },
@@ -89,7 +131,10 @@ const state: State = {
             free: false,
             showDests: config.showDests,
         },
-        highlight: { check: true },
+        highlight: {
+            check: true,
+            lastMove: true
+        },
         drawable: {
             enabled: true,
             brushes: {
@@ -97,8 +142,7 @@ const state: State = {
                 stockfinished: { key: 'stockfinished', color: 'white', opacity: 1, lineWidth: 7 },
                 mainLine: { key: 'mainLine', color: '#66AA66', opacity: 1, lineWidth: 9 },
                 altLine: { key: 'altLine', color: '#66AAAA', opacity: 1, lineWidth: 9 },
-                blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 9 },
-                moveType: { key: 'moveType', color: 'transparant',   opacity: 0.7, lineWidth: 9 },
+                blunderLine: { key: 'blunderLine', color: '#b31010', opacity: 1, lineWidth: 7 },
                 // default
                 green:   { key: 'green', color: 'green',   opacity: 0.7, lineWidth: 9 },
                 red:     { key: 'red',   color: 'red',     opacity: 0.7, lineWidth: 9 },
@@ -108,16 +152,120 @@ const state: State = {
         },
     }),
     chess: new Chess(),
-    selectTrack: undefined,
     parsedPGN: parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame,
     delayTime: config.animationTime + 100,
 };
+initializePgnData();
 
-state.ankiFen = state.parsedPGN.tags.FEN
+// -- state proxy to handle board updates --
 
-// --- Global Chess & Board Initialization ---
+const stateHandler = {
+    set(target: State, property: keyof State, value: PgnPath, receiver: State) {
+        const pathKey = value.join(',');
+        const pathMove = state.pgnPathMap.get(pathKey);
 
-const htmlElement: HTMLElement = document.documentElement;
+        if (property === 'pgnPath' &&
+            (pathMove || !value.length) &&
+            !(!state.pgnPath.join(',').length && !value.length)
+        ) {
+            const lastMove = state.lastMove;
+
+            if (!value.length) {
+                setButtonsDisabled(['back', 'reset'], true);
+                state.chess.reset();
+                state.chess.load(state.startFen);
+                state.lastMove = null;
+            } else {
+                setButtonsDisabled(['back', 'reset'], false);
+            }
+            if (pathMove) {
+                state.chess.load(pathMove.before)
+                state.chess.move(pathMove.notation.notation)
+                moveAudio(pathMove);
+                state.cg.set({ lastMove: [pathMove.from, pathMove.to] })
+                state.lastMove = pathMove;
+            }
+            // --- Promotion animations ---
+            if (pathMove?.notation.promotion &&
+                (lastMove?.after === pathMove?.before ||
+                state.startFen === pathMove?.before && !lastMove)
+            ) {
+                // nav forward promote
+                const tempChess = new Chess(pathMove.before);
+                tempChess.remove(pathMove.to);
+                state.cg.set({ fen: tempChess.fen() });
+                state.cg.move( pathMove.from, pathMove.to );
+                setTimeout(() => {
+                    state.cg.set({ animation: { enabled: false} })
+                    state.cg.set({
+                        fen: state.chess.fen(),
+                    });
+                    state.cg.set({ animation: { enabled: true} })
+                    state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+                }, config.animationTime)
+            } else if (lastMove?.notation.promotion &&
+                (lastMove?.before === pathMove?.after ||
+                state.startFen === lastMove?.before && !pathMove)
+            ) {
+                // nav backwards promote
+                const tempChess = new Chess(lastMove.after);
+                tempChess.remove(lastMove.to);
+                tempChess.put({ type: 'p', color: lastMove.turn }, lastMove.to);
+
+                state.cg.set({ animation: { enabled: false} })
+                state.cg.set({ fen: tempChess.fen() });
+                state.cg.set({ animation: { enabled: true} })
+
+                state.cg.set({
+                    fen: state.chess.fen(),
+                });
+            } else {
+                // animate board change
+                state.cg.set({ fen: state.chess.fen() });
+            }
+            highlightCurrentMove(value);
+            state.cg.set({
+                check: state.chess.inCheck(),
+                turnColor: toColor(),
+                movable: {
+                    color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
+                    dests: toDests()
+                },
+            });
+            drawArrows(value);
+            const endOfLineCheck = isEndOfLine(value);
+            if (endOfLineCheck) {
+                if (config.boardMode === 'Puzzle') {
+                    handlePuzzleComplete();
+                } else {
+                    state.chessGroundShapes = [];
+                }
+            }
+            setButtonsDisabled(['forward'], endOfLineCheck);
+            startAnalysis(config.analysisTime);
+
+            return Reflect.set(target, property, value, receiver);
+        }
+        return Reflect.set(target, property, state.pgnPath, receiver);
+    }
+};
+
+// proxy for state
+export const stateProxy = new Proxy(state, stateHandler);
 
 
-export { config, state, htmlElement }
+// --- TypeGuards ---
+
+(function setSolvedMode() {
+    const solvedMode = getUrlParam("errorTrack", false);
+    if (solvedMode && isSolvedMode(solvedMode)) state.errorTrack = solvedMode;
+})();
+(function setPgnPath() {
+    const pgnPath = getUrlParam("pgnPath", null);
+    state.pgnPath = pgnPath ? pgnPath.split(',') as PgnPath : [];
+})();
+(function setMirrorState() {
+    const mirrorState = getUrlParam("mirrorState", null);
+    if (mirrorState && isMirrorState(mirrorState)) state.mirrorState = mirrorState;
+})();
+

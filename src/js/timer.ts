@@ -1,91 +1,79 @@
 import { state, config } from './config';
-import type { Api } from 'chessground/api';
 
 // --- Module-level timer variables with explicit types ---
-export let puzzleTimeout: number | null = null;
-let puzzleIncrement: number | null = null;
-let startTime: number = 0;
-let totalTime: number = 0;
-let remainingTime: number = 0;
+export let puzzleIncrement: number | null = null;
+let totalTime: number;
 
 function handleOutOfTime(): void {
+    // state.cgwrap.classList.remove('timerMode');
+    document.documentElement.style.setProperty('--remainingTime', `100%`);
     if (config.timerScore) {
-        state.errorTrack = 'true'; // Assuming 'true' is a possible value
-        state.solvedColour = "#b31010";
+        state.errorTrack = true;
+    } else if (!state.errorTrack) {
+        state.solvedColour = "limegreen";
     }
-    if (config.timerAdvance) {
-        state.puzzleComplete = true;
-    }
+    document.documentElement.style.setProperty('--timer-flash-color', "#b31010");
+    setTimeout(() => {
+        state.cgwrap.classList.add('time-added-flash');
+    }, 0);
+    setTimeout(() => {
+        state.cgwrap.classList.remove('time-added-flash');
+    }, 500);
 
-    window.parent.postMessage(state, '*');
-    puzzleTimeout = null;
-    if (puzzleIncrement) clearInterval(puzzleIncrement);
+    const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+    window.parent.postMessage(stateCopy, '*');
+    if (puzzleIncrement) {
+        clearInterval(puzzleIncrement);
+        puzzleIncrement = null;
+    }
     document.documentElement.style.setProperty('--remainingTime', '100%');
 }
 
 export function extendPuzzleTime(additionalTime: number): void {
-    if (config.boardMode === 'Viewer' || !config.timer) return;
+    if (config.boardMode === 'Viewer' || !config.timer || state.puzzleTime <= 0) return;
 
-    if (puzzleTimeout) {
-        clearTimeout(puzzleTimeout);
-        if (puzzleIncrement) clearInterval(puzzleIncrement);
+    state.puzzleTime += additionalTime;
 
-        const newDelay = remainingTime + additionalTime;
+    const usedTime = config.timer - state.puzzleTime;
 
-        // Ensure the new delay is not negative before restarting the timer
-        if (newDelay >= 0) {
-            startPuzzleTimeout(newDelay);
-        }
+    if (usedTime <= 0) {
+        // when new delay is greater than original timer
+        totalTime -= usedTime;
     }
+
+    setTimeout(() => {
+        if (state.puzzleTime > 0) state.cgwrap.classList.add('time-added-flash');
+    }, state.delayTime);
+    // 2. Remove the class after 500ms so the animation can be re-triggered later.
+    setTimeout(() => {
+        if (state.puzzleTime > 0) state.cgwrap.classList.remove('time-added-flash');
+    }, state.delayTime + 500);
 }
 
-export async function startPuzzleTimeout(delay: number): Promise<void> {
+export async function startPuzzleTimeout(): Promise<void> {
     if (config.boardMode === 'Viewer' || !config.timer) return;
 
-    // Clear any existing timers before starting a new one
-    if (puzzleTimeout) clearTimeout(puzzleTimeout);
-    if (puzzleIncrement) clearInterval(puzzleIncrement);
-
     if (!config.timerScore) {
-        const timerColor = config.randomOrientation ? "#2CBFA7" : state.opponentColour;
+        const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
         document.documentElement.style.setProperty('--timer-color', timerColor);
     }
     state.cgwrap.classList.add('timerMode');
-
-    puzzleTimeout = window.setTimeout(handleOutOfTime, delay);
-
-    let usedTime = config.timer - delay;
     totalTime = config.timer;
-
-    if (usedTime < 0) {
-        totalTime -= usedTime; // Effectively increases total time if delay > config.timer
-        usedTime = 0;
-    }
-
-    startTime = Date.now();
-
     puzzleIncrement = window.setInterval(() => {
-        if (state.puzzleComplete) {
-            state.cgwrap.classList.remove('timerMode');
-            if (puzzleTimeout) clearTimeout(puzzleTimeout);
-            if (puzzleIncrement) clearInterval(puzzleIncrement);
-            return;
+        if (state.playerColour[0] === state.chess.turn()) {
+
+            // reduce timer only on players move
+            state.puzzleTime = Math.max(0, state.puzzleTime - 10);
+
+            const percentage = 100 - ((state.puzzleTime / totalTime) * 100);
+            document.documentElement.style.setProperty('--remainingTime', `${percentage.toFixed(2)}%`);
+
+            if (state.puzzleTime === 0) {
+                handleOutOfTime()
+            }
+        } else {
+            // pause on opponets turn;
         }
 
-        const elapsedTime = Date.now() - startTime;
-        remainingTime = Math.max(0, totalTime - elapsedTime - usedTime);
-
-        // extend time when it's not the player's turn
-        if (state.playerColour !== state.cg.state.turnColor) {
-            extendPuzzleTime(10);
-            return;
-        }
-
-        const percentage = 100 - ((remainingTime / totalTime) * 100);
-        document.documentElement.style.setProperty('--remainingTime', `${percentage.toFixed(2)}%`);
-
-        if (remainingTime === 0) {
-            if (puzzleIncrement) clearInterval(puzzleIncrement);
-        }
     }, 10);
 }

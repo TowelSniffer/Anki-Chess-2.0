@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "typecheck": "tsc",
+    "typecheck": "tsc --noEmit && eslint src",
     "build": "npm run typecheck && node build.js",
     "dev": "node build.js --dev"
   },
@@ -19,8 +19,12 @@
     "stockfish": "^17.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.36.0",
     "esbuild": "^0.25.10",
+    "eslint": "^9.36.0",
     "glob": "^11.0.3",
-    "typescript": "^5.9.2"
+    "globals": "^16.4.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.45.0"
   }
 }
