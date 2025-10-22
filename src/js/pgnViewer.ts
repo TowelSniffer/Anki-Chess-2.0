@@ -21,9 +21,13 @@ export function isNagKey(key: string): key is NagKey {
 function buildPgnHtml(moves: CustomPgnMove[], altLine?: boolean): string {
     let html = '';
     if (!moves || moves.length === 0) return '';
-    if (moves[0].turn === 'b' && moves[0].pgnPath.at(-1) === 0) {
+    if (moves[0].turn === 'b') {
         const moveNumber = moves[0].moveNumber;
-        html += `<span class="move-number">${moveNumber}.</span><span class="nullMove">...</span> `;
+        if (moves[0].pgnPath.at(-1) === 0 && moves[0].pgnPath.length === 1) { // mainline
+            html += `<span class="move-number">${moveNumber}.</span><span class="nullMove">|...|</span> `;
+        } else if (moves[0].pgnPath.at(-1) === 0) {
+            html += `<span class="move-number">${moveNumber}...</span> `;
+        }
     }
 
     for (let i = 0; i < moves.length; i++) {
@@ -45,7 +49,6 @@ function buildPgnHtml(moves: CustomPgnMove[], altLine?: boolean): string {
         nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : '';
         const pathKey = move.pgnPath?.join(',');
         if (pathKey && move.pgnPath) {
-            state.pgnPathMap.set(pathKey, move);
             html += ` <span class="move" data-path-key="${pathKey}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
         }
 
@@ -218,7 +221,6 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
                 break;
             }
             nextAltLineEl = nextAltLineEl.nextElementSibling;
-            console.log(nextAltLineEl)
         }
         if (nextAltLineEl?.classList.contains('altLine')) {
             nextAltLineEl.insertAdjacentHTML('beforeend', newVarHtml);
@@ -306,10 +308,10 @@ export function onPgnMoveClick(event: Event): void {
 // --- PGN Data Augmentation ---
 export function augmentPgnTree(moves: PgnMove[], path: PgnPath = []): void {
     const chess = new Chess(state.startFen);
-    _augmentAndGenerateFen(moves, path, chess);
+    _augmentAndGenerateFen((moves as CustomPgnMove[]), path, chess);
 }
 
-export function _augmentAndGenerateFen(moves: PgnMove[], path: PgnPath = [], chess: Chess): void {
+export function _augmentAndGenerateFen(moves: CustomPgnMove[], path: PgnPath = [], chess: Chess): void {
     if (!moves) return;
 
     for (let i = 0; i < moves.length; i++) {
@@ -322,13 +324,17 @@ export function _augmentAndGenerateFen(moves: PgnMove[], path: PgnPath = [], che
             continue; // Skip invalid moves
         }
 
-        (move as CustomPgnMove).pgnPath = currentPath;
-        (move as CustomPgnMove).before = moveResult.before;
-        (move as CustomPgnMove).after = moveResult.after;
-        (move as CustomPgnMove).from = moveResult.from;
-        (move as CustomPgnMove).to = moveResult.to;
-        (move as CustomPgnMove).flags = moveResult.flags;
-        (move as CustomPgnMove).san = moveResult.san;
+        move.pgnPath = currentPath;
+        move.before = moveResult.before;
+        move.after = moveResult.after;
+        move.from = moveResult.from;
+        move.to = moveResult.to;
+        move.flags = moveResult.flags;
+        move.san = moveResult.san;
+
+        const pathKey = move.pgnPath.join(',');
+        state.pgnPathMap.set(pathKey, move);
+
         if (move.variations) {
             move.variations.forEach((variation, varIndex) => {
                 const variationPath: PgnPath = [...currentPath, 'v', varIndex];
@@ -366,4 +372,5 @@ export function initPgnViewer(): void {
         pgnContainer.innerHTML += `<span class="comment"> ${state.parsedPGN.gameComment.comment} </span>`;
     }
     pgnContainer.innerHTML += buildPgnHtml(state.parsedPGN.moves);
+    highlightCurrentMove(state.pgnPath);
 }

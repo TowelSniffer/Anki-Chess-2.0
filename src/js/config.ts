@@ -1,9 +1,9 @@
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
-import type { PgnGame, PgnMove } from '@mliebelt/pgn-types';
+import type { PgnMove } from '@mliebelt/pgn-types';
 import { Chessground } from 'chessground';
 import type { Config, State, ErrorTrack, CustomPgnGame, BoardModes } from './types';
-import { toColor, toDests, handlePuzzleComplete } from './chessFunctions';
+import { handlePuzzleComplete, animateBoard } from './chessFunctions';
 import type { MirrorState } from './mirror';
 import { augmentPgnTree, highlightCurrentMove, isEndOfLine } from './pgnViewer';
 import { drawArrows } from './arrows';
@@ -20,9 +20,9 @@ function isBoardMode(mode: string): mode is BoardModes {
     return modeCheck;
 }
 // errorTrack
-function isSolvedMode(solvedState: boolean | string): solvedState is ErrorTrack {
-    if (typeof solvedState === 'boolean') return solvedState;
-    const solvedModes = ['correct', 'correctTime'];
+function isSolvedMode(solvedState: null | string): solvedState is ErrorTrack {
+    if (!solvedState) return false;
+    const solvedModes = ['correct', 'correctTime', 'incorrect'];
     const modeCheck = solvedModes.includes(solvedState);
     return modeCheck;
 }
@@ -32,24 +32,23 @@ function isMirrorState(mirrorState: string): mirrorState is MirrorState {
     const mirrorStateCheck = mirrorStates.includes(mirrorState);
     return mirrorStateCheck;
 }
-// PgnGame
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isPgnGame(pgn: any): pgn is PgnGame {
-    return pgn && Array.isArray(pgn.moves);
-}
 
-function initializePgnData(): CustomPgnGame {
-    const parsed = state.parsedPGN;
-
-    if (!isPgnGame(parsed)) {
-        console.error("Invalid PGN data provided.");
-        return { moves: [] };
+function initializePgnData(): void {
+    const pathKey = state.pgnPath.join(',');
+    const moveTrack = state.pgnPathMap.get(pathKey);
+    state.chess.load(moveTrack?.after ?? state.startFen);
+    if (config.boardMode === 'Viewer') {
+        state.cg.set({ animation: { enabled: false} })
+        state.cg.set({ fen: moveTrack?.after ?? state.startFen });
+        state.cg.set({ animation: { enabled: true} })
+        if (state.pgnPath.length && moveTrack) {
+            setButtonsDisabled(['back', 'reset'], false);
+            state.lastMove = moveTrack;
+        };
+        const endOfLineCheck = isEndOfLine(state.pgnPath);
+        setButtonsDisabled(['forward'], endOfLineCheck);
+        drawArrows(state.pgnPath);
     }
-    if (parsed.tags) state.startFen = parsed.tags.FEN
-    state.cg.set({ fen: state.startFen });
-    augmentPgnTree(parsed.moves as PgnMove[]);
-
-    return parsed as unknown as CustomPgnGame;
 }
 
 // --- URL Parameter Helper ---
@@ -62,19 +61,12 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
 const cgwrap = document.getElementById('board') as HTMLDivElement;
 // --- Configuration ---
 export const config: Config = {
-    pgn: getUrlParam("PGN", `[Event "?"]
-    [Site "?"]
-    [Date "2023.02.13"]
-    [Round "?"]
-    [White "White"]
-    [Black "Black"]
-    [Result "*"]
-    [FEN "r1b1k1nN/p1pp3p/2n5/1p1B4/3bP1pq/5p2/PPP3PP/RNBQ1K1R w q - 0 11"]
+    pgn: getUrlParam("PGN", `[Result "*"]
+    [FEN "rnb1kbnr/pppp1p1p/8/4N3/2B1P1pq/6p1/PPPP3P/RNBQK2R w KQkq - 0 7"]
     [SetUp "1"]
 
-    11. g3 Qh3+ {EV: 93.8%, N: 99.68% of 13.8k} 12. Ke1 {EV: 5.5%, N: 100.00% of
-        31.4k} Qg2 {EV: 95.4%, N: 98.09% of 54.1k} 13. Rf1 {EV: 4.8%, N: 73.44% of 110k}
-        Ba6 {EV: 96.4%, N: 97.11% of 116k} *`),
+    7. Qxg4 g2+ 8. Qxh4 gxh1=Q+ 9. Kf2 Bc5+ (9... Be7) *
+    `),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'true') === 'true',
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
@@ -84,7 +76,7 @@ export const config: Config = {
     strictScoring: getUrlParam("strictScoring", 'false') === 'true',
     acceptVariations: getUrlParam("acceptVariations", 'true') === 'true',
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
-    flipBoard: getUrlParam("flip", 'false') === 'true',
+    flipBoard: getUrlParam("flip", 'true') === 'true',
     boardMode: 'Puzzle',
     background: getUrlParam("background", "#2C2C2C"),
     mirror: getUrlParam("mirror", 'true') === 'true',
@@ -99,18 +91,20 @@ export const config: Config = {
     animationTime: parseInt(getUrlParam("animationTime", '200'), 10),
 };
 (function setBoardMode() {
-    const mode = getUrlParam("boardMode", "Viewer");
+    const mode = getUrlParam("boardMode", "Puzzle");
     if (mode && isBoardMode(mode)) config.boardMode = mode;
 })();
 
+const parsed = parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame;
+
 // --- Global State ---
 export const state: State = {
-    startFen: DEFAULT_POSITION,
+    startFen: parsed.tags?.FEN ?? DEFAULT_POSITION,
     boardRotation: "black",
     playerColour: "white",
     opponentColour: "black",
     solvedColour: config.timer ? "#2CBFA7" : "limegreen",
-    errorTrack: false,
+    errorTrack: null,
     chessGroundShapes: [],
     errorCount: 0,
     puzzleTime: config.timer,
@@ -124,6 +118,7 @@ export const state: State = {
     mirrorState: null,
     cgwrap: cgwrap,
     cg: Chessground(cgwrap, {
+        fen: parsed.tags?.FEN ?? DEFAULT_POSITION,
         premovable: {
             enabled: true,
         },
@@ -152,24 +147,42 @@ export const state: State = {
         },
     }),
     chess: new Chess(),
-    parsedPGN: parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame,
+    parsedPGN: parsed,
     delayTime: config.animationTime + 100,
 };
-initializePgnData();
+
+augmentPgnTree(state.parsedPGN.moves as PgnMove[]);
+// --- TypeGuards ---
+
+(function setSolvedMode() {
+    const solvedMode = getUrlParam("errorTrack", null);
+    if (solvedMode && isSolvedMode(solvedMode)) state.errorTrack = solvedMode;
+})();
+(function setPgnPath() {
+    const pgnPath = getUrlParam("pgnPath", null);
+    const result = pgnPath?.split(',').map(item => {
+        const num = Number(item);
+        return isNaN(num) ? 'v' : num;
+    });
+    state.pgnPath = result ? result : [];
+})();
+(function setMirrorState() {
+    const mirrorState = getUrlParam("mirrorState", null);
+    if (mirrorState && isMirrorState(mirrorState)) state.mirrorState = mirrorState;
+})();
 
 // -- state proxy to handle board updates --
 
 const stateHandler = {
     set(target: State, property: keyof State, value: PgnPath, receiver: State) {
         const pathKey = value.join(',');
-        const pathMove = state.pgnPathMap.get(pathKey);
+        const pathMove = state.pgnPathMap.get(pathKey) ?? null;
 
         if (property === 'pgnPath' &&
             (pathMove || !value.length) &&
             !(!state.pgnPath.join(',').length && !value.length)
         ) {
             const lastMove = state.lastMove;
-
             if (!value.length) {
                 setButtonsDisabled(['back', 'reset'], true);
                 state.chess.reset();
@@ -178,61 +191,22 @@ const stateHandler = {
             } else {
                 setButtonsDisabled(['back', 'reset'], false);
             }
+
             if (pathMove) {
-                state.chess.load(pathMove.before)
-                state.chess.move(pathMove.notation.notation)
+                state.chess.load(pathMove.after)
                 moveAudio(pathMove);
-                state.cg.set({ lastMove: [pathMove.from, pathMove.to] })
-                state.lastMove = pathMove;
-            }
-            // --- Promotion animations ---
-            if (pathMove?.notation.promotion &&
-                (lastMove?.after === pathMove?.before ||
-                state.startFen === pathMove?.before && !lastMove)
-            ) {
-                // nav forward promote
-                const tempChess = new Chess(pathMove.before);
-                tempChess.remove(pathMove.to);
-                state.cg.set({ fen: tempChess.fen() });
-                state.cg.move( pathMove.from, pathMove.to );
-                setTimeout(() => {
-                    state.cg.set({ animation: { enabled: false} })
-                    state.cg.set({
-                        fen: state.chess.fen(),
-                    });
-                    state.cg.set({ animation: { enabled: true} })
-                    state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
-                }, config.animationTime)
-            } else if (lastMove?.notation.promotion &&
-                (lastMove?.before === pathMove?.after ||
-                state.startFen === lastMove?.before && !pathMove)
-            ) {
-                // nav backwards promote
-                const tempChess = new Chess(lastMove.after);
-                tempChess.remove(lastMove.to);
-                tempChess.put({ type: 'p', color: lastMove.turn }, lastMove.to);
+            };
+            setTimeout(() => {
+                // timeout is needed here for some animations. dont know why
+                animateBoard(lastMove, pathMove);
 
-                state.cg.set({ animation: { enabled: false} })
-                state.cg.set({ fen: tempChess.fen() });
-                state.cg.set({ animation: { enabled: true} })
 
-                state.cg.set({
-                    fen: state.chess.fen(),
-                });
-            } else {
-                // animate board change
-                state.cg.set({ fen: state.chess.fen() });
-            }
-            highlightCurrentMove(value);
-            state.cg.set({
-                check: state.chess.inCheck(),
-                turnColor: toColor(),
-                movable: {
-                    color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
-                    dests: toDests()
-                },
-            });
+            }, 2)
+            startAnalysis(config.analysisTime);
             drawArrows(value);
+            highlightCurrentMove(value);
+
+
             const endOfLineCheck = isEndOfLine(value);
             if (endOfLineCheck) {
                 if (config.boardMode === 'Puzzle') {
@@ -242,7 +216,10 @@ const stateHandler = {
                 }
             }
             setButtonsDisabled(['forward'], endOfLineCheck);
-            startAnalysis(config.analysisTime);
+
+            const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+            stateCopy.pgnPath = value;
+            window.parent.postMessage(stateCopy, '*');
 
             return Reflect.set(target, property, value, receiver);
         }
@@ -253,19 +230,7 @@ const stateHandler = {
 // proxy for state
 export const stateProxy = new Proxy(state, stateHandler);
 
+initializePgnData();
 
-// --- TypeGuards ---
 
-(function setSolvedMode() {
-    const solvedMode = getUrlParam("errorTrack", false);
-    if (solvedMode && isSolvedMode(solvedMode)) state.errorTrack = solvedMode;
-})();
-(function setPgnPath() {
-    const pgnPath = getUrlParam("pgnPath", null);
-    state.pgnPath = pgnPath ? pgnPath.split(',') as PgnPath : [];
-})();
-(function setMirrorState() {
-    const mirrorState = getUrlParam("mirrorState", null);
-    if (mirrorState && isMirrorState(mirrorState)) state.mirrorState = mirrorState;
-})();
 

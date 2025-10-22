@@ -11,7 +11,7 @@ import type { CustomShape } from './arrows';
 // config types
 export type BoardModes = "Viewer" | "Puzzle";
 
-export type ErrorTrack = boolean | "correct" | "correctTime";
+export type ErrorTrack = null | "incorrect" | "correct" | "correctTime";
 
 // custom Pgnviewer types
 export type CustomPgnMove = Omit<PgnMove, `variations` | 'moveNumber' | 'drawOffer' | 'commentDiag'> & {

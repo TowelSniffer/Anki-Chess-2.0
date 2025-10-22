@@ -23,7 +23,7 @@ const moveSoundPriority: SoundPriorityRule[] = [
     { event: 'check',     condition: (san: string) => san.includes('+') },
     { event: 'promote',   condition: (_san: string, flags: string) => flags.includes('p') },
     { event: 'castle',    condition: (_san: string, flags: string) => flags.includes('k') || flags.includes('q') },
-    { event: 'capture',   condition: (_san: string, flags: string) => flags.includes('c') }
+    { event: 'capture',   condition: (_san: string, flags: string) => flags.includes('c') || flags.includes('e') }
 ];
 
 function initAudio(): Map<Sounds, HTMLAudioElement> {
