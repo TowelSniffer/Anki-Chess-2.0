@@ -74,7 +74,7 @@ export function initializeUI(): void {
 
     // Update border color based on error tracking in Viewer mode
     if (config.boardMode === 'Viewer') {
-        if (state.errorTrack === true) {
+        if (state.errorTrack === 'incorrect') {
             htmlElement.style.setProperty('--border-color', "#b31010");
         } else if (state.errorTrack === 'correctTime') {
             htmlElement.style.setProperty('--border-color', "#2CBFA7");

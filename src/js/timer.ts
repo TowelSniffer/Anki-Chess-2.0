@@ -1,79 +1,125 @@
 import { state, config } from './config';
+import { borderFlash } from './toolbox';
 
-// --- Module-level timer variables with explicit types ---
-export let puzzleIncrement: number | null = null;
+// --- Module-level timer variables ---
+let animationFrameId: number | null = null;
+let lastTickTimestamp: number | null = null;
+let extendAnimationFrameId: number | null = null;
+let lastTickExtendTimestamp: number | null = null;
+let totalExtendTime = 0;
 let totalTime: number;
+let extendPercentage: number;
+
+
+function timerLoop(timestamp: number): void {
+    if (!lastTickTimestamp) {
+        lastTickTimestamp = timestamp;
+    }
+
+    const deltaTime = timestamp - lastTickTimestamp;
+    lastTickTimestamp = timestamp;
+
+    state.puzzleTime = Math.max(0, state.puzzleTime - deltaTime);
+    const percentage = 100 - ((state.puzzleTime / totalTime) * 100);
+    document.documentElement.style.setProperty('--remainingTime', `${percentage.toFixed(2)}%`);
+
+    if (state.puzzleTime === 0) {
+        handleOutOfTime();
+    } else {
+        animationFrameId = requestAnimationFrame(timerLoop);
+    }
+}
+
+function timerExtendLoop(extendtimestamp: number): void {
+    if (!lastTickExtendTimestamp) {
+        lastTickExtendTimestamp = extendtimestamp;
+    }
+
+    const deltaTime = extendtimestamp - lastTickExtendTimestamp;
+    lastTickExtendTimestamp = extendtimestamp;
+    const deltaTimeFraction = (deltaTime / state.delayTime) * config.increment;
+    totalExtendTime = Math.min(config.increment, totalExtendTime + deltaTimeFraction);
+    const percentageIncrease = (deltaTime / state.delayTime) * Math.min(extendPercentage, (config.increment * 100 / totalTime))
+
+    state.puzzleTime = Math.min(totalTime, state.puzzleTime + deltaTimeFraction);
+    extendPercentage -= percentageIncrease;
+
+    if (extendPercentage < 0) {
+        state.puzzleTime = totalTime;
+        extendPercentage = 0;
+    }
+    document.documentElement.style.setProperty('--remainingTime', `${extendPercentage.toFixed(2)}%`);
+
+    if (totalExtendTime === config.increment) {
+        totalExtendTime = 0;
+        if (extendAnimationFrameId) cancelAnimationFrame(extendAnimationFrameId);
+        extendAnimationFrameId = null;
+        lastTickExtendTimestamp = null;
+    } else {
+        extendAnimationFrameId = requestAnimationFrame(timerExtendLoop);
+    }
+}
 
 function handleOutOfTime(): void {
-    // state.cgwrap.classList.remove('timerMode');
-    document.documentElement.style.setProperty('--remainingTime', `100%`);
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        lastTickTimestamp = null;
+    }
+
+    document.documentElement.style.setProperty('--remainingTime', '100%');
+
     if (config.timerScore) {
-        state.errorTrack = true;
+        state.errorTrack = 'incorrect';
     } else if (!state.errorTrack) {
         state.solvedColour = "limegreen";
     }
-    document.documentElement.style.setProperty('--timer-flash-color', "#b31010");
-    setTimeout(() => {
-        state.cgwrap.classList.add('time-added-flash');
-    }, 0);
-    setTimeout(() => {
-        state.cgwrap.classList.remove('time-added-flash');
-    }, 500);
+
+    borderFlash("#b31010");
 
     const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
     window.parent.postMessage(stateCopy, '*');
-    if (puzzleIncrement) {
-        clearInterval(puzzleIncrement);
-        puzzleIncrement = null;
-    }
-    document.documentElement.style.setProperty('--remainingTime', '100%');
 }
 
-export function extendPuzzleTime(additionalTime: number): void {
-    if (config.boardMode === 'Viewer' || !config.timer || state.puzzleTime <= 0) return;
-
-    state.puzzleTime += additionalTime;
-
-    const usedTime = config.timer - state.puzzleTime;
-
-    if (usedTime <= 0) {
-        // when new delay is greater than original timer
-        totalTime -= usedTime;
+export function stopPlayerTimer(): void {
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+        lastTickTimestamp = null;
     }
-
-    setTimeout(() => {
-        if (state.puzzleTime > 0) state.cgwrap.classList.add('time-added-flash');
-    }, state.delayTime);
-    // 2. Remove the class after 500ms so the animation can be re-triggered later.
-    setTimeout(() => {
-        if (state.puzzleTime > 0) state.cgwrap.classList.remove('time-added-flash');
-    }, state.delayTime + 500);
 }
 
-export async function startPuzzleTimeout(): Promise<void> {
+export function startPlayerTimer(): void {
+    if (config.boardMode === 'Viewer' || !config.timer || state.puzzleTime <= 0) {
+        return;
+    }
+    if (animationFrameId) stopPlayerTimer();
+    animationFrameId = requestAnimationFrame(timerLoop);
+}
+
+export function initializePuzzleTimer(): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
+    stopPlayerTimer();
+    totalTime = config.timer;
 
     if (!config.timerScore) {
         const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
         document.documentElement.style.setProperty('--timer-color', timerColor);
     }
     state.cgwrap.classList.add('timerMode');
-    totalTime = config.timer;
-    puzzleIncrement = window.setInterval(() => {
-        if (state.playerColour[0] === state.chess.turn()) {
+    document.documentElement.style.setProperty('--remainingTime', `0%`);
+}
 
-            // reduce timer only on players move
-            state.puzzleTime = Math.max(0, state.puzzleTime - 10);
+export function extendPuzzleTime(additionalTime: number): void {
+    if (config.boardMode === 'Viewer' || !config.timer || state.puzzleTime <= 0) return;
+    if (extendAnimationFrameId) {
+        cancelAnimationFrame(extendAnimationFrameId);
+        extendAnimationFrameId = null;
+        lastTickExtendTimestamp = null;
+    }
 
-            const percentage = 100 - ((state.puzzleTime / totalTime) * 100);
-            document.documentElement.style.setProperty('--remainingTime', `${percentage.toFixed(2)}%`);
-
-            if (state.puzzleTime === 0) {
-                handleOutOfTime()
-            }
-        } else {
-            // pause on opponets turn;
-        }
-
-    }, 10);
+    extendPercentage = 100 - (state.puzzleTime / totalTime) * 100
+    totalTime = Math.max(state.puzzleTime + additionalTime, config.timer)
+    if (animationFrameId) stopPlayerTimer();
+    animationFrameId = requestAnimationFrame(timerExtendLoop);
 }

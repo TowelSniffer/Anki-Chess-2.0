@@ -3,6 +3,10 @@ import { onPgnMoveClick, navigateNextMove, navigatePrevMove } from './pgnViewer'
 import { positionPromoteOverlay } from './initializeUI';
 import { toggleStockfishAnalysis, handleStockfishCrash } from './handleStockfish';
 import { playSound } from './audio';
+import type { Color } from 'chessground/types';
+
+
+// --- UI tools ---
 
 const htmlElement: HTMLElement = document.documentElement;
 
@@ -23,6 +27,24 @@ export function setButtonsDisabled(keys: (keyof typeof btn)[], isDisabled: boole
         }
     });
 }
+
+// animations
+
+export function borderFlash(colour: string | null = null): void {
+    document.documentElement.style.setProperty('--timer-flash-color', colour ?? state.solvedColour);
+    state.cgwrap.classList.add('time-added-flash');
+    setTimeout(() => {
+        state.cgwrap.classList.remove('time-added-flash');
+    }, 500);
+}
+
+// --- chess.js and chessground tools ---
+
+export function toColor(): Color {
+    return state.chess.turn() === 'w' ? 'white' : 'black';
+}
+
+// --- Navigation Tools ---
 
 function navBackward(): void {
     if (config.boardMode === 'Puzzle') return;

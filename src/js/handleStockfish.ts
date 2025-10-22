@@ -1,7 +1,7 @@
-import { toColor, getLegalMove } from './chessFunctions';
+import { getLegalMove } from './chessFunctions';
 import { ShapeFilter, filterShapes, pushShapes } from './arrows';
 import { state, config } from './config';
-import { setButtonsDisabled } from './toolbox';
+import { setButtonsDisabled, toColor } from './toolbox';
 
 let stockfish: Worker | null = null;
 
@@ -23,7 +23,6 @@ function handleStockfishMessages(event: MessageEvent): void {
         console.warn("Received a non-string message from the Stockfish worker:", message);
         return;
     }
-    console.log(message)
     const parts = message.split(' ');
     if (message.startsWith('info')) {
         // const pvDepthIndex = parts.indexOf('depth');
@@ -78,7 +77,7 @@ export function handleStockfishCrash(source: string): void {
     setTimeout(() => initializeStockfish(), 250); // Give the browser a moment to recover
 }
 
-export function initializeStockfish(): Promise<void> {
+function initializeStockfish(): Promise<void> {
     return new Promise((resolve, reject) => {
         // Terminate existing worker if it exists
         if (stockfish) stockfish.terminate();
@@ -109,7 +108,7 @@ export function initializeStockfish(): Promise<void> {
 }
 
 export function startAnalysis(movetime: number): void {
-    if (state.chess.moves().length === 0 || !state.analysisToggledOn || !stockfish || state.stockfishRestart) return;
+    if (!state.analysisToggledOn || !stockfish || state.stockfishRestart || state.chess.moves().length === 0) return;
     if (state.isStockfishBusy) {
         state.stockfishRestart = true;
         stockfish.postMessage('stop');
