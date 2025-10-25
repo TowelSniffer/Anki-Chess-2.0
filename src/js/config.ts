@@ -61,11 +61,19 @@ function getUrlParam<T>(name: string, defaultValue: T): string | T {
 const cgwrap = document.getElementById('board') as HTMLDivElement;
 // --- Configuration ---
 export const config: Config = {
-    pgn: getUrlParam("PGN", `[Result "*"]
-    [FEN "rnb1kbnr/pppp1p1p/8/4N3/2B1P1pq/6p1/PPPP3P/RNBQK2R w KQkq - 0 7"]
+    pgn: getUrlParam("PGN", `[Event "?"]
+    [Site "?"]
+    [Date "2023.02.13"]
+    [Round "?"]
+    [White "White"]
+    [Black "Black"]
+    [Result "*"]
+    [FEN "4rrk1/1ppq1ppp/p1np1n2/4P3/3p1P2/P2B2QP/1PPB2P1/4RRK1 b - - 0 14"]
     [SetUp "1"]
 
-    7. Qxg4 g2+ 8. Qxh4 gxh1=Q+ 9. Kf2 Bc5+ (9... Be7) *
+    14... dxe5 15. fxe5 {EV: 94.7%} Nd5 {EV: 5.2%} (15... Nh5 {EV: 3.4%} 16. Qg4
+    {EV: 98.6%} Qxg4 {EV: 1.3%} 17. hxg4 {EV: 98.8%} Ng3 {EV: 1.2%} 18. Rf3 {EV:
+        99.2%}) 16. Bh6 {EV: 95.3%} *
     `),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'true') === 'true',
@@ -78,13 +86,13 @@ export const config: Config = {
     disableArrows: getUrlParam("disableArrows", 'false') === 'true',
     flipBoard: getUrlParam("flip", 'true') === 'true',
     boardMode: 'Puzzle',
-    background: getUrlParam("background", "#2C2C2C"),
+    background: getUrlParam("background", "var(--color-bg-secondary)"),
     mirror: getUrlParam("mirror", 'true') === 'true',
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
     handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
-    timer: parseInt(getUrlParam("timer", '4'), 10) * 1000,
-    increment: parseInt(getUrlParam("increment", '2'), 10) * 1000,
+    timer: parseInt(getUrlParam("timer", '10'), 10) * 1000,
+    increment: parseInt(getUrlParam("increment", '1'), 10) * 1000,
     timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
     timerScore: getUrlParam("timerScore", 'false') === 'true',
     analysisTime: parseInt(getUrlParam("analysisTime", '4'), 10) * 1000,
@@ -199,8 +207,6 @@ const stateHandler = {
             setTimeout(() => {
                 // timeout is needed here for some animations. dont know why
                 animateBoard(lastMove, pathMove);
-
-
             }, 2)
             startAnalysis(config.analysisTime);
             drawArrows(value);

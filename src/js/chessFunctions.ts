@@ -141,7 +141,7 @@ function isMoveLegal(moveInput: MoveInput): boolean {
   const legalMoves = state.chess.moves({ verbose: true });
 
   if (typeof moveInput === 'string') {
-    // lan of san
+    // lan or san
     return legalMoves.some(move => move.san === moveInput || move.lan === moveInput);
   } else {
     // chess.js move object
@@ -163,15 +163,13 @@ export function getLegalMove(moveInput: MoveInput): Move | null {
 }
 
 function isPromotion(orig: Square, dest: Square): boolean {
-  // check if 'orig' is a valid square name for ts
   if (SQUARES.includes(orig)) {
     const piece = state.chess.get(orig);
-    // It's not a promotion if there's no piece or it's not a pawn
     if (!piece || piece.type !== 'p') {
       return false;
     }
 
-    // Check if the dest is back rank
+    // check if the dest is back rank
     const rank = dest.charAt(1);
     if (piece.color === 'w' && rank === '8') return true;
     if (piece.color === 'b' && rank === '1') return true;
@@ -307,6 +305,7 @@ function playUserCorrectMove(delay: number): void {
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(state.pgnPath);
     stateProxy.pgnPath = nextMovePath;
+    playAiMove(delay); // then play the AI's response
   }, delay);
 }
 
@@ -322,8 +321,7 @@ function handleWrongMove(move: Move): void {
   if (state.errorCount > config.handicap) {
     stopPlayerTimer();
     state.cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
-    playUserCorrectMove(state.delayTime); // Show the correct user move
-    playAiMove(state.delayTime * 2); // Then play the AI's response
+    playUserCorrectMove(state.delayTime); // show the correct user move
   }
 }
 
