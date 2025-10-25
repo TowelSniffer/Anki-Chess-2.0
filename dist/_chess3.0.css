@@ -200,6 +200,34 @@ piece.fading {
   --centipawn: 50%;
   --remainingTime: 0%;
   --timer-flash-color: grey;
+  --color-bg-primary: #242424;
+  --color-bg-secondary: #2C2C2C;
+  --color-bg-hover: #404040;
+  --color-text-primary: #D7DEE9;
+  --color-text-muted: #797979;
+  --color-interactive-active: #557D38;
+  --color-interactive-toggle: #a5d6a7;
+  --color-interactive-hover-bg: #d6d6d6;
+  --color-interactive-hover-text: #333;
+  --border-main-thin: 1px solid black;
+  --board-border-width: 8px;
+  --border-radius-main: 4px;
+  --shadow-main: 0px 0px 3px 0px black;
+  --shadow-board: 0px 0px 3px 0px grey;
+  --shadow-strong: 0px 0px 3px 1px black;
+  --font-family-comments: serif;
+}
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+button:focus-visible {
+  outline: 2px solid blue;
 }
 ::-webkit-scrollbar {
   display: none;
@@ -211,12 +239,6 @@ html {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-}
-hr {
-  border: none;
-  height: 1px;
-  background-color: black;
-  opacity: 0.7;
 }
 body {
   background: var(--background-color);
@@ -252,20 +274,6 @@ body {
 .md-small {
   font-size: min(38px, calc(var(--board-size) * 0.075));
 }
-select {
-  font-size: 1.2em;
-}
-button.promoteBtn {
-  position: relative;
-  top: 0.07em;
-  font-size: 1.4em;
-  background-color: #f5f5f5;
-  border: 1px solid #dcdcdc;
-  border-radius: 2px;
-  box-shadow: 0px 0px 3px 1px black;
-  z-index: 100;
-  cursor: pointer;
-}
 #container {
   margin-right: 15px;
   gap: 4px;
@@ -279,12 +287,12 @@ button.promoteBtn {
 #commentBox {
   grid-area: one;
   padding: 0px;
-  font-family: serif;
+  font-family: var(--font-family-comments);
   width: calc(var(--max-width) - var(--board-size) - 30px);
-  box-shadow: 0px 0px 3px 0px black;
-  background: #242424;
-  color: #D7DEE9;
-  border-radius: 4px;
+  box-shadow: var(--shadow-main);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border-radius: var(--border-radius-main);
   max-height: calc(var(--board-size) + 14px);
   margin-top: 1px;
   overflow: scroll;
@@ -295,8 +303,8 @@ button.promoteBtn {
   max-width: 600px;
 }
 #buttons-container {
-  border-bottom: 1px solid black;
-  background: #2C2C2C;
+  border-bottom: var(--border-main-thin);
+  background: var(--color-bg-secondary);
   position: sticky;
   top: 0;
   z-index: 25;
@@ -322,42 +330,42 @@ button.promoteBtn {
   width: 100%;
   justify-content: center;
   align-items: center;
-  background: #2C2C2C;
-  color: #D7DEE9;
-  border-bottom: 1px solid black;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-bottom: var(--border-main-thin);
 }
 #textField {
   padding: 0.5em;
 }
 .altLine {
-  border: 1px solid black;
-  background: #404040;
+  border: var(--border-main-thin);
+  background: var(--color-bg-hover);
   color: white;
   font-size: 0.8em;
   padding: 0.3em;
 }
 #pgnComment {
   font-size: 1.2em;
-  background: #242424;
+  background: var(--color-bg-primary);
   display: grid;
   grid-template-columns: auto 1fr 1fr;
-  border-bottom: 1px solid black;
+  border-bottom: var(--border-main-thin);
 }
 .move-number {
   height: 1.5em;
   padding-left: 0.2em;
-  background-color: #242424;
-  border-right: 1px solid black;
+  background-color: var(--color-bg-primary);
+  border-right: var(--border-main-thin);
   text-align: center;
 }
 .move,
 .nullMove {
   height: 1.5em;
-  background-color: #242424;
+  background-color: var(--color-bg-primary);
   text-align: center;
 }
 .nullMove {
-  color: #797979;
+  color: var(--color-text-muted);
   cursor: default;
 }
 .move {
@@ -368,11 +376,11 @@ button.promoteBtn {
 }
 .move:hover,
 .move.current {
-  background: #404040;
+  background: var(--color-bg-hover);
 }
 .move:hover {
-  background: #404040;
-  border: 1px solid #242424;
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-bg-primary);
 }
 .nagTooltip {
   position: fixed;
@@ -383,8 +391,8 @@ button.promoteBtn {
   background: #282828;
   box-shadow: 0px 0px 2px 0px black;
   padding: 0.2em;
-  border-radius: 4px;
-  border: 1px solid black;
+  border-radius: var(--border-radius-main);
+  border: var(--border-main-thin);
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -401,16 +409,16 @@ button.promoteBtn {
   vertical-align: middle;
 }
 .altLineBracket {
-  color: #242424;
+  color: var(--color-bg-primary);
   font-weight: 700;
   padding: 0.2em;
 }
 .altLine .move:hover,
 .altLine .move.current {
-  background: #242424;
+  background: var(--color-bg-primary);
 }
 .move.current {
-  border: 1px solid black;
+  border: var(--border-main-thin);
 }
 .altLine .move-number {
   font-weight: 700;
@@ -421,13 +429,13 @@ button.promoteBtn {
 .comment {
   grid-column: 1 / -1;
   font-style: italic;
-  border: 1px solid black;
+  border: var(--border-main-thin);
 }
 .comment {
   font-size: 0.8em;
-  color: #D7DEE9;
+  color: var(--color-text-primary);
   padding: 0.3em;
-  background: #404040;
+  background: var(--color-bg-hover);
 }
 .altLine .comment {
   font-size: 0.9em;
@@ -447,7 +455,7 @@ button.promoteBtn {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
   width: var(--board-size);
-  box-shadow: 0px 0px 3px 1px black;
+  box-shadow: var(--shadow-strong);
   z-index: 100;
   display: flex;
   justify-content: center;
@@ -462,11 +470,11 @@ button.navBtn {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  border-radius: 4px;
-  border: 1px solid black;
-  background-color: #242424;
-  color: #D7DEE9;
-  box-shadow: 0px 0px 3px 0px black;
+  border-radius: var(--border-radius-main);
+  border: var(--border-main-thin);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-main);
   height: calc(var(--board-size) * 0.1);
   width: calc(var(--board-size) * 0.1);
   max-width: 50px;
@@ -477,17 +485,28 @@ button.navBtn {
   cursor: pointer;
 }
 button.navBtn:hover {
-  background-color: #d6d6d6;
-  box-shadow: 0px 0px 3px 0px grey;
-  color: #333;
+  background-color: var(--color-interactive-hover-bg);
+  box-shadow: var(--shadow-board);
+  color: var(--color-interactive-hover-text);
 }
 button.navBtn:active {
-  background-color: #557D38;
+  background-color: var(--color-interactive-active);
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.icon-spin {
+  animation: spin 1s linear infinite;
 }
 button.navBtn.active-toggle {
   background-color: #a5d6a7;
   box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
-  color: #2C2C2C;
+  color: var(--color-bg-secondary);
 }
 button.navBtn:focus {
   outline: 0;
@@ -500,12 +519,18 @@ button.promoteBtn {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #737373;
-  box-shadow: 0px 0px 3px 0px black;
   height: calc(var(--board-size) * 0.125);
   width: calc(var(--board-size) * 0.125);
   border: 0px;
   margin: 10px;
+  top: 0.07em;
+  font-size: 1.4em;
+  background-color: var(--opponent-color);
+  border: 1px solid var(--opponent-color);
+  border-radius: var(--border-radius-main);
+  box-shadow: var(--shadow-strong);
+  z-index: 100;
+  cursor: pointer;
 }
 .flipBoardIcon {
   transition: transform 0.3s ease-in-out;
@@ -517,12 +542,12 @@ button.promoteBtn {
   width: calc(var(--board-size) * 0.125);
 }
 button.promoteBtn:hover {
-  background-color: #d6d6d6;
-  box-shadow: 0px 0px 3px 0px grey;
-  color: #333;
+  background-color: var(--color-interactive-hover-bg);
+  box-shadow: var(--shadow-board);
+  color: var(--color-interactive-hover-text);
 }
 button.promoteBtn:active {
-  background-color: #557D38;
+  background-color: var(--color-interactive-active);
 }
 button.promoteBtn:focus {
   outline: 0;
@@ -539,9 +564,9 @@ img {
 .cg-wrap {
   width: var(--board-size);
   height: var(--board-size);
-  box-shadow: 0px 0px 3px 0px grey;
-  border: 8px solid var(--border-color);
-  border-radius: 4px;
+  box-shadow: var(--shadow-board);
+  border: var(--board-border-width) solid var(--border-color);
+  border-radius: var(--border-radius-main);
   width: var(--board-size);
   height: var(--board-size);
   position: relative;
@@ -549,8 +574,8 @@ img {
   display: block;
 }
 .analysisMode {
-  border: 8px solid transparent;
-  box-shadow: 0px 0px 3px 0px grey;
+  border: var(--board-border-width) solid transparent;
+  box-shadow: var(--shadow-board);
   background-repeat: no-repeat;
   background-image:
     linear-gradient(var(--content-bg, white), var(--content-bg, white)),
@@ -570,23 +595,25 @@ img {
     box-shadow: 0 0 12px 6px var(--timer-flash-color);
   }
   100% {
-    box-shadow: 0px 0px 3px 0px grey;
+    box-shadow: var(--shadow-board);
   }
 }
 .cg-wrap.time-added-flash {
   animation: timeFlash 0.5s ease-out;
 }
 .timerMode {
-  border: 8px solid transparent;
-  box-shadow: 0px 0px 3px 0px grey;
+  border: var(--board-border-width) solid transparent;
+  box-shadow: var(--shadow-board);
   background-repeat: no-repeat;
   background-image:
     linear-gradient(var(--content-bg, white), var(--content-bg, white)),
     linear-gradient(
       to bottom,
       var(--timer-color) 0%,
-      var(--timer-color) var(--remainingTime),
-      var(--player-color) var(--remainingTime),
+      var(--timer-color) calc(var(--remainingTime) - 1px),
+      red calc(var(--remainingTime) - 1px),
+      red calc(var(--remainingTime) + 1px),
+      var(--player-color) calc(var(--remainingTime) + 1px),
       var(--player-color) 100%);
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
@@ -761,7 +788,7 @@ cg-board piece.fading {
   z-index: 9;
 }
 .cg-wrap coords {
-  font-family: serif;
+  font-family: var(--font-family-comments);
   position: absolute;
   display: flex;
   pointer-events: none;

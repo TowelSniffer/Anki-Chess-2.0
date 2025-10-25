@@ -47,7 +47,6 @@ export function toColor(): Color {
 // --- Navigation Tools ---
 
 function navBackward(): void {
-    if (config.boardMode === 'Puzzle') return;
     const navCheck = navigatePrevMove(state.pgnPath);
     if (!navCheck.length){
         resetBoard();
@@ -57,13 +56,11 @@ function navBackward(): void {
 }
 
 function navForward(): void {
-    if (config.boardMode === 'Puzzle') return;
     const navCheck = navigateNextMove(state.pgnPath);
     stateProxy.pgnPath = navCheck;
 }
 
 function resetBoard(): void {
-    if (config.boardMode === 'Puzzle') return;
     stateProxy.pgnPath = [];
 }
 
@@ -180,7 +177,10 @@ export function setupEventListeners(): void {
     });
 
     // --- Board navigation ---
+
+    const promoteOverlay = document.getElementById('overlay');
     state.cgwrap.addEventListener('wheel', (event: WheelEvent) => {
+        if ((promoteOverlay && !promoteOverlay.classList.contains('hidden')) || config.boardMode !== 'Viewer') return;
         event.preventDefault();
         if (event.deltaY < 0) {
             navBackward();
@@ -190,6 +190,7 @@ export function setupEventListeners(): void {
     });
 
     document.addEventListener('keydown', (event: KeyboardEvent) => {
+        if ((promoteOverlay && !promoteOverlay.classList.contains('hidden')) || config.boardMode !== 'Viewer') return;
         switch (event.key) {
             case 'ArrowLeft':
                 navBackward();

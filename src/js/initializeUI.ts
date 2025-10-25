@@ -69,7 +69,7 @@ export function initializeUI(): void {
 
     const borderColor = config.randomOrientation ? "grey" : state.playerColour;
     htmlElement.style.setProperty('--border-color', borderColor);
-    htmlElement.style.setProperty('--player-color', borderColor);
+    htmlElement.style.setProperty('--player-color', state.playerColour);
     htmlElement.style.setProperty('--opponent-color', state.opponentColour);
 
     // Update border color based on error tracking in Viewer mode
@@ -89,6 +89,10 @@ export function positionPromoteOverlay(): void {
     if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
 
     const rect = state.cgwrap.getBoundingClientRect();
-    promoteOverlay.style.top = `${rect.top + 8}px`;
-    promoteOverlay.style.left = `${rect.left + 8}px`;
+    const borderWidthString = getComputedStyle(document.documentElement)
+    .getPropertyValue('--board-border-width');
+    const borderWidth = parseInt(borderWidthString, 10);
+
+    promoteOverlay.style.top = `${rect.top + borderWidth}px`;
+    promoteOverlay.style.left = `${rect.left + borderWidth}px`;
 }

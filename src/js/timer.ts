@@ -93,7 +93,6 @@ export function startPlayerTimer(): void {
     if (config.boardMode === 'Viewer' || !config.timer || state.puzzleTime <= 0) {
         return;
     }
-    if (animationFrameId) stopPlayerTimer();
     animationFrameId = requestAnimationFrame(timerLoop);
 }
 
@@ -112,14 +111,9 @@ export function initializePuzzleTimer(): void {
 
 export function extendPuzzleTime(additionalTime: number): void {
     if (config.boardMode === 'Viewer' || !config.timer || state.puzzleTime <= 0) return;
-    if (extendAnimationFrameId) {
-        cancelAnimationFrame(extendAnimationFrameId);
-        extendAnimationFrameId = null;
-        lastTickExtendTimestamp = null;
-    }
 
     extendPercentage = 100 - (state.puzzleTime / totalTime) * 100
     totalTime = Math.max(state.puzzleTime + additionalTime, config.timer)
     if (animationFrameId) stopPlayerTimer();
-    animationFrameId = requestAnimationFrame(timerExtendLoop);
+    extendAnimationFrameId = requestAnimationFrame(timerExtendLoop);
 }

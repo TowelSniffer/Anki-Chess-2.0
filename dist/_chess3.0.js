@@ -13746,7 +13746,7 @@ ${contextLines.join("\n")}`;
     }
     const borderColor = config.randomOrientation ? "grey" : state.playerColour;
     htmlElement.style.setProperty("--border-color", borderColor);
-    htmlElement.style.setProperty("--player-color", borderColor);
+    htmlElement.style.setProperty("--player-color", state.playerColour);
     htmlElement.style.setProperty("--opponent-color", state.opponentColour);
     if (config.boardMode === "Viewer") {
       if (state.errorTrack === "incorrect") {
@@ -13762,8 +13762,10 @@ ${contextLines.join("\n")}`;
     const promoteOverlay = document.getElementById("promoteButtons");
     if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
     const rect = state.cgwrap.getBoundingClientRect();
-    promoteOverlay.style.top = `${rect.top + 8}px`;
-    promoteOverlay.style.left = `${rect.left + 8}px`;
+    const borderWidthString = getComputedStyle(document.documentElement).getPropertyValue("--board-border-width");
+    const borderWidth = parseInt(borderWidthString, 10);
+    promoteOverlay.style.top = `${rect.top + borderWidth}px`;
+    promoteOverlay.style.left = `${rect.left + borderWidth}px`;
   }
   var htmlElement;
   var init_initializeUI = __esm({
@@ -14032,30 +14034,31 @@ ${contextLines.join("\n")}`;
     }
     const parts = message.split(" ");
     if (message.startsWith("info")) {
+      if (analysisCache.fen !== state.chess.fen()) return;
       const pvIndex = parts.indexOf("pv");
       const cpIndex = parts.indexOf("cp");
       const mateIndex = parts.indexOf("mate");
-      if (pvIndex > -1 && parts.length > pvIndex + 1) {
-        const firstMove = parts[pvIndex + 1];
-        const cp = parseInt(parts[cpIndex + 1], 10);
+      const firstMove = parts[pvIndex + 1];
+      if (mateIndex > -1) {
         const mate = parseInt(parts[mateIndex + 1], 10);
-        let advantage;
-        if (cpIndex === -1) {
-          advantage = mate < 0 ? 0 : 100;
-          if (state.playerColour === toColor()) {
-            advantage = 100 - advantage;
-          }
-          advantage = `${advantage.toFixed(1)}%`;
-        } else {
-          advantage = convertCpToWinPercentage(cp);
-        }
-        document.documentElement.style.setProperty("--centipawn", advantage);
-        const moveObject = getLegalMove(firstMove);
-        if (moveObject && state.analysisToggledOn) {
-          filterShapes("Stockfish" /* Stockfish */);
-          pushShapes(moveObject, "stockfish");
-          state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
-        }
+        let adv = mate < 0 ? 0 : 100;
+        if (state.playerColour === toColor()) adv = 100 - adv;
+        analysisCache.advantage = `${adv.toFixed(1)}%`;
+      } else if (cpIndex > -1) {
+        const cp = parseInt(parts[cpIndex + 1], 10);
+        analysisCache.advantage = convertCpToWinPercentage(cp);
+      }
+      document.documentElement.style.setProperty("--centipawn", analysisCache.advantage);
+      if (firstMove === analysisCache.moveUci) {
+        return;
+      }
+      const moveObject = getLegalMove(firstMove);
+      analysisCache.moveUci = firstMove;
+      analysisCache.move = moveObject;
+      if (moveObject && state.analysisToggledOn) {
+        filterShapes("Stockfish" /* Stockfish */);
+        pushShapes(moveObject, "stockfish");
+        state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
       }
     } else if (message.startsWith("bestmove")) {
       state.isStockfishBusy = false;
@@ -14110,6 +14113,17 @@ ${contextLines.join("\n")}`;
       stockfish.postMessage("stop");
       return;
     }
+    if (analysisCache.fen !== state.chess.fen()) {
+      analysisCache = {
+        fen: state.chess.fen(),
+        // Set the new FEN
+        moveUci: "",
+        move: null,
+        advantage: analysisCache.advantage
+      };
+      filterShapes("Stockfish" /* Stockfish */);
+      state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+    }
     state.isStockfishBusy = true;
     stockfish.postMessage(`position fen ${state.chess.fen()}`);
     stockfish.postMessage(`go movetime ${movetime}`);
@@ -14119,6 +14133,11 @@ ${contextLines.join("\n")}`;
     if (!toggleButton) return;
     if (!stockfish) {
       setButtonsDisabled(["stockfish"], true);
+      const icon = toggleButton.querySelector(".material-icons");
+      if (icon) {
+        icon.textContent = "sync";
+        icon.classList.add("icon-spin");
+      }
       initializeStockfish().then(() => {
         setButtonsDisabled(["stockfish"], false);
         state.analysisToggledOn = false;
@@ -14140,7 +14159,7 @@ ${contextLines.join("\n")}`;
       state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
     }
   }
-  var stockfish;
+  var stockfish, analysisCache;
   var init_handleStockfish = __esm({
     "src/js/handleStockfish.ts"() {
       "use strict";
@@ -14149,6 +14168,13 @@ ${contextLines.join("\n")}`;
       init_config2();
       init_toolbox();
       stockfish = null;
+      analysisCache = {
+        // cache info to reduce lag while analysis is on
+        fen: "",
+        moveUci: "",
+        move: null,
+        advantage: "50.0%"
+      };
     }
   });
 
@@ -14223,7 +14249,6 @@ ${contextLines.join("\n")}`;
     return state.chess.turn() === "w" ? "white" : "black";
   }
   function navBackward() {
-    if (config.boardMode === "Puzzle") return;
     const navCheck = navigatePrevMove(state.pgnPath);
     if (!navCheck.length) {
       resetBoard();
@@ -14232,12 +14257,10 @@ ${contextLines.join("\n")}`;
     }
   }
   function navForward() {
-    if (config.boardMode === "Puzzle") return;
     const navCheck = navigateNextMove(state.pgnPath);
     stateProxy.pgnPath = navCheck;
   }
   function resetBoard() {
-    if (config.boardMode === "Puzzle") return;
     stateProxy.pgnPath = [];
   }
   function rotateBoard() {
@@ -14331,7 +14354,9 @@ ${contextLines.join("\n")}`;
         handler();
       }
     });
+    const promoteOverlay = document.getElementById("overlay");
     state.cgwrap.addEventListener("wheel", (event) => {
+      if (promoteOverlay && !promoteOverlay.classList.contains("hidden") || config.boardMode !== "Viewer") return;
       event.preventDefault();
       if (event.deltaY < 0) {
         navBackward();
@@ -14340,6 +14365,7 @@ ${contextLines.join("\n")}`;
       }
     });
     document.addEventListener("keydown", (event) => {
+      if (promoteOverlay && !promoteOverlay.classList.contains("hidden") || config.boardMode !== "Viewer") return;
       switch (event.key) {
         case "ArrowLeft":
           navBackward();
@@ -14483,7 +14509,6 @@ ${contextLines.join("\n")}`;
     if (config.boardMode === "Viewer" || !config.timer || state.puzzleTime <= 0) {
       return;
     }
-    if (animationFrameId) stopPlayerTimer();
     animationFrameId = requestAnimationFrame(timerLoop);
   }
   function initializePuzzleTimer() {
@@ -14499,15 +14524,10 @@ ${contextLines.join("\n")}`;
   }
   function extendPuzzleTime(additionalTime) {
     if (config.boardMode === "Viewer" || !config.timer || state.puzzleTime <= 0) return;
-    if (extendAnimationFrameId) {
-      cancelAnimationFrame(extendAnimationFrameId);
-      extendAnimationFrameId = null;
-      lastTickExtendTimestamp = null;
-    }
     extendPercentage = 100 - state.puzzleTime / totalTime * 100;
     totalTime = Math.max(state.puzzleTime + additionalTime, config.timer);
     if (animationFrameId) stopPlayerTimer();
-    animationFrameId = requestAnimationFrame(timerExtendLoop);
+    extendAnimationFrameId = requestAnimationFrame(timerExtendLoop);
   }
   var animationFrameId, lastTickTimestamp, extendAnimationFrameId, lastTickExtendTimestamp, totalExtendTime, totalTime, extendPercentage;
   var init_timer = __esm({
@@ -14747,6 +14767,7 @@ ${contextLines.join("\n")}`;
       state.cg.set({ viewOnly: false });
       const nextMovePath = navigateNextMove(state.pgnPath);
       stateProxy.pgnPath = nextMovePath;
+      playAiMove(delay);
     }, delay);
   }
   function handleWrongMove(move3) {
@@ -14760,7 +14781,6 @@ ${contextLines.join("\n")}`;
       stopPlayerTimer();
       state.cg.set({ viewOnly: true });
       playUserCorrectMove(state.delayTime);
-      playAiMove(state.delayTime * 2);
     }
   }
   function promotePopup(orig, dest) {
@@ -14933,11 +14953,19 @@ ${contextLines.join("\n")}`;
       urlParams = new URLSearchParams(window.location.search);
       cgwrap = document.getElementById("board");
       config = {
-        pgn: getUrlParam("PGN", `[Result "*"]
-    [FEN "rnb1kbnr/pppp1p1p/8/4N3/2B1P1pq/6p1/PPPP3P/RNBQK2R w KQkq - 0 7"]
+        pgn: getUrlParam("PGN", `[Event "?"]
+    [Site "?"]
+    [Date "2023.02.13"]
+    [Round "?"]
+    [White "White"]
+    [Black "Black"]
+    [Result "*"]
+    [FEN "4rrk1/1ppq1ppp/p1np1n2/4P3/3p1P2/P2B2QP/1PPB2P1/4RRK1 b - - 0 14"]
     [SetUp "1"]
 
-    7. Qxg4 g2+ 8. Qxh4 gxh1=Q+ 9. Kf2 Bc5+ (9... Be7) *
+    14... dxe5 15. fxe5 {EV: 94.7%} Nd5 {EV: 5.2%} (15... Nh5 {EV: 3.4%} 16. Qg4
+    {EV: 98.6%} Qxg4 {EV: 1.3%} 17. hxg4 {EV: 98.8%} Ng3 {EV: 1.2%} 18. Rf3 {EV:
+        99.2%}) 16. Bh6 {EV: 95.3%} *
     `),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "true") === "true",
@@ -14950,13 +14978,13 @@ ${contextLines.join("\n")}`;
         disableArrows: getUrlParam("disableArrows", "false") === "true",
         flipBoard: getUrlParam("flip", "true") === "true",
         boardMode: "Puzzle",
-        background: getUrlParam("background", "#2C2C2C"),
+        background: getUrlParam("background", "var(--color-bg-secondary)"),
         mirror: getUrlParam("mirror", "true") === "true",
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
         autoAdvance: getUrlParam("autoAdvance", "false") === "true",
         handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
-        timer: parseInt(getUrlParam("timer", "4"), 10) * 1e3,
-        increment: parseInt(getUrlParam("increment", "2"), 10) * 1e3,
+        timer: parseInt(getUrlParam("timer", "10"), 10) * 1e3,
+        increment: parseInt(getUrlParam("increment", "1"), 10) * 1e3,
         timerAdvance: getUrlParam("timerAdvance", "false") === "true",
         timerScore: getUrlParam("timerScore", "false") === "true",
         analysisTime: parseInt(getUrlParam("analysisTime", "4"), 10) * 1e3,

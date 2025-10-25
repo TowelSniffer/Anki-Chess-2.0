@@ -1,12 +1,20 @@
 import { getLegalMove } from './chessFunctions';
 import { ShapeFilter, filterShapes, pushShapes } from './arrows';
 import { state, config } from './config';
+import type { Move } from 'chess.js';
 import { setButtonsDisabled, toColor } from './toolbox';
 
 let stockfish: Worker | null = null;
 
+let analysisCache = { // cache info to reduce lag while analysis is on
+    fen: "",
+    moveUci: "",
+    move: null as Move | null,
+    advantage: "50.0%"
+};
+
 function convertCpToWinPercentage(cp: number): string {
-    // This sigmoid function estimates win probability from centipawn advantage.
+
     const probability = 1 / (1 + Math.pow(10, -cp / 400));
     let percentage = probability * 100;
 
@@ -25,32 +33,40 @@ function handleStockfishMessages(event: MessageEvent): void {
     }
     const parts = message.split(' ');
     if (message.startsWith('info')) {
+        if (analysisCache.fen !== state.chess.fen()) return;
         // const pvDepthIndex = parts.indexOf('depth');
         // const pvDepth = parts[pvDepthIndex + 1];
         const pvIndex = parts.indexOf('pv');
         const cpIndex = parts.indexOf('cp');
         const mateIndex = parts.indexOf('mate');
-        if (pvIndex > -1 && parts.length > pvIndex + 1) {
-            const firstMove = parts[pvIndex + 1];
+        const firstMove = parts[pvIndex + 1];
+
+        if (mateIndex > -1) {
+            const mate = parseInt(parts[mateIndex + 1], 10);
+            let adv = (mate < 0) ? 0 : 100;
+            if (state.playerColour === toColor()) adv = 100 - adv;
+            analysisCache.advantage = `${adv.toFixed(1)}%`;
+        } else if (cpIndex > -1) {
             const cp = parseInt(parts[cpIndex + 1], 10);
-            const mate: number = parseInt(parts[mateIndex + 1], 10);
-            let advantage;
-            if (cpIndex === -1) {
-                advantage = mate < 0 ? 0 : 100;
-                if (state.playerColour === toColor()) {
-                    advantage = 100 - advantage;
-                }
-                advantage = `${advantage.toFixed(1)}%`
-            } else {
-                advantage = convertCpToWinPercentage(cp);
-            }
-            document.documentElement.style.setProperty('--centipawn', advantage);
-            const moveObject = getLegalMove(firstMove);
-            if (moveObject && state.analysisToggledOn) {
-                filterShapes(ShapeFilter.Stockfish);
-                pushShapes(moveObject, "stockfish");
-                state.cg.set({drawable: {shapes: state.chessGroundShapes}});
-            }
+            analysisCache.advantage = convertCpToWinPercentage(cp);
+        }
+        document.documentElement.style.setProperty('--centipawn', analysisCache.advantage);
+
+        if (firstMove === analysisCache.moveUci) {
+            return;
+        }
+
+        const moveObject = getLegalMove(firstMove);
+
+        // Update cache
+        analysisCache.moveUci = firstMove;
+        analysisCache.move = moveObject;
+
+        // Now update the drawing
+        if (moveObject && state.analysisToggledOn) {
+            filterShapes(ShapeFilter.Stockfish);
+            pushShapes(moveObject, "stockfish"); // Draw as "in progress"
+            state.cg.set({drawable: {shapes: state.chessGroundShapes}});
         }
     } else if (message.startsWith('bestmove')) {
         state.isStockfishBusy = false;
@@ -114,6 +130,17 @@ export function startAnalysis(movetime: number): void {
         stockfish.postMessage('stop');
         return;
     }
+    if (analysisCache.fen !== state.chess.fen()) {
+        analysisCache = {
+            fen: state.chess.fen(), // Set the new FEN
+            moveUci: "",
+            move: null,
+            advantage: analysisCache.advantage
+        };
+        filterShapes(ShapeFilter.Stockfish);
+        state.cg.set({drawable: {shapes: state.chessGroundShapes}});
+    }
+
     state.isStockfishBusy = true;
     stockfish.postMessage(`position fen ${state.chess.fen()}`);
     stockfish.postMessage(`go movetime ${movetime}`);
@@ -124,10 +151,17 @@ export function toggleStockfishAnalysis(): void {
     if (!toggleButton) return;
     if (!stockfish) {
         setButtonsDisabled(['stockfish'], true);
+
+        // Loading icon
+        const icon = toggleButton.querySelector<HTMLElement>(".material-icons");
+        if (icon) {
+            icon.textContent = 'sync'; // Change icon to 'sync'
+            icon.classList.add('icon-spin'); // Add spinning class
+        }
+
         initializeStockfish().then(() => {
             setButtonsDisabled(['stockfish'], false);
-            // After initialization, re-run the toggle logic
-            state.analysisToggledOn = false; // It will be flipped to true below
+            state.analysisToggledOn = false;
             toggleStockfishAnalysis();
         });
         return;
