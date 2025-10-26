@@ -17,7 +17,7 @@ export function initializeUI(): void {
     const promoteBtnMap = ["Q", "B", "N", "R"];
     promoteBtnMap.forEach((piece) => {
         const imgElement = getElement(`#promote${piece}`, HTMLImageElement);
-        imgElement.src = `_${state.boardRotation[0]}${piece}.svg`;
+        imgElement.src = `_${state.playerColour[0]}${piece}.svg`;
     });
 
     htmlElement.style.setProperty('--background-color', config.background);
@@ -75,11 +75,11 @@ export function initializeUI(): void {
     // Update border color based on error tracking in Viewer mode
     if (config.boardMode === 'Viewer') {
         if (state.errorTrack === 'incorrect') {
-            htmlElement.style.setProperty('--border-color', "#b31010");
+            htmlElement.style.setProperty('--border-color', "var(--incorrect-color)");
         } else if (state.errorTrack === 'correctTime') {
-            htmlElement.style.setProperty('--border-color', "#2CBFA7");
+            htmlElement.style.setProperty('--border-color', "var(--perfect-color)");
         } else if (state.errorTrack === 'correct') {
-            htmlElement.style.setProperty('--border-color', "limegreen");
+            htmlElement.style.setProperty('--border-color', "var(--correct-color)");
         }
     }
 }

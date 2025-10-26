@@ -72,10 +72,10 @@ function handleOutOfTime(): void {
     if (config.timerScore) {
         state.errorTrack = 'incorrect';
     } else if (!state.errorTrack) {
-        state.solvedColour = "limegreen";
+        state.solvedColour = "var(--correct-color)";
     }
 
-    borderFlash("#b31010");
+    borderFlash("var(--incorrect-color)");
 
     const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
     window.parent.postMessage(stateCopy, '*');
