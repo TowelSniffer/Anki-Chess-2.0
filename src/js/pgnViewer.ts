@@ -232,7 +232,7 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
             let insertVarDivHtml = ``;
             if (nextAltLineEl || (!nextAltLineEl && newMove.turn === 'w')) insertVarDivHtml += `<span class="nullMove">|...|</span>`;
             insertVarDivHtml += newVarDivHtml;
-            if (nextAltLineEl) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`
+            if (nextAltLineEl && !variationMoveEl.nextElementSibling) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`
             variationMoveEl.insertAdjacentHTML('afterend', insertVarDivHtml);
         } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains('move-number')) {
             // insert new variation div in middle of main line Black

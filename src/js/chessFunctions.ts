@@ -182,7 +182,7 @@ function isPromotion(orig: Square, dest: Square): boolean {
 function isPuzzleFailed(isFailed: boolean = false): void {
   if (isFailed) { // manually fail
     state.errorTrack = 'incorrect';
-    state.solvedColour = "#b31010";
+    state.solvedColour = "var(--incorrect-color)";
     borderFlash();
   } else {
     state.errorTrack = state.errorTrack ?? "correct";

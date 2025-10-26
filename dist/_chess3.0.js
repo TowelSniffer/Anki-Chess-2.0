@@ -13709,7 +13709,7 @@ ${contextLines.join("\n")}`;
     const promoteBtnMap = ["Q", "B", "N", "R"];
     promoteBtnMap.forEach((piece) => {
       const imgElement = getElement(`#promote${piece}`, HTMLImageElement);
-      imgElement.src = `_${state.boardRotation[0]}${piece}.svg`;
+      imgElement.src = `_${state.playerColour[0]}${piece}.svg`;
     });
     htmlElement.style.setProperty("--background-color", config.background);
     const commentBox = document.getElementById("commentBox");
@@ -13750,11 +13750,11 @@ ${contextLines.join("\n")}`;
     htmlElement.style.setProperty("--opponent-color", state.opponentColour);
     if (config.boardMode === "Viewer") {
       if (state.errorTrack === "incorrect") {
-        htmlElement.style.setProperty("--border-color", "#b31010");
+        htmlElement.style.setProperty("--border-color", "var(--incorrect-color)");
       } else if (state.errorTrack === "correctTime") {
-        htmlElement.style.setProperty("--border-color", "#2CBFA7");
+        htmlElement.style.setProperty("--border-color", "var(--perfect-color)");
       } else if (state.errorTrack === "correct") {
-        htmlElement.style.setProperty("--border-color", "limegreen");
+        htmlElement.style.setProperty("--border-color", "var(--correct-color)");
       }
     }
   }
@@ -14492,9 +14492,9 @@ ${contextLines.join("\n")}`;
     if (config.timerScore) {
       state.errorTrack = "incorrect";
     } else if (!state.errorTrack) {
-      state.solvedColour = "limegreen";
+      state.solvedColour = "var(--correct-color)";
     }
-    borderFlash("#b31010");
+    borderFlash("var(--incorrect-color)");
     const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
     window.parent.postMessage(stateCopy, "*");
   }
@@ -14664,7 +14664,7 @@ ${contextLines.join("\n")}`;
   function isPuzzleFailed(isFailed = false) {
     if (isFailed) {
       state.errorTrack = "incorrect";
-      state.solvedColour = "#b31010";
+      state.solvedColour = "var(--incorrect-color)";
       borderFlash();
     } else {
       state.errorTrack = state.errorTrack ?? "correct";
@@ -14960,13 +14960,10 @@ ${contextLines.join("\n")}`;
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "4rrk1/1ppq1ppp/p1np1n2/4P3/3p1P2/P2B2QP/1PPB2P1/4RRK1 b - - 0 14"]
+    [FEN "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/3P1N2/PPP2PPP/RNBQKB1R b KQkq - 2 3"]
     [SetUp "1"]
 
-    14... dxe5 15. fxe5 {EV: 94.7%} Nd5 {EV: 5.2%} (15... Nh5 {EV: 3.4%} 16. Qg4
-    {EV: 98.6%} Qxg4 {EV: 1.3%} 17. hxg4 {EV: 98.8%} Ng3 {EV: 1.2%} 18. Rf3 {EV:
-        99.2%}) 16. Bh6 {EV: 95.3%} *
-    `),
+    3... Bc5 4. Nxe5 {EV: 80.1%} *`),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "true") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
@@ -15000,7 +14997,7 @@ ${contextLines.join("\n")}`;
         boardRotation: "black",
         playerColour: "white",
         opponentColour: "black",
-        solvedColour: config.timer ? "#2CBFA7" : "limegreen",
+        solvedColour: config.timer ? "var(--perfect-color)" : "var(--correct-color)",
         errorTrack: null,
         chessGroundShapes: [],
         errorCount: 0,
@@ -15034,7 +15031,7 @@ ${contextLines.join("\n")}`;
               stockfinished: { key: "stockfinished", color: "white", opacity: 1, lineWidth: 7 },
               mainLine: { key: "mainLine", color: "#66AA66", opacity: 1, lineWidth: 9 },
               altLine: { key: "altLine", color: "#66AAAA", opacity: 1, lineWidth: 9 },
-              blunderLine: { key: "blunderLine", color: "#b31010", opacity: 1, lineWidth: 7 },
+              blunderLine: { key: "blunderLine", color: "var(--incorrect-color)", opacity: 1, lineWidth: 7 },
               // default
               green: { key: "green", color: "green", opacity: 0.7, lineWidth: 9 },
               red: { key: "red", color: "red", opacity: 0.7, lineWidth: 9 },
@@ -15289,7 +15286,7 @@ ${contextLines.join("\n")}`;
         let insertVarDivHtml = ``;
         if (nextAltLineEl || !nextAltLineEl && newMove.turn === "w") insertVarDivHtml += `<span class="nullMove">|...|</span>`;
         insertVarDivHtml += newVarDivHtml;
-        if (nextAltLineEl) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`;
+        if (nextAltLineEl && !variationMoveEl.nextElementSibling) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`;
         variationMoveEl.insertAdjacentHTML("afterend", insertVarDivHtml);
       } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains("move-number")) {
         if (variationMoveEl.nextElementSibling?.classList.contains("nullMove")) {

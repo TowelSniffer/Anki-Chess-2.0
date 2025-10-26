@@ -64,7 +64,7 @@ export interface State {
     boardRotation: Color;
     playerColour: Color;
     opponentColour: Color;
-    solvedColour: "limegreen" | "#b31010" | "#2CBFA7";
+    solvedColour: "var(--correct-color)" | "var(--incorrect-color)" | "var(--perfect-color)";
     errorTrack: ErrorTrack;
     chessGroundShapes: CustomShape[];
     errorCount: number;
