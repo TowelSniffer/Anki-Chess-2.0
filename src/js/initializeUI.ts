@@ -1,5 +1,8 @@
 import { state, config } from './config';
 import type { Color } from 'chessground/types';
+import { setButtonsDisabled } from './toolbox';
+import { isEndOfLine } from './pgnViewer';
+import { drawArrows } from './arrows';
 
 function getElement<T extends HTMLElement>(selector: string, _type: { new(): T }): T {
     const element = document.querySelector<T>(selector);
@@ -11,7 +14,27 @@ function getElement<T extends HTMLElement>(selector: string, _type: { new(): T }
 
 const htmlElement: HTMLElement = document.documentElement;
 
+function initializePgnData(): void {
+    const pathKey = state.pgnPath.join(',');
+    const moveTrack = state.pgnPathMap.get(pathKey);
+    state.chess.load(moveTrack?.after ?? state.startFen);
+    if (config.boardMode === 'Viewer') {
+        state.cg.set({ animation: { enabled: false} })
+        state.cg.set({ fen: moveTrack?.after ?? state.startFen });
+        state.cg.set({ animation: { enabled: true} })
+        if (state.pgnPath.length && moveTrack) {
+            setButtonsDisabled(['back', 'reset'], false);
+            state.lastMove = moveTrack;
+        };
+        const endOfLineCheck = isEndOfLine(state.pgnPath);
+        setButtonsDisabled(['forward'], endOfLineCheck);
+        drawArrows(state.pgnPath);
+    }
+}
+
 export function initializeUI(): void {
+
+    initializePgnData();
 
     // Link images to promote buttons
     const promoteBtnMap = ["Q", "B", "N", "R"];

@@ -1,10 +1,101 @@
-import { state, stateProxy, config } from './config';
-import { onPgnMoveClick, navigateNextMove, navigatePrevMove } from './pgnViewer';
+import { state, config } from './config';
+import { navigateNextMove, navigatePrevMove, highlightCurrentMove, isEndOfLine } from './pgnViewer';
 import { positionPromoteOverlay } from './initializeUI';
-import { toggleStockfishAnalysis, handleStockfishCrash } from './handleStockfish';
-import { playSound } from './audio';
+import { toggleStockfishAnalysis, handleStockfishCrash, startAnalysis } from './handleStockfish';
+import { playSound, moveAudio } from './audio';
+import { animateBoard } from './chessFunctions';
+import { drawArrows } from './arrows';
+import type { PgnPath } from './types';
+import type { State, ErrorTrack } from './types';
 import type { Color } from 'chessground/types';
 
+
+// --- State Handler ---
+
+const stateHandler = {
+    set(target: State, property: keyof State, value: PgnPath | ErrorTrack, receiver: State) {
+        if (property === 'pgnPath') {
+
+            const pgnPath = value as PgnPath;
+            const pathKey = pgnPath.join(',');
+            const pathMove = state.pgnPathMap.get(pathKey) ?? null;
+            console.log(pgnPath, pathMove)
+
+            if ((pathMove || !pgnPath.length) &&
+                !(!state.pgnPath.join(',').length && !pgnPath.length)
+            ) {
+
+                const lastMove = state.lastMove;
+                if (!pgnPath.length) {
+                    setButtonsDisabled(['back', 'reset'], true);
+                    state.chess.reset();
+                    state.chess.load(state.startFen);
+                    state.lastMove = null;
+                } else {
+                    setButtonsDisabled(['back', 'reset'], false);
+                }
+
+                if (pathMove) {
+                    state.chess.load(pathMove.after)
+                    moveAudio(pathMove);
+                };
+                setTimeout(() => {
+                    // timeout is needed here for some animations. dont know why
+                    animateBoard(lastMove, pathMove);
+                }, 2)
+                startAnalysis(config.analysisTime);
+                drawArrows(pgnPath);
+                highlightCurrentMove(pgnPath);
+
+                const endOfLineCheck = isEndOfLine(pgnPath);
+                if (endOfLineCheck) {
+                    if (config.boardMode === 'Puzzle') {
+                        if (!state.errorTrack) stateProxy.errorTrack = "correct";
+                    } else {
+                        state.chessGroundShapes = [];
+                    }
+                }
+                setButtonsDisabled(['forward'], endOfLineCheck);
+                const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+                stateCopy.pgnPath = pgnPath;
+                window.parent.postMessage(stateCopy, '*');
+            }
+        } else if (property === 'errorTrack') {
+
+            const errorTrack = value as ErrorTrack;
+            const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+
+            const endOfLineCheck = isEndOfLine(state.pgnPath);
+            if (endOfLineCheck) stateCopy.puzzleComplete = true;
+
+            if (errorTrack === "correct") {
+                state.solvedColour = "var(--correct-color)";
+                if (config.autoAdvance) {
+                    stateCopy.puzzleComplete = true;
+                };
+            } else if (errorTrack === "correctTime") {
+                state.solvedColour = "var(--perfect-color)";
+            } else if (errorTrack === "incorrect") {
+                state.solvedColour = "var(--incorrect-color)";
+                if (config.timerAdvance && state.puzzleTime === 0 ||
+                    config.handicapAdvance
+                ) {
+                    stateCopy.puzzleComplete = true;
+                }
+            }
+            if (stateCopy.puzzleComplete) {
+                document.documentElement.style.setProperty('--border-color', state.solvedColour);
+                state.cg.set({ viewOnly: true });
+                setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
+            }
+            borderFlash();
+
+        }
+        return Reflect.set(target, property, value, receiver);
+    }
+};
+
+export const stateProxy = new Proxy(state, stateHandler);
 
 // --- UI tools ---
 
@@ -30,7 +121,7 @@ export function setButtonsDisabled(keys: (keyof typeof btn)[], isDisabled: boole
 
 // animations
 
-export function borderFlash(colour: string | null = null): void {
+function borderFlash(colour: string | null = null): void {
     document.documentElement.style.setProperty('--timer-flash-color', colour ?? state.solvedColour);
     state.cgwrap.classList.add('time-added-flash');
     setTimeout(() => {
@@ -47,6 +138,7 @@ export function toColor(): Color {
 // --- Navigation Tools ---
 
 function navBackward(): void {
+    if (!state.pgnPath.length) return;
     const navCheck = navigatePrevMove(state.pgnPath);
     if (!navCheck.length){
         resetBoard();
@@ -56,7 +148,9 @@ function navBackward(): void {
 }
 
 function navForward(): void {
+    if (isEndOfLine(state.pgnPath)) return;
     const navCheck = navigateNextMove(state.pgnPath);
+    console.log(state.pgnPath, navCheck)
     stateProxy.pgnPath = navCheck;
 }
 
@@ -109,7 +203,17 @@ export function setupEventListeners(): void {
     const pgnContainer = document.getElementById('pgnComment');
     if (pgnContainer) {
         pgnContainer.addEventListener('click', (event) => {
-            onPgnMoveClick(event);
+            const target = event.target;
+            if (!(target instanceof HTMLSpanElement) || !target.classList.contains('move')) return;
+            const pathKey = target.dataset.pathKey;
+            if (pathKey) {
+                const move = state.pgnPathMap.get(pathKey);
+                if (move) {
+                    stateProxy.pgnPath = move.pgnPath;
+                } else {
+                    return;
+                }
+            }
         });
     }
 
