@@ -1,11 +1,11 @@
 import { Chess, SQUARES } from 'chess.js';
 import type { Move, Square } from 'chess.js';
 import type { Color, Key } from 'chessground/types';
-import { config, state, stateProxy } from './config';
-import { toColor, borderFlash } from './toolbox';
+import { config, state } from './config';
+import { toColor, stateProxy } from './toolbox';
 import { addMoveToPgn, navigateNextMove, isEndOfLine } from './pgnViewer';
 import { filterShapes, shapePriority, ShapeFilter } from './arrows';
-import type { PgnPath } from './pgnViewer';
+import type { PgnPath } from './types';
 import type { CustomPgnMove } from './types';
 import { initializePuzzleTimer, startPlayerTimer, stopPlayerTimer, extendPuzzleTime } from './timer';
 import { playSound } from './audio';
@@ -116,22 +116,6 @@ export function animateBoard(lastMove: CustomPgnMove | null, pathMove: CustomPgn
 
 // --- PGN State & Puzzle Logic ---
 
-export function handlePuzzleComplete(): void {
-  state.cgwrap.classList.remove('timerMode');
-  stopPlayerTimer();
-  isPuzzleFailed();
-  document.documentElement.style.setProperty('--border-color', state.solvedColour);
-  borderFlash();
-  state.cg.set({ viewOnly: true });
-  if (config.autoAdvance) {
-    setTimeout(() => {
-      state.puzzleComplete = true;
-      const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-      window.parent.postMessage(stateCopy, '*');
-    }, state.delayTime);
-  }
-}
-
 function areMovesEqual(move1: Move | CustomPgnMove | null, move2: Move | CustomPgnMove | null): boolean {
   // Check for null or undefined moves
   if (!move1 || !move2) {
@@ -183,30 +167,6 @@ function isPromotion(orig: Square, dest: Square): boolean {
   }
   return false;
 }
-
-export function isPuzzleFailed(isFailed: boolean = false): void {
-  if (isFailed) { // manually fail
-    state.errorTrack = 'incorrect';
-    state.solvedColour = "var(--incorrect-color)";
-    borderFlash();
-  } else {
-    state.errorTrack = state.errorTrack ?? "correct";
-    if (
-      config.timer &&
-      state.puzzleTime > 0 &&
-      state.errorTrack === "correct"
-    ) {
-      state.errorTrack = "correctTime";
-    }
-  }
-  const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-  if (isFailed && (config.timerAdvance || config.handicapAdvance)) {
-    state.cg.set({ viewOnly: true });
-    stateCopy.puzzleComplete = true;
-    setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
-  }
-}
-
 
 // --- Chess Logic Helpers ---
 
@@ -313,7 +273,9 @@ function handleWrongMove(move: Move): void {
   playSound("Error");
   setBoard(move.before);
   const isFailed = config.strictScoring || state.errorCount > config.handicap;
-  if (isFailed) isPuzzleFailed(true);
+  if (isFailed) {
+    stateProxy.errorTrack = "incorrect"
+  }
   if (isFailed && !config.handicapAdvance) {
     stopPlayerTimer();
     state.cg.set({ viewOnly: true }); // disable user movement until after puzzle advances

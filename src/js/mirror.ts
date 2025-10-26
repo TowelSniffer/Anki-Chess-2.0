@@ -1,7 +1,4 @@
-import type { CustomPgnMove } from './types';
-
-// Define a specific type for the possible mirror states for type safety.
-export type MirrorState = "original" | "original_mirror" | "invert" | "invert_mirror";
+import type { CustomPgnMove, MirrorState } from './types';
 
 // A map for character-to-character substitution.
 type NotationMap = { [key: string]: string };

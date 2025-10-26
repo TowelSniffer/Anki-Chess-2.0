@@ -1,17 +1,8 @@
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
-import type { PgnMove } from '@mliebelt/pgn-types';
 import { Chessground } from 'chessground';
-import type { Config, State, ErrorTrack, CustomPgnGame, BoardModes } from './types';
-import { handlePuzzleComplete, animateBoard } from './chessFunctions';
-import type { MirrorState } from './mirror';
+import type { Config, State, ErrorTrack, CustomPgnGame, BoardModes, MirrorState } from './types';
 import { checkCastleRights, assignMirrorState, mirrorPgnTree, mirrorFen } from './mirror';
-import { augmentPgnTree, highlightCurrentMove, isEndOfLine } from './pgnViewer';
-import { drawArrows } from './arrows';
-import { moveAudio } from './audio';
-import { setButtonsDisabled } from './toolbox';
-import { startAnalysis } from './handleStockfish';
-import type { PgnPath } from './pgnViewer';
 
 // --- Type Guards ---
 // boardMode
@@ -33,24 +24,6 @@ function isMirrorState(mirrorState: string | null): mirrorState is MirrorState {
     const mirrorStates = ["original", "original_mirror", "invert", "invert_mirror"];
     const mirrorStateCheck = mirrorStates.includes(mirrorState);
     return mirrorStateCheck;
-}
-
-function initializePgnData(): void {
-    const pathKey = state.pgnPath.join(',');
-    const moveTrack = state.pgnPathMap.get(pathKey);
-    state.chess.load(moveTrack?.after ?? state.startFen);
-    if (config.boardMode === 'Viewer') {
-        state.cg.set({ animation: { enabled: false} })
-        state.cg.set({ fen: moveTrack?.after ?? state.startFen });
-        state.cg.set({ animation: { enabled: true} })
-        if (state.pgnPath.length && moveTrack) {
-            setButtonsDisabled(['back', 'reset'], false);
-            state.lastMove = moveTrack;
-        };
-        const endOfLineCheck = isEndOfLine(state.pgnPath);
-        setButtonsDisabled(['forward'], endOfLineCheck);
-        drawArrows(state.pgnPath);
-    }
 }
 
 // --- URL Parameter Helper ---
@@ -103,7 +76,7 @@ export const config: Config = {
     animationTime: parseInt(getUrlParam("animationTime", '200'), 10),
 };
 (function setBoardMode() {
-    const mode = getUrlParam("boardMode", "Puzzle");
+    const mode = getUrlParam("boardMode", "Viewer");
     if (mode && isBoardMode(mode)) config.boardMode = mode;
 })();
 
@@ -172,8 +145,6 @@ export const state: State = {
     delayTime: config.animationTime + 100,
 };
 
-augmentPgnTree(state.parsedPGN.moves as PgnMove[]);
-
 // --- TypeGuards ---
 
 (function setSolvedMode() {
@@ -189,64 +160,7 @@ augmentPgnTree(state.parsedPGN.moves as PgnMove[]);
     state.pgnPath = result ? result : [];
 })();
 
-// -- state proxy to handle board updates --
 
-const stateHandler = {
-    set(target: State, property: keyof State, value: PgnPath, receiver: State) {
-        const pathKey = value.join(',');
-        const pathMove = state.pgnPathMap.get(pathKey) ?? null;
-
-        if (property === 'pgnPath' &&
-            (pathMove || !value.length) &&
-            !(!state.pgnPath.join(',').length && !value.length)
-        ) {
-            const lastMove = state.lastMove;
-            if (!value.length) {
-                setButtonsDisabled(['back', 'reset'], true);
-                state.chess.reset();
-                state.chess.load(state.startFen);
-                state.lastMove = null;
-            } else {
-                setButtonsDisabled(['back', 'reset'], false);
-            }
-
-            if (pathMove) {
-                state.chess.load(pathMove.after)
-                moveAudio(pathMove);
-            };
-            setTimeout(() => {
-                // timeout is needed here for some animations. dont know why
-                animateBoard(lastMove, pathMove);
-            }, 2)
-            startAnalysis(config.analysisTime);
-            drawArrows(value);
-            highlightCurrentMove(value);
-
-
-            const endOfLineCheck = isEndOfLine(value);
-            if (endOfLineCheck) {
-                if (config.boardMode === 'Puzzle') {
-                    handlePuzzleComplete();
-                } else {
-                    state.chessGroundShapes = [];
-                }
-            }
-            setButtonsDisabled(['forward'], endOfLineCheck);
-
-            const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-            stateCopy.pgnPath = value;
-            window.parent.postMessage(stateCopy, '*');
-
-            return Reflect.set(target, property, value, receiver);
-        }
-        return Reflect.set(target, property, state.pgnPath, receiver);
-    }
-};
-
-// proxy for state
-export const stateProxy = new Proxy(state, stateHandler);
-
-initializePgnData();
 
 
 

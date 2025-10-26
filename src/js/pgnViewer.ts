@@ -1,14 +1,12 @@
 import type { Move } from 'chess.js';
 import { Chess } from 'chess.js';
-import { state, stateProxy } from './config';
+import { state } from './config';
 import type { PgnMove } from '@mliebelt/pgn-types';
-import type { CustomPgnMove } from './types';
+import type { CustomPgnMove, PgnPath } from './types';
 import nags from '../nags.json' assert { type: 'json' };
 
 // --- Types ---
 type NagKey = keyof typeof nags;
-
-export type PgnPath = ("v" | number)[];
 
 // type guard functions
 
@@ -265,44 +263,29 @@ export function navigateNextMove(path: PgnPath): PgnPath {
 
 export function navigatePrevMove(path: PgnPath): PgnPath {
     const movePath = path;
+    let prevMovePath = movePath;
     if (!movePath.length) return movePath;
     let currentLinePosition = movePath.at(-1);
     if (currentLinePosition === 0) {
         if (movePath.length === 1) {
-            return [];
+            prevMovePath = [];
         } else {
             currentLinePosition = movePath.at(-4);
             // ie 2 in: 4, "v", 0, 2, "v", 1, 0
             if (currentLinePosition === 0) {
                 // must be first move
-                return [];
+                prevMovePath = [];
             }
             if (typeof currentLinePosition === 'number') {
-                const prevMovePath = [...movePath.slice(0, -4), --currentLinePosition];
-                return prevMovePath;
+                prevMovePath = [...movePath.slice(0, -4), --currentLinePosition];
             }
         }
-    }
-    if (typeof currentLinePosition === 'number') {
-        const prevMovePath = movePath.with(-1, --currentLinePosition);
-        return prevMovePath;
+    } else if (typeof currentLinePosition === 'number') {
+        prevMovePath = movePath.with(-1, --currentLinePosition);
     } else {
-        return [];
+        prevMovePath = [];
     }
-}
-
-export function onPgnMoveClick(event: Event): void {
-    const target = event.target;
-    if (!(target instanceof HTMLSpanElement) || !target.classList.contains('move')) return;
-    const pathKey = target.dataset.pathKey;
-    if (pathKey) {
-        const move = state.pgnPathMap.get(pathKey);
-        if (move) {
-            stateProxy.pgnPath = move.pgnPath;
-        } else {
-            return;
-        }
-    }
+    return prevMovePath;
 }
 
 // --- PGN Data Augmentation ---

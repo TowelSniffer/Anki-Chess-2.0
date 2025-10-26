@@ -2,11 +2,13 @@ import type { Color } from 'chessground/types';
 import type { Api } from 'chessground/api';
 import type { Chess, Square } from 'chess.js';
 import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
-import type { MirrorState } from './mirror';
-import type { PgnPath } from './pgnViewer';
 import type { CustomShape } from './arrows';
 
 // --- types ---
+
+export type MirrorState = "original" | "original_mirror" | "invert" | "invert_mirror";
+
+export type PgnPath = ("v" | number)[];
 
 // config types
 export type BoardModes = "Viewer" | "Puzzle";

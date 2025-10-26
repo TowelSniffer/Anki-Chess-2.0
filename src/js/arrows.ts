@@ -1,9 +1,8 @@
 import type { Move } from 'chess.js';
 import type { CustomPgnMove } from './types';
 import type { DrawShape } from 'chessground/draw';
-import type { PgnPath } from './pgnViewer';
+import type { PgnPath } from './types';
 import { state, config } from './config';
-import { toColor } from './toolbox';
 import { navigateNextMove, isNagKey } from './pgnViewer';
 import nags from '../nags.json' assert { type: 'json' };
 
@@ -89,7 +88,7 @@ export function drawArrows(pgnPath: PgnPath): void {
     let nextMovePath = navigateNextMove(state.pgnPath);
     if (config.boardMode === 'Viewer') {
         nextMovePath = navigateNextMove(pgnPath);
-    } else if (state.playerColour === toColor()) {
+    } else if (state.playerColour === (state.chess.turn() === 'w' ? 'white' : 'black')) {
         state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
         return;
     }

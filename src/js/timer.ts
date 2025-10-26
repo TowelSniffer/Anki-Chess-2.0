@@ -1,6 +1,5 @@
 import { state, config } from './config';
-import { borderFlash } from './toolbox';
-import { isPuzzleFailed } from './chessFunctions';
+import { stateProxy } from './toolbox';
 
 // --- Module-level timer variables ---
 let animationFrameId: number | null = null;
@@ -67,19 +66,9 @@ function handleOutOfTime(): void {
         animationFrameId = null;
         lastTickTimestamp = null;
     }
-
     document.documentElement.style.setProperty('--remainingTime', '100%');
-
     if (config.timerScore) {
-        isPuzzleFailed(true);
-    } else if (config.timerAdvance) {
-        const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-        state.cg.set({ viewOnly: true });
-        stateCopy.puzzleComplete = true;
-        setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
-    } else {
-        if (!state.errorTrack) state.solvedColour = "var(--correct-color)";
-        borderFlash("var(--incorrect-color)");
+        stateProxy.errorTrack = "incorrect";
     }
 }
 
