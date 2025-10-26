@@ -88,7 +88,7 @@ export const config: Config = {
     randomOrientation: getUrlParam("randomOrientation", 'false') === 'true',
     autoAdvance: getUrlParam("autoAdvance", 'false') === 'true',
     handicapAdvance: getUrlParam("handicapAdvance", 'false') === 'true',
-    timer: parseInt(getUrlParam("timer", '10'), 10) * 1000,
+    timer: parseInt(getUrlParam("timer", '4'), 10) * 1000,
     increment: parseInt(getUrlParam("increment", '1'), 10) * 1000,
     timerAdvance: getUrlParam("timerAdvance", 'false') === 'true',
     timerScore: getUrlParam("timerScore", 'false') === 'true',
