@@ -72,7 +72,13 @@ function handleOutOfTime(): void {
 
     if (config.timerScore) {
         isPuzzleFailed(true);
+    } else if (config.timerAdvance) {
+        const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+        state.cg.set({ viewOnly: true });
+        stateCopy.puzzleComplete = true;
+        setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
     } else {
+        if (!state.errorTrack) state.solvedColour = "var(--correct-color)";
         borderFlash("var(--incorrect-color)");
     }
 }

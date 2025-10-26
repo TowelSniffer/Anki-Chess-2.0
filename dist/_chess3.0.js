@@ -14491,7 +14491,15 @@ ${contextLines.join("\n")}`;
     document.documentElement.style.setProperty("--remainingTime", "100%");
     if (config.timerScore) {
       isPuzzleFailed(true);
+    } else if (config.timerAdvance) {
+      const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+      state.cg.set({ viewOnly: true });
+      stateCopy.puzzleComplete = true;
+      setTimeout(() => {
+        window.parent.postMessage(stateCopy, "*");
+      }, state.delayTime);
     } else {
+      if (!state.errorTrack) state.solvedColour = "var(--correct-color)";
       borderFlash("var(--incorrect-color)");
     }
   }
@@ -14616,7 +14624,7 @@ ${contextLines.join("\n")}`;
     document.documentElement.style.setProperty("--border-color", state.solvedColour);
     borderFlash();
     state.cg.set({ viewOnly: true });
-    if (config.autoAdvance && state.errorTrack !== "incorrect") {
+    if (config.autoAdvance) {
       setTimeout(() => {
         state.puzzleComplete = true;
         const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
@@ -14669,7 +14677,7 @@ ${contextLines.join("\n")}`;
       borderFlash();
     } else {
       state.errorTrack = state.errorTrack ?? "correct";
-      if (config.timer && state.puzzleTime > 0) {
+      if (config.timer && state.puzzleTime > 0 && state.errorTrack === "correct") {
         state.errorTrack = "correctTime";
       }
     }
@@ -14776,16 +14784,12 @@ ${contextLines.join("\n")}`;
     state.cg.set({ fen: move3.after });
     playSound("Error");
     setBoard(move3.before);
-    if (config.strictScoring) {
-      isPuzzleFailed(true);
-    } else if (state.errorCount > config.handicap) {
+    const isFailed = config.strictScoring || state.errorCount > config.handicap;
+    if (isFailed) isPuzzleFailed(true);
+    if (isFailed && !config.handicapAdvance) {
       stopPlayerTimer();
       state.cg.set({ viewOnly: true });
-      if (config.handicapAdvance) {
-        isPuzzleFailed(true);
-      } else {
-        playUserCorrectMove(state.delayTime);
-      }
+      playUserCorrectMove(state.delayTime);
     }
   }
   function promotePopup(orig, dest) {
@@ -14985,7 +14989,7 @@ ${contextLines.join("\n")}`;
         randomOrientation: getUrlParam("randomOrientation", "false") === "true",
         autoAdvance: getUrlParam("autoAdvance", "false") === "true",
         handicapAdvance: getUrlParam("handicapAdvance", "false") === "true",
-        timer: parseInt(getUrlParam("timer", "10"), 10) * 1e3,
+        timer: parseInt(getUrlParam("timer", "4"), 10) * 1e3,
         increment: parseInt(getUrlParam("increment", "1"), 10) * 1e3,
         timerAdvance: getUrlParam("timerAdvance", "false") === "true",
         timerScore: getUrlParam("timerScore", "false") === "true",

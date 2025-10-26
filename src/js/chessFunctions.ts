@@ -123,7 +123,7 @@ export function handlePuzzleComplete(): void {
   document.documentElement.style.setProperty('--border-color', state.solvedColour);
   borderFlash();
   state.cg.set({ viewOnly: true });
-  if (config.autoAdvance && state.errorTrack !== 'incorrect') {
+  if (config.autoAdvance) {
     setTimeout(() => {
       state.puzzleComplete = true;
       const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
@@ -193,7 +193,8 @@ export function isPuzzleFailed(isFailed: boolean = false): void {
     state.errorTrack = state.errorTrack ?? "correct";
     if (
       config.timer &&
-      state.puzzleTime > 0
+      state.puzzleTime > 0 &&
+      state.errorTrack === "correct"
     ) {
       state.errorTrack = "correctTime";
     }
@@ -317,17 +318,12 @@ function handleWrongMove(move: Move): void {
   state.cg.set({ fen: move.after })
   playSound("Error");
   setBoard(move.before);
-
-  if (config.strictScoring) {
-    isPuzzleFailed(true);
-  } else if (state.errorCount > config.handicap) {
+  const isFailed = config.strictScoring || state.errorCount > config.handicap;
+  if (isFailed) isPuzzleFailed(true);
+  if (isFailed && !config.handicapAdvance) {
     stopPlayerTimer();
     state.cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
-    if (config.handicapAdvance) {
-      isPuzzleFailed(true);
-    } else {
-      playUserCorrectMove(state.delayTime); // show the correct user move
-    }
+    playUserCorrectMove(state.delayTime); // show the correct user move
   }
 }
 
