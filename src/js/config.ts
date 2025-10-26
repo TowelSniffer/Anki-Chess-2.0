@@ -5,6 +5,7 @@ import { Chessground } from 'chessground';
 import type { Config, State, ErrorTrack, CustomPgnGame, BoardModes } from './types';
 import { handlePuzzleComplete, animateBoard } from './chessFunctions';
 import type { MirrorState } from './mirror';
+import { checkCastleRights, assignMirrorState, mirrorPgnTree, mirrorFen } from './mirror';
 import { augmentPgnTree, highlightCurrentMove, isEndOfLine } from './pgnViewer';
 import { drawArrows } from './arrows';
 import { moveAudio } from './audio';
@@ -27,7 +28,8 @@ function isSolvedMode(solvedState: null | string): solvedState is ErrorTrack {
     return modeCheck;
 }
 // mirrorState
-function isMirrorState(mirrorState: string): mirrorState is MirrorState {
+function isMirrorState(mirrorState: string | null): mirrorState is MirrorState {
+    if (!mirrorState) return false;
     const mirrorStates = ["original", "original_mirror", "invert", "invert_mirror"];
     const mirrorStateCheck = mirrorStates.includes(mirrorState);
     return mirrorStateCheck;
@@ -63,15 +65,20 @@ const cgwrap = document.getElementById('board') as HTMLDivElement;
 export const config: Config = {
     pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2023.02.13"]
+    [Date "2025.02.22"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
-    [Result "*"]
-    [FEN "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/3P1N2/PPP2PPP/RNBQKB1R b KQkq - 2 3"]
+    [Result "0-1"]
+    [FEN "6k1/1pQ3p1/3p4/p2P1b2/8/PP2q1PP/8/2R3K1 w - - 2 34"]
     [SetUp "1"]
 
-    3... Bc5 4. Nxe5 {EV: 80.1%} *`),
+    34. Kg2 {EV: 33.1%, N: 99.99% of 129k} a4 {EV: 62.7%, N: 0.12% of 3.6M} 35. b4
+    {EV: 14.6%, N: 86.03% of 2.2M} Be4+ {EV: 86.0%, N: 98.72% of 1.9M} 36. Kf1 {EV:
+        13.9%, N: 100.00% of 1.9M} Bd3+ {EV: 86.7%, N: 98.89% of 2.0M} 37. Kg2 {EV:
+            13.2%, N: 100.00% of 2.0M} Qd2+ {EV: 91.1%, N: 79.26% of 2.0M} 38. Kg1 {EV:
+                8.8%, N: 100.00% of 1.6M} Kh7 {EV: 92.4%, N: 98.22% of 1.9M} 39. g4 {EV: 7.8%,
+                    N: 91.43% of 2.0M} Qf4 {EV: 95.8%, N: 86.87% of 2.1M} 0-1`),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'true') === 'true',
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
@@ -102,6 +109,14 @@ export const config: Config = {
 
 const parsed = parse(config.pgn, { startRule: "game" }) as unknown as CustomPgnGame;
 
+const mirrorState = config.boardMode === "Puzzle" ? assignMirrorState() : getUrlParam("mirrorState", null);
+
+if (parsed.tags?.FEN && !checkCastleRights(parsed.tags.FEN) && isMirrorState(mirrorState)
+) {
+    parsed.tags.FEN = mirrorFen(parsed.tags.FEN, mirrorState)
+    mirrorPgnTree(parsed.moves, mirrorState)
+}
+
 // --- Global State ---
 export const state: State = {
     startFen: parsed.tags?.FEN ?? DEFAULT_POSITION,
@@ -121,7 +136,7 @@ export const state: State = {
     pgnPath: [],
     pgnPathMap: new Map(),
     lastMove: null,
-    mirrorState: null,
+    mirrorState: isMirrorState(mirrorState) ? mirrorState : null,
     cgwrap: cgwrap,
     cg: Chessground(cgwrap, {
         fen: parsed.tags?.FEN ?? DEFAULT_POSITION,
@@ -158,6 +173,7 @@ export const state: State = {
 };
 
 augmentPgnTree(state.parsedPGN.moves as PgnMove[]);
+
 // --- TypeGuards ---
 
 (function setSolvedMode() {
@@ -171,10 +187,6 @@ augmentPgnTree(state.parsedPGN.moves as PgnMove[]);
         return isNaN(num) ? 'v' : num;
     });
     state.pgnPath = result ? result : [];
-})();
-(function setMirrorState() {
-    const mirrorState = getUrlParam("mirrorState", null);
-    if (mirrorState && isMirrorState(mirrorState)) state.mirrorState = mirrorState;
 })();
 
 // -- state proxy to handle board updates --

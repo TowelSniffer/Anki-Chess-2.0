@@ -14907,6 +14907,125 @@ ${contextLines.join("\n")}`;
     }
   });
 
+  // src/js/mirror.ts
+  function assignMirrorState() {
+    const states = ["original", "original_mirror", "invert", "invert_mirror"];
+    const mirrorRandom = Math.floor(Math.random() * states.length);
+    return states[mirrorRandom];
+  }
+  function mirrorFenRow(row) {
+    return row.split("").reverse().join("");
+  }
+  function mirrorFen(fullFen, mirrorState2) {
+    if (mirrorState2 === "original") {
+      return fullFen;
+    }
+    const fenParts = fullFen.split(" ");
+    const fenBoard = fenParts[0];
+    const fenColor = fenParts[1];
+    const fenRest = fenParts.slice(2).join(" ");
+    const fenRows = fenBoard.split("/");
+    const fenBoardInverted = swapCase(fenBoard.split("").reverse().join(""));
+    const fenBoardMirrored = fenRows.map(mirrorFenRow).join("/");
+    const fenBoardMirroredInverted = swapCase(fenBoardMirrored.split("").reverse().join(""));
+    const fenColorSwapped = fenColor === "w" ? "b" : "w";
+    switch (mirrorState2) {
+      case "invert_mirror":
+        return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
+      case "invert":
+        return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
+      case "original_mirror":
+        return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
+      default:
+        return fullFen;
+    }
+  }
+  function swapCase(str) {
+    return str.split("").map(
+      (ch) => ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
+    ).join("");
+  }
+  function mirrorMove(move3, mirrorState2) {
+    const notationMaps = {
+      "invert_mirror": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", "1": "8", "2": "7", "3": "6", "4": "5", "5": "4", "6": "3", "7": "2", "8": "1" },
+      "invert": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", "1": "8", "2": "7", "3": "6", "4": "5", "5": "4", "6": "3", "7": "2", "8": "1" },
+      "original_mirror": { q: "q", a: "h", b: "g", c: "f", d: "e", e: "d", f: "c", g: "b", h: "a", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" },
+      "original": { q: "q", a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h", "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8" }
+    };
+    const notationMap = notationMaps[mirrorState2];
+    function transform(val) {
+      if (val === void 0) return void 0;
+      return val.split("").map((char) => notationMap[char] || char).join("");
+    }
+    move3.notation.disc = move3.notation.disc ?? transform(move3.notation.disc);
+    move3.notation.col = transform(move3.notation.col);
+    move3.notation.row = move3.notation.row ?? transform(move3.notation.row);
+    move3.notation.notation = transform(move3.notation.notation) ?? move3.notation.notation;
+  }
+  function mirrorPgnTree(moves, mirrorState2, parentMove = null) {
+    if (!moves || moves.length === 0) return;
+    for (const move3 of moves) {
+      if (move3.variations) {
+        move3.variations.forEach((variation) => {
+          mirrorPgnTree(variation, mirrorState2, move3);
+        });
+      }
+    }
+    const isInverted = mirrorState2 === "invert" || mirrorState2 === "invert_mirror";
+    if (!isInverted) {
+      for (const move3 of moves) mirrorMove(move3, mirrorState2);
+      return;
+    }
+    let lastValidMoveNumber;
+    const startsWithWhite = moves[0].turn === "w";
+    if (startsWithWhite) {
+      moves.forEach((move3, index) => {
+        mirrorMove(move3, mirrorState2);
+        if (move3.turn === "w") {
+          move3.turn = "b";
+          if (index === 0) {
+            move3.moveNumber--;
+            lastValidMoveNumber = move3.moveNumber;
+          } else {
+            delete move3.moveNumber;
+          }
+        } else {
+          move3.turn = "w";
+          move3.moveNumber = lastValidMoveNumber + 1;
+          lastValidMoveNumber = move3.moveNumber;
+        }
+      });
+    } else {
+      lastValidMoveNumber = parentMove?.moveNumber ?? moves[0].moveNumber ?? 0;
+      moves.forEach((move3, index) => {
+        mirrorMove(move3, mirrorState2);
+        if (move3.turn === "b") {
+          move3.turn = "w";
+          if (move3.moveNumber) {
+            lastValidMoveNumber = move3.moveNumber;
+          } else {
+            move3.moveNumber = index === 0 ? lastValidMoveNumber : lastValidMoveNumber + 1;
+            lastValidMoveNumber = move3.moveNumber;
+          }
+        } else {
+          move3.turn = "b";
+          delete move3.moveNumber;
+        }
+      });
+    }
+  }
+  function checkCastleRights(fen) {
+    const fenParts = fen.split(" ");
+    if (fenParts.length < 3) return false;
+    const castlingPart = fenParts[2];
+    return castlingPart !== "-";
+  }
+  var init_mirror = __esm({
+    "src/js/mirror.ts"() {
+      "use strict";
+    }
+  });
+
   // src/js/config.ts
   function isBoardMode(mode) {
     const boardModes = ["Viewer", "Puzzle"];
@@ -14919,9 +15038,10 @@ ${contextLines.join("\n")}`;
     const modeCheck = solvedModes.includes(solvedState);
     return modeCheck;
   }
-  function isMirrorState(mirrorState) {
+  function isMirrorState(mirrorState2) {
+    if (!mirrorState2) return false;
     const mirrorStates = ["original", "original_mirror", "invert", "invert_mirror"];
-    const mirrorStateCheck = mirrorStates.includes(mirrorState);
+    const mirrorStateCheck = mirrorStates.includes(mirrorState2);
     return mirrorStateCheck;
   }
   function initializePgnData() {
@@ -14946,7 +15066,7 @@ ${contextLines.join("\n")}`;
     const value = urlParams.get(name);
     return value !== null ? value : defaultValue;
   }
-  var import_pgn_parser, urlParams, cgwrap, config, parsed, state, stateHandler, stateProxy;
+  var import_pgn_parser, urlParams, cgwrap, config, parsed, mirrorState, state, stateHandler, stateProxy;
   var init_config2 = __esm({
     "src/js/config.ts"() {
       "use strict";
@@ -14954,6 +15074,7 @@ ${contextLines.join("\n")}`;
       import_pgn_parser = __toESM(require_index_umd());
       init_chessground();
       init_chessFunctions();
+      init_mirror();
       init_pgnViewer();
       init_arrows();
       init_audio();
@@ -14964,15 +15085,20 @@ ${contextLines.join("\n")}`;
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2023.02.13"]
+    [Date "2025.02.22"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
-    [Result "*"]
-    [FEN "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/3P1N2/PPP2PPP/RNBQKB1R b KQkq - 2 3"]
+    [Result "0-1"]
+    [FEN "6k1/1pQ3p1/3p4/p2P1b2/8/PP2q1PP/8/2R3K1 w - - 2 34"]
     [SetUp "1"]
 
-    3... Bc5 4. Nxe5 {EV: 80.1%} *`),
+    34. Kg2 {EV: 33.1%, N: 99.99% of 129k} a4 {EV: 62.7%, N: 0.12% of 3.6M} 35. b4
+    {EV: 14.6%, N: 86.03% of 2.2M} Be4+ {EV: 86.0%, N: 98.72% of 1.9M} 36. Kf1 {EV:
+        13.9%, N: 100.00% of 1.9M} Bd3+ {EV: 86.7%, N: 98.89% of 2.0M} 37. Kg2 {EV:
+            13.2%, N: 100.00% of 2.0M} Qd2+ {EV: 91.1%, N: 79.26% of 2.0M} 38. Kg1 {EV:
+                8.8%, N: 100.00% of 1.6M} Kh7 {EV: 92.4%, N: 98.22% of 1.9M} 39. g4 {EV: 7.8%,
+                    N: 91.43% of 2.0M} Qf4 {EV: 95.8%, N: 86.87% of 2.1M} 0-1`),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "true") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
@@ -15001,6 +15127,11 @@ ${contextLines.join("\n")}`;
         if (mode && isBoardMode(mode)) config.boardMode = mode;
       })();
       parsed = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
+      mirrorState = config.boardMode === "Puzzle" ? assignMirrorState() : getUrlParam("mirrorState", null);
+      if (parsed.tags?.FEN && !checkCastleRights(parsed.tags.FEN) && isMirrorState(mirrorState)) {
+        parsed.tags.FEN = mirrorFen(parsed.tags.FEN, mirrorState);
+        mirrorPgnTree(parsed.moves, mirrorState);
+      }
       state = {
         startFen: parsed.tags?.FEN ?? DEFAULT_POSITION,
         boardRotation: "black",
@@ -15019,7 +15150,7 @@ ${contextLines.join("\n")}`;
         pgnPath: [],
         pgnPathMap: /* @__PURE__ */ new Map(),
         lastMove: null,
-        mirrorState: null,
+        mirrorState: isMirrorState(mirrorState) ? mirrorState : null,
         cgwrap,
         cg: Chessground(cgwrap, {
           fen: parsed.tags?.FEN ?? DEFAULT_POSITION,
@@ -15066,10 +15197,6 @@ ${contextLines.join("\n")}`;
           return isNaN(num) ? "v" : num;
         });
         state.pgnPath = result ? result : [];
-      })();
-      (function setMirrorState() {
-        const mirrorState = getUrlParam("mirrorState", null);
-        if (mirrorState && isMirrorState(mirrorState)) state.mirrorState = mirrorState;
       })();
       stateHandler = {
         set(target, property, value, receiver) {
