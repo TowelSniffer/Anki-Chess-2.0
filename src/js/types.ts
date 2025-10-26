@@ -69,6 +69,7 @@ export interface State {
     chessGroundShapes: CustomShape[];
     errorCount: number;
     puzzleTime: number;
+    puzzleComplete: boolean;
     navTimeout: number | null;
     isStockfishBusy: boolean;
     stockfishRestart: boolean; // Error guard for stockfish

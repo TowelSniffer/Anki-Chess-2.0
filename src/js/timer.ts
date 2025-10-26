@@ -1,5 +1,6 @@
 import { state, config } from './config';
 import { borderFlash } from './toolbox';
+import { isPuzzleFailed } from './chessFunctions';
 
 // --- Module-level timer variables ---
 let animationFrameId: number | null = null;
@@ -70,15 +71,10 @@ function handleOutOfTime(): void {
     document.documentElement.style.setProperty('--remainingTime', '100%');
 
     if (config.timerScore) {
-        state.errorTrack = 'incorrect';
-    } else if (!state.errorTrack) {
-        state.solvedColour = "var(--correct-color)";
+        isPuzzleFailed(true);
+    } else {
+        borderFlash("var(--incorrect-color)");
     }
-
-    borderFlash("var(--incorrect-color)");
-
-    const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-    window.parent.postMessage(stateCopy, '*');
 }
 
 export function stopPlayerTimer(): void {
@@ -100,11 +96,8 @@ export function initializePuzzleTimer(): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
     stopPlayerTimer();
     totalTime = config.timer;
-
-    if (!config.timerScore) {
-        const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
-        document.documentElement.style.setProperty('--timer-color', timerColor);
-    }
+    const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
+    document.documentElement.style.setProperty('--timer-color', timerColor);
     state.cgwrap.classList.add('timerMode');
     document.documentElement.style.setProperty('--remainingTime', `0%`);
 }

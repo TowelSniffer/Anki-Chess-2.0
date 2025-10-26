@@ -119,12 +119,17 @@ export function animateBoard(lastMove: CustomPgnMove | null, pathMove: CustomPgn
 export function handlePuzzleComplete(): void {
   state.cgwrap.classList.remove('timerMode');
   stopPlayerTimer();
-  document.documentElement.style.setProperty('--border-color', state.solvedColour);
   isPuzzleFailed();
+  document.documentElement.style.setProperty('--border-color', state.solvedColour);
   borderFlash();
-  state.cg.set({
-    viewOnly: true
-  });
+  state.cg.set({ viewOnly: true });
+  if (config.autoAdvance && state.errorTrack !== 'incorrect') {
+    setTimeout(() => {
+      state.puzzleComplete = true;
+      const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+      window.parent.postMessage(stateCopy, '*');
+    }, state.delayTime);
+  }
 }
 
 export function areMovesEqual(move1: Move | CustomPgnMove | null, move2: Move | CustomPgnMove | null): boolean {
@@ -179,7 +184,7 @@ function isPromotion(orig: Square, dest: Square): boolean {
   return false;
 }
 
-function isPuzzleFailed(isFailed: boolean = false): void {
+export function isPuzzleFailed(isFailed: boolean = false): void {
   if (isFailed) { // manually fail
     state.errorTrack = 'incorrect';
     state.solvedColour = "var(--incorrect-color)";
@@ -188,18 +193,16 @@ function isPuzzleFailed(isFailed: boolean = false): void {
     state.errorTrack = state.errorTrack ?? "correct";
     if (
       config.timer &&
-      !config.timerScore &&
-      state.errorTrack === "correct" &&
       state.puzzleTime > 0
     ) {
       state.errorTrack = "correctTime";
     }
   }
   const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-  if (config.autoAdvance || isFailed && config.handicapAdvance) {
+  if (isFailed && (config.timerAdvance || config.handicapAdvance)) {
+    state.cg.set({ viewOnly: true });
+    stateCopy.puzzleComplete = true;
     setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
-  } else {
-    window.parent.postMessage(stateCopy, '*');
   }
 }
 
@@ -314,14 +317,17 @@ function handleWrongMove(move: Move): void {
   state.cg.set({ fen: move.after })
   playSound("Error");
   setBoard(move.before);
-  // A puzzle is "failed" for scoring purposes if strict mode is on, or the handicap is exceeded.
-  const isFailed = config.strictScoring || state.errorCount > config.handicap;
-  if (isFailed) isPuzzleFailed(true);
 
-  if (state.errorCount > config.handicap) {
+  if (config.strictScoring) {
+    isPuzzleFailed(true);
+  } else if (state.errorCount > config.handicap) {
     stopPlayerTimer();
     state.cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
-    playUserCorrectMove(state.delayTime); // show the correct user move
+    if (config.handicapAdvance) {
+      isPuzzleFailed(true);
+    } else {
+      playUserCorrectMove(state.delayTime); // show the correct user move
+    }
   }
 }
 
