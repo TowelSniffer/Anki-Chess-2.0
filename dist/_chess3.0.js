@@ -14490,13 +14490,10 @@ ${contextLines.join("\n")}`;
     }
     document.documentElement.style.setProperty("--remainingTime", "100%");
     if (config.timerScore) {
-      state.errorTrack = "incorrect";
-    } else if (!state.errorTrack) {
-      state.solvedColour = "var(--correct-color)";
+      isPuzzleFailed(true);
+    } else {
+      borderFlash("var(--incorrect-color)");
     }
-    borderFlash("var(--incorrect-color)");
-    const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-    window.parent.postMessage(stateCopy, "*");
   }
   function stopPlayerTimer() {
     if (animationFrameId) {
@@ -14515,10 +14512,8 @@ ${contextLines.join("\n")}`;
     if (config.boardMode === "Viewer" || !config.timer) return;
     stopPlayerTimer();
     totalTime = config.timer;
-    if (!config.timerScore) {
-      const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
-      document.documentElement.style.setProperty("--timer-color", timerColor);
-    }
+    const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
+    document.documentElement.style.setProperty("--timer-color", timerColor);
     state.cgwrap.classList.add("timerMode");
     document.documentElement.style.setProperty("--remainingTime", `0%`);
   }
@@ -14535,6 +14530,7 @@ ${contextLines.join("\n")}`;
       "use strict";
       init_config2();
       init_toolbox();
+      init_chessFunctions();
       animationFrameId = null;
       lastTickTimestamp = null;
       extendAnimationFrameId = null;
@@ -14616,12 +14612,17 @@ ${contextLines.join("\n")}`;
   function handlePuzzleComplete() {
     state.cgwrap.classList.remove("timerMode");
     stopPlayerTimer();
-    document.documentElement.style.setProperty("--border-color", state.solvedColour);
     isPuzzleFailed();
+    document.documentElement.style.setProperty("--border-color", state.solvedColour);
     borderFlash();
-    state.cg.set({
-      viewOnly: true
-    });
+    state.cg.set({ viewOnly: true });
+    if (config.autoAdvance && state.errorTrack !== "incorrect") {
+      setTimeout(() => {
+        state.puzzleComplete = true;
+        const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+        window.parent.postMessage(stateCopy, "*");
+      }, state.delayTime);
+    }
   }
   function areMovesEqual(move1, move22) {
     if (!move1 || !move22) {
@@ -14668,17 +14669,17 @@ ${contextLines.join("\n")}`;
       borderFlash();
     } else {
       state.errorTrack = state.errorTrack ?? "correct";
-      if (config.timer && !config.timerScore && state.errorTrack === "correct" && state.puzzleTime > 0) {
+      if (config.timer && state.puzzleTime > 0) {
         state.errorTrack = "correctTime";
       }
     }
     const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-    if (config.autoAdvance || isFailed && config.handicapAdvance) {
+    if (isFailed && (config.timerAdvance || config.handicapAdvance)) {
+      state.cg.set({ viewOnly: true });
+      stateCopy.puzzleComplete = true;
       setTimeout(() => {
         window.parent.postMessage(stateCopy, "*");
       }, state.delayTime);
-    } else {
-      window.parent.postMessage(stateCopy, "*");
     }
   }
   function toDests() {
@@ -14775,12 +14776,16 @@ ${contextLines.join("\n")}`;
     state.cg.set({ fen: move3.after });
     playSound("Error");
     setBoard(move3.before);
-    const isFailed = config.strictScoring || state.errorCount > config.handicap;
-    if (isFailed) isPuzzleFailed(true);
-    if (state.errorCount > config.handicap) {
+    if (config.strictScoring) {
+      isPuzzleFailed(true);
+    } else if (state.errorCount > config.handicap) {
       stopPlayerTimer();
       state.cg.set({ viewOnly: true });
-      playUserCorrectMove(state.delayTime);
+      if (config.handicapAdvance) {
+        isPuzzleFailed(true);
+      } else {
+        playUserCorrectMove(state.delayTime);
+      }
     }
   }
   function promotePopup(orig, dest) {
@@ -15002,6 +15007,7 @@ ${contextLines.join("\n")}`;
         chessGroundShapes: [],
         errorCount: 0,
         puzzleTime: config.timer,
+        puzzleComplete: false,
         navTimeout: null,
         isStockfishBusy: false,
         stockfishRestart: false,

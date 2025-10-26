@@ -113,6 +113,7 @@ export const state: State = {
     chessGroundShapes: [],
     errorCount: 0,
     puzzleTime: config.timer,
+    puzzleComplete: false,
     navTimeout: null,
     isStockfishBusy: false,
     stockfishRestart: false,
