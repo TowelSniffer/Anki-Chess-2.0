@@ -132,7 +132,7 @@ export function handlePuzzleComplete(): void {
   }
 }
 
-export function areMovesEqual(move1: Move | CustomPgnMove | null, move2: Move | CustomPgnMove | null): boolean {
+function areMovesEqual(move1: Move | CustomPgnMove | null, move2: Move | CustomPgnMove | null): boolean {
   // Check for null or undefined moves
   if (!move1 || !move2) {
     return false;
@@ -210,7 +210,7 @@ export function isPuzzleFailed(isFailed: boolean = false): void {
 
 // --- Chess Logic Helpers ---
 
-export function toDests(): Map<Square, Square[]> {
+function toDests(): Map<Square, Square[]> {
   const dests = new Map<Square, Square[]>();
   SQUARES.forEach(s => {
     const ms = state.chess.moves({ square: s, verbose: true });
@@ -218,12 +218,6 @@ export function toDests(): Map<Square, Square[]> {
     if (moveObjects.length) dests.set(s, moveObjects.map(m => m.to));
   });
     return dests;
-}
-
-export function getLastMove(): Move | null {
-  const allMoves = state.chess.history({ verbose: true });
-  const lastMove = allMoves.length > 0 ? allMoves[allMoves.length - 1] : null;
-  return lastMove
 }
 
 // --- Board Interaction & Move Handling ---

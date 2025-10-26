@@ -12,10 +12,6 @@ export type CustomShape = Omit<DrawShape, 'brush'> & {
     brush?: CustomShapeBrushes;
 };
 
-export interface NagData {
-    [nagKey: string]: string[];
-}
-
 const blunderNags = ['$2', '$4', '$6', '$9'];
 
 // --- enum/array defs for clearer function instructions ---

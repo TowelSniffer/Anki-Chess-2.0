@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "typecheck": "tsc --noEmit && eslint src",
+    "dependency-test": "npx madge --circular --extensions ts ./src",
+    "typecheck": "tsc --noEmit && eslint src && npx ts-unused-exports tsconfig.json",
     "build": "npm run typecheck && node build.js",
     "dev": "node build.js --dev"
   },
@@ -24,6 +25,8 @@
     "eslint": "^9.36.0",
     "glob": "^11.0.3",
     "globals": "^16.4.0",
+    "madge": "^8.0.0",
+    "ts-unused-exports": "^11.0.1",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.45.0"
   }

@@ -6,7 +6,7 @@ import type { CustomPgnMove } from './types';
 import nags from '../nags.json' assert { type: 'json' };
 
 // --- Types ---
-export type NagKey = keyof typeof nags;
+type NagKey = keyof typeof nags;
 
 export type PgnPath = ("v" | number)[];
 
@@ -311,7 +311,7 @@ export function augmentPgnTree(moves: PgnMove[], path: PgnPath = []): void {
     _augmentAndGenerateFen((moves as CustomPgnMove[]), path, chess);
 }
 
-export function _augmentAndGenerateFen(moves: CustomPgnMove[], path: PgnPath = [], chess: Chess): void {
+function _augmentAndGenerateFen(moves: CustomPgnMove[], path: PgnPath = [], chess: Chess): void {
     if (!moves) return;
 
     for (let i = 0; i < moves.length; i++) {
