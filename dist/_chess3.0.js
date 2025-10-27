@@ -13851,20 +13851,16 @@ ${contextLines.join("\n")}`;
       config = {
         pgn: getUrlParam("PGN", `[Event "?"]
     [Site "?"]
-    [Date "2025.02.22"]
+    [Date "2023.02.13"]
     [Round "?"]
     [White "White"]
     [Black "Black"]
-    [Result "0-1"]
-    [FEN "6k1/1pQ3p1/3p4/p2P1b2/8/PP2q1PP/8/2R3K1 w - - 2 34"]
+    [Result "*"]
+    [FEN "r1bqkbnr/ppp2ppp/2n5/3p4/3P4/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 5"]
     [SetUp "1"]
 
-    34. Kg2 {EV: 33.1%, N: 99.99% of 129k} a4 {EV: 62.7%, N: 0.12% of 3.6M} 35. b4
-    {EV: 14.6%, N: 86.03% of 2.2M} Be4+ {EV: 86.0%, N: 98.72% of 1.9M} 36. Kf1 {EV:
-        13.9%, N: 100.00% of 1.9M} Bd3+ {EV: 86.7%, N: 98.89% of 2.0M} 37. Kg2 {EV:
-            13.2%, N: 100.00% of 2.0M} Qd2+ {EV: 91.1%, N: 79.26% of 2.0M} 38. Kg1 {EV:
-                8.8%, N: 100.00% of 1.6M} Kh7 {EV: 92.4%, N: 98.22% of 1.9M} 39. g4 {EV: 7.8%,
-                    N: 91.43% of 2.0M} Qf4 {EV: 95.8%, N: 86.87% of 2.1M} 0-1`),
+    5. c4 Bb4+ {EV: 49.7%, N: 91.94% of 419k} (5... Bg4 {EV: 48.4%, N: 2.65% of
+        419k}) *`),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "true") === "true",
         muteAudio: getUrlParam("muteAudio", "false") === "true",
@@ -13889,7 +13885,7 @@ ${contextLines.join("\n")}`;
         animationTime: parseInt(getUrlParam("animationTime", "200"), 10)
       };
       (function setBoardMode() {
-        const mode = getUrlParam("boardMode", "Puzzle");
+        const mode = getUrlParam("boardMode", "Viewer");
         if (mode && isBoardMode(mode)) config.boardMode = mode;
       })();
       parsed = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
@@ -14264,7 +14260,10 @@ ${contextLines.join("\n")}`;
     const previousMoveEl = document.querySelector(`[data-path-key="${newMovePath.with(-1, pathIndex - 1).join(",")}"]`);
     if (newMovePath.length === 1) {
       const pgnContainer = document.getElementById("pgnComment");
-      if (newMove.turn === "b" && previousMoveEl?.nextElementSibling) {
+      console.log(previousMoveEl?.nextElementSibling);
+      if (newMove.turn === "w" && previousMoveEl?.nextElementSibling?.classList.contains("move")) {
+        pgnContainer?.insertAdjacentHTML("beforeend", `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`);
+      } else if (newMove.turn === "b" && previousMoveEl?.nextElementSibling) {
         pgnContainer?.insertAdjacentHTML("beforeend", `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`);
       }
       pgnContainer?.insertAdjacentHTML("beforeend", moveHtml);
@@ -14293,6 +14292,9 @@ ${contextLines.join("\n")}`;
         if (nextAltLineEl || !nextAltLineEl && newMove.turn === "w") insertVarDivHtml += `<span class="nullMove">|...|</span>`;
         insertVarDivHtml += newVarDivHtml;
         if (nextAltLineEl && !variationMoveEl.nextElementSibling) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`;
+        if (variationMoveEl.nextElementSibling?.classList.contains("move")) {
+          insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}...</span> <span class="nullMove">|...|</span>`;
+        }
         variationMoveEl.insertAdjacentHTML("afterend", insertVarDivHtml);
       } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains("move-number")) {
         if (variationMoveEl.nextElementSibling?.classList.contains("nullMove")) {
@@ -14326,10 +14328,10 @@ ${contextLines.join("\n")}`;
         prevMovePath = [];
       } else {
         currentLinePosition = movePath.at(-4);
+        console.log(currentLinePosition);
         if (currentLinePosition === 0) {
           prevMovePath = [];
-        }
-        if (typeof currentLinePosition === "number") {
+        } else if (typeof currentLinePosition === "number") {
           prevMovePath = [...movePath.slice(0, -4), --currentLinePosition];
         }
       }
