@@ -188,7 +188,11 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
     const previousMoveEl = document.querySelector(`[data-path-key="${newMovePath.with(-1, pathIndex -1).join(',')}"]`);
     if (newMovePath.length === 1) {
         const pgnContainer = document.getElementById('pgnComment');
-        if (newMove.turn === 'b' && previousMoveEl?.nextElementSibling) {
+        console.log(previousMoveEl?.nextElementSibling)
+        if (newMove.turn === 'w' && previousMoveEl?.nextElementSibling?.classList.contains('move')) {
+            // need to add white null move is last move has variation/comment
+            pgnContainer?.insertAdjacentHTML('beforeend', `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`);
+        } else if (newMove.turn === 'b' && previousMoveEl?.nextElementSibling) {
             // need to add white null move is last move has variation/comment
             pgnContainer?.insertAdjacentHTML('beforeend', `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`);
         }
@@ -231,13 +235,16 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
             if (nextAltLineEl || (!nextAltLineEl && newMove.turn === 'w')) insertVarDivHtml += `<span class="nullMove">|...|</span>`;
             insertVarDivHtml += newVarDivHtml;
             if (nextAltLineEl && !variationMoveEl.nextElementSibling) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`
+            if (variationMoveEl.nextElementSibling?.classList.contains('move')) {
+                insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}...</span> <span class="nullMove">|...|</span>`
+            }
             variationMoveEl.insertAdjacentHTML('afterend', insertVarDivHtml);
         } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains('move-number')) {
             // insert new variation div in middle of main line Black
             if (variationMoveEl.nextElementSibling?.classList.contains('nullMove')) {
                 // null move can be made when moves have comments but no variations
                 variationMoveEl.nextElementSibling.insertAdjacentHTML('afterend', newVarDivHtml);
-            } else{
+            } else {
                 variationMoveEl.insertAdjacentHTML('afterend', newVarDivHtml);
             }
         } else {
@@ -271,12 +278,12 @@ export function navigatePrevMove(path: PgnPath): PgnPath {
             prevMovePath = [];
         } else {
             currentLinePosition = movePath.at(-4);
+            console.log(currentLinePosition)
             // ie 2 in: 4, "v", 0, 2, "v", 1, 0
             if (currentLinePosition === 0) {
                 // must be first move
                 prevMovePath = [];
-            }
-            if (typeof currentLinePosition === 'number') {
+            } else if (typeof currentLinePosition === 'number') {
                 prevMovePath = [...movePath.slice(0, -4), --currentLinePosition];
             }
         }
