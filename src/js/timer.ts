@@ -69,6 +69,10 @@ function handleOutOfTime(): void {
     document.documentElement.style.setProperty('--remainingTime', '100%');
     if (config.timerScore) {
         stateProxy.errorTrack = "incorrect";
+    } else if (config.timerAdvance) {
+        state.puzzleComplete = true;
+        const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+        window.parent.postMessage(stateCopy, '*');
     }
 }
 

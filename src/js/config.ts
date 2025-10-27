@@ -76,7 +76,7 @@ export const config: Config = {
     animationTime: parseInt(getUrlParam("animationTime", '200'), 10),
 };
 (function setBoardMode() {
-    const mode = getUrlParam("boardMode", "Viewer");
+    const mode = getUrlParam("boardMode", "Puzzle");
     if (mode && isBoardMode(mode)) config.boardMode = mode;
 })();
 

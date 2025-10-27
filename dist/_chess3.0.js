@@ -13889,7 +13889,7 @@ ${contextLines.join("\n")}`;
         animationTime: parseInt(getUrlParam("animationTime", "200"), 10)
       };
       (function setBoardMode() {
-        const mode = getUrlParam("boardMode", "Viewer");
+        const mode = getUrlParam("boardMode", "Puzzle");
         if (mode && isBoardMode(mode)) config.boardMode = mode;
       })();
       parsed = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
@@ -14544,6 +14544,10 @@ ${contextLines.join("\n")}`;
     document.documentElement.style.setProperty("--remainingTime", "100%");
     if (config.timerScore) {
       stateProxy.errorTrack = "incorrect";
+    } else if (config.timerAdvance) {
+      state.puzzleComplete = true;
+      const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+      window.parent.postMessage(stateCopy, "*");
     }
   }
   function stopPlayerTimer() {
@@ -15331,6 +15335,7 @@ ${contextLines.join("\n")}`;
       init_audio();
       init_chessFunctions();
       init_arrows();
+      init_timer();
       stateHandler = {
         set(target, property, value, receiver) {
           if (property === "pgnPath") {
@@ -15362,13 +15367,15 @@ ${contextLines.join("\n")}`;
               const endOfLineCheck = isEndOfLine(pgnPath);
               if (endOfLineCheck) {
                 if (config.boardMode === "Puzzle") {
-                  if (!state.errorTrack) stateProxy.errorTrack = "correct";
+                  state.puzzleComplete = true;
+                  const correctState = state.puzzleTime > 0 && !config.timerScore ? "correctTime" : "correct";
+                  stateProxy.errorTrack = state.errorTrack ?? correctState;
                 } else {
                   state.chessGroundShapes = [];
                 }
               }
               setButtonsDisabled(["forward"], endOfLineCheck);
-              const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+              const { chess: _chess, cg: _cg, cgwrap: _cgwrap, puzzleComplete: _puzzleComplete, ...stateCopy } = state;
               stateCopy.pgnPath = pgnPath;
               window.parent.postMessage(stateCopy, "*");
             }
@@ -15392,6 +15399,8 @@ ${contextLines.join("\n")}`;
               }
             }
             if (stateCopy.puzzleComplete) {
+              stopPlayerTimer();
+              state.cgwrap.classList.remove("timerMode");
               document.documentElement.style.setProperty("--border-color", state.solvedColour);
               state.cg.set({ viewOnly: true });
               setTimeout(() => {
