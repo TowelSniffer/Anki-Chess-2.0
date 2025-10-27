@@ -5,6 +5,7 @@ import { toggleStockfishAnalysis, handleStockfishCrash, startAnalysis } from './
 import { playSound, moveAudio } from './audio';
 import { animateBoard } from './chessFunctions';
 import { drawArrows } from './arrows';
+import { stopPlayerTimer } from './timer';
 import type { PgnPath } from './types';
 import type { State, ErrorTrack } from './types';
 import type { Color } from 'chessground/types';
@@ -50,13 +51,15 @@ const stateHandler = {
                 const endOfLineCheck = isEndOfLine(pgnPath);
                 if (endOfLineCheck) {
                     if (config.boardMode === 'Puzzle') {
-                        if (!state.errorTrack) stateProxy.errorTrack = "correct";
+                        state.puzzleComplete = true;
+                        const correctState = (state.puzzleTime > 0 && !config.timerScore) ? "correctTime" : "correct";
+                        stateProxy.errorTrack = state.errorTrack ?? correctState;
                     } else {
                         state.chessGroundShapes = [];
                     }
                 }
                 setButtonsDisabled(['forward'], endOfLineCheck);
-                const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+                const { chess: _chess, cg: _cg, cgwrap: _cgwrap, puzzleComplete: _puzzleComplete, ...stateCopy } = state;
                 stateCopy.pgnPath = pgnPath;
                 window.parent.postMessage(stateCopy, '*');
             }
@@ -84,6 +87,8 @@ const stateHandler = {
                 }
             }
             if (stateCopy.puzzleComplete) {
+                stopPlayerTimer();
+                state.cgwrap.classList.remove('timerMode');
                 document.documentElement.style.setProperty('--border-color', state.solvedColour);
                 state.cg.set({ viewOnly: true });
                 setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
