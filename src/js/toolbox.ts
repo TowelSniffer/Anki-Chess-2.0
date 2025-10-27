@@ -91,7 +91,10 @@ const stateHandler = {
                 state.cgwrap.classList.remove('timerMode');
                 document.documentElement.style.setProperty('--border-color', state.solvedColour);
                 state.cg.set({ viewOnly: true });
-                setTimeout(() => { window.parent.postMessage(stateCopy, '*'); }, state.delayTime);
+                setTimeout(() => {
+                    stateCopy.pgnPath = state.pgnPath;
+                    window.parent.postMessage(stateCopy, '*');
+                }, state.delayTime);
             }
             borderFlash();
 

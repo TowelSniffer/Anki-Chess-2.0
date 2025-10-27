@@ -22,6 +22,7 @@ function initializePgnData(): void {
         state.cg.set({ animation: { enabled: false} })
         state.cg.set({ fen: moveTrack?.after ?? state.startFen });
         state.cg.set({ animation: { enabled: true} })
+        if (moveTrack) state.cg.set({ lastMove: [moveTrack.from, moveTrack.to] });
         if (state.pgnPath.length && moveTrack) {
             setButtonsDisabled(['back', 'reset'], false);
             state.lastMove = moveTrack;
