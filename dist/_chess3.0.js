@@ -14293,7 +14293,7 @@ ${contextLines.join("\n")}`;
         insertVarDivHtml += newVarDivHtml;
         if (nextAltLineEl && !variationMoveEl.nextElementSibling) insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`;
         if (variationMoveEl.nextElementSibling?.classList.contains("move")) {
-          insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}...</span> <span class="nullMove">|...|</span>`;
+          insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`;
         }
         variationMoveEl.insertAdjacentHTML("afterend", insertVarDivHtml);
       } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains("move-number")) {
