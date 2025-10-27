@@ -43,11 +43,15 @@ export const config: Config = {
     [White "White"]
     [Black "Black"]
     [Result "*"]
-    [FEN "r1bqkbnr/ppp2ppp/2n5/3p4/3P4/5N2/PPP2PPP/RNBQKB1R w KQkq - 0 5"]
+    [FEN "q4rk1/p4ppp/b7/8/Pp6/1n1P2P1/1N2QP1P/R3R1K1 w - - 1 21"]
     [SetUp "1"]
 
-    5. c4 Bb4+ {EV: 49.7%, N: 91.94% of 419k} (5... Bg4 {EV: 48.4%, N: 2.65% of
-        419k}) *`),
+    21. Rad1 Nd4 {EV: 92.7%, N: 99.32% of 78.6k} 22. Qe4 {EV: 8.0%, N: 93.34% of
+        125k} Nf3+ {EV: 92.2%, N: 99.46% of 230k} 23. Kf1 {EV: 8.2%, N: 96.48% of 422k}
+        Nxh2+ {EV: 92.5%, N: 96.74% of 510k} 24. Kg1 {EV: 8.1%, N: 91.63% of 520k} Nf3+
+        {EV: 92.1%, N: 99.09% of 496k} 25. Kf1 {EV: 8.1%, N: 97.24% of 511k} Nxe1 {EV:
+            92.4%, N: 97.58% of 602k} *
+            `),
     ankiText: getUrlParam("userText", null),
     frontText: getUrlParam("frontText", 'true') === 'true',
     muteAudio: getUrlParam("muteAudio", 'false') === 'true',
@@ -72,7 +76,7 @@ export const config: Config = {
     animationTime: parseInt(getUrlParam("animationTime", '200'), 10),
 };
 (function setBoardMode() {
-    const mode = getUrlParam("boardMode", "Viewer");
+    const mode = getUrlParam("boardMode", "Puzzle");
     if (mode && isBoardMode(mode)) config.boardMode = mode;
 })();
 
