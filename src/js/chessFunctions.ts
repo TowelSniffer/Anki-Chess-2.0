@@ -101,7 +101,6 @@ export function animateBoard(lastMove: CustomPgnMove | null, pathMove: CustomPgn
   } else {
       state.cg.set({ fen: state.chess.fen() });
   }
-  state.cg.selectSquare(null);
   state.cg.set({
     check: state.chess.inCheck(),
     turnColor: toColor(),
@@ -111,6 +110,9 @@ export function animateBoard(lastMove: CustomPgnMove | null, pathMove: CustomPgn
     },
     drawable: { shapes: state.chessGroundShapes }
   });
+  setTimeout(() => {
+    state.cg.playPremove();
+  }, 2)
   promoteAnimate = true;
 }
 
@@ -251,7 +253,6 @@ function playAiMove(delay: number): void {
       });
       const randomIndex = Math.floor(Math.random() * nextMovePath.length);
       stateProxy.pgnPath = nextMovePath[randomIndex];
-      state.cg.playPremove();
       startPlayerTimer();
     }
   }, delay);
@@ -335,6 +336,7 @@ export function loadChessgroundBoard(): void {
       select: (key) => {
         filterShapes(ShapeFilter.Drawn)
         state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+        if (config.boardMode === 'Puzzle' && state.playerColour !== toColor()) return;
         if (!isSquare(key)) return;
         const orig = state.cg.state.selected;
         const dest = key;
