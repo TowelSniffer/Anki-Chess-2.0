@@ -188,6 +188,8 @@ piece.fading {
 /* src/scss/main.scss */
 :root {
   --background-color: #242424;
+  --coord-white: rgba(255, 255, 255, 0.8);
+  --coord-black: rgba(72, 72, 72, 0.8);
   --opponent-color: black;
   --player-color: white;
   --border-color: #808080;
@@ -658,11 +660,11 @@ button.navBtn span.md-small {
 }
 .cg-wrap coords.files:nth-child(even) coord:nth-child(even),
 .cg-wrap coords.ranks:nth-child(odd) coord:nth-child(odd) {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--coord-white);
 }
 .cg-wrap coords.files:nth-child(even) coord:nth-child(odd),
 .cg-wrap coords.ranks:nth-child(odd) coord:nth-child(even) {
-  color: rgba(72, 72, 72, 0.8);
+  color: var(--coord-black);
 }
 .cg-wrap piece {
   position: absolute;
