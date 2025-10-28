@@ -96,7 +96,7 @@ export const state: State = {
     boardRotation: "black",
     playerColour: "white",
     opponentColour: "black",
-    solvedColour: config.timer ? "var(--perfect-color)" : "var(--correct-color)",
+    solvedColour: null,
     errorTrack: null,
     chessGroundShapes: [],
     errorCount: 0,
@@ -123,6 +123,10 @@ export const state: State = {
         highlight: {
             check: true,
             lastMove: true
+        },
+        animation: {
+            enabled: false, // will manulally enable later to prevent position load animation
+            duration: config.animationTime,
         },
         drawable: {
             enabled: true,

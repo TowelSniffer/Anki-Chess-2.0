@@ -2,15 +2,14 @@ import { Chess, SQUARES } from 'chess.js';
 import type { Move, Square } from 'chess.js';
 import type { Color, Key } from 'chessground/types';
 import { config, state } from './config';
-import { toColor, stateProxy } from './toolbox';
+import { stateProxy } from './stateProxy';
+import { toColor } from './toolbox';
 import { addMoveToPgn, navigateNextMove, isEndOfLine } from './pgnViewer';
 import { filterShapes, shapePriority, ShapeFilter } from './arrows';
 import type { PgnPath } from './types';
 import type { CustomPgnMove } from './types';
 import { initializePuzzleTimer, startPlayerTimer, stopPlayerTimer, extendPuzzleTime } from './timer';
 import { playSound } from './audio';
-// import { startAnalysis } from './handleStockfish';
-import { positionPromoteOverlay } from './initializeUI';
 
 // --- Types ---
 type Promotions = 'q' | 'r' | 'b' | 'n';
@@ -268,11 +267,16 @@ function playUserCorrectMove(delay: number): void {
   }, delay);
 }
 
+let wrongMoveDebounce: number | null = null;
 function handleWrongMove(move: Move): void {
   state.errorCount++;
   state.cg.set({ fen: move.after })
   playSound("Error");
   setBoard(move.before);
+  wrongMoveDebounce = setTimeout(() => {
+    wrongMoveDebounce = null;
+  }, state.delayTime);
+
   const isFailed = config.strictScoring || state.errorCount > config.handicap;
   if (isFailed) {
     stateProxy.errorTrack = "incorrect"
@@ -323,7 +327,6 @@ function promotePopup(orig: Square, dest: Square): void {
     };
   }
   toggleClass('showHide', 'hidden');
-  positionPromoteOverlay();
 }
 
 // --- Initialization ---
@@ -336,8 +339,11 @@ export function loadChessgroundBoard(): void {
       select: (key) => {
         filterShapes(ShapeFilter.Drawn)
         state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
-        if (config.boardMode === 'Puzzle' && state.playerColour !== toColor()) return;
-        if (!isSquare(key)) return;
+        if ( ( config.boardMode === 'Puzzle' && state.playerColour !== toColor() ) ||
+          !isSquare(key) ||
+          wrongMoveDebounce) {
+          return;
+        }
         const orig = state.cg.state.selected;
         const dest = key;
 
@@ -395,8 +401,6 @@ export function loadChessgroundBoard(): void {
   } else if (config.boardMode === 'Puzzle') {
     startPlayerTimer();
   }
-
-  positionPromoteOverlay();
   initializePuzzleTimer();
   return;
 }

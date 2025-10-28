@@ -66,7 +66,7 @@ export interface State {
     boardRotation: Color;
     playerColour: Color;
     opponentColour: Color;
-    solvedColour: "var(--correct-color)" | "var(--incorrect-color)" | "var(--perfect-color)";
+    solvedColour: null | "var(--correct-color)" | "var(--incorrect-color)" | "var(--perfect-color)";
     errorTrack: ErrorTrack;
     chessGroundShapes: CustomShape[];
     errorCount: number;
