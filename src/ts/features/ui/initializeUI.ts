@@ -1,8 +1,9 @@
-import { state, config } from './config';
 import type { Color } from 'chessground/types';
-import { setButtonsDisabled } from './toolbox';
-import { isEndOfLine } from './pgnViewer';
-import { drawArrows } from './arrows';
+
+import { state, config } from '../../core/config';
+import { setButtonsDisabled } from '../ui/uiUtils';
+import { isEndOfLine } from '../pgn/pgnViewer';
+import { drawArrows } from '../board/arrows';
 
 function getElement<T extends HTMLElement>(selector: string, _type: { new(): T }): T {
     const element = document.querySelector<T>(selector);

@@ -35,9 +35,9 @@
     }
   });
 
-  // src/custom.css
-  var init_custom = __esm({
-    "src/custom.css"() {
+  // src/style/base.css
+  var init_base = __esm({
+    "src/style/base.css"() {
     }
   });
 
@@ -13697,7 +13697,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/mirror.ts
+  // src/ts/features/pgn/mirror.ts
   function assignMirrorState() {
     const states = ["original", "original_mirror", "invert", "invert_mirror"];
     const mirrorRandom = Math.floor(Math.random() * states.length);
@@ -13811,12 +13811,12 @@ ${contextLines.join("\n")}`;
     return castlingPart !== "-";
   }
   var init_mirror = __esm({
-    "src/js/mirror.ts"() {
+    "src/ts/features/pgn/mirror.ts"() {
       "use strict";
     }
   });
 
-  // src/js/config.ts
+  // src/ts/core/config.ts
   function isBoardMode(mode) {
     const boardModes = ["Viewer", "Puzzle"];
     const modeCheck = boardModes.includes(mode);
@@ -13840,7 +13840,7 @@ ${contextLines.join("\n")}`;
   }
   var import_pgn_parser, urlParams, cgwrap, config, parsed, mirrorState, state;
   var init_config2 = __esm({
-    "src/js/config.ts"() {
+    "src/ts/core/config.ts"() {
       "use strict";
       init_chess();
       import_pgn_parser = __toESM(require_index_umd());
@@ -13971,10 +13971,56 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/nags.json
+  // src/ts/core/stateProxy.ts
+  var EventEmitter, eventEmitter, stateHandler, stateProxy;
+  var init_stateProxy = __esm({
+    "src/ts/core/stateProxy.ts"() {
+      "use strict";
+      init_config2();
+      EventEmitter = class {
+        // Stores listeners, typed by event name
+        events = {};
+        // Subscribes to an event.
+        on(eventName, listener) {
+          if (!this.events[eventName]) {
+            this.events[eventName] = [];
+          }
+          this.events[eventName].push(listener);
+        }
+        // Publishes an event.
+        emit(eventName, ...args) {
+          const listeners = this.events[eventName];
+          if (listeners) {
+            listeners.forEach((listener) => listener(...args));
+          }
+        }
+      };
+      eventEmitter = new EventEmitter();
+      stateHandler = {
+        set(target, property, value, receiver) {
+          if (property === "pgnPath") {
+            const pgnPath = value;
+            const pathKey = pgnPath.join(",");
+            const pathMove = state.pgnPathMap.get(pathKey) ?? null;
+            const lastMove = state.lastMove;
+            if ((pathMove || !pgnPath.length) && !(!state.pgnPath.join(",").length && !pgnPath.length)) {
+              eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
+            }
+          } else if (property === "errorTrack") {
+            const errorTrack = value;
+            eventEmitter.emit("puzzleScored", errorTrack);
+          }
+          return Reflect.set(target, property, value, receiver);
+        }
+      };
+      stateProxy = new Proxy(state, stateHandler);
+    }
+  });
+
+  // src/json/nags.json
   var nags_default;
   var init_nags = __esm({
-    "src/nags.json"() {
+    "src/json/nags.json"() {
       nags_default = {
         $1: ["Good move", "!", "_good.webp"],
         $2: ["Poor move", "?", "_mistake.webp"],
@@ -14119,7 +14165,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/pgnViewer.ts
+  // src/ts/features/pgn/pgnViewer.ts
   function isNagKey(key) {
     return key in nags_default;
   }
@@ -14405,61 +14451,15 @@ ${contextLines.join("\n")}`;
     highlightCurrentMove(state.pgnPath);
   }
   var init_pgnViewer = __esm({
-    "src/js/pgnViewer.ts"() {
+    "src/ts/features/pgn/pgnViewer.ts"() {
       "use strict";
       init_chess();
-      init_config2();
       init_nags();
-    }
-  });
-
-  // src/js/stateProxy.ts
-  var EventEmitter, eventEmitter, stateHandler, stateProxy;
-  var init_stateProxy = __esm({
-    "src/js/stateProxy.ts"() {
-      "use strict";
       init_config2();
-      EventEmitter = class {
-        // Stores listeners, typed by event name
-        events = {};
-        // Subscribes to an event.
-        on(eventName, listener) {
-          if (!this.events[eventName]) {
-            this.events[eventName] = [];
-          }
-          this.events[eventName].push(listener);
-        }
-        // Publishes an event.
-        emit(eventName, ...args) {
-          const listeners = this.events[eventName];
-          if (listeners) {
-            listeners.forEach((listener) => listener(...args));
-          }
-        }
-      };
-      eventEmitter = new EventEmitter();
-      stateHandler = {
-        set(target, property, value, receiver) {
-          if (property === "pgnPath") {
-            const pgnPath = value;
-            const pathKey = pgnPath.join(",");
-            const pathMove = state.pgnPathMap.get(pathKey) ?? null;
-            const lastMove = state.lastMove;
-            if ((pathMove || !pgnPath.length) && !(!state.pgnPath.join(",").length && !pgnPath.length)) {
-              eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
-            }
-          } else if (property === "errorTrack") {
-            const errorTrack = value;
-            eventEmitter.emit("puzzleScored", errorTrack);
-          }
-          return Reflect.set(target, property, value, receiver);
-        }
-      };
-      stateProxy = new Proxy(state, stateHandler);
     }
   });
 
-  // src/js/audio.ts
+  // src/ts/features/audio/audio.ts
   function initAudio() {
     const sounds = ["move", "checkmate", "check", "capture", "castle", "promote", "Error", "computer-mouse-click"];
     const audioMap2 = /* @__PURE__ */ new Map();
@@ -14488,7 +14488,7 @@ ${contextLines.join("\n")}`;
   }
   var moveSoundMap, moveSoundPriority, audioMap;
   var init_audio = __esm({
-    "src/js/audio.ts"() {
+    "src/ts/features/audio/audio.ts"() {
       "use strict";
       init_config2();
       moveSoundMap = {
@@ -14510,7 +14510,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/toolbox.ts
+  // src/ts/features/ui/uiUtils.ts
   function setButtonsDisabled(keys, isDisabled) {
     keys.forEach((key) => {
       const button = btn[key];
@@ -14580,8 +14580,8 @@ ${contextLines.join("\n")}`;
     }
   }
   var htmlElement, btn;
-  var init_toolbox = __esm({
-    "src/js/toolbox.ts"() {
+  var init_uiUtils = __esm({
+    "src/ts/features/ui/uiUtils.ts"() {
       "use strict";
       init_config2();
       init_stateProxy();
@@ -14611,7 +14611,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/arrows.ts
+  // src/ts/features/board/arrows.ts
   function filterShapes(filterKey) {
     let brushesToRemove = shapeArray[filterKey];
     const shouldFilterDrawn = brushesToRemove.includes("userDrawn");
@@ -14680,11 +14680,11 @@ ${contextLines.join("\n")}`;
   }
   var blunderNags, shapePriority, customShapeBrushes, shapeArray;
   var init_arrows = __esm({
-    "src/js/arrows.ts"() {
+    "src/ts/features/board/arrows.ts"() {
       "use strict";
       init_config2();
-      init_pgnViewer();
       init_nags();
+      init_pgnViewer();
       blunderNags = ["$2", "$4", "$6", "$9"];
       shapePriority = ["mainLine", "altLine", "blunderLine", "stockfish", "stockfinished"];
       customShapeBrushes = [
@@ -14703,7 +14703,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/initializeUI.ts
+  // src/ts/features/ui/initializeUI.ts
   function getElement(selector, _type) {
     const element = document.querySelector(selector);
     if (!element) {
@@ -14795,17 +14795,17 @@ ${contextLines.join("\n")}`;
   }
   var htmlElement2;
   var init_initializeUI = __esm({
-    "src/js/initializeUI.ts"() {
+    "src/ts/features/ui/initializeUI.ts"() {
       "use strict";
       init_config2();
-      init_toolbox();
+      init_uiUtils();
       init_pgnViewer();
       init_arrows();
       htmlElement2 = document.documentElement;
     }
   });
 
-  // src/js/timer.ts
+  // src/ts/features/timer/timer.ts
   function timerLoop(timestamp) {
     if (!lastTickTimestamp) {
       lastTickTimestamp = timestamp;
@@ -14894,7 +14894,7 @@ ${contextLines.join("\n")}`;
   }
   var animationFrameId, lastTickTimestamp, extendAnimationFrameId, lastTickExtendTimestamp, totalExtendTime, totalTime, extendPercentage;
   var init_timer = __esm({
-    "src/js/timer.ts"() {
+    "src/ts/features/timer/timer.ts"() {
       "use strict";
       init_config2();
       init_stateProxy();
@@ -14906,7 +14906,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/chessFunctions.ts
+  // src/ts/features/board/chessFunctions.ts
   function isSquare(key) {
     return key !== "a0";
   }
@@ -15223,12 +15223,12 @@ ${contextLines.join("\n")}`;
   }
   var promoteAnimate, wrongMoveDebounce;
   var init_chessFunctions = __esm({
-    "src/js/chessFunctions.ts"() {
+    "src/ts/features/board/chessFunctions.ts"() {
       "use strict";
       init_chess();
       init_config2();
       init_stateProxy();
-      init_toolbox();
+      init_uiUtils();
       init_pgnViewer();
       init_arrows();
       init_timer();
@@ -15238,7 +15238,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/handleStockfish.ts
+  // src/ts/features/analysis/handleStockfish.ts
   function convertCpToWinPercentage(cp) {
     const probability = 1 / (1 + Math.pow(10, -cp / 400));
     let percentage = probability * 100;
@@ -15382,12 +15382,12 @@ ${contextLines.join("\n")}`;
   }
   var stockfish, analysisCache;
   var init_handleStockfish = __esm({
-    "src/js/handleStockfish.ts"() {
+    "src/ts/features/analysis/handleStockfish.ts"() {
       "use strict";
+      init_config2();
       init_chessFunctions();
       init_arrows();
-      init_config2();
-      init_toolbox();
+      init_uiUtils();
       stockfish = null;
       analysisCache = {
         // cache info to reduce lag while analysis is on
@@ -15399,7 +15399,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/eventListeners.ts
+  // src/ts/features/ui/eventListeners.ts
   function setupEventListeners() {
     const pgnContainer = document.getElementById("pgnComment");
     if (pgnContainer) {
@@ -15523,32 +15523,32 @@ ${contextLines.join("\n")}`;
     document.addEventListener("scroll", handleReposition, true);
   }
   var init_eventListeners = __esm({
-    "src/js/eventListeners.ts"() {
+    "src/ts/features/ui/eventListeners.ts"() {
       "use strict";
       init_config2();
       init_stateProxy();
-      init_toolbox();
+      init_uiUtils();
       init_initializeUI();
       init_handleStockfish();
     }
   });
 
-  // src/main.ts
+  // src/ts/main.ts
   var require_main = __commonJS({
-    "src/main.ts"() {
+    "src/ts/main.ts"() {
       init_chessground_base();
-      init_custom();
+      init_base();
       init_config2();
+      init_stateProxy();
       init_pgnViewer();
       init_initializeUI();
-      init_chessFunctions();
+      init_uiUtils();
       init_eventListeners();
-      init_stateProxy();
+      init_chessFunctions();
+      init_arrows();
       init_audio();
       init_handleStockfish();
-      init_arrows();
       init_timer();
-      init_toolbox();
       eventEmitter.on("pgnPathChanged", (pgnPath, lastMove, pathMove) => {
         if (!pgnPath.length) {
           setButtonsDisabled(["back", "reset"], true);

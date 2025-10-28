@@ -1,10 +1,9 @@
 import type { Move } from 'chess.js';
-import type { PgnPath, CustomPgnMove, CustomShapeBrushes } from './types';
-import { state, config } from './config';
-import { navigateNextMove, isNagKey } from './pgnViewer';
-import nags from '../nags.json' assert { type: 'json' };
 
-
+import type { PgnPath, CustomPgnMove, CustomShapeBrushes } from '../../core/types';
+import { state, config } from '../../core/config';
+import nags from '../../../json/nags.json' assert { type: 'json' };
+import { navigateNextMove, isNagKey } from '../pgn/pgnViewer';
 
 const blunderNags = ['$2', '$4', '$6', '$9'];
 

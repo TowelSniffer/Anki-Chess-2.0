@@ -1,18 +1,19 @@
 import 'chessground/assets/chessground.base.css';
-import './custom.css';
 import type { PgnMove } from '@mliebelt/pgn-types';
 
-import { state, config } from './js/config';
-import { initPgnViewer, isEndOfLine, highlightCurrentMove, augmentPgnTree } from './js/pgnViewer';
-import { initializeUI, positionPromoteOverlay } from './js/initializeUI';
-import { animateBoard, loadChessgroundBoard } from './js/chessFunctions';
-import { setupEventListeners } from './js/eventListeners';
-import { eventEmitter, stateProxy } from './js/stateProxy';
-import { moveAudio } from './js/audio';
-import { startAnalysis } from './js/handleStockfish';
-import { drawArrows } from './js/arrows';
-import { stopPlayerTimer } from './js/timer';
-import { setButtonsDisabled, borderFlash } from './js/toolbox';
+import '../style/base.css';
+
+import { state, config } from './core/config';
+import { eventEmitter, stateProxy } from './core/stateProxy';
+import { initPgnViewer, isEndOfLine, highlightCurrentMove, augmentPgnTree } from './features/pgn/pgnViewer';
+import { initializeUI, positionPromoteOverlay } from './features/ui/initializeUI';
+import { setButtonsDisabled, borderFlash } from './features/ui/uiUtils';
+import { setupEventListeners } from './features/ui/eventListeners';
+import { animateBoard, loadChessgroundBoard } from './features/board/chessFunctions';
+import { drawArrows } from './features/board/arrows';
+import { moveAudio } from './features/audio/audio';
+import { startAnalysis } from './features/analysis/handleStockfish';
+import { stopPlayerTimer } from './features/timer/timer';
 
 // --- eventEmitter handles updates to board state ---
 
@@ -94,6 +95,8 @@ eventEmitter.on('puzzleScored', (errorTrack) => {
         borderFlash("var(--incorrect-color)");
     }
 });
+
+// --- Run Inital Setup ---
 
 (function loadElements(): void {
     augmentPgnTree(state.parsedPGN.moves as PgnMove[]);

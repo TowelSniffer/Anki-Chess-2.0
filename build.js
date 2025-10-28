@@ -72,7 +72,7 @@ try {
 
 (async () => {
     const buildOptions = {
-        entryPoints: [path.join(srcDir, 'src/main.ts')],
+        entryPoints: [path.join(srcDir, 'src/ts/main.ts')],
         bundle: true,
         outfile: path.join(distDir, '_chess3.0.js'),
         assetNames: '[name]',

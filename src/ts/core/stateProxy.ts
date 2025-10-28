@@ -1,6 +1,6 @@
-import { state } from './config';
-
 import type { PgnPath, State, ErrorTrack, CustomPgnMove } from './types';
+
+import { state } from './config';
 
 // --- Event emitter for state proxy ---
 

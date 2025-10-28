@@ -185,7 +185,7 @@ piece.fading {
   transform: translateX(700%);
 }
 
-/* src/custom.css */
+/* src/style/base.css */
 :root {
   --coord-white: rgba(255, 255, 255, 0.8);
   --coord-black: rgba(72, 72, 72, 0.8);

@@ -1,8 +1,9 @@
-import { state } from './config';
-import { stateProxy } from './stateProxy';
-import { navigateNextMove, navigatePrevMove, isEndOfLine } from './pgnViewer';
-import { playSound } from './audio';
 import type { Color } from 'chessground/types';
+
+import { state } from '../../core/config';
+import { stateProxy } from '../../core/stateProxy';
+import { navigateNextMove, navigatePrevMove, isEndOfLine } from '../pgn/pgnViewer';
+import { playSound } from '../audio/audio';
 
 // --- UI tools ---
 

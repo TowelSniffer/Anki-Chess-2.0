@@ -1,15 +1,15 @@
-import { Chess, SQUARES } from 'chess.js';
-import type { Move, Square } from 'chess.js';
 import type { Color, Key } from 'chessground/types';
-import { config, state } from './config';
-import { stateProxy } from './stateProxy';
-import { toColor } from './toolbox';
-import { addMoveToPgn, navigateNextMove, isEndOfLine } from './pgnViewer';
-import { filterShapes, shapePriority, ShapeFilter } from './arrows';
-import type { PgnPath } from './types';
-import type { CustomPgnMove } from './types';
-import { initializePuzzleTimer, startPlayerTimer, stopPlayerTimer, extendPuzzleTime } from './timer';
-import { playSound } from './audio';
+import type { Move, Square } from 'chess.js';
+import { Chess, SQUARES } from 'chess.js';
+
+import type { PgnPath, CustomPgnMove } from '../../core/types';
+import { config, state } from '../../core/config';
+import { stateProxy } from '../../core/stateProxy';
+import { toColor } from '../ui/uiUtils';
+import { addMoveToPgn, navigateNextMove, isEndOfLine } from '../pgn/pgnViewer';
+import { filterShapes, shapePriority, ShapeFilter } from '../board/arrows';
+import { initializePuzzleTimer, startPlayerTimer, stopPlayerTimer, extendPuzzleTime } from '../timer/timer';
+import { playSound } from '../audio/audio';
 
 // --- Types ---
 type Promotions = 'q' | 'r' | 'b' | 'n';
