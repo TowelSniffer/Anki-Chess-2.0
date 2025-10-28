@@ -1,8 +1,9 @@
-import { getLegalMove } from './chessFunctions';
-import { ShapeFilter, filterShapes, pushShapes } from './arrows';
-import { state, config } from './config';
 import type { Move } from 'chess.js';
-import { setButtonsDisabled, toColor } from './toolbox';
+
+import { state, config } from '../../core/config';
+import { getLegalMove } from '../board/chessFunctions';
+import { ShapeFilter, filterShapes, pushShapes } from '../board/arrows';
+import { setButtonsDisabled, toColor } from '../ui/uiUtils';
 
 let stockfish: Worker | null = null;
 

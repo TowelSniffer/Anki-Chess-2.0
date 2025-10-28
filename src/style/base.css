@@ -91,7 +91,7 @@ body {
     font-family: 'Material Icons';
     font-style: normal;
     font-weight: 400;
-    src: url("../media/_materialicons.woff2") format('woff2');
+    src: url("../../media/_materialicons.woff2") format('woff2');
 }
 
 .material-icons {
@@ -527,51 +527,51 @@ cg-board {
 }
 
 .cg-wrap piece.pawn.white {
-    background-image: url('../media/_wP.svg');
+    background-image: url('../../media/_wP.svg');
 }
 
 .cg-wrap piece.bishop.white {
-    background-image: url('../media/_wB.svg');
+    background-image: url('../../media/_wB.svg');
 }
 
 .cg-wrap piece.knight.white {
-    background-image: url('../media/_wN.svg');
+    background-image: url('../../media/_wN.svg');
 }
 
 .cg-wrap piece.rook.white {
-    background-image: url('../media/_wR.svg');
+    background-image: url('../../media/_wR.svg');
 }
 
 .cg-wrap piece.queen.white {
-    background-image: url('../media/_wQ.svg');
+    background-image: url('../../media/_wQ.svg');
 }
 
 .cg-wrap piece.king.white {
-    background-image: url('../media/_wK.svg');
+    background-image: url('../../media/_wK.svg');
 }
 
 .cg-wrap piece.pawn.black {
-    background-image: url('../media/_bP.svg');
+    background-image: url('../../media/_bP.svg');
 }
 
 .cg-wrap piece.bishop.black {
-    background-image: url('../media/_bB.svg');
+    background-image: url('../../media/_bB.svg');
 }
 
 .cg-wrap piece.knight.black {
-    background-image: url('../media/_bN.svg');
+    background-image: url('../../media/_bN.svg');
 }
 
 .cg-wrap piece.rook.black {
-    background-image: url('../media/_bR.svg');
+    background-image: url('../../media/_bR.svg');
 }
 
 .cg-wrap piece.queen.black {
-    background-image: url('../media/_bQ.svg');
+    background-image: url('../../media/_bQ.svg');
 }
 
 .cg-wrap piece.king.black {
-    background-image: url('../media/_bK.svg');
+    background-image: url('../../media/_bK.svg');
 }
 
 cg-board {

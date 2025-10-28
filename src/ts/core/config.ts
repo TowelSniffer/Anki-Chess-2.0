@@ -1,8 +1,10 @@
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
 import { Chessground } from 'chessground';
-import type { Config, State, ErrorTrack, CustomPgnGame, BoardModes, MirrorState } from './types';
-import { checkCastleRights, assignMirrorState, mirrorPgnTree, mirrorFen } from './mirror';
+
+import type { Config, State, ErrorTrack, CustomPgnGame, BoardModes, MirrorState } from '../core/types';
+
+import { checkCastleRights, assignMirrorState, mirrorPgnTree, mirrorFen } from '../features/pgn/mirror';
 
 // --- Type Guards ---
 // boardMode

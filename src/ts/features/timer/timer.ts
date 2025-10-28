@@ -1,5 +1,5 @@
-import { state, config } from './config';
-import { stateProxy } from './stateProxy';
+import { state, config } from '../../core/config';
+import { stateProxy } from '../../core/stateProxy';
 
 // --- Module-level timer variables ---
 let animationFrameId: number | null = null;

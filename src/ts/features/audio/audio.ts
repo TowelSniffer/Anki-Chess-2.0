@@ -1,5 +1,5 @@
-import { config } from './config';
-import type { CustomPgnMove } from './types';
+import type { CustomPgnMove } from '../../core/types';
+import { config } from '../../core/config';
 
 type Sounds = "move" | "checkmate" | "check" | "capture" | "castle" | "promote" | "Error" | "computer-mouse-click";
 type MoveEvent = 'checkmate' | 'promote' | 'castle' | 'capture' | 'check' | 'move';

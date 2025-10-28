@@ -2,7 +2,6 @@ import type { Color } from 'chessground/types';
 import type { DrawShape } from 'chessground/draw';
 import type { Api } from 'chessground/api';
 import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
-
 import type { Chess, Square } from 'chess.js';
 
 // --- types ---

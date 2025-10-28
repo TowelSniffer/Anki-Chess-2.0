@@ -1,9 +1,10 @@
 import type { Move } from 'chess.js';
-import { Chess } from 'chess.js';
-import { state } from './config';
 import type { PgnMove } from '@mliebelt/pgn-types';
-import type { CustomPgnMove, PgnPath } from './types';
-import nags from '../nags.json' assert { type: 'json' };
+import { Chess } from 'chess.js';
+
+import nags from '../../../json/nags.json' assert { type: 'json' };
+import type { CustomPgnMove, PgnPath } from '../../core/types';
+import { state } from '../../core/config';
 
 // --- Types ---
 type NagKey = keyof typeof nags;

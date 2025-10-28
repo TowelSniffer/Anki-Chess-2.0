@@ -1,4 +1,4 @@
-import type { CustomPgnMove, MirrorState } from './types';
+import type { CustomPgnMove, MirrorState } from '../../core/types';
 
 // A map for character-to-character substitution.
 type NotationMap = { [key: string]: string };

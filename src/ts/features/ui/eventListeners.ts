@@ -1,8 +1,8 @@
-import { state, config } from './config';
-import { stateProxy } from './stateProxy';
-import { navForward, navBackward, rotateBoard, copyFen, resetBoard } from './toolbox';
+import { state, config } from '../../core/config';
+import { stateProxy } from '../../core/stateProxy';
+import { navForward, navBackward, rotateBoard, copyFen, resetBoard } from '../ui/uiUtils';
 import { positionPromoteOverlay } from './initializeUI';
-import { toggleStockfishAnalysis, handleStockfishCrash } from './handleStockfish';
+import { toggleStockfishAnalysis, handleStockfishCrash } from '../analysis/handleStockfish';
 
 
 // --- Event listeners ---
