@@ -2,6 +2,7 @@ const esbuild = require('esbuild');
 const path = require('path');
 const fs = require('fs');
 const { globSync } = require('glob');
+const { sassPlugin } = require('esbuild-sass-plugin');
 
 const srcDir = __dirname;
 const distDir = path.join(__dirname, 'dist');
@@ -77,11 +78,11 @@ try {
         outfile: path.join(distDir, '_chess3.0.js'),
         assetNames: '[name]',
         loader: {
-            '.css': 'css',
             '.woff2': 'file',
             '.svg': 'file'
         },
         external: ['stockfish'],
+        plugins: [sassPlugin()],
     };
 
     try {
@@ -89,18 +90,21 @@ try {
             // Use the context API for watch mode
             const context = await esbuild.context({
                 ...buildOptions,
-                plugins: [{
-                    name: 'post-build-plugin',
-                    setup(build) {
-                        build.onEnd(result => {
-                            if (result.errors.length > 0) {
-                                console.log(`Build failed with ${result.errors.length} errors.`);
-                            } else {
-                                postBuildTasks();
-                            }
-                        });
-                    }
-                }]
+                plugins: [
+                    ...buildOptions.plugins,
+                    {
+                        name: 'post-build-plugin',
+                        setup(build) {
+                            build.onEnd(result => {
+                                if (result.errors.length > 0) {
+                                    console.log(`Build failed with ${result.errors.length} errors.`);
+                                } else {
+                                    postBuildTasks();
+                                }
+                            });
+                        }
+                    },
+                ]
             });
             await context.watch();
             console.log('Watching for changes...');

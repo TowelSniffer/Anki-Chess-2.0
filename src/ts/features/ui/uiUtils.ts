@@ -1,6 +1,4 @@
-import type { Color } from 'chessground/types';
-
-import { state } from '../../core/config';
+import { state } from '../../core/state';
 import { stateProxy } from '../../core/stateProxy';
 import { navigateNextMove, navigatePrevMove, isEndOfLine } from '../pgn/pgnViewer';
 import { playSound } from '../audio/audio';
@@ -35,12 +33,6 @@ export function borderFlash(colour: string | null = null): void {
     setTimeout(() => {
         state.cgwrap.classList.remove('time-added-flash');
     }, 500);
-}
-
-// --- chess.js and chessground tools ---
-
-export function toColor(): Color {
-    return state.chess.turn() === 'w' ? 'white' : 'black';
 }
 
 // --- Navigation Tools ---

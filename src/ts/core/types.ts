@@ -67,7 +67,7 @@ export interface Config {
     disableArrows: boolean;
     flipBoard: boolean;
     boardMode: 'Viewer' | 'Puzzle';
-    background: string;
+    background: string | null;
     mirror: boolean;
     randomOrientation: boolean;
     autoAdvance: boolean;
