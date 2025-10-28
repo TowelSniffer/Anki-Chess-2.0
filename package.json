@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dependency-test": "npx madge --circular --extensions ts ./src",
+    "dependency-test": "npx madge --circular --extensions ts --ts-config=tsconfig.json ./src",
     "typecheck": "tsc --noEmit && eslint src && npx ts-unused-exports tsconfig.json",
-    "build": "npm run typecheck && node build.js",
+    "build": "npm run typecheck && npm run dependency-test && node build.js",
     "dev": "node build.js --dev"
   },
   "keywords": [],

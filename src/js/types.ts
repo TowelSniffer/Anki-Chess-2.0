@@ -1,10 +1,30 @@
 import type { Color } from 'chessground/types';
+import type { DrawShape } from 'chessground/draw';
 import type { Api } from 'chessground/api';
-import type { Chess, Square } from 'chess.js';
 import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
-import type { CustomShape } from './arrows';
+
+import type { Chess, Square } from 'chess.js';
 
 // --- types ---
+
+// arrow Shapes
+
+type CustomShape = Omit<DrawShape, 'brush'> & {
+    // Modify chessground DrawShape to include move information
+    san?: string;
+    brush?: CustomShapeBrushes;
+};
+
+// chessground custom brushes
+export type CustomShapeBrushes =
+    "stockfish" |
+    "stockfinished" |
+    "mainLine" |
+    "altLine" |
+    "blunderLine" |
+    "userDrawn";
+
+
 
 export type MirrorState = "original" | "original_mirror" | "invert" | "invert_mirror";
 

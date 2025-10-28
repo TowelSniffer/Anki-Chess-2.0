@@ -25,10 +25,7 @@ class EventEmitter {
         [K in keyof EventPayloads]?: Listener<K>[]
     } = {};
 
-    /**
-     * Subscribes to an event.
-     * TypeScript ensures the listener's arguments match the eventName.
-     */
+    // Subscribes to an event.
     on<K extends keyof EventPayloads>(eventName: K, listener: Listener<K>): void {
         if (!this.events[eventName]) {
             this.events[eventName] = [];
@@ -37,10 +34,7 @@ class EventEmitter {
         (this.events[eventName] as Listener<K>[]).push(listener);
     }
 
-    /**
-     * Publishes an event.
-     * TypeScript ensures the provided ...args match the eventName.
-     */
+    // Publishes an event.
     emit<K extends keyof EventPayloads>(eventName: K, ...args: EventPayloads[K]): void {
         const listeners = this.events[eventName];
         if (listeners) {
