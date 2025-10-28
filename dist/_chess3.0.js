@@ -14422,20 +14422,14 @@ ${contextLines.join("\n")}`;
       EventEmitter = class {
         // Stores listeners, typed by event name
         events = {};
-        /**
-         * Subscribes to an event.
-         * TypeScript ensures the listener's arguments match the eventName.
-         */
+        // Subscribes to an event.
         on(eventName, listener) {
           if (!this.events[eventName]) {
             this.events[eventName] = [];
           }
           this.events[eventName].push(listener);
         }
-        /**
-         * Publishes an event.
-         * TypeScript ensures the provided ...args match the eventName.
-         */
+        // Publishes an event.
         emit(eventName, ...args) {
           const listeners = this.events[eventName];
           if (listeners) {

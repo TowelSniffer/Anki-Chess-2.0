@@ -1,15 +1,10 @@
 import type { Move } from 'chess.js';
-import type { CustomPgnMove } from './types';
-import type { DrawShape } from 'chessground/draw';
-import type { PgnPath } from './types';
+import type { PgnPath, CustomPgnMove, CustomShapeBrushes } from './types';
 import { state, config } from './config';
 import { navigateNextMove, isNagKey } from './pgnViewer';
 import nags from '../nags.json' assert { type: 'json' };
 
-export type CustomShape = Omit<DrawShape, 'brush'> & {
-    san?: string;
-    brush?: CustomShapeBrushes;
-};
+
 
 const blunderNags = ['$2', '$4', '$6', '$9'];
 
@@ -24,13 +19,6 @@ export enum ShapeFilter {
 
 export const shapePriority: (CustomShapeBrushes)[] = ["mainLine", "altLine", "blunderLine", "stockfish", "stockfinished"];
 
-type CustomShapeBrushes =
-    "stockfish" |
-    "stockfinished" |
-    "mainLine" |
-    "altLine" |
-    "blunderLine" |
-    "userDrawn";
 const customShapeBrushes: CustomShapeBrushes[] = [
     "stockfish",
     "stockfinished",
