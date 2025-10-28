@@ -4,7 +4,7 @@ import { Chess } from 'chess.js';
 
 import nags from '../../../json/nags.json' assert { type: 'json' };
 import type { CustomPgnMove, PgnPath } from '../../core/types';
-import { state } from '../../core/config';
+import { state } from '../../core/state';
 
 // --- Types ---
 type NagKey = keyof typeof nags;

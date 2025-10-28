@@ -1,4 +1,5 @@
-import { state, config } from '../../core/config';
+import { config } from '../../core/config';
+import { state } from '../../core/state';
 import { stateProxy } from '../../core/stateProxy';
 import { navForward, navBackward, rotateBoard, copyFen, resetBoard } from '../ui/uiUtils';
 import { positionPromoteOverlay } from './initializeUI';

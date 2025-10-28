@@ -1,6 +1,6 @@
 import type { PgnPath, State, ErrorTrack, CustomPgnMove } from './types';
 
-import { state } from './config';
+import { state } from './state';
 
 // --- Event emitter for state proxy ---
 
@@ -50,6 +50,7 @@ export const eventEmitter = new EventEmitter();
 const stateHandler = {
     set(target: State, property: keyof State, value: PgnPath | ErrorTrack, receiver: State) {
         if (property === 'pgnPath') {
+            // handle changing current move
 
             const pgnPath = value as PgnPath;
             const pathKey = pgnPath.join(',');
@@ -61,7 +62,9 @@ const stateHandler = {
             ) {
                 eventEmitter.emit('pgnPathChanged', pgnPath, lastMove, pathMove);
             }
+
         } else if (property === 'errorTrack') {
+            // Handle scoring puzzle
 
             const errorTrack = value as ErrorTrack;
             eventEmitter.emit('puzzleScored', errorTrack)

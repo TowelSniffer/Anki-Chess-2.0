@@ -1,0 +1,50 @@
+@use '../variables' as *;
+@use '../mixins' as *;
+
+#promoteButtonsContainer {
+    @include flex-center;
+    position: absolute;
+    height: calc($board-size * 0.25);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    width: $board-size;
+    box-shadow: $shadow-strong;
+    z-index: 100;
+
+    button {
+        &.promoteBtn {
+            @include flex-center;
+            @include board-square-size;
+            border: 0px;
+            margin: 10px;
+            /*     position: relative; */
+            top: 0.07em;
+            font-size: 1.4em;
+            background-color: $color-bg-hover;
+            border: $border-main-thin;
+            border-radius: $border-radius-main;
+            box-shadow: $shadow-strong;
+            z-index: 100;
+            cursor: pointer;
+
+            &:hover {
+                background-color: $color-interactive-hover-bg;
+                box-shadow: $shadow-board;
+                color: $color-interactive-hover-text;
+            }
+
+            &:active {
+                background-color: $color-interactive-active;
+            }
+
+            &:focus {
+                outline: 0;
+            }
+
+            .promotePiece {
+                margin: 0;
+                @include board-square-size;
+            }
+        }
+    }
+}

@@ -1,4 +1,5 @@
-import { state, config } from '../../core/config';
+import { config } from '../../core/config';
+import { state } from '../../core/state';
 import { stateProxy } from '../../core/stateProxy';
 
 // --- Module-level timer variables ---

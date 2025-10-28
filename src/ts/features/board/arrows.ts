@@ -1,7 +1,8 @@
 import type { Move } from 'chess.js';
 
 import type { PgnPath, CustomPgnMove, CustomShapeBrushes } from '../../core/types';
-import { state, config } from '../../core/config';
+import { config } from '../../core/config';
+import { state } from '../../core/state';
 import nags from '../../../json/nags.json' assert { type: 'json' };
 import { navigateNextMove, isNagKey } from '../pgn/pgnViewer';
 

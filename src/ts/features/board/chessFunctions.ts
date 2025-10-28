@@ -3,11 +3,12 @@ import type { Move, Square } from 'chess.js';
 import { Chess, SQUARES } from 'chess.js';
 
 import type { PgnPath, CustomPgnMove } from '../../core/types';
-import { config, state } from '../../core/config';
+import { config } from '../../core/config';
+import { state } from '../../core/state';
 import { stateProxy } from '../../core/stateProxy';
-import { toColor } from '../ui/uiUtils';
 import { addMoveToPgn, navigateNextMove, isEndOfLine } from '../pgn/pgnViewer';
 import { filterShapes, shapePriority, ShapeFilter } from '../board/arrows';
+import { positionPromoteOverlay } from '../ui/initializeUI';
 import { initializePuzzleTimer, startPlayerTimer, stopPlayerTimer, extendPuzzleTime } from '../timer/timer';
 import { playSound } from '../audio/audio';
 
@@ -30,6 +31,10 @@ function isMoveObject(move: object): move is Move {
 
 // --- Utility ---
 
+export function getcurrentTurnColor(): Color {
+  return state.chess.turn() === 'w' ? 'white' : 'black';
+}
+
 function toggleClass(querySelector: string, className: string): void {
   document.querySelectorAll('.' + querySelector).forEach(el => el.classList.toggle(className));
 }
@@ -45,9 +50,9 @@ function randomOrientation(): Color {
 function setBoard(FEN: string): void {
   state.cg.set({
     fen: FEN,
-    turnColor: toColor(),
+    turnColor: getcurrentTurnColor(),
     movable: {
-      color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
+      color: config.boardMode === 'Puzzle' ? state.playerColour : getcurrentTurnColor(),
       dests: toDests()
     },
     drawable: {
@@ -100,11 +105,15 @@ export function animateBoard(lastMove: CustomPgnMove | null, pathMove: CustomPgn
   } else {
       state.cg.set({ fen: state.chess.fen() });
   }
+
+  const currentTurnColor = getcurrentTurnColor();
+  const movableColor = (config.boardMode === 'Puzzle') ? state.playerColour : currentTurnColor;
+
   state.cg.set({
     check: state.chess.inCheck(),
-    turnColor: toColor(),
+    turnColor: currentTurnColor,
     movable: {
-      color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
+      color: movableColor,
       dests: toDests()
     },
     drawable: { shapes: state.chessGroundShapes }
@@ -297,7 +306,7 @@ function promotePopup(orig: Square, dest: Square): void {
       startPlayerTimer();
     }, config.animationTime)
   }
-  const promoteButtons = document.querySelectorAll<HTMLButtonElement>("#promoteButtons > button");
+  const promoteButtons = document.querySelectorAll<HTMLButtonElement>("#promoteButtonsContainer > button");
   const overlay = document.querySelector<HTMLDivElement>("#overlay");
   promoteButtons.forEach(button => {
     button.onclick = (event: MouseEvent) => {
@@ -327,19 +336,38 @@ function promotePopup(orig: Square, dest: Square): void {
     };
   }
   toggleClass('showHide', 'hidden');
+  positionPromoteOverlay();
 }
 
 // --- Initialization ---
 export function loadChessgroundBoard(): void {
   
+  const currentTurnColor = getcurrentTurnColor();
+  const movableColor = (config.boardMode === 'Puzzle') ? state.playerColour : currentTurnColor;
+
   state.cg.set({
     orientation: config.randomOrientation ? randomOrientation() : state.playerColour,
-    turnColor: toColor(),
+    turnColor: currentTurnColor,
+    movable: {
+      color: movableColor,
+      dests: toDests(),
+      events: {
+        after: (orig, dest) => {
+          if (!isSquare(orig) || !isSquare(dest)) return;
+          const delay = config.boardMode === 'Viewer' ? 0 : state.delayTime;
+          handleMoveAttempt(delay, orig, dest);
+        },
+      }
+    },
+    premovable: {
+      enabled: config.boardMode === 'Viewer' ? false : true,
+    },
+    check: state.chess.inCheck(),
     events: {
       select: (key) => {
         filterShapes(ShapeFilter.Drawn)
         state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
-        if ( ( config.boardMode === 'Puzzle' && state.playerColour !== toColor() ) ||
+        if ( ( config.boardMode === 'Puzzle' && state.playerColour !== getcurrentTurnColor() ) ||
           !isSquare(key) ||
           wrongMoveDebounce) {
           return;
@@ -378,23 +406,7 @@ export function loadChessgroundBoard(): void {
           }
         }
       },
-    },
-    movable: {
-      color: config.boardMode === 'Puzzle' ? state.playerColour : toColor(),
-      dests: toDests(),
-      events: {
-
-        after: (orig, dest) => {
-          if (!isSquare(orig) || !isSquare(dest)) return;
-          const delay = config.boardMode === 'Viewer' ? 0 : state.delayTime;
-          handleMoveAttempt(delay, orig, dest);
-        },
-      }
-    },
-    premovable: {
-      enabled: config.boardMode === 'Viewer' ? false : true,
-    },
-    check: state.chess.inCheck(),
+    }
   });
   if (!state.chess.isGameOver() && config.flipBoard && config.boardMode === 'Puzzle') {
     playAiMove(state.delayTime);

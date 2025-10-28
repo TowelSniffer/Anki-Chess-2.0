@@ -1,9 +1,10 @@
 import type { Move } from 'chess.js';
 
-import { state, config } from '../../core/config';
-import { getLegalMove } from '../board/chessFunctions';
+import { config } from '../../core/config';
+import { state } from '../../core/state';
+import { getLegalMove, getcurrentTurnColor } from '../board/chessFunctions';
 import { ShapeFilter, filterShapes, pushShapes } from '../board/arrows';
-import { setButtonsDisabled, toColor } from '../ui/uiUtils';
+import { setButtonsDisabled } from '../ui/uiUtils';
 
 let stockfish: Worker | null = null;
 
@@ -20,7 +21,7 @@ function convertCpToWinPercentage(cp: number): string {
     let percentage = probability * 100;
 
     // If the player is black, the perspective is flipped.
-    if (state.playerColour === toColor()) {
+    if (state.playerColour === getcurrentTurnColor()) {
         percentage = 100 - percentage;
     }
     return `${percentage.toFixed(1)}%`;
@@ -45,7 +46,7 @@ function handleStockfishMessages(event: MessageEvent): void {
         if (mateIndex > -1) {
             const mate = parseInt(parts[mateIndex + 1], 10);
             let adv = (mate < 0) ? 0 : 100;
-            if (state.playerColour === toColor()) adv = 100 - adv;
+            if (state.playerColour === getcurrentTurnColor()) adv = 100 - adv;
             analysisCache.advantage = `${adv.toFixed(1)}%`;
         } else if (cpIndex > -1) {
             const cp = parseInt(parts[cpIndex + 1], 10);

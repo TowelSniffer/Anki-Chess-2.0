@@ -1,6 +1,7 @@
 import type { Color } from 'chessground/types';
 
-import { state, config } from '../../core/config';
+import { config } from '../../core/config';
+import { state } from '../../core/state';
 import { setButtonsDisabled } from '../ui/uiUtils';
 import { isEndOfLine } from '../pgn/pgnViewer';
 import { drawArrows } from '../board/arrows';
@@ -45,7 +46,7 @@ export function initializeUI(): void {
         imgElement.src = `_${state.playerColour[0]}${piece}.svg`;
     });
 
-    htmlElement.style.setProperty('--background-color', config.background);
+    if (config.background) htmlElement.style.setProperty('--background-color', config.background);
 
     const commentBox = document.getElementById('commentBox');
 
@@ -110,12 +111,12 @@ export function initializeUI(): void {
 }
 
 export function positionPromoteOverlay(): void {
-    const promoteOverlay = document.getElementById('promoteButtons');
+    const promoteOverlay = document.getElementById('promoteButtonsContainer');
     if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
 
     const rect = state.cgwrap.getBoundingClientRect();
-    const borderWidthString = getComputedStyle(document.documentElement)
-    .getPropertyValue('--board-border-width');
+    const styles = window.getComputedStyle(state.cgwrap);
+    const borderWidthString = styles.borderTopWidth;
     const borderWidth = parseInt(borderWidthString, 10);
 
     promoteOverlay.style.top = `${rect.top + borderWidth}px`;
