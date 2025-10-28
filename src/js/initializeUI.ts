@@ -21,7 +21,6 @@ function initializePgnData(): void {
     if (config.boardMode === 'Viewer') {
         state.cg.set({ animation: { enabled: false} })
         state.cg.set({ fen: moveTrack?.after ?? state.startFen });
-        state.cg.set({ animation: { enabled: true} })
         if (moveTrack) state.cg.set({ lastMove: [moveTrack.from, moveTrack.to] });
         if (state.pgnPath.length && moveTrack) {
             setButtonsDisabled(['back', 'reset'], false);
@@ -31,6 +30,7 @@ function initializePgnData(): void {
         setButtonsDisabled(['forward'], endOfLineCheck);
         drawArrows(state.pgnPath);
     }
+    state.cg.set({ animation: { enabled: true} })
 }
 
 export function initializeUI(): void {

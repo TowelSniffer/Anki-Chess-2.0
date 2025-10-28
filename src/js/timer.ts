@@ -1,5 +1,5 @@
 import { state, config } from './config';
-import { stateProxy } from './toolbox';
+import { stateProxy } from './stateProxy';
 
 // --- Module-level timer variables ---
 let animationFrameId: number | null = null;
@@ -73,6 +73,8 @@ function handleOutOfTime(): void {
         state.puzzleComplete = true;
         const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
         window.parent.postMessage(stateCopy, '*');
+    } else {
+        stateProxy.errorTrack = state.errorTrack;
     }
 }
 
@@ -95,7 +97,7 @@ export function initializePuzzleTimer(): void {
     if (config.boardMode === 'Viewer' || !config.timer) return;
     stopPlayerTimer();
     totalTime = config.timer;
-    const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
+    const timerColor = config.randomOrientation ? "var(--incorrect-color)" : state.opponentColour;
     document.documentElement.style.setProperty('--timer-color', timerColor);
     state.cgwrap.classList.add('timerMode');
     document.documentElement.style.setProperty('--remainingTime', `0%`);

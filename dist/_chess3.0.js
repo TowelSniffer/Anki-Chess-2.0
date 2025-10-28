@@ -13903,7 +13903,7 @@ ${contextLines.join("\n")}`;
         boardRotation: "black",
         playerColour: "white",
         opponentColour: "black",
-        solvedColour: config.timer ? "var(--perfect-color)" : "var(--correct-color)",
+        solvedColour: null,
         errorTrack: null,
         chessGroundShapes: [],
         errorCount: 0,
@@ -13930,6 +13930,11 @@ ${contextLines.join("\n")}`;
           highlight: {
             check: true,
             lastMove: true
+          },
+          animation: {
+            enabled: false,
+            // will manulally enable later to prevent position load animation
+            duration: config.animationTime
           },
           drawable: {
             enabled: true,
@@ -14408,6 +14413,210 @@ ${contextLines.join("\n")}`;
     }
   });
 
+  // src/js/stateProxy.ts
+  var EventEmitter, eventEmitter, stateHandler, stateProxy;
+  var init_stateProxy = __esm({
+    "src/js/stateProxy.ts"() {
+      "use strict";
+      init_config2();
+      EventEmitter = class {
+        // Stores listeners, typed by event name
+        events = {};
+        /**
+         * Subscribes to an event.
+         * TypeScript ensures the listener's arguments match the eventName.
+         */
+        on(eventName, listener) {
+          if (!this.events[eventName]) {
+            this.events[eventName] = [];
+          }
+          this.events[eventName].push(listener);
+        }
+        /**
+         * Publishes an event.
+         * TypeScript ensures the provided ...args match the eventName.
+         */
+        emit(eventName, ...args) {
+          const listeners = this.events[eventName];
+          if (listeners) {
+            listeners.forEach((listener) => listener(...args));
+          }
+        }
+      };
+      eventEmitter = new EventEmitter();
+      stateHandler = {
+        set(target, property, value, receiver) {
+          if (property === "pgnPath") {
+            const pgnPath = value;
+            const pathKey = pgnPath.join(",");
+            const pathMove = state.pgnPathMap.get(pathKey) ?? null;
+            const lastMove = state.lastMove;
+            if ((pathMove || !pgnPath.length) && !(!state.pgnPath.join(",").length && !pgnPath.length)) {
+              eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
+            }
+          } else if (property === "errorTrack") {
+            const errorTrack = value;
+            eventEmitter.emit("puzzleScored", errorTrack);
+          }
+          return Reflect.set(target, property, value, receiver);
+        }
+      };
+      stateProxy = new Proxy(state, stateHandler);
+    }
+  });
+
+  // src/js/audio.ts
+  function initAudio() {
+    const sounds = ["move", "checkmate", "check", "capture", "castle", "promote", "Error", "computer-mouse-click"];
+    const audioMap2 = /* @__PURE__ */ new Map();
+    sounds.forEach((sound) => {
+      const audio = new Audio(`_${sound}.mp3`);
+      audio.preload = "auto";
+      audioMap2.set(sound, audio);
+    });
+    return audioMap2;
+  }
+  function playSound(soundName) {
+    if (config.muteAudio) return;
+    const audio = audioMap.get(soundName);
+    if (audio) {
+      const clone = audio.cloneNode();
+      if (clone instanceof HTMLAudioElement) {
+        clone.play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
+      }
+    }
+  }
+  function moveAudio(move3) {
+    if (config.muteAudio) return;
+    const moveType = moveSoundPriority.find((p) => p.condition(move3.san, move3.flags));
+    const soundToPlay = moveType ? moveSoundMap[moveType.event] : moveSoundMap.move;
+    playSound(soundToPlay);
+  }
+  var moveSoundMap, moveSoundPriority, audioMap;
+  var init_audio = __esm({
+    "src/js/audio.ts"() {
+      "use strict";
+      init_config2();
+      moveSoundMap = {
+        checkmate: "checkmate",
+        promote: "promote",
+        castle: "castle",
+        capture: "capture",
+        check: "check",
+        move: "move"
+      };
+      moveSoundPriority = [
+        { event: "checkmate", condition: (san) => san.includes("#") },
+        { event: "check", condition: (san) => san.includes("+") },
+        { event: "promote", condition: (_san, flags) => flags.includes("p") },
+        { event: "castle", condition: (_san, flags) => flags.includes("k") || flags.includes("q") },
+        { event: "capture", condition: (_san, flags) => flags.includes("c") || flags.includes("e") }
+      ];
+      audioMap = initAudio();
+    }
+  });
+
+  // src/js/toolbox.ts
+  function setButtonsDisabled(keys, isDisabled) {
+    keys.forEach((key) => {
+      const button = btn[key];
+      if (button) {
+        button.disabled = isDisabled;
+      }
+    });
+  }
+  function borderFlash(colour = null) {
+    document.documentElement.style.setProperty("--timer-flash-color", colour ?? state.solvedColour);
+    state.cgwrap.classList.add("time-added-flash");
+    setTimeout(() => {
+      state.cgwrap.classList.remove("time-added-flash");
+    }, 500);
+  }
+  function toColor() {
+    return state.chess.turn() === "w" ? "white" : "black";
+  }
+  function navForward() {
+    if (isEndOfLine(state.pgnPath)) return;
+    const navCheck = navigateNextMove(state.pgnPath);
+    stateProxy.pgnPath = navCheck;
+  }
+  function navBackward() {
+    if (!state.pgnPath.length) return;
+    const navCheck = navigatePrevMove(state.pgnPath);
+    if (!navCheck.length) {
+      resetBoard();
+    } else {
+      stateProxy.pgnPath = navCheck;
+    }
+  }
+  function resetBoard() {
+    stateProxy.pgnPath = [];
+  }
+  function rotateBoard() {
+    state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+    const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
+    const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
+    htmlElement.style.setProperty("--coord-white", coordBlack);
+    htmlElement.style.setProperty("--coord-black", coordWhite);
+    state.cg.set({ orientation: state.boardRotation });
+    const flipButton = document.querySelector(".flipBoardIcon");
+    if (flipButton && flipButton.style.transform.includes("90deg")) {
+      flipButton.style.transform = "rotate(270deg)";
+    } else if (flipButton) {
+      flipButton.style.transform = "rotate(90deg)";
+    }
+  }
+  function copyFen() {
+    const textarea = document.createElement("textarea");
+    textarea.value = state.chess.fen();
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      playSound("computer-mouse-click");
+      return true;
+    } catch (err) {
+      playSound("Error");
+      console.error("Failed to copy text using execCommand:", err);
+      return false;
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+  var htmlElement, btn;
+  var init_toolbox = __esm({
+    "src/js/toolbox.ts"() {
+      "use strict";
+      init_config2();
+      init_stateProxy();
+      init_pgnViewer();
+      init_audio();
+      htmlElement = document.documentElement;
+      btn = {
+        get reset() {
+          return document.querySelector("#resetBoard");
+        },
+        get back() {
+          return document.querySelector("#navBackward");
+        },
+        get forward() {
+          return document.querySelector("#navForward");
+        },
+        get copy() {
+          return document.querySelector("#copyFen");
+        },
+        get stockfish() {
+          return document.querySelector("#stockfishToggle");
+        },
+        get flip() {
+          return document.querySelector("#rotateBoard");
+        }
+      };
+    }
+  });
+
   // src/js/arrows.ts
   function filterShapes(filterKey) {
     let brushesToRemove = shapeArray[filterKey];
@@ -14500,6 +14709,108 @@ ${contextLines.join("\n")}`;
     }
   });
 
+  // src/js/initializeUI.ts
+  function getElement(selector, _type) {
+    const element = document.querySelector(selector);
+    if (!element) {
+      throw new Error(`Critical UI element not found: ${selector}`);
+    }
+    return element;
+  }
+  function initializePgnData() {
+    const pathKey = state.pgnPath.join(",");
+    const moveTrack = state.pgnPathMap.get(pathKey);
+    state.chess.load(moveTrack?.after ?? state.startFen);
+    if (config.boardMode === "Viewer") {
+      state.cg.set({ animation: { enabled: false } });
+      state.cg.set({ fen: moveTrack?.after ?? state.startFen });
+      if (moveTrack) state.cg.set({ lastMove: [moveTrack.from, moveTrack.to] });
+      if (state.pgnPath.length && moveTrack) {
+        setButtonsDisabled(["back", "reset"], false);
+        state.lastMove = moveTrack;
+      }
+      ;
+      const endOfLineCheck = isEndOfLine(state.pgnPath);
+      setButtonsDisabled(["forward"], endOfLineCheck);
+      drawArrows(state.pgnPath);
+    }
+    state.cg.set({ animation: { enabled: true } });
+  }
+  function initializeUI() {
+    initializePgnData();
+    const promoteBtnMap = ["Q", "B", "N", "R"];
+    promoteBtnMap.forEach((piece) => {
+      const imgElement = getElement(`#promote${piece}`, HTMLImageElement);
+      imgElement.src = `_${state.playerColour[0]}${piece}.svg`;
+    });
+    htmlElement2.style.setProperty("--background-color", config.background);
+    const commentBox = document.getElementById("commentBox");
+    const textField = document.getElementById("textField");
+    if (textField) {
+      if (config.ankiText) {
+        textField.innerHTML = config.ankiText;
+      } else {
+        textField.style.display = "none";
+      }
+    }
+    if (config.boardMode === "Puzzle") {
+      const buttonsContainer = document.querySelector("#buttons-container");
+      if (buttonsContainer) buttonsContainer.style.visibility = "hidden";
+      const pgnComment = document.getElementById("pgnComment");
+      if (pgnComment) pgnComment.style.display = "none";
+      if (commentBox && (!config.frontText || !config.ankiText)) {
+        commentBox.style.display = "none";
+      }
+    }
+    const fenParts = state.startFen.split(" ");
+    let boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
+    if (config.flipBoard) {
+      boardRotation = boardRotation === "white" ? "black" : "white";
+    }
+    state.boardRotation = boardRotation;
+    state.playerColour = state.boardRotation;
+    state.opponentColour = state.boardRotation === "white" ? "black" : "white";
+    if (state.boardRotation === "white") {
+      const coordWhite = getComputedStyle(htmlElement2).getPropertyValue("--coord-white").trim();
+      const coordBlack = getComputedStyle(htmlElement2).getPropertyValue("--coord-black").trim();
+      htmlElement2.style.setProperty("--coord-white", coordBlack);
+      htmlElement2.style.setProperty("--coord-black", coordWhite);
+    }
+    const borderColor = config.randomOrientation ? "grey" : state.playerColour;
+    htmlElement2.style.setProperty("--border-color", borderColor);
+    htmlElement2.style.setProperty("--player-color", state.playerColour);
+    htmlElement2.style.setProperty("--opponent-color", state.opponentColour);
+    if (config.boardMode === "Viewer") {
+      if (state.errorTrack === "incorrect") {
+        htmlElement2.style.setProperty("--border-color", "var(--incorrect-color)");
+      } else if (state.errorTrack === "correctTime") {
+        htmlElement2.style.setProperty("--border-color", "var(--perfect-color)");
+      } else if (state.errorTrack === "correct") {
+        htmlElement2.style.setProperty("--border-color", "var(--correct-color)");
+      }
+    }
+  }
+  function positionPromoteOverlay() {
+    const promoteOverlay = document.getElementById("promoteButtons");
+    if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
+    const rect = state.cgwrap.getBoundingClientRect();
+    const borderWidthString = getComputedStyle(document.documentElement).getPropertyValue("--board-border-width");
+    const borderWidth = parseInt(borderWidthString, 10);
+    promoteOverlay.style.top = `${rect.top + borderWidth}px`;
+    promoteOverlay.style.left = `${rect.left + borderWidth}px`;
+  }
+  var htmlElement2;
+  var init_initializeUI = __esm({
+    "src/js/initializeUI.ts"() {
+      "use strict";
+      init_config2();
+      init_toolbox();
+      init_pgnViewer();
+      init_arrows();
+      htmlElement2 = document.documentElement;
+    }
+  });
+
   // src/js/timer.ts
   function timerLoop(timestamp) {
     if (!lastTickTimestamp) {
@@ -14554,6 +14865,8 @@ ${contextLines.join("\n")}`;
       state.puzzleComplete = true;
       const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
       window.parent.postMessage(stateCopy, "*");
+    } else {
+      stateProxy.errorTrack = state.errorTrack;
     }
   }
   function stopPlayerTimer() {
@@ -14573,7 +14886,7 @@ ${contextLines.join("\n")}`;
     if (config.boardMode === "Viewer" || !config.timer) return;
     stopPlayerTimer();
     totalTime = config.timer;
-    const timerColor = config.randomOrientation ? state.solvedColour : state.opponentColour;
+    const timerColor = config.randomOrientation ? "var(--incorrect-color)" : state.opponentColour;
     document.documentElement.style.setProperty("--timer-color", timerColor);
     state.cgwrap.classList.add("timerMode");
     document.documentElement.style.setProperty("--remainingTime", `0%`);
@@ -14590,63 +14903,12 @@ ${contextLines.join("\n")}`;
     "src/js/timer.ts"() {
       "use strict";
       init_config2();
-      init_toolbox();
+      init_stateProxy();
       animationFrameId = null;
       lastTickTimestamp = null;
       extendAnimationFrameId = null;
       lastTickExtendTimestamp = null;
       totalExtendTime = 0;
-    }
-  });
-
-  // src/js/audio.ts
-  function initAudio() {
-    const sounds = ["move", "checkmate", "check", "capture", "castle", "promote", "Error", "computer-mouse-click"];
-    const audioMap2 = /* @__PURE__ */ new Map();
-    sounds.forEach((sound) => {
-      const audio = new Audio(`_${sound}.mp3`);
-      audio.preload = "auto";
-      audioMap2.set(sound, audio);
-    });
-    return audioMap2;
-  }
-  function playSound(soundName) {
-    if (config.muteAudio) return;
-    const audio = audioMap.get(soundName);
-    if (audio) {
-      const clone = audio.cloneNode();
-      if (clone instanceof HTMLAudioElement) {
-        clone.play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
-      }
-    }
-  }
-  function moveAudio(move3) {
-    if (config.muteAudio) return;
-    const moveType = moveSoundPriority.find((p) => p.condition(move3.san, move3.flags));
-    const soundToPlay = moveType ? moveSoundMap[moveType.event] : moveSoundMap.move;
-    playSound(soundToPlay);
-  }
-  var moveSoundMap, moveSoundPriority, audioMap;
-  var init_audio = __esm({
-    "src/js/audio.ts"() {
-      "use strict";
-      init_config2();
-      moveSoundMap = {
-        checkmate: "checkmate",
-        promote: "promote",
-        castle: "castle",
-        capture: "capture",
-        check: "check",
-        move: "move"
-      };
-      moveSoundPriority = [
-        { event: "checkmate", condition: (san) => san.includes("#") },
-        { event: "check", condition: (san) => san.includes("+") },
-        { event: "promote", condition: (_san, flags) => flags.includes("p") },
-        { event: "castle", condition: (_san, flags) => flags.includes("k") || flags.includes("q") },
-        { event: "capture", condition: (_san, flags) => flags.includes("c") || flags.includes("e") }
-      ];
-      audioMap = initAudio();
     }
   });
 
@@ -14853,6 +15115,9 @@ ${contextLines.join("\n")}`;
     state.cg.set({ fen: move3.after });
     playSound("Error");
     setBoard(move3.before);
+    wrongMoveDebounce = setTimeout(() => {
+      wrongMoveDebounce = null;
+    }, state.delayTime);
     const isFailed = config.strictScoring || state.errorCount > config.handicap;
     if (isFailed) {
       stateProxy.errorTrack = "incorrect";
@@ -14898,7 +15163,6 @@ ${contextLines.join("\n")}`;
       };
     }
     toggleClass("showHide", "hidden");
-    positionPromoteOverlay();
   }
   function loadChessgroundBoard() {
     state.cg.set({
@@ -14908,8 +15172,9 @@ ${contextLines.join("\n")}`;
         select: (key) => {
           filterShapes("Drawn" /* Drawn */);
           state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
-          if (config.boardMode === "Puzzle" && state.playerColour !== toColor()) return;
-          if (!isSquare(key)) return;
+          if (config.boardMode === "Puzzle" && state.playerColour !== toColor() || !isSquare(key) || wrongMoveDebounce) {
+            return;
+          }
           const orig = state.cg.state.selected;
           const dest = key;
           if (orig && isSquare(orig)) {
@@ -14959,23 +15224,23 @@ ${contextLines.join("\n")}`;
     } else if (config.boardMode === "Puzzle") {
       startPlayerTimer();
     }
-    positionPromoteOverlay();
     initializePuzzleTimer();
     return;
   }
-  var promoteAnimate;
+  var promoteAnimate, wrongMoveDebounce;
   var init_chessFunctions = __esm({
     "src/js/chessFunctions.ts"() {
       "use strict";
       init_chess();
       init_config2();
+      init_stateProxy();
       init_toolbox();
       init_pgnViewer();
       init_arrows();
       init_timer();
       init_audio();
-      init_initializeUI();
       promoteAnimate = true;
+      wrongMoveDebounce = null;
     }
   });
 
@@ -15140,76 +15405,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/js/toolbox.ts
-  function setButtonsDisabled(keys, isDisabled) {
-    keys.forEach((key) => {
-      const button = btn[key];
-      if (button) {
-        button.disabled = isDisabled;
-      }
-    });
-  }
-  function borderFlash(colour = null) {
-    document.documentElement.style.setProperty("--timer-flash-color", colour ?? state.solvedColour);
-    state.cgwrap.classList.add("time-added-flash");
-    setTimeout(() => {
-      state.cgwrap.classList.remove("time-added-flash");
-    }, 500);
-  }
-  function toColor() {
-    return state.chess.turn() === "w" ? "white" : "black";
-  }
-  function navBackward() {
-    if (!state.pgnPath.length) return;
-    const navCheck = navigatePrevMove(state.pgnPath);
-    if (!navCheck.length) {
-      resetBoard();
-    } else {
-      stateProxy.pgnPath = navCheck;
-    }
-  }
-  function navForward() {
-    if (isEndOfLine(state.pgnPath)) return;
-    const navCheck = navigateNextMove(state.pgnPath);
-    console.log(state.pgnPath, navCheck);
-    stateProxy.pgnPath = navCheck;
-  }
-  function resetBoard() {
-    stateProxy.pgnPath = [];
-  }
-  function rotateBoard() {
-    state.boardRotation = state.boardRotation === "white" ? "black" : "white";
-    const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
-    const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
-    htmlElement.style.setProperty("--coord-white", coordBlack);
-    htmlElement.style.setProperty("--coord-black", coordWhite);
-    state.cg.set({ orientation: state.boardRotation });
-    const flipButton = document.querySelector(".flipBoardIcon");
-    if (flipButton && flipButton.style.transform.includes("90deg")) {
-      flipButton.style.transform = "rotate(270deg)";
-    } else if (flipButton) {
-      flipButton.style.transform = "rotate(90deg)";
-    }
-  }
-  function copyFen() {
-    const textarea = document.createElement("textarea");
-    textarea.value = state.chess.fen();
-    textarea.style.position = "absolute";
-    textarea.style.left = "-9999px";
-    document.body.appendChild(textarea);
-    textarea.select();
-    try {
-      document.execCommand("copy");
-      playSound("computer-mouse-click");
-      return true;
-    } catch (err) {
-      playSound("Error");
-      console.error("Failed to copy text using execCommand:", err);
-      return false;
-    } finally {
-      document.body.removeChild(textarea);
-    }
-  }
+  // src/js/eventListeners.ts
   function setupEventListeners() {
     const pgnContainer = document.getElementById("pgnComment");
     if (pgnContainer) {
@@ -15332,219 +15528,14 @@ ${contextLines.join("\n")}`;
     window.addEventListener("resize", handleReposition);
     document.addEventListener("scroll", handleReposition, true);
   }
-  var stateHandler, stateProxy, htmlElement, btn;
-  var init_toolbox = __esm({
-    "src/js/toolbox.ts"() {
+  var init_eventListeners = __esm({
+    "src/js/eventListeners.ts"() {
       "use strict";
       init_config2();
-      init_pgnViewer();
+      init_stateProxy();
+      init_toolbox();
       init_initializeUI();
       init_handleStockfish();
-      init_audio();
-      init_chessFunctions();
-      init_arrows();
-      init_timer();
-      stateHandler = {
-        set(target, property, value, receiver) {
-          if (property === "pgnPath") {
-            const pgnPath = value;
-            const pathKey = pgnPath.join(",");
-            const pathMove = state.pgnPathMap.get(pathKey) ?? null;
-            console.log(pgnPath, pathMove);
-            if ((pathMove || !pgnPath.length) && !(!state.pgnPath.join(",").length && !pgnPath.length)) {
-              const lastMove = state.lastMove;
-              if (!pgnPath.length) {
-                setButtonsDisabled(["back", "reset"], true);
-                state.chess.reset();
-                state.chess.load(state.startFen);
-                state.lastMove = null;
-              } else {
-                setButtonsDisabled(["back", "reset"], false);
-              }
-              if (pathMove) {
-                state.chess.load(pathMove.after);
-                moveAudio(pathMove);
-              }
-              ;
-              setTimeout(() => {
-                animateBoard(lastMove, pathMove);
-              }, 2);
-              startAnalysis(config.analysisTime);
-              drawArrows(pgnPath);
-              highlightCurrentMove(pgnPath);
-              const endOfLineCheck = isEndOfLine(pgnPath);
-              if (endOfLineCheck) {
-                if (config.boardMode === "Puzzle") {
-                  state.puzzleComplete = true;
-                  const correctState = state.puzzleTime > 0 && !config.timerScore ? "correctTime" : "correct";
-                  stateProxy.errorTrack = state.errorTrack ?? correctState;
-                } else {
-                  state.chessGroundShapes = [];
-                }
-              }
-              setButtonsDisabled(["forward"], endOfLineCheck);
-              const { chess: _chess, cg: _cg, cgwrap: _cgwrap, puzzleComplete: _puzzleComplete, ...stateCopy } = state;
-              stateCopy.pgnPath = pgnPath;
-              window.parent.postMessage(stateCopy, "*");
-            }
-          } else if (property === "errorTrack") {
-            const errorTrack = value;
-            const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-            const endOfLineCheck = isEndOfLine(state.pgnPath);
-            if (endOfLineCheck) stateCopy.puzzleComplete = true;
-            if (errorTrack === "correct") {
-              state.solvedColour = "var(--correct-color)";
-              if (config.autoAdvance) {
-                stateCopy.puzzleComplete = true;
-              }
-              ;
-            } else if (errorTrack === "correctTime") {
-              state.solvedColour = "var(--perfect-color)";
-            } else if (errorTrack === "incorrect") {
-              state.solvedColour = "var(--incorrect-color)";
-              if (config.timerAdvance && state.puzzleTime === 0 || config.handicapAdvance) {
-                stateCopy.puzzleComplete = true;
-              }
-            }
-            if (stateCopy.puzzleComplete) {
-              stopPlayerTimer();
-              state.cgwrap.classList.remove("timerMode");
-              document.documentElement.style.setProperty("--border-color", state.solvedColour);
-              state.cg.set({ viewOnly: true });
-              setTimeout(() => {
-                stateCopy.pgnPath = state.pgnPath;
-                window.parent.postMessage(stateCopy, "*");
-              }, state.delayTime);
-            }
-            borderFlash();
-          }
-          return Reflect.set(target, property, value, receiver);
-        }
-      };
-      stateProxy = new Proxy(state, stateHandler);
-      htmlElement = document.documentElement;
-      btn = {
-        get reset() {
-          return document.querySelector("#resetBoard");
-        },
-        get back() {
-          return document.querySelector("#navBackward");
-        },
-        get forward() {
-          return document.querySelector("#navForward");
-        },
-        get copy() {
-          return document.querySelector("#copyFen");
-        },
-        get stockfish() {
-          return document.querySelector("#stockfishToggle");
-        },
-        get flip() {
-          return document.querySelector("#rotateBoard");
-        }
-      };
-    }
-  });
-
-  // src/js/initializeUI.ts
-  function getElement(selector, _type) {
-    const element = document.querySelector(selector);
-    if (!element) {
-      throw new Error(`Critical UI element not found: ${selector}`);
-    }
-    return element;
-  }
-  function initializePgnData() {
-    const pathKey = state.pgnPath.join(",");
-    const moveTrack = state.pgnPathMap.get(pathKey);
-    state.chess.load(moveTrack?.after ?? state.startFen);
-    if (config.boardMode === "Viewer") {
-      state.cg.set({ animation: { enabled: false } });
-      state.cg.set({ fen: moveTrack?.after ?? state.startFen });
-      state.cg.set({ animation: { enabled: true } });
-      if (moveTrack) state.cg.set({ lastMove: [moveTrack.from, moveTrack.to] });
-      if (state.pgnPath.length && moveTrack) {
-        setButtonsDisabled(["back", "reset"], false);
-        state.lastMove = moveTrack;
-      }
-      ;
-      const endOfLineCheck = isEndOfLine(state.pgnPath);
-      setButtonsDisabled(["forward"], endOfLineCheck);
-      drawArrows(state.pgnPath);
-    }
-  }
-  function initializeUI() {
-    initializePgnData();
-    const promoteBtnMap = ["Q", "B", "N", "R"];
-    promoteBtnMap.forEach((piece) => {
-      const imgElement = getElement(`#promote${piece}`, HTMLImageElement);
-      imgElement.src = `_${state.playerColour[0]}${piece}.svg`;
-    });
-    htmlElement2.style.setProperty("--background-color", config.background);
-    const commentBox = document.getElementById("commentBox");
-    const textField = document.getElementById("textField");
-    if (textField) {
-      if (config.ankiText) {
-        textField.innerHTML = config.ankiText;
-      } else {
-        textField.style.display = "none";
-      }
-    }
-    if (config.boardMode === "Puzzle") {
-      const buttonsContainer = document.querySelector("#buttons-container");
-      if (buttonsContainer) buttonsContainer.style.visibility = "hidden";
-      const pgnComment = document.getElementById("pgnComment");
-      if (pgnComment) pgnComment.style.display = "none";
-      if (commentBox && (!config.frontText || !config.ankiText)) {
-        commentBox.style.display = "none";
-      }
-    }
-    const fenParts = state.startFen.split(" ");
-    let boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
-    if (config.flipBoard) {
-      boardRotation = boardRotation === "white" ? "black" : "white";
-    }
-    state.boardRotation = boardRotation;
-    state.playerColour = state.boardRotation;
-    state.opponentColour = state.boardRotation === "white" ? "black" : "white";
-    if (state.boardRotation === "white") {
-      const coordWhite = getComputedStyle(htmlElement2).getPropertyValue("--coord-white").trim();
-      const coordBlack = getComputedStyle(htmlElement2).getPropertyValue("--coord-black").trim();
-      htmlElement2.style.setProperty("--coord-white", coordBlack);
-      htmlElement2.style.setProperty("--coord-black", coordWhite);
-    }
-    const borderColor = config.randomOrientation ? "grey" : state.playerColour;
-    htmlElement2.style.setProperty("--border-color", borderColor);
-    htmlElement2.style.setProperty("--player-color", state.playerColour);
-    htmlElement2.style.setProperty("--opponent-color", state.opponentColour);
-    if (config.boardMode === "Viewer") {
-      if (state.errorTrack === "incorrect") {
-        htmlElement2.style.setProperty("--border-color", "var(--incorrect-color)");
-      } else if (state.errorTrack === "correctTime") {
-        htmlElement2.style.setProperty("--border-color", "var(--perfect-color)");
-      } else if (state.errorTrack === "correct") {
-        htmlElement2.style.setProperty("--border-color", "var(--correct-color)");
-      }
-    }
-  }
-  function positionPromoteOverlay() {
-    const promoteOverlay = document.getElementById("promoteButtons");
-    if (!promoteOverlay || promoteOverlay.classList.contains("hidden")) return;
-    const rect = state.cgwrap.getBoundingClientRect();
-    const borderWidthString = getComputedStyle(document.documentElement).getPropertyValue("--board-border-width");
-    const borderWidth = parseInt(borderWidthString, 10);
-    promoteOverlay.style.top = `${rect.top + borderWidth}px`;
-    promoteOverlay.style.left = `${rect.left + borderWidth}px`;
-  }
-  var htmlElement2;
-  var init_initializeUI = __esm({
-    "src/js/initializeUI.ts"() {
-      "use strict";
-      init_config2();
-      init_toolbox();
-      init_pgnViewer();
-      init_arrows();
-      htmlElement2 = document.documentElement;
     }
   });
 
@@ -15553,17 +15544,93 @@ ${contextLines.join("\n")}`;
     "src/main.ts"() {
       init_chessground_base();
       init_custom();
+      init_config2();
       init_pgnViewer();
       init_initializeUI();
       init_chessFunctions();
+      init_eventListeners();
+      init_stateProxy();
+      init_audio();
+      init_handleStockfish();
+      init_arrows();
+      init_timer();
       init_toolbox();
-      init_pgnViewer();
-      init_config2();
+      eventEmitter.on("pgnPathChanged", (pgnPath, lastMove, pathMove) => {
+        if (!pgnPath.length) {
+          setButtonsDisabled(["back", "reset"], true);
+          state.chess.reset();
+          state.chess.load(state.startFen);
+          state.lastMove = null;
+        } else {
+          setButtonsDisabled(["back", "reset"], false);
+        }
+        if (pathMove) {
+          state.chess.load(pathMove.after);
+          moveAudio(pathMove);
+        }
+        ;
+        setTimeout(() => {
+          animateBoard(lastMove, pathMove);
+        }, 2);
+        startAnalysis(config.analysisTime);
+        drawArrows(pgnPath);
+        highlightCurrentMove(pgnPath);
+        const endOfLineCheck = isEndOfLine(pgnPath);
+        if (endOfLineCheck) {
+          if (config.boardMode === "Puzzle") {
+            state.puzzleComplete = true;
+            const correctState = state.puzzleTime > 0 && !config.timerScore ? "correctTime" : "correct";
+            stateProxy.errorTrack = state.errorTrack ?? correctState;
+          } else {
+            state.chessGroundShapes = [];
+          }
+        }
+        setButtonsDisabled(["forward"], endOfLineCheck);
+        const { chess: _chess, cg: _cg, cgwrap: _cgwrap, puzzleComplete: _puzzleComplete, ...stateCopy } = state;
+        stateCopy.pgnPath = pgnPath;
+        window.parent.postMessage(stateCopy, "*");
+        animateBoard(lastMove, pathMove);
+      });
+      eventEmitter.on("puzzleScored", (errorTrack) => {
+        const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
+        const endOfLineCheck = isEndOfLine(state.pgnPath);
+        if (endOfLineCheck) stateCopy.puzzleComplete = true;
+        if (errorTrack === "correct") {
+          state.solvedColour = "var(--correct-color)";
+          if (config.autoAdvance) {
+            stateCopy.puzzleComplete = true;
+          }
+          ;
+        } else if (errorTrack === "correctTime") {
+          state.solvedColour = "var(--perfect-color)";
+        } else if (errorTrack === "incorrect") {
+          state.solvedColour = "var(--incorrect-color)";
+          if (config.timerAdvance && state.puzzleTime === 0 || config.handicapAdvance) {
+            stateCopy.puzzleComplete = true;
+          }
+        }
+        if (stateCopy.puzzleComplete) {
+          stopPlayerTimer();
+          state.cgwrap.classList.remove("timerMode");
+          document.documentElement.style.setProperty("--border-color", state.solvedColour);
+          state.cg.set({ viewOnly: true });
+          setTimeout(() => {
+            stateCopy.pgnPath = state.pgnPath;
+            window.parent.postMessage(stateCopy, "*");
+          }, state.delayTime);
+        }
+        if (state.solvedColour) {
+          borderFlash();
+        } else {
+          borderFlash("var(--incorrect-color)");
+        }
+      });
       (function loadElements() {
         augmentPgnTree(state.parsedPGN.moves);
         initializeUI();
         initPgnViewer();
         loadChessgroundBoard();
+        positionPromoteOverlay();
         setupEventListeners();
       })();
     }
