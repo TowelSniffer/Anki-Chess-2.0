@@ -6,55 +6,39 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __esm = (fn, res) =>
-    function __init() {
-      return (fn && (res = (0, fn[__getOwnPropNames(fn)[0]])((fn = 0))), res);
-    };
-  var __commonJS = (cb, mod) =>
-    function __require() {
-      return (
-        mod ||
-          (0, cb[__getOwnPropNames(cb)[0]])(
-            (mod = { exports: {} }).exports,
-            mod,
-          ),
-        mod.exports
-      );
-    };
+  var __esm = (fn, res) => function __init() {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  };
+  var __commonJS = (cb, mod) => function __require() {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  };
   var __copyProps = (to, from, except, desc) => {
-    if ((from && typeof from === "object") || typeof from === "function") {
+    if (from && typeof from === "object" || typeof from === "function") {
       for (let key of __getOwnPropNames(from))
         if (!__hasOwnProp.call(to, key) && key !== except)
-          __defProp(to, key, {
-            get: () => from[key],
-            enumerable:
-              !(desc = __getOwnPropDesc(from, key)) || desc.enumerable,
-          });
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
     }
     return to;
   };
-  var __toESM = (mod, isNodeMode, target) => (
-    (target = mod != null ? __create(__getProtoOf(mod)) : {}),
-    __copyProps(
-      // If the importer is in node compatibility mode or this is not an ESM
-      // file that has been converted to a CommonJS file using a Babel-
-      // compatible transform (i.e. "__esModule" has not been set), then set
-      // "default" to the CommonJS "module.exports" for node compatibility.
-      isNodeMode || !mod || !mod.__esModule
-        ? __defProp(target, "default", { value: mod, enumerable: true })
-        : target,
-      mod,
-    )
-  );
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
 
   // node_modules/chessground/assets/chessground.base.css
   var init_chessground_base = __esm({
-    "node_modules/chessground/assets/chessground.base.css"() {},
+    "node_modules/chessground/assets/chessground.base.css"() {
+    }
   });
 
   // src/scss/main.scss
   var init_main = __esm({
-    "src/scss/main.scss"() {},
+    "src/scss/main.scss"() {
+    }
   });
 
   // node_modules/chess.js/dist/esm/chess.js
@@ -101,7 +85,7 @@
     return {
       headers,
       root: game.root,
-      result: (game.marker && game.marker.result) ?? void 0,
+      result: (game.marker && game.marker.result) ?? void 0
     };
   }
   function peg$subclass(child, parent) {
@@ -170,14 +154,7 @@
     var peg$e2 = peg$literalExpectation('"', false);
     var peg$e3 = peg$literalExpectation("]", false);
     var peg$e4 = peg$otherExpectation("tag name");
-    var peg$e5 = peg$classExpectation(
-      [
-        ["a", "z"],
-        ["A", "Z"],
-      ],
-      false,
-      false,
-    );
+    var peg$e5 = peg$classExpectation([["a", "z"], ["A", "Z"]], false, false);
     var peg$e6 = peg$otherExpectation("tag value");
     var peg$e7 = peg$classExpectation(['"'], true, false);
     var peg$e8 = peg$otherExpectation("move number");
@@ -189,11 +166,7 @@
     var peg$e14 = peg$literalExpectation("O-O", false);
     var peg$e15 = peg$literalExpectation("0-0-0", false);
     var peg$e16 = peg$literalExpectation("0-0", false);
-    var peg$e17 = peg$classExpectation(
-      [["a", "z"], ["A", "Z"], ["1", "8"], "-", "="],
-      false,
-      false,
-    );
+    var peg$e17 = peg$classExpectation([["a", "z"], ["A", "Z"], ["1", "8"], "-", "="], false, false);
     var peg$e18 = peg$classExpectation(["+", "#"], false, false);
     var peg$e19 = peg$otherExpectation("suffix annotation");
     var peg$e20 = peg$classExpectation(["!", "?"], false, false);
@@ -216,37 +189,37 @@
     var peg$e37 = peg$literalExpectation("*", false);
     var peg$e38 = peg$otherExpectation("whitespace");
     var peg$e39 = peg$classExpectation([" ", "	", "\r", "\n"], false, false);
-    var peg$f0 = function (headers, game) {
+    var peg$f0 = function(headers, game) {
       return pgn(headers, game);
     };
-    var peg$f1 = function (tagPairs) {
+    var peg$f1 = function(tagPairs) {
       return Object.fromEntries(tagPairs);
     };
-    var peg$f2 = function (tagName, tagValue) {
+    var peg$f2 = function(tagName, tagValue) {
       return [tagName, tagValue];
     };
-    var peg$f3 = function (root, marker) {
+    var peg$f3 = function(root, marker) {
       return { root, marker };
     };
-    var peg$f4 = function (comment, moves) {
+    var peg$f4 = function(comment, moves) {
       return lineToTree(rootNode(comment), ...moves.flat());
     };
-    var peg$f5 = function (san, suffix, nag, comment, variations) {
+    var peg$f5 = function(san, suffix, nag, comment, variations) {
       return node(san, suffix, nag, comment, variations);
     };
-    var peg$f6 = function (nag) {
+    var peg$f6 = function(nag) {
       return nag;
     };
-    var peg$f7 = function (comment) {
+    var peg$f7 = function(comment) {
       return comment.replace(/[\r\n]+/g, " ");
     };
-    var peg$f8 = function (comment) {
+    var peg$f8 = function(comment) {
       return comment.trim();
     };
-    var peg$f9 = function (line) {
+    var peg$f9 = function(line) {
       return line;
     };
-    var peg$f10 = function (result, comment) {
+    var peg$f10 = function(result, comment) {
       return { result, comment };
     };
     var peg$currPos = options.peg$currPos | 0;
@@ -257,9 +230,7 @@
     var peg$result;
     if (options.startRule) {
       if (!(options.startRule in peg$startRuleFunctions)) {
-        throw new Error(
-          `Can't start parsing from rule "` + options.startRule + '".',
-        );
+        throw new Error(`Can't start parsing from rule "` + options.startRule + '".');
       }
       peg$startRuleFunction = peg$startRuleFunctions[options.startRule];
     }
@@ -285,12 +256,13 @@
           p = peg$posDetailsCache.length - 1;
         } else {
           p = pos;
-          while (!peg$posDetailsCache[--p]) {}
+          while (!peg$posDetailsCache[--p]) {
+          }
         }
         details = peg$posDetailsCache[p];
         details = {
           line: details.line,
-          column: details.column,
+          column: details.column
         };
         while (p < pos) {
           if (input.charCodeAt(p) === 10) {
@@ -313,13 +285,13 @@
         start: {
           offset: startPos,
           line: startPosDetails.line,
-          column: startPosDetails.column,
+          column: startPosDetails.column
         },
         end: {
           offset: endPos,
           line: endPosDetails.line,
-          column: endPosDetails.column,
-        },
+          column: endPosDetails.column
+        }
       };
       return res;
     }
@@ -338,7 +310,7 @@
         peg$SyntaxError.buildMessage(expected, found),
         expected,
         found,
-        location,
+        location
       );
     }
     function peg$parsepgn() {
@@ -1181,7 +1153,7 @@
           peg$currPos,
           peg$FAILED,
           peg$maxFailExpected,
-          peg$maxFailPos,
+          peg$maxFailPos
         }
       );
     }
@@ -1194,27 +1166,25 @@
       throw peg$buildStructuredError(
         peg$maxFailExpected,
         peg$maxFailPos < input.length ? input.charAt(peg$maxFailPos) : null,
-        peg$maxFailPos < input.length
-          ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1)
-          : peg$computeLocation(peg$maxFailPos, peg$maxFailPos),
+        peg$maxFailPos < input.length ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1) : peg$computeLocation(peg$maxFailPos, peg$maxFailPos)
       );
     }
   }
   function rotl(x, k) {
-    return ((x << k) | (x >> (64n - k))) & 0xffffffffffffffffn;
+    return (x << k | x >> 64n - k) & 0xffffffffffffffffn;
   }
   function wrappingMul(x, y) {
-    return (x * y) & MASK64;
+    return x * y & MASK64;
   }
   function xoroshiro128(state2) {
-    return function () {
+    return function() {
       let s0 = BigInt(state2 & MASK64);
-      let s1 = BigInt((state2 >> 64n) & MASK64);
+      let s1 = BigInt(state2 >> 64n & MASK64);
       const result = wrappingMul(rotl(wrappingMul(s0, 5n), 7n), 9n);
       s1 ^= s0;
-      s0 = (rotl(s0, 24n) ^ s1 ^ (s1 << 16n)) & MASK64;
+      s0 = (rotl(s0, 24n) ^ s1 ^ s1 << 16n) & MASK64;
       s1 = rotl(s1, 37n);
-      state2 = (s1 << 64n) | s0;
+      state2 = s1 << 64n | s0;
       return result;
     };
   }
@@ -1240,32 +1210,28 @@
     if (tokens.length !== 6) {
       return {
         ok: false,
-        error: "Invalid FEN: must contain six space-delimited fields",
+        error: "Invalid FEN: must contain six space-delimited fields"
       };
     }
     const moveNumber = parseInt(tokens[5], 10);
     if (isNaN(moveNumber) || moveNumber <= 0) {
       return {
         ok: false,
-        error: "Invalid FEN: move number must be a positive integer",
+        error: "Invalid FEN: move number must be a positive integer"
       };
     }
     const halfMoves = parseInt(tokens[4], 10);
     if (isNaN(halfMoves) || halfMoves < 0) {
       return {
         ok: false,
-        error:
-          "Invalid FEN: half move counter number must be a non-negative integer",
+        error: "Invalid FEN: half move counter number must be a non-negative integer"
       };
     }
     if (!/^(-|[abcdefgh][36])$/.test(tokens[3])) {
       return { ok: false, error: "Invalid FEN: en-passant square is invalid" };
     }
     if (/[^kKqQ-]/.test(tokens[2])) {
-      return {
-        ok: false,
-        error: "Invalid FEN: castling availability is invalid",
-      };
+      return { ok: false, error: "Invalid FEN: castling availability is invalid" };
     }
     if (!/^(w|b)$/.test(tokens[1])) {
       return { ok: false, error: "Invalid FEN: side-to-move is invalid" };
@@ -1274,7 +1240,7 @@
     if (rows.length !== 8) {
       return {
         ok: false,
-        error: "Invalid FEN: piece data does not contain 8 '/'-delimited rows",
+        error: "Invalid FEN: piece data does not contain 8 '/'-delimited rows"
       };
     }
     for (let i = 0; i < rows.length; i++) {
@@ -1285,7 +1251,7 @@
           if (previousWasNumber) {
             return {
               ok: false,
-              error: "Invalid FEN: piece data is invalid (consecutive number)",
+              error: "Invalid FEN: piece data is invalid (consecutive number)"
             };
           }
           sumFields += parseInt(rows[i][k], 10);
@@ -1294,7 +1260,7 @@
           if (!/^[prnbqkPRNBQK]$/.test(rows[i][k])) {
             return {
               ok: false,
-              error: "Invalid FEN: piece data is invalid (invalid piece)",
+              error: "Invalid FEN: piece data is invalid (invalid piece)"
             };
           }
           sumFields += 1;
@@ -1304,20 +1270,16 @@
       if (sumFields !== 8) {
         return {
           ok: false,
-          error:
-            "Invalid FEN: piece data is invalid (too many squares in rank)",
+          error: "Invalid FEN: piece data is invalid (too many squares in rank)"
         };
       }
     }
-    if (
-      (tokens[3][1] == "3" && tokens[1] == "w") ||
-      (tokens[3][1] == "6" && tokens[1] == "b")
-    ) {
+    if (tokens[3][1] == "3" && tokens[1] == "w" || tokens[3][1] == "6" && tokens[1] == "b") {
       return { ok: false, error: "Invalid FEN: illegal en-passant square" };
     }
     const kings = [
       { color: "white", regex: /K/g },
-      { color: "black", regex: /k/g },
+      { color: "black", regex: /k/g }
     ];
     for (const { color, regex } of kings) {
       if (!regex.test(tokens[0])) {
@@ -1327,12 +1289,10 @@
         return { ok: false, error: `Invalid FEN: too many ${color} kings` };
       }
     }
-    if (
-      Array.from(rows[0] + rows[7]).some((char) => char.toUpperCase() === "P")
-    ) {
+    if (Array.from(rows[0] + rows[7]).some((char) => char.toUpperCase() === "P")) {
       return {
         ok: false,
-        error: "Invalid FEN: some pawns are on the edge rows",
+        error: "Invalid FEN: some pawns are on the edge rows"
       };
     }
     return { ok: true };
@@ -1369,15 +1329,7 @@
     }
     return "";
   }
-  function addMove(
-    moves,
-    color,
-    from,
-    to,
-    piece,
-    captured = void 0,
-    flags = BITS.NORMAL,
-  ) {
+  function addMove(moves, color, from, to, piece, captured = void 0, flags = BITS.NORMAL) {
     const r = rank(to);
     if (piece === PAWN && (r === RANK_1 || r === RANK_8)) {
       for (let i = 0; i < PROMOTIONS.length; i++) {
@@ -1389,7 +1341,7 @@
           piece,
           captured,
           promotion,
-          flags: flags | BITS.PROMOTION,
+          flags: flags | BITS.PROMOTION
         });
       }
     } else {
@@ -1399,7 +1351,7 @@
         to,
         piece,
         captured,
-        flags,
+        flags
       });
     }
   }
@@ -1421,50 +1373,11 @@
   function strippedSan(move3) {
     return move3.replace(/=/, "").replace(/[+#]?[?!]*$/, "");
   }
-  var MASK64,
-    rand,
-    PIECE_KEYS,
-    EP_KEYS,
-    CASTLING_KEYS,
-    SIDE_KEY,
-    WHITE,
-    BLACK,
-    PAWN,
-    KNIGHT,
-    BISHOP,
-    ROOK,
-    QUEEN,
-    KING,
-    DEFAULT_POSITION,
-    Move,
-    EMPTY,
-    FLAGS,
-    SQUARES,
-    BITS,
-    SEVEN_TAG_ROSTER,
-    SUPLEMENTAL_TAGS,
-    HEADER_TEMPLATE,
-    Ox88,
-    PAWN_OFFSETS,
-    PIECE_OFFSETS,
-    ATTACKS,
-    RAYS,
-    PIECE_MASKS,
-    SYMBOLS,
-    PROMOTIONS,
-    RANK_1,
-    RANK_2,
-    RANK_7,
-    RANK_8,
-    SIDES,
-    ROOKS,
-    SECOND_RANK,
-    SAN_NULLMOVE,
-    Chess;
+  var MASK64, rand, PIECE_KEYS, EP_KEYS, CASTLING_KEYS, SIDE_KEY, WHITE, BLACK, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, DEFAULT_POSITION, Move, EMPTY, FLAGS, SQUARES, BITS, SEVEN_TAG_ROSTER, SUPLEMENTAL_TAGS, HEADER_TEMPLATE, Ox88, PAWN_OFFSETS, PIECE_OFFSETS, ATTACKS, RAYS, PIECE_MASKS, SYMBOLS, PROMOTIONS, RANK_1, RANK_2, RANK_7, RANK_8, SIDES, ROOKS, SECOND_RANK, SAN_NULLMOVE, Chess;
   var init_chess = __esm({
     "node_modules/chess.js/dist/esm/chess.js"() {
       peg$subclass(peg$SyntaxError, Error);
-      peg$SyntaxError.prototype.format = function (sources) {
+      peg$SyntaxError.prototype.format = function(sources) {
         var str = "Error: " + this.message;
         if (this.location) {
           var src = null;
@@ -1476,101 +1389,58 @@
             }
           }
           var s = this.location.start;
-          var offset_s =
-            this.location.source &&
-            typeof this.location.source.offset === "function"
-              ? this.location.source.offset(s)
-              : s;
-          var loc =
-            this.location.source + ":" + offset_s.line + ":" + offset_s.column;
+          var offset_s = this.location.source && typeof this.location.source.offset === "function" ? this.location.source.offset(s) : s;
+          var loc = this.location.source + ":" + offset_s.line + ":" + offset_s.column;
           if (src) {
             var e = this.location.end;
             var filler = peg$padEnd("", offset_s.line.toString().length, " ");
             var line = src[s.line - 1];
             var last = s.line === e.line ? e.column : line.length + 1;
             var hatLen = last - s.column || 1;
-            str +=
-              "\n --> " +
-              loc +
-              "\n" +
-              filler +
-              " |\n" +
-              offset_s.line +
-              " | " +
-              line +
-              "\n" +
-              filler +
-              " | " +
-              peg$padEnd("", s.column - 1, " ") +
-              peg$padEnd("", hatLen, "^");
+            str += "\n --> " + loc + "\n" + filler + " |\n" + offset_s.line + " | " + line + "\n" + filler + " | " + peg$padEnd("", s.column - 1, " ") + peg$padEnd("", hatLen, "^");
           } else {
             str += "\n at " + loc;
           }
         }
         return str;
       };
-      peg$SyntaxError.buildMessage = function (expected, found) {
+      peg$SyntaxError.buildMessage = function(expected, found) {
         var DESCRIBE_EXPECTATION_FNS = {
-          literal: function (expectation) {
+          literal: function(expectation) {
             return '"' + literalEscape(expectation.text) + '"';
           },
-          class: function (expectation) {
-            var escapedParts = expectation.parts.map(function (part) {
-              return Array.isArray(part)
-                ? classEscape(part[0]) + "-" + classEscape(part[1])
-                : classEscape(part);
+          class: function(expectation) {
+            var escapedParts = expectation.parts.map(function(part) {
+              return Array.isArray(part) ? classEscape(part[0]) + "-" + classEscape(part[1]) : classEscape(part);
             });
-            return (
-              "[" +
-              (expectation.inverted ? "^" : "") +
-              escapedParts.join("") +
-              "]"
-            );
+            return "[" + (expectation.inverted ? "^" : "") + escapedParts.join("") + "]";
           },
-          any: function () {
+          any: function() {
             return "any character";
           },
-          end: function () {
+          end: function() {
             return "end of input";
           },
-          other: function (expectation) {
+          other: function(expectation) {
             return expectation.description;
-          },
+          }
         };
         function hex(ch) {
           return ch.charCodeAt(0).toString(16).toUpperCase();
         }
         function literalEscape(s) {
-          return s
-            .replace(/\\/g, "\\\\")
-            .replace(/"/g, '\\"')
-            .replace(/\0/g, "\\0")
-            .replace(/\t/g, "\\t")
-            .replace(/\n/g, "\\n")
-            .replace(/\r/g, "\\r")
-            .replace(/[\x00-\x0F]/g, function (ch) {
-              return "\\x0" + hex(ch);
-            })
-            .replace(/[\x10-\x1F\x7F-\x9F]/g, function (ch) {
-              return "\\x" + hex(ch);
-            });
+          return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\0/g, "\\0").replace(/\t/g, "\\t").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/[\x00-\x0F]/g, function(ch) {
+            return "\\x0" + hex(ch);
+          }).replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) {
+            return "\\x" + hex(ch);
+          });
         }
         function classEscape(s) {
-          return s
-            .replace(/\\/g, "\\\\")
-            .replace(/\]/g, "\\]")
-            .replace(/\^/g, "\\^")
-            .replace(/-/g, "\\-")
-            .replace(/\0/g, "\\0")
-            .replace(/\t/g, "\\t")
-            .replace(/\n/g, "\\n")
-            .replace(/\r/g, "\\r")
-            .replace(/[\x00-\x0F]/g, function (ch) {
-              return "\\x0" + hex(ch);
-            })
-            .replace(/[\x10-\x1F\x7F-\x9F]/g, function (ch) {
-              return "\\x" + hex(ch);
-            });
+          return s.replace(/\\/g, "\\\\").replace(/\]/g, "\\]").replace(/\^/g, "\\^").replace(/-/g, "\\-").replace(/\0/g, "\\0").replace(/\t/g, "\\t").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/[\x00-\x0F]/g, function(ch) {
+            return "\\x0" + hex(ch);
+          }).replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) {
+            return "\\x" + hex(ch);
+          });
         }
         function describeExpectation(expectation) {
           return DESCRIBE_EXPECTATION_FNS[expectation.type](expectation);
@@ -1594,31 +1464,17 @@
             case 2:
               return descriptions[0] + " or " + descriptions[1];
             default:
-              return (
-                descriptions.slice(0, -1).join(", ") +
-                ", or " +
-                descriptions[descriptions.length - 1]
-              );
+              return descriptions.slice(0, -1).join(", ") + ", or " + descriptions[descriptions.length - 1];
           }
         }
         function describeFound(found2) {
           return found2 ? '"' + literalEscape(found2) + '"' : "end of input";
         }
-        return (
-          "Expected " +
-          describeExpected(expected) +
-          " but " +
-          describeFound(found) +
-          " found."
-        );
+        return "Expected " + describeExpected(expected) + " but " + describeFound(found) + " found.";
       };
       MASK64 = 0xffffffffffffffffn;
       rand = xoroshiro128(0xa187eb39cdcaed8f31c4b365b102e01en);
-      PIECE_KEYS = Array.from({ length: 2 }, () =>
-        Array.from({ length: 6 }, () =>
-          Array.from({ length: 128 }, () => rand()),
-        ),
-      );
+      PIECE_KEYS = Array.from({ length: 2 }, () => Array.from({ length: 6 }, () => Array.from({ length: 128 }, () => rand())));
       EP_KEYS = Array.from({ length: 8 }, () => rand());
       CASTLING_KEYS = Array.from({ length: 16 }, () => rand());
       SIDE_KEY = rand();
@@ -1630,8 +1486,7 @@
       ROOK = "r";
       QUEEN = "q";
       KING = "k";
-      DEFAULT_POSITION =
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+      DEFAULT_POSITION = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
       Move = class {
         color;
         from;
@@ -1651,18 +1506,14 @@
         before;
         after;
         constructor(chess, internal) {
-          const { color, piece, from, to, flags, captured, promotion } =
-            internal;
+          const { color, piece, from, to, flags, captured, promotion } = internal;
           const fromAlgebraic = algebraic(from);
           const toAlgebraic = algebraic(to);
           this.color = color;
           this.piece = piece;
           this.from = fromAlgebraic;
           this.to = toAlgebraic;
-          this.san = chess["_moveToSan"](
-            internal,
-            chess["_moves"]({ legal: true }),
-          );
+          this.san = chess["_moveToSan"](internal, chess["_moves"]({ legal: true }));
           this.lan = fromAlgebraic + toAlgebraic;
           this.before = chess.fen();
           chess["_makeMove"](internal);
@@ -1710,7 +1561,7 @@
         PROMOTION: "p",
         KSIDE_CASTLE: "k",
         QSIDE_CASTLE: "q",
-        NULL_MOVE: "-",
+        NULL_MOVE: "-"
       };
       SQUARES = [
         "a8",
@@ -1776,7 +1627,7 @@
         "e1",
         "f1",
         "g1",
-        "h1",
+        "h1"
       ];
       BITS = {
         NORMAL: 1,
@@ -1786,7 +1637,7 @@
         PROMOTION: 16,
         KSIDE_CASTLE: 32,
         QSIDE_CASTLE: 64,
-        NULL_MOVE: 128,
+        NULL_MOVE: 128
       };
       SEVEN_TAG_ROSTER = {
         Event: "?",
@@ -1795,7 +1646,7 @@
         Round: "?",
         White: "?",
         Black: "?",
-        Result: "*",
+        Result: "*"
       };
       SUPLEMENTAL_TAGS = {
         WhiteTitle: null,
@@ -1827,11 +1678,11 @@
         Termination: null,
         Annotator: null,
         Mode: null,
-        PlyCount: null,
+        PlyCount: null
       };
       HEADER_TEMPLATE = {
         ...SEVEN_TAG_ROSTER,
-        ...SUPLEMENTAL_TAGS,
+        ...SUPLEMENTAL_TAGS
       };
       Ox88 = {
         a8: 0,
@@ -1897,44 +1748,500 @@
         e1: 116,
         f1: 117,
         g1: 118,
-        h1: 119,
+        h1: 119
       };
       PAWN_OFFSETS = {
         b: [16, 32, 17, 15],
-        w: [-16, -32, -17, -15],
+        w: [-16, -32, -17, -15]
       };
       PIECE_OFFSETS = {
         n: [-18, -33, -31, -14, 18, 33, 31, 14],
         b: [-17, -15, 17, 15],
         r: [-16, 1, 16, -1],
         q: [-17, -16, -15, 1, 17, 16, 15, -1],
-        k: [-17, -16, -15, 1, 17, 16, 15, -1],
+        k: [-17, -16, -15, 1, 17, 16, 15, -1]
       };
       ATTACKS = [
-        20, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 20, 0, 0, 20, 0, 0, 0, 0, 0,
-        24, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 20, 0, 0, 0, 0, 24, 0, 0, 0, 0, 20,
-        0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 24, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0,
-        20, 0, 0, 24, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 2, 24, 2, 20,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 53, 56, 53, 2, 0, 0, 0, 0, 0, 0, 24,
-        24, 24, 24, 24, 24, 56, 0, 56, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0, 0, 0,
-        2, 53, 56, 53, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 2, 24, 2, 20, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 24, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0,
-        0, 20, 0, 0, 0, 24, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 24,
-        0, 0, 0, 0, 20, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 20, 0,
-        0, 20, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 20,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        24,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        2,
+        24,
+        2,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        53,
+        56,
+        53,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        56,
+        0,
+        56,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        53,
+        56,
+        53,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        2,
+        24,
+        2,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        24,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20,
+        0,
+        0,
+        20,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        24,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        20
       ];
       RAYS = [
-        17, 0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 15, 0, 0, 17, 0, 0, 0, 0, 0,
-        16, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 17, 0, 0, 0, 0, 16, 0, 0, 0, 0, 15,
-        0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 16, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0,
-        17, 0, 0, 16, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 16, 0, 15,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 16, 15, 0, 0, 0, 0, 0, 0, 0, 1,
-        1, 1, 1, 1, 1, 1, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0,
-        -15, -16, -17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -15, 0, -16, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -15, 0, 0, -16, 0, 0, -17, 0, 0, 0, 0, 0,
-        0, 0, 0, -15, 0, 0, 0, -16, 0, 0, 0, -17, 0, 0, 0, 0, 0, 0, -15, 0, 0,
-        0, 0, -16, 0, 0, 0, 0, -17, 0, 0, 0, 0, -15, 0, 0, 0, 0, 0, -16, 0, 0,
-        0, 0, 0, -17, 0, 0, -15, 0, 0, 0, 0, 0, 0, -16, 0, 0, 0, 0, 0, 0, -17,
+        17,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        15,
+        0,
+        0,
+        17,
+        0,
+        0,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        15,
+        0,
+        0,
+        0,
+        0,
+        17,
+        0,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        17,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0,
+        0,
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        17,
+        0,
+        0,
+        16,
+        0,
+        0,
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        17,
+        0,
+        16,
+        0,
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        17,
+        16,
+        15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -15,
+        -16,
+        -17,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -15,
+        0,
+        -16,
+        0,
+        -17,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -15,
+        0,
+        0,
+        -16,
+        0,
+        0,
+        -17,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -15,
+        0,
+        0,
+        0,
+        -16,
+        0,
+        0,
+        0,
+        -17,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -15,
+        0,
+        0,
+        0,
+        0,
+        -16,
+        0,
+        0,
+        0,
+        0,
+        -17,
+        0,
+        0,
+        0,
+        0,
+        -15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -17,
+        0,
+        0,
+        -15,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -17
       ];
       PIECE_MASKS = { p: 1, n: 2, b: 4, r: 8, q: 16, k: 32 };
       SYMBOLS = "pnbrqkPNBRQK";
@@ -1945,17 +2252,17 @@
       RANK_8 = 0;
       SIDES = {
         [KING]: BITS.KSIDE_CASTLE,
-        [QUEEN]: BITS.QSIDE_CASTLE,
+        [QUEEN]: BITS.QSIDE_CASTLE
       };
       ROOKS = {
         w: [
           { square: Ox88.a1, flag: BITS.QSIDE_CASTLE },
-          { square: Ox88.h1, flag: BITS.KSIDE_CASTLE },
+          { square: Ox88.h1, flag: BITS.KSIDE_CASTLE }
         ],
         b: [
           { square: Ox88.a8, flag: BITS.QSIDE_CASTLE },
-          { square: Ox88.h8, flag: BITS.KSIDE_CASTLE },
-        ],
+          { square: Ox88.h8, flag: BITS.KSIDE_CASTLE }
+        ]
       };
       SECOND_RANK = { b: RANK_7, w: RANK_2 };
       SAN_NULLMOVE = "--";
@@ -1986,9 +2293,7 @@
           this._moveNumber = 1;
           this._history = [];
           this._comments = {};
-          this._header = preserveHeaders
-            ? this._header
-            : { ...HEADER_TEMPLATE };
+          this._header = preserveHeaders ? this._header : { ...HEADER_TEMPLATE };
           this._hash = this._computeHash();
           this._positionCount = /* @__PURE__ */ new Map();
           this._header["SetUp"] = null;
@@ -1998,9 +2303,7 @@
           let tokens = fen.split(/\s+/);
           if (tokens.length >= 2 && tokens.length < 6) {
             const adjustments = ["-", "-", "0", "1"];
-            fen = tokens
-              .concat(adjustments.slice(-(6 - tokens.length)))
-              .join(" ");
+            fen = tokens.concat(adjustments.slice(-(6 - tokens.length))).join(" ");
           }
           tokens = fen.split(/\s+/);
           if (!skipValidation) {
@@ -2020,10 +2323,7 @@
               square += parseInt(piece, 10);
             } else {
               const color = piece < "a" ? WHITE : BLACK;
-              this._put(
-                { type: piece.toLowerCase(), color },
-                algebraic(square),
-              );
+              this._put({ type: piece.toLowerCase(), color }, algebraic(square));
               square++;
             }
           }
@@ -2057,12 +2357,11 @@
                 empty = 0;
               }
               const { color, type: piece } = this._board[i];
-              fen +=
-                color === WHITE ? piece.toUpperCase() : piece.toLowerCase();
+              fen += color === WHITE ? piece.toUpperCase() : piece.toLowerCase();
             } else {
               empty++;
             }
-            if ((i + 1) & 136) {
+            if (i + 1 & 136) {
               if (empty > 0) {
                 fen += empty;
               }
@@ -2092,25 +2391,21 @@
             if (forceEnpassantSquare) {
               epSquare = algebraic(this._epSquare);
             } else {
-              const bigPawnSquare =
-                this._epSquare + (this._turn === WHITE ? 16 : -16);
+              const bigPawnSquare = this._epSquare + (this._turn === WHITE ? 16 : -16);
               const squares = [bigPawnSquare + 1, bigPawnSquare - 1];
               for (const square of squares) {
                 if (square & 136) {
                   continue;
                 }
                 const color = this._turn;
-                if (
-                  this._board[square]?.color === color &&
-                  this._board[square]?.type === PAWN
-                ) {
+                if (this._board[square]?.color === color && this._board[square]?.type === PAWN) {
                   this._makeMove({
                     color,
                     from: square,
                     to: this._epSquare,
                     piece: PAWN,
                     captured: PAWN,
-                    flags: BITS.EP_CAPTURE,
+                    flags: BITS.EP_CAPTURE
                   });
                   const isLegal = !this._isKingAttacked(color);
                   this._undoMove();
@@ -2128,7 +2423,7 @@
             castling,
             epSquare,
             this._halfMoves,
-            this._moveNumber,
+            this._moveNumber
           ].join(" ");
         }
         _pieceKey(i) {
@@ -2138,7 +2433,7 @@
           const { color, type } = this._board[i];
           const colorIndex = {
             w: 0,
-            b: 1,
+            b: 1
           }[color];
           const typeIndex = {
             p: 0,
@@ -2146,7 +2441,7 @@
             b: 2,
             r: 3,
             q: 4,
-            k: 5,
+            k: 5
           }[type];
           return PIECE_KEYS[colorIndex][typeIndex][i];
         }
@@ -2154,7 +2449,7 @@
           return this._epSquare === EMPTY ? 0n : EP_KEYS[this._epSquare & 7];
         }
         _castlingKey() {
-          const index = (this._castling.w >> 5) | (this._castling.b >> 3);
+          const index = this._castling.w >> 5 | this._castling.b >> 3;
           return CASTLING_KEYS[index];
         }
         _computeHash() {
@@ -2182,7 +2477,8 @@
          * is only updated if history.length is zero, ie moves haven't been made.
          */
         _updateSetup(fen) {
-          if (this._history.length > 0) return;
+          if (this._history.length > 0)
+            return;
           if (fen !== DEFAULT_POSITION) {
             this._header["SetUp"] = "1";
             this._header["FEN"] = fen;
@@ -2207,10 +2503,7 @@
             if (!this._board[i] || this._board[i]?.color !== piece.color) {
               continue;
             }
-            if (
-              this._board[i].color === piece.color &&
-              this._board[i].type === piece.type
-            ) {
+            if (this._board[i].color === piece.color && this._board[i].type === piece.type) {
               squares.push(algebraic(i));
             }
           }
@@ -2238,10 +2531,7 @@
             return false;
           }
           const sq = Ox88[square];
-          if (
-            type == KING &&
-            !(this._kings[color] == EMPTY || this._kings[color] == sq)
-          ) {
+          if (type == KING && !(this._kings[color] == EMPTY || this._kings[color] == sq)) {
             return false;
           }
           const currentPieceOnSquare = this._board[sq];
@@ -2271,38 +2561,18 @@
         }
         _updateCastlingRights() {
           this._hash ^= this._castlingKey();
-          const whiteKingInPlace =
-            this._board[Ox88.e1]?.type === KING &&
-            this._board[Ox88.e1]?.color === WHITE;
-          const blackKingInPlace =
-            this._board[Ox88.e8]?.type === KING &&
-            this._board[Ox88.e8]?.color === BLACK;
-          if (
-            !whiteKingInPlace ||
-            this._board[Ox88.a1]?.type !== ROOK ||
-            this._board[Ox88.a1]?.color !== WHITE
-          ) {
+          const whiteKingInPlace = this._board[Ox88.e1]?.type === KING && this._board[Ox88.e1]?.color === WHITE;
+          const blackKingInPlace = this._board[Ox88.e8]?.type === KING && this._board[Ox88.e8]?.color === BLACK;
+          if (!whiteKingInPlace || this._board[Ox88.a1]?.type !== ROOK || this._board[Ox88.a1]?.color !== WHITE) {
             this._castling.w &= -65;
           }
-          if (
-            !whiteKingInPlace ||
-            this._board[Ox88.h1]?.type !== ROOK ||
-            this._board[Ox88.h1]?.color !== WHITE
-          ) {
+          if (!whiteKingInPlace || this._board[Ox88.h1]?.type !== ROOK || this._board[Ox88.h1]?.color !== WHITE) {
             this._castling.w &= -33;
           }
-          if (
-            !blackKingInPlace ||
-            this._board[Ox88.a8]?.type !== ROOK ||
-            this._board[Ox88.a8]?.color !== BLACK
-          ) {
+          if (!blackKingInPlace || this._board[Ox88.a8]?.type !== ROOK || this._board[Ox88.a8]?.color !== BLACK) {
             this._castling.b &= -65;
           }
-          if (
-            !blackKingInPlace ||
-            this._board[Ox88.h8]?.type !== ROOK ||
-            this._board[Ox88.h8]?.color !== BLACK
-          ) {
+          if (!blackKingInPlace || this._board[Ox88.h8]?.type !== ROOK || this._board[Ox88.h8]?.color !== BLACK) {
             this._castling.b &= -33;
           }
           this._hash ^= this._castlingKey();
@@ -2311,25 +2581,15 @@
           if (this._epSquare === EMPTY) {
             return;
           }
-          const startSquare =
-            this._epSquare + (this._turn === WHITE ? -16 : 16);
-          const currentSquare =
-            this._epSquare + (this._turn === WHITE ? 16 : -16);
+          const startSquare = this._epSquare + (this._turn === WHITE ? -16 : 16);
+          const currentSquare = this._epSquare + (this._turn === WHITE ? 16 : -16);
           const attackers = [currentSquare + 1, currentSquare - 1];
-          if (
-            this._board[startSquare] !== null ||
-            this._board[this._epSquare] !== null ||
-            this._board[currentSquare]?.color !== swapColor(this._turn) ||
-            this._board[currentSquare]?.type !== PAWN
-          ) {
+          if (this._board[startSquare] !== null || this._board[this._epSquare] !== null || this._board[currentSquare]?.color !== swapColor(this._turn) || this._board[currentSquare]?.type !== PAWN) {
             this._hash ^= this._epKey();
             this._epSquare = EMPTY;
             return;
           }
-          const canCapture = (square) =>
-            !(square & 136) &&
-            this._board[square]?.color === this._turn &&
-            this._board[square]?.type === PAWN;
+          const canCapture = (square) => !(square & 136) && this._board[square]?.color === this._turn && this._board[square]?.type === PAWN;
           if (!attackers.some(canCapture)) {
             this._hash ^= this._epKey();
             this._epSquare = EMPTY;
@@ -2353,10 +2613,7 @@
             const index = difference + 119;
             if (ATTACKS[index] & PIECE_MASKS[piece.type]) {
               if (piece.type === PAWN) {
-                if (
-                  (difference > 0 && piece.color === WHITE) ||
-                  (difference <= 0 && piece.color === BLACK)
-                ) {
+                if (difference > 0 && piece.color === WHITE || difference <= 0 && piece.color === BLACK) {
                   if (!verbose) {
                     return true;
                   } else {
@@ -2408,9 +2665,7 @@
         }
         _isKingAttacked(color) {
           const square = this._kings[color];
-          return square === -1
-            ? false
-            : this._attacked(swapColor(color), square);
+          return square === -1 ? false : this._attacked(swapColor(color), square);
         }
         hash() {
           return this._hash.toString(16);
@@ -2437,7 +2692,7 @@
             r: 0,
             q: 0,
             k: 0,
-            p: 0,
+            p: 0
           };
           const bishops = [];
           let numPieces = 0;
@@ -2450,8 +2705,7 @@
             }
             const piece = this._board[i];
             if (piece) {
-              pieces[piece.type] =
-                piece.type in pieces ? pieces[piece.type] + 1 : 1;
+              pieces[piece.type] = piece.type in pieces ? pieces[piece.type] + 1 : 1;
               if (piece.type === BISHOP) {
                 bishops.push(squareColor);
               }
@@ -2462,8 +2716,7 @@
             return true;
           } else if (
             // k vs. kn .... or .... k vs. kb
-            numPieces === 3 &&
-            (pieces[BISHOP] === 1 || pieces[KNIGHT] === 1)
+            numPieces === 3 && (pieces[BISHOP] === 1 || pieces[KNIGHT] === 1)
           ) {
             return true;
           } else if (numPieces === pieces[BISHOP] + 2) {
@@ -2485,12 +2738,7 @@
           return this._halfMoves >= 100;
         }
         isDraw() {
-          return (
-            this.isDrawByFiftyMoves() ||
-            this.isStalemate() ||
-            this.isInsufficientMaterial() ||
-            this.isThreefoldRepetition()
-          );
+          return this.isDrawByFiftyMoves() || this.isStalemate() || this.isInsufficientMaterial() || this.isThreefoldRepetition();
         }
         isGameOver() {
           return this.isCheckmate() || this.isDraw();
@@ -2531,7 +2779,8 @@
             const { type } = this._board[from];
             let to;
             if (type === PAWN) {
-              if (forPiece && forPiece !== type) continue;
+              if (forPiece && forPiece !== type)
+                continue;
               to = from + PAWN_OFFSETS[us][0];
               if (!this._board[to]) {
                 addMove(moves, us, from, to, PAWN);
@@ -2542,45 +2791,34 @@
               }
               for (let j = 2; j < 4; j++) {
                 to = from + PAWN_OFFSETS[us][j];
-                if (to & 136) continue;
+                if (to & 136)
+                  continue;
                 if (this._board[to]?.color === them) {
-                  addMove(
-                    moves,
-                    us,
-                    from,
-                    to,
-                    PAWN,
-                    this._board[to].type,
-                    BITS.CAPTURE,
-                  );
+                  addMove(moves, us, from, to, PAWN, this._board[to].type, BITS.CAPTURE);
                 } else if (to === this._epSquare) {
                   addMove(moves, us, from, to, PAWN, PAWN, BITS.EP_CAPTURE);
                 }
               }
             } else {
-              if (forPiece && forPiece !== type) continue;
+              if (forPiece && forPiece !== type)
+                continue;
               for (let j = 0, len = PIECE_OFFSETS[type].length; j < len; j++) {
                 const offset = PIECE_OFFSETS[type][j];
                 to = from;
                 while (true) {
                   to += offset;
-                  if (to & 136) break;
+                  if (to & 136)
+                    break;
                   if (!this._board[to]) {
                     addMove(moves, us, from, to, type);
                   } else {
-                    if (this._board[to].color === us) break;
-                    addMove(
-                      moves,
-                      us,
-                      from,
-                      to,
-                      type,
-                      this._board[to].type,
-                      BITS.CAPTURE,
-                    );
+                    if (this._board[to].color === us)
+                      break;
+                    addMove(moves, us, from, to, type, this._board[to].type, BITS.CAPTURE);
                     break;
                   }
-                  if (type === KNIGHT || type === KING) break;
+                  if (type === KNIGHT || type === KING)
+                    break;
                 }
               }
             }
@@ -2590,44 +2828,15 @@
               if (this._castling[us] & BITS.KSIDE_CASTLE) {
                 const castlingFrom = this._kings[us];
                 const castlingTo = castlingFrom + 2;
-                if (
-                  !this._board[castlingFrom + 1] &&
-                  !this._board[castlingTo] &&
-                  !this._attacked(them, this._kings[us]) &&
-                  !this._attacked(them, castlingFrom + 1) &&
-                  !this._attacked(them, castlingTo)
-                ) {
-                  addMove(
-                    moves,
-                    us,
-                    this._kings[us],
-                    castlingTo,
-                    KING,
-                    void 0,
-                    BITS.KSIDE_CASTLE,
-                  );
+                if (!this._board[castlingFrom + 1] && !this._board[castlingTo] && !this._attacked(them, this._kings[us]) && !this._attacked(them, castlingFrom + 1) && !this._attacked(them, castlingTo)) {
+                  addMove(moves, us, this._kings[us], castlingTo, KING, void 0, BITS.KSIDE_CASTLE);
                 }
               }
               if (this._castling[us] & BITS.QSIDE_CASTLE) {
                 const castlingFrom = this._kings[us];
                 const castlingTo = castlingFrom - 2;
-                if (
-                  !this._board[castlingFrom - 1] &&
-                  !this._board[castlingFrom - 2] &&
-                  !this._board[castlingFrom - 3] &&
-                  !this._attacked(them, this._kings[us]) &&
-                  !this._attacked(them, castlingFrom - 1) &&
-                  !this._attacked(them, castlingTo)
-                ) {
-                  addMove(
-                    moves,
-                    us,
-                    this._kings[us],
-                    castlingTo,
-                    KING,
-                    void 0,
-                    BITS.QSIDE_CASTLE,
-                  );
+                if (!this._board[castlingFrom - 1] && !this._board[castlingFrom - 2] && !this._board[castlingFrom - 3] && !this._attacked(them, this._kings[us]) && !this._attacked(them, castlingFrom - 1) && !this._attacked(them, castlingTo)) {
+                  addMove(moves, us, this._kings[us], castlingTo, KING, void 0, BITS.QSIDE_CASTLE);
                 }
               }
             }
@@ -2654,12 +2863,7 @@
           } else if (typeof move3 === "object") {
             const moves = this._moves();
             for (let i = 0, len = moves.length; i < len; i++) {
-              if (
-                move3.from === algebraic(moves[i].from) &&
-                move3.to === algebraic(moves[i].to) &&
-                (!("promotion" in moves[i]) ||
-                  move3.promotion === moves[i].promotion)
-              ) {
+              if (move3.from === algebraic(moves[i].from) && move3.to === algebraic(moves[i].to) && (!("promotion" in moves[i]) || move3.promotion === moves[i].promotion)) {
                 moveObj = moves[i];
                 break;
               }
@@ -2688,7 +2892,7 @@
             castling: { b: this._castling.b, w: this._castling.w },
             epSquare: this._epSquare,
             halfMoves: this._halfMoves,
-            moveNumber: this._moveNumber,
+            moveNumber: this._moveNumber
           });
         }
         _movePiece(from, to) {
@@ -2742,10 +2946,7 @@
           }
           if (this._castling[us]) {
             for (let i = 0, len = ROOKS[us].length; i < len; i++) {
-              if (
-                move3.from === ROOKS[us][i].square &&
-                this._castling[us] & ROOKS[us][i].flag
-              ) {
+              if (move3.from === ROOKS[us][i].square && this._castling[us] & ROOKS[us][i].flag) {
                 this._castling[us] ^= ROOKS[us][i].flag;
                 break;
               }
@@ -2753,10 +2954,7 @@
           }
           if (this._castling[them]) {
             for (let i = 0, len = ROOKS[them].length; i < len; i++) {
-              if (
-                move3.to === ROOKS[them][i].square &&
-                this._castling[them] & ROOKS[them][i].flag
-              ) {
+              if (move3.to === ROOKS[them][i].square && this._castling[them] & ROOKS[them][i].flag) {
                 this._castling[them] ^= ROOKS[them][i].flag;
                 break;
               }
@@ -2770,14 +2968,7 @@
             } else {
               epSquare = move3.to + 16;
             }
-            if (
-              (!((move3.to - 1) & 136) &&
-                this._board[move3.to - 1]?.type === PAWN &&
-                this._board[move3.to - 1]?.color === them) ||
-              (!((move3.to + 1) & 136) &&
-                this._board[move3.to + 1]?.type === PAWN &&
-                this._board[move3.to + 1]?.color === them)
-            ) {
+            if (!(move3.to - 1 & 136) && this._board[move3.to - 1]?.type === PAWN && this._board[move3.to - 1]?.color === them || !(move3.to + 1 & 136) && this._board[move3.to + 1]?.type === PAWN && this._board[move3.to + 1]?.color === them) {
               this._epSquare = epSquare;
               this._hash ^= this._epKey();
             } else {
@@ -2867,7 +3058,8 @@
           let headerExists = false;
           for (const i in this._header) {
             const headerTag = this._header[i];
-            if (headerTag) result.push(`[${i} "${this._header[i]}"]` + newline);
+            if (headerTag)
+              result.push(`[${i} "${this._header[i]}"]` + newline);
             headerExists = true;
           }
           if (headerExists && this._history.length) {
@@ -2905,10 +3097,7 @@
               }
               moveString = this._moveNumber + ".";
             }
-            moveString =
-              moveString +
-              " " +
-              this._moveToSan(move3, this._moves({ legal: true }));
+            moveString = moveString + " " + this._moveToSan(move3, this._moves({ legal: true }));
             this._makeMove(move3);
           }
           if (moveString.length) {
@@ -2918,14 +3107,14 @@
           if (maxWidth === 0) {
             return result.join("") + moves.join(" ");
           }
-          const strip = function () {
+          const strip = function() {
             if (result.length > 0 && result[result.length - 1] === " ") {
               result.pop();
               return true;
             }
             return false;
           };
-          const wrapComment = function (width, move3) {
+          const wrapComment = function(width, move3) {
             for (const token of move3.split(" ")) {
               if (!token) {
                 continue;
@@ -2975,10 +3164,7 @@
          */
         header(...args) {
           for (let i = 0; i < args.length; i += 2) {
-            if (
-              typeof args[i] === "string" &&
-              typeof args[i + 1] === "string"
-            ) {
+            if (typeof args[i] === "string" && typeof args[i + 1] === "string") {
               this._header[args[i]] = args[i + 1];
             }
           }
@@ -3027,9 +3213,7 @@
           } else {
             if (headers["SetUp"] === "1") {
               if (!("FEN" in headers)) {
-                throw new Error(
-                  "Invalid PGN: FEN tag must be supplied with SetUp tag",
-                );
+                throw new Error("Invalid PGN: FEN tag must be supplied with SetUp tag");
               }
               this.load(headers["FEN"], { preserveHeaders: true });
             }
@@ -3051,11 +3235,7 @@
             node2 = node2.variations[0];
           }
           const result = parsedPgn.result;
-          if (
-            result &&
-            Object.keys(this._header).length &&
-            this._header["Result"] !== result
-          ) {
+          if (result && Object.keys(this._header).length && this._header["Result"] !== result) {
             this.setHeader("Result", result);
           }
         }
@@ -3121,7 +3301,7 @@
               from: 0,
               to: 0,
               piece: "k",
-              flags: BITS.NULL_MOVE,
+              flags: BITS.NULL_MOVE
             };
             return res;
           }
@@ -3141,9 +3321,7 @@
           let to = void 0;
           let promotion = void 0;
           let overlyDisambiguated = false;
-          matches = cleanMove.match(
-            /([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/,
-          );
+          matches = cleanMove.match(/([pnbrqkPNBRQK])?([a-h][1-8])x?-?([a-h][1-8])([qrbnQRBN])?/);
           if (matches) {
             piece = matches[1];
             from = matches[2];
@@ -3153,9 +3331,7 @@
               overlyDisambiguated = true;
             }
           } else {
-            matches = cleanMove.match(
-              /([pnbrqkPNBRQK])?([a-h]?[1-8]?)x?-?([a-h][1-8])([qrbnQRBN])?/,
-            );
+            matches = cleanMove.match(/([pnbrqkPNBRQK])?([a-h]?[1-8]?)x?-?([a-h][1-8])([qrbnQRBN])?/);
             if (matches) {
               piece = matches[1];
               from = matches[2];
@@ -3169,34 +3345,21 @@
           pieceType = inferPieceType(cleanMove);
           moves = this._moves({
             legal: true,
-            piece: piece ? piece : pieceType,
+            piece: piece ? piece : pieceType
           });
           if (!to) {
             return null;
           }
           for (let i = 0, len = moves.length; i < len; i++) {
             if (!from) {
-              if (
-                cleanMove ===
-                strippedSan(this._moveToSan(moves[i], moves)).replace("x", "")
-              ) {
+              if (cleanMove === strippedSan(this._moveToSan(moves[i], moves)).replace("x", "")) {
                 return moves[i];
               }
-            } else if (
-              (!piece || piece.toLowerCase() == moves[i].piece) &&
-              Ox88[from] == moves[i].from &&
-              Ox88[to] == moves[i].to &&
-              (!promotion || promotion.toLowerCase() == moves[i].promotion)
-            ) {
+            } else if ((!piece || piece.toLowerCase() == moves[i].piece) && Ox88[from] == moves[i].from && Ox88[to] == moves[i].to && (!promotion || promotion.toLowerCase() == moves[i].promotion)) {
               return moves[i];
             } else if (overlyDisambiguated) {
               const square = algebraic(moves[i].from);
-              if (
-                (!piece || piece.toLowerCase() == moves[i].piece) &&
-                Ox88[to] == moves[i].to &&
-                (from == square[0] || from == square[1]) &&
-                (!promotion || promotion.toLowerCase() == moves[i].promotion)
-              ) {
+              if ((!piece || piece.toLowerCase() == moves[i].piece) && Ox88[to] == moves[i].to && (from == square[0] || from == square[1]) && (!promotion || promotion.toLowerCase() == moves[i].promotion)) {
                 return moves[i];
               }
             }
@@ -3212,13 +3375,12 @@
             if (this._board[i]) {
               const piece = this._board[i].type;
               const color = this._board[i].color;
-              const symbol =
-                color === WHITE ? piece.toUpperCase() : piece.toLowerCase();
+              const symbol = color === WHITE ? piece.toUpperCase() : piece.toLowerCase();
               s += " " + symbol + " ";
             } else {
               s += " . ";
             }
-            if ((i + 1) & 136) {
+            if (i + 1 & 136) {
               s += "|\n";
               i += 8;
             }
@@ -3264,10 +3426,10 @@
               row.push({
                 square: algebraic(i),
                 type: this._board[i].type,
-                color: this._board[i].color,
+                color: this._board[i].color
               });
             }
-            if ((i + 1) & 136) {
+            if (i + 1 & 136) {
               output.push(row);
               row = [];
               i += 8;
@@ -3310,10 +3472,7 @@
           return this._positionCount.get(hash2) ?? 0;
         }
         _incPositionCount() {
-          this._positionCount.set(
-            this._hash,
-            (this._positionCount.get(this._hash) ?? 0) + 1,
-          );
+          this._positionCount.set(this._hash, (this._positionCount.get(this._hash) ?? 0) + 1);
         }
         _decPositionCount(hash2) {
           const currentCount = this._positionCount.get(hash2) ?? 0;
@@ -3349,9 +3508,7 @@
           return this._comments[this.fen()];
         }
         setComment(comment) {
-          this._comments[this.fen()] = comment
-            .replace("{", "[")
-            .replace("}", "]");
+          this._comments[this.fen()] = comment.replace("{", "[").replace("}", "]");
         }
         /**
          * @deprecated Renamed to `removeComment` for consistency
@@ -3396,45 +3553,30 @@
           }
           this._updateCastlingRights();
           const result = this.getCastlingRights(color);
-          return (
-            (rights[KING] === void 0 || rights[KING] === result[KING]) &&
-            (rights[QUEEN] === void 0 || rights[QUEEN] === result[QUEEN])
-          );
+          return (rights[KING] === void 0 || rights[KING] === result[KING]) && (rights[QUEEN] === void 0 || rights[QUEEN] === result[QUEEN]);
         }
         getCastlingRights(color) {
           return {
             [KING]: (this._castling[color] & SIDES[KING]) !== 0,
-            [QUEEN]: (this._castling[color] & SIDES[QUEEN]) !== 0,
+            [QUEEN]: (this._castling[color] & SIDES[QUEEN]) !== 0
           };
         }
         moveNumber() {
           return this._moveNumber;
         }
       };
-    },
+    }
   });
 
   // node_modules/@mliebelt/pgn-parser/lib/index.umd.js
   var require_index_umd = __commonJS({
     "node_modules/@mliebelt/pgn-parser/lib/index.umd.js"(exports, module) {
-      (function (global, factory) {
-        typeof exports === "object" && typeof module !== "undefined"
-          ? factory(exports)
-          : typeof define === "function" && define.amd
-            ? define(["exports"], factory)
-            : ((global =
-                typeof globalThis !== "undefined"
-                  ? globalThis
-                  : global || self),
-              factory((global.PgnParser = {})));
-      })(exports, function (exports2) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.PgnParser = {}));
+      })(exports, (function(exports2) {
         "use strict";
         function getDefaultExportFromCjs(x) {
-          return x &&
-            x.__esModule &&
-            Object.prototype.hasOwnProperty.call(x, "default")
-            ? x["default"]
-            : x;
+          return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
         }
         var _pgnParser$1 = { exports: {} };
         var _pgnParser = _pgnParser$1.exports;
@@ -3442,12 +3584,12 @@
         function require_pgnParser() {
           if (hasRequired_pgnParser) return _pgnParser$1.exports;
           hasRequired_pgnParser = 1;
-          (function (module2) {
-            (function (root, factory) {
+          (function(module2) {
+            (function(root, factory) {
               if (module2.exports) {
                 module2.exports = factory();
               }
-            })(_pgnParser, function () {
+            })(_pgnParser, function() {
               function peg$subclass2(child, parent) {
                 function C() {
                   this.constructor = child;
@@ -3476,7 +3618,7 @@
                 padString += padString.repeat(targetLength);
                 return str + padString.slice(0, targetLength);
               }
-              peg$SyntaxError2.prototype.format = function (sources) {
+              peg$SyntaxError2.prototype.format = function(sources) {
                 var str = "Error: " + this.message;
                 if (this.location) {
                   var src = null;
@@ -3488,114 +3630,61 @@
                     }
                   }
                   var s = this.location.start;
-                  var offset_s =
-                    this.location.source &&
-                    typeof this.location.source.offset === "function"
-                      ? this.location.source.offset(s)
-                      : s;
-                  var loc =
-                    this.location.source +
-                    ":" +
-                    offset_s.line +
-                    ":" +
-                    offset_s.column;
+                  var offset_s = this.location.source && typeof this.location.source.offset === "function" ? this.location.source.offset(s) : s;
+                  var loc = this.location.source + ":" + offset_s.line + ":" + offset_s.column;
                   if (src) {
                     var e = this.location.end;
-                    var filler = peg$padEnd2(
-                      "",
-                      offset_s.line.toString().length,
-                      " ",
-                    );
+                    var filler = peg$padEnd2("", offset_s.line.toString().length, " ");
                     var line = src[s.line - 1];
                     var last = s.line === e.line ? e.column : line.length + 1;
                     var hatLen = last - s.column || 1;
-                    str +=
-                      "\n --> " +
-                      loc +
-                      "\n" +
-                      filler +
-                      " |\n" +
-                      offset_s.line +
-                      " | " +
-                      line +
-                      "\n" +
-                      filler +
-                      " | " +
-                      peg$padEnd2("", s.column - 1, " ") +
-                      peg$padEnd2("", hatLen, "^");
+                    str += "\n --> " + loc + "\n" + filler + " |\n" + offset_s.line + " | " + line + "\n" + filler + " | " + peg$padEnd2("", s.column - 1, " ") + peg$padEnd2("", hatLen, "^");
                   } else {
                     str += "\n at " + loc;
                   }
                 }
                 return str;
               };
-              peg$SyntaxError2.buildMessage = function (expected, found) {
+              peg$SyntaxError2.buildMessage = function(expected, found) {
                 var DESCRIBE_EXPECTATION_FNS = {
-                  literal: function (expectation) {
+                  literal: function(expectation) {
                     return '"' + literalEscape(expectation.text) + '"';
                   },
-                  class: function (expectation) {
-                    var escapedParts = expectation.parts.map(function (part) {
-                      return Array.isArray(part)
-                        ? classEscape(part[0]) + "-" + classEscape(part[1])
-                        : classEscape(part);
+                  class: function(expectation) {
+                    var escapedParts = expectation.parts.map(function(part) {
+                      return Array.isArray(part) ? classEscape(part[0]) + "-" + classEscape(part[1]) : classEscape(part);
                     });
-                    return (
-                      "[" +
-                      (expectation.inverted ? "^" : "") +
-                      escapedParts.join("") +
-                      "]"
-                    );
+                    return "[" + (expectation.inverted ? "^" : "") + escapedParts.join("") + "]";
                   },
-                  any: function () {
+                  any: function() {
                     return "any character";
                   },
-                  end: function () {
+                  end: function() {
                     return "end of input";
                   },
-                  other: function (expectation) {
+                  other: function(expectation) {
                     return expectation.description;
-                  },
+                  }
                 };
                 function hex(ch) {
                   return ch.charCodeAt(0).toString(16).toUpperCase();
                 }
                 function literalEscape(s) {
-                  return s
-                    .replace(/\\/g, "\\\\")
-                    .replace(/"/g, '\\"')
-                    .replace(/\0/g, "\\0")
-                    .replace(/\t/g, "\\t")
-                    .replace(/\n/g, "\\n")
-                    .replace(/\r/g, "\\r")
-                    .replace(/[\x00-\x0F]/g, function (ch) {
-                      return "\\x0" + hex(ch);
-                    })
-                    .replace(/[\x10-\x1F\x7F-\x9F]/g, function (ch) {
-                      return "\\x" + hex(ch);
-                    });
+                  return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\0/g, "\\0").replace(/\t/g, "\\t").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/[\x00-\x0F]/g, function(ch) {
+                    return "\\x0" + hex(ch);
+                  }).replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) {
+                    return "\\x" + hex(ch);
+                  });
                 }
                 function classEscape(s) {
-                  return s
-                    .replace(/\\/g, "\\\\")
-                    .replace(/\]/g, "\\]")
-                    .replace(/\^/g, "\\^")
-                    .replace(/-/g, "\\-")
-                    .replace(/\0/g, "\\0")
-                    .replace(/\t/g, "\\t")
-                    .replace(/\n/g, "\\n")
-                    .replace(/\r/g, "\\r")
-                    .replace(/[\x00-\x0F]/g, function (ch) {
-                      return "\\x0" + hex(ch);
-                    })
-                    .replace(/[\x10-\x1F\x7F-\x9F]/g, function (ch) {
-                      return "\\x" + hex(ch);
-                    });
+                  return s.replace(/\\/g, "\\\\").replace(/\]/g, "\\]").replace(/\^/g, "\\^").replace(/-/g, "\\-").replace(/\0/g, "\\0").replace(/\t/g, "\\t").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/[\x00-\x0F]/g, function(ch) {
+                    return "\\x0" + hex(ch);
+                  }).replace(/[\x10-\x1F\x7F-\x9F]/g, function(ch) {
+                    return "\\x" + hex(ch);
+                  });
                 }
                 function describeExpectation(expectation) {
-                  return DESCRIBE_EXPECTATION_FNS[expectation.type](
-                    expectation,
-                  );
+                  return DESCRIBE_EXPECTATION_FNS[expectation.type](expectation);
                 }
                 function describeExpected(expected2) {
                   var descriptions = expected2.map(describeExpectation);
@@ -3616,36 +3705,19 @@
                     case 2:
                       return descriptions[0] + " or " + descriptions[1];
                     default:
-                      return (
-                        descriptions.slice(0, -1).join(", ") +
-                        ", or " +
-                        descriptions[descriptions.length - 1]
-                      );
+                      return descriptions.slice(0, -1).join(", ") + ", or " + descriptions[descriptions.length - 1];
                   }
                 }
                 function describeFound(found2) {
-                  return found2
-                    ? '"' + literalEscape(found2) + '"'
-                    : "end of input";
+                  return found2 ? '"' + literalEscape(found2) + '"' : "end of input";
                 }
-                return (
-                  "Expected " +
-                  describeExpected(expected) +
-                  " but " +
-                  describeFound(found) +
-                  " found."
-                );
+                return "Expected " + describeExpected(expected) + " but " + describeFound(found) + " found.";
               };
               function peg$parse2(input, options) {
                 options = options !== void 0 ? options : {};
                 var peg$FAILED = {};
                 var peg$source = options.grammarSource;
-                var peg$startRuleFunctions = {
-                  pgn: peg$parsepgn,
-                  tags: peg$parsetags,
-                  game: peg$parsegame,
-                  games: peg$parsegames,
-                };
+                var peg$startRuleFunctions = { pgn: peg$parsepgn, tags: peg$parsetags, game: peg$parsegame, games: peg$parsegames };
                 var peg$startRuleFunction = peg$parsepgn;
                 var peg$c0 = "\uFEFF";
                 var peg$c1 = "Event";
@@ -4006,38 +4078,18 @@
                 var peg$e135 = peg$literalExpectation("WhiteClock", false);
                 var peg$e136 = peg$literalExpectation("BlackClock", false);
                 var peg$e137 = peg$otherExpectation("whitespace");
-                var peg$e138 = peg$classExpectation(
-                  [" ", "	", "\n", "\r"],
-                  false,
-                  false,
-                );
+                var peg$e138 = peg$classExpectation([" ", "	", "\n", "\r"], false, false);
                 var peg$e139 = peg$classExpectation(["\n", "\r"], false, false);
-                var peg$e141 = peg$classExpectation(
-                  ["-", ["a", "z"], ["A", "Z"], ["0", "9"], "_", "."],
-                  false,
-                  false,
-                );
+                var peg$e141 = peg$classExpectation(["-", ["a", "z"], ["A", "Z"], ["0", "9"], "_", "."], false, false);
                 var peg$e142 = peg$literalExpectation('"', false);
-                var peg$e143 = peg$classExpectation(
-                  ['"', "\\", "\r", "\n"],
-                  true,
-                  false,
-                );
+                var peg$e143 = peg$classExpectation(['"', "\\", "\r", "\n"], true, false);
                 var peg$e144 = peg$literalExpectation("\\", false);
-                var peg$e145 = peg$classExpectation(
-                  [["0", "9"], "?"],
-                  false,
-                  false,
-                );
+                var peg$e145 = peg$classExpectation([["0", "9"], "?"], false, false);
                 var peg$e146 = peg$literalExpectation(".", false);
                 var peg$e147 = peg$classExpectation([["0", "9"]], false, false);
                 var peg$e148 = peg$literalExpectation(":", false);
                 var peg$e149 = peg$literalExpectation("/", false);
-                var peg$e150 = peg$classExpectation(
-                  ["B", "N", "W"],
-                  false,
-                  false,
-                );
+                var peg$e150 = peg$classExpectation(["B", "N", "W"], false, false);
                 var peg$e151 = peg$literalExpectation("?", false);
                 var peg$e152 = peg$literalExpectation("-", false);
                 var peg$e153 = peg$literalExpectation("+", false);
@@ -4105,374 +4157,310 @@
                 var peg$e215 = peg$literalExpectation("\u2191", false);
                 var peg$e216 = peg$literalExpectation("\u21C6", false);
                 var peg$e217 = peg$literalExpectation("D", false);
-                var peg$e218 = peg$classExpectation(
-                  [
-                    ["1", "8"],
-                    ["a", "h"],
-                  ],
-                  false,
-                  false,
-                );
-                var peg$e219 = peg$classExpectation(
-                  ["R", "N", "B", "Q", "K", "P"],
-                  false,
-                  false,
-                );
-                var peg$e220 = peg$classExpectation(
-                  ["R", "N", "B", "Q"],
-                  false,
-                  false,
-                );
+                var peg$e218 = peg$classExpectation([["1", "8"], ["a", "h"]], false, false);
+                var peg$e219 = peg$classExpectation(["R", "N", "B", "Q", "K", "P"], false, false);
+                var peg$e220 = peg$classExpectation(["R", "N", "B", "Q"], false, false);
                 var peg$e221 = peg$classExpectation([["a", "h"]], false, false);
                 var peg$e222 = peg$classExpectation([["1", "8"]], false, false);
                 var peg$e223 = peg$literalExpectation("x", false);
                 var peg$e224 = peg$classExpectation(["-", "x"], false, false);
-                var peg$f0 = function (head, m) {
+                var peg$f0 = function(head, m) {
                   return m;
                 };
-                var peg$f1 = function (head, tail) {
+                var peg$f1 = function(head, tail) {
                   return [head].concat(tail);
                 };
-                var peg$f2 = function (games) {
+                var peg$f2 = function(games) {
                   return games;
                 };
-                var peg$f3 = function (t, c, p) {
+                var peg$f3 = function(t, c, p) {
                   var mess = messages;
                   messages = [];
                   return { tags: t, gameComment: c, moves: p, messages: mess };
                 };
-                var peg$f4 = function (head, m) {
+                var peg$f4 = function(head, m) {
                   return m;
                 };
-                var peg$f5 = function (head, tail) {
+                var peg$f5 = function(head, tail) {
                   var result = {};
-                  [head].concat(tail).forEach(function (element) {
+                  [head].concat(tail).forEach(function(element) {
                     result[element.name] = element.value;
                   });
                   return result;
                 };
-                var peg$f6 = function (members) {
-                  if (members === null) return {};
+                var peg$f6 = function(members) {
+                  if (members === null)
+                    return {};
                   members.messages = messages;
                   return members;
                 };
-                var peg$f7 = function (tag) {
+                var peg$f7 = function(tag) {
                   return tag;
                 };
-                var peg$f8 = function (value) {
+                var peg$f8 = function(value) {
                   return { name: "Event", value };
                 };
-                var peg$f9 = function (value) {
+                var peg$f9 = function(value) {
                   return { name: "Site", value };
                 };
-                var peg$f10 = function (value) {
+                var peg$f10 = function(value) {
                   return { name: "Date", value };
                 };
-                var peg$f11 = function (value) {
+                var peg$f11 = function(value) {
                   return { name: "Round", value };
                 };
-                var peg$f12 = function (value) {
+                var peg$f12 = function(value) {
                   return { name: "WhiteTitle", value };
                 };
-                var peg$f13 = function (value) {
+                var peg$f13 = function(value) {
                   return { name: "BlackTitle", value };
                 };
-                var peg$f14 = function (value) {
+                var peg$f14 = function(value) {
                   return { name: "WhiteElo", value };
                 };
-                var peg$f15 = function (value) {
+                var peg$f15 = function(value) {
                   return { name: "BlackElo", value };
                 };
-                var peg$f16 = function (value) {
+                var peg$f16 = function(value) {
                   return { name: "WhiteUSCF", value };
                 };
-                var peg$f17 = function (value) {
+                var peg$f17 = function(value) {
                   return { name: "BlackUSCF", value };
                 };
-                var peg$f18 = function (value) {
+                var peg$f18 = function(value) {
                   return { name: "WhiteNA", value };
                 };
-                var peg$f19 = function (value) {
+                var peg$f19 = function(value) {
                   return { name: "BlackNA", value };
                 };
-                var peg$f20 = function (value) {
+                var peg$f20 = function(value) {
                   return { name: "WhiteType", value };
                 };
-                var peg$f21 = function (value) {
+                var peg$f21 = function(value) {
                   return { name: "BlackType", value };
                 };
-                var peg$f22 = function (value) {
+                var peg$f22 = function(value) {
                   return { name: "White", value };
                 };
-                var peg$f23 = function (value) {
+                var peg$f23 = function(value) {
                   return { name: "Black", value };
                 };
-                var peg$f24 = function (value) {
+                var peg$f24 = function(value) {
                   return { name: "Result", value };
                 };
-                var peg$f25 = function (value) {
+                var peg$f25 = function(value) {
                   return { name: "EventDate", value };
                 };
-                var peg$f26 = function (value) {
+                var peg$f26 = function(value) {
                   return { name: "EventSponsor", value };
                 };
-                var peg$f27 = function (value) {
+                var peg$f27 = function(value) {
                   return { name: "Section", value };
                 };
-                var peg$f28 = function (value) {
+                var peg$f28 = function(value) {
                   return { name: "Stage", value };
                 };
-                var peg$f29 = function (value) {
+                var peg$f29 = function(value) {
                   return { name: "Board", value };
                 };
-                var peg$f30 = function (value) {
+                var peg$f30 = function(value) {
                   return { name: "Opening", value };
                 };
-                var peg$f31 = function (value) {
+                var peg$f31 = function(value) {
                   return { name: "Variation", value };
                 };
-                var peg$f32 = function (value) {
+                var peg$f32 = function(value) {
                   return { name: "SubVariation", value };
                 };
-                var peg$f33 = function (value) {
+                var peg$f33 = function(value) {
                   return { name: "ECO", value };
                 };
-                var peg$f34 = function (value) {
+                var peg$f34 = function(value) {
                   return { name: "NIC", value };
                 };
-                var peg$f35 = function (value) {
+                var peg$f35 = function(value) {
                   return { name: "Time", value };
                 };
-                var peg$f36 = function (value) {
+                var peg$f36 = function(value) {
                   return { name: "UTCTime", value };
                 };
-                var peg$f37 = function (value) {
+                var peg$f37 = function(value) {
                   return { name: "UTCDate", value };
                 };
-                var peg$f38 = function (value) {
+                var peg$f38 = function(value) {
                   return { name: "TimeControl", value };
                 };
-                var peg$f39 = function (value) {
+                var peg$f39 = function(value) {
                   return { name: "SetUp", value };
                 };
-                var peg$f40 = function (value) {
+                var peg$f40 = function(value) {
                   return { name: "FEN", value };
                 };
-                var peg$f41 = function (value) {
+                var peg$f41 = function(value) {
                   return { name: "Termination", value };
                 };
-                var peg$f42 = function (value) {
+                var peg$f42 = function(value) {
                   return { name: "Annotator", value };
                 };
-                var peg$f43 = function (value) {
+                var peg$f43 = function(value) {
                   return { name: "Mode", value };
                 };
-                var peg$f44 = function (value) {
+                var peg$f44 = function(value) {
                   return { name: "PlyCount", value };
                 };
-                var peg$f45 = function (value) {
+                var peg$f45 = function(value) {
                   return { name: "Variant", value };
                 };
-                var peg$f46 = function (value) {
+                var peg$f46 = function(value) {
                   return { name: "WhiteRatingDiff", value };
                 };
-                var peg$f47 = function (value) {
+                var peg$f47 = function(value) {
                   return { name: "BlackRatingDiff", value };
                 };
-                var peg$f48 = function (value) {
+                var peg$f48 = function(value) {
                   return { name: "WhiteFideId", value };
                 };
-                var peg$f49 = function (value) {
+                var peg$f49 = function(value) {
                   return { name: "BlackFideId", value };
                 };
-                var peg$f50 = function (value) {
+                var peg$f50 = function(value) {
                   return { name: "WhiteTeam", value };
                 };
-                var peg$f51 = function (value) {
+                var peg$f51 = function(value) {
                   return { name: "BlackTeam", value };
                 };
-                var peg$f52 = function (value) {
+                var peg$f52 = function(value) {
                   return { name: "Clock", value };
                 };
-                var peg$f53 = function (value) {
+                var peg$f53 = function(value) {
                   return { name: "WhiteClock", value };
                 };
-                var peg$f54 = function (value) {
+                var peg$f54 = function(value) {
                   return { name: "BlackClock", value };
                 };
-                var peg$f55 = function (a, value) {
-                  addMessage({
-                    key: a,
-                    value,
-                    message: `Format of tag: "${a}" not correct: "${value}"`,
-                  });
+                var peg$f55 = function(a, value) {
+                  addMessage({ key: a, value, message: `Format of tag: "${a}" not correct: "${value}"` });
                   return { name: a, value };
                 };
-                var peg$f56 = function (a, value) {
-                  addMessage({
-                    key: a,
-                    value,
-                    message: `Tag: "${a}" not known: "${value}"`,
-                  });
+                var peg$f56 = function(a, value) {
+                  addMessage({ key: a, value, message: `Tag: "${a}" not known: "${value}"` });
                   return { name: a, value };
                 };
-                var peg$f58 = function (chars) {
+                var peg$f58 = function(chars) {
                   return chars.join("");
                 };
-                var peg$f59 = function (stringContent) {
+                var peg$f59 = function(stringContent) {
                   return stringContent.map((c) => c.char || c).join("");
                 };
-                var peg$f60 = function () {
+                var peg$f60 = function() {
                   return { type: "char", char: "\\" };
                 };
-                var peg$f61 = function () {
+                var peg$f61 = function() {
                   return { type: "char", char: '"' };
                 };
-                var peg$f62 = function (sequence) {
+                var peg$f62 = function(sequence) {
                   return sequence;
                 };
-                var peg$f63 = function (year, month, day) {
-                  let val =
-                    "" +
-                    year.join("") +
-                    "." +
-                    month.join("") +
-                    "." +
-                    day.join("");
-                  return {
-                    value: val,
-                    year: mi(year),
-                    month: mi(month),
-                    day: mi(day),
-                  };
+                var peg$f63 = function(year, month, day) {
+                  let val = "" + year.join("") + "." + month.join("") + "." + day.join("");
+                  return { value: val, year: mi(year), month: mi(month), day: mi(day) };
                 };
-                var peg$f64 = function (hour, minute, second, millis) {
-                  let val =
-                    hour.join("") +
-                    ":" +
-                    minute.join("") +
-                    ":" +
-                    second.join("");
+                var peg$f64 = function(hour, minute, second, millis) {
+                  let val = hour.join("") + ":" + minute.join("") + ":" + second.join("");
                   let ms = 0;
                   if (millis) {
                     val = val + "." + millis;
-                    addMessage({
-                      message: `Unusual use of millis in time: ${val}`,
-                    });
+                    addMessage({ message: `Unusual use of millis in time: ${val}` });
                     mi(millis);
                   }
-                  return {
-                    value: val,
-                    hour: mi(hour),
-                    minute: mi(minute),
-                    second: mi(second),
-                    millis: ms,
-                  };
+                  return { value: val, hour: mi(hour), minute: mi(minute), second: mi(second), millis: ms };
                 };
-                var peg$f65 = function (millis) {
+                var peg$f65 = function(millis) {
                   return millis.join("");
                 };
-                var peg$f66 = function (value) {
+                var peg$f66 = function(value) {
                   return value;
                 };
-                var peg$f67 = function (c, t) {
+                var peg$f67 = function(c, t) {
                   return c + "/" + t;
                 };
-                var peg$f68 = function (value) {
+                var peg$f68 = function(value) {
                   return value;
                 };
-                var peg$f69 = function (value) {
+                var peg$f69 = function(value) {
                   return value;
                 };
-                var peg$f70 = function (res) {
+                var peg$f70 = function(res) {
                   if (!res) {
-                    addMessage({
-                      message: "Tag TimeControl has to have a value",
-                    });
+                    addMessage({ message: "Tag TimeControl has to have a value" });
                     return "";
                   }
                   return res;
                 };
-                var peg$f71 = function (head, m) {
+                var peg$f71 = function(head, m) {
                   return m;
                 };
-                var peg$f72 = function (head, tail) {
+                var peg$f72 = function(head, tail) {
                   let ret = [head].concat(tail);
                   ret.value = ret.map((ret2) => ret2.value).join(":");
                   return ret;
                 };
-                var peg$f73 = function (tcnqs) {
+                var peg$f73 = function(tcnqs) {
                   return tcnqs;
                 };
-                var peg$f74 = function () {
+                var peg$f74 = function() {
                   return { kind: "unknown", value: "?" };
                 };
-                var peg$f75 = function () {
+                var peg$f75 = function() {
                   return { kind: "unlimited", value: "-" };
                 };
-                var peg$f76 = function (moves, seconds, incr) {
-                  return {
-                    kind: "movesInSecondsIncrement",
-                    moves,
-                    seconds,
-                    increment: incr,
-                    value: "" + moves + "/" + seconds + "+" + incr,
-                  };
+                var peg$f76 = function(moves, seconds, incr) {
+                  return { kind: "movesInSecondsIncrement", moves, seconds, increment: incr, value: "" + moves + "/" + seconds + "+" + incr };
                 };
-                var peg$f77 = function (moves, seconds) {
-                  return {
-                    kind: "movesInSeconds",
-                    moves,
-                    seconds,
-                    value: "" + moves + "/" + seconds,
-                  };
+                var peg$f77 = function(moves, seconds) {
+                  return { kind: "movesInSeconds", moves, seconds, value: "" + moves + "/" + seconds };
                 };
-                var peg$f78 = function (seconds, incr) {
-                  return {
-                    kind: "increment",
-                    seconds,
-                    increment: incr,
-                    value: "" + seconds + "+" + incr,
-                  };
+                var peg$f78 = function(seconds, incr) {
+                  return { kind: "increment", seconds, increment: incr, value: "" + seconds + "+" + incr };
                 };
-                var peg$f79 = function (seconds) {
+                var peg$f79 = function(seconds) {
                   return { kind: "suddenDeath", seconds, value: "" + seconds };
                 };
-                var peg$f80 = function (seconds) {
+                var peg$f80 = function(seconds) {
                   return { kind: "hourglass", seconds, value: "*" + seconds };
                 };
-                var peg$f81 = function (res) {
+                var peg$f81 = function(res) {
                   return res;
                 };
-                var peg$f82 = function (res) {
+                var peg$f82 = function(res) {
                   return res;
                 };
-                var peg$f83 = function (res) {
+                var peg$f83 = function(res) {
                   return res;
                 };
-                var peg$f84 = function (res) {
+                var peg$f84 = function(res) {
                   return res;
                 };
-                var peg$f85 = function () {
+                var peg$f85 = function() {
                   return "1/2-1/2";
                 };
-                var peg$f86 = function (res) {
+                var peg$f86 = function(res) {
                   return res;
                 };
-                var peg$f87 = function (v) {
+                var peg$f87 = function(v) {
                   return v;
                 };
-                var peg$f88 = function () {
+                var peg$f88 = function() {
                   return 0;
                 };
-                var peg$f89 = function () {
+                var peg$f89 = function() {
                   addMessage({ message: 'Use "-" for an unknown value' });
                   return 0;
                 };
-                var peg$f90 = function (digits) {
+                var peg$f90 = function(digits) {
                   return makeInteger(digits);
                 };
-                var peg$f91 = function (cm, mn, hm, nag, dr, ca, vari, all) {
+                var peg$f91 = function(cm, mn, hm, nag, dr, ca, vari, all) {
                   var arr = all ? all : [];
                   var move3 = {};
                   move3.moveNumber = mn;
@@ -4492,95 +4480,91 @@
                   move3.commentDiag = ca;
                   return arr;
                 };
-                var peg$f92 = function (e) {
+                var peg$f92 = function(e) {
                   return e;
                 };
-                var peg$f93 = function (eg) {
+                var peg$f93 = function(eg) {
                   return [eg];
                 };
-                var peg$f94 = function (cf, c) {
+                var peg$f94 = function(cf, c) {
                   return c;
                 };
-                var peg$f95 = function (cf, cfl) {
+                var peg$f95 = function(cf, cfl) {
                   return merge([cf].concat(cfl));
                 };
-                var peg$f96 = function () {
+                var peg$f96 = function() {
                   return;
                 };
-                var peg$f97 = function (cm) {
+                var peg$f97 = function(cm) {
                   return cm;
                 };
-                var peg$f98 = function (cm) {
+                var peg$f98 = function(cm) {
                   return { comment: cm };
                 };
-                var peg$f99 = function (cf, ic) {
+                var peg$f99 = function(cf, ic) {
                   return ic;
                 };
-                var peg$f100 = function (cf, tail) {
+                var peg$f100 = function(cf, tail) {
                   return merge([{ colorFields: cf }].concat(tail[0]));
                 };
-                var peg$f101 = function (ca, ic) {
+                var peg$f101 = function(ca, ic) {
                   return ic;
                 };
-                var peg$f102 = function (ca, tail) {
+                var peg$f102 = function(ca, tail) {
                   return merge([{ colorArrows: ca }].concat(tail[0]));
                 };
-                var peg$f103 = function (cc, cv, ic) {
+                var peg$f103 = function(cc, cv, ic) {
                   return ic;
                 };
-                var peg$f104 = function (cc, cv, tail) {
+                var peg$f104 = function(cc, cv, tail) {
                   var ret = {};
                   ret[cc] = cv;
                   return merge([ret].concat(tail[0]));
                 };
-                var peg$f105 = function (cc, cv, ic) {
+                var peg$f105 = function(cc, cv, ic) {
                   return ic;
                 };
-                var peg$f106 = function (cc, cv, tail) {
+                var peg$f106 = function(cc, cv, tail) {
                   var ret = {};
                   ret[cc] = cv;
                   return merge([ret].concat(tail[0]));
                 };
-                var peg$f107 = function (ev, ic) {
+                var peg$f107 = function(ev, ic) {
                   return ic;
                 };
-                var peg$f108 = function (ev, tail) {
+                var peg$f108 = function(ev, tail) {
                   var ret = {};
                   ret["eval"] = parseFloat(ev);
                   return merge([ret].concat(tail[0]));
                 };
-                var peg$f109 = function (ac, val, ic) {
+                var peg$f109 = function(ac, val, ic) {
                   return ic;
                 };
-                var peg$f110 = function (ac, val, tail) {
+                var peg$f110 = function(ac, val, tail) {
                   var ret = {};
                   ret[ac] = val.join("");
                   return merge([ret].concat(tail[0]));
                 };
-                var peg$f111 = function (c, ic) {
+                var peg$f111 = function(c, ic) {
                   return ic;
                 };
-                var peg$f112 = function (c, tail) {
+                var peg$f112 = function(c, tail) {
                   if (tail.length > 0) {
-                    return merge(
-                      [{ comment: trimEnd(c.join("")) }].concat(
-                        trimStart(tail[0]),
-                      ),
-                    );
+                    return merge([{ comment: trimEnd(c.join("")) }].concat(trimStart(tail[0])));
                   } else {
                     return { comment: c.join("") };
                   }
                 };
-                var peg$f113 = function (ch) {
+                var peg$f113 = function(ch) {
                   return ch;
                 };
-                var peg$f114 = function (ch) {
+                var peg$f114 = function(ch) {
                   return ch;
                 };
-                var peg$f115 = function (cm) {
+                var peg$f115 = function(cm) {
                   return cm.join("");
                 };
-                var peg$f116 = function (cf, cfl) {
+                var peg$f116 = function(cf, cfl) {
                   var arr = [];
                   arr.push(cf);
                   for (var i = 0; i < cfl.length; i++) {
@@ -4588,10 +4572,10 @@
                   }
                   return arr;
                 };
-                var peg$f117 = function (col, f) {
+                var peg$f117 = function(col, f) {
                   return col + f;
                 };
-                var peg$f118 = function (cf, cfl) {
+                var peg$f118 = function(cf, cfl) {
                   var arr = [];
                   arr.push(cf);
                   for (var i = 0; i < cfl.length; i++) {
@@ -4599,43 +4583,43 @@
                   }
                   return arr;
                 };
-                var peg$f119 = function (col, ff, ft) {
+                var peg$f119 = function(col, ff, ft) {
                   return col + ff + ft;
                 };
-                var peg$f120 = function () {
+                var peg$f120 = function() {
                   return "Y";
                 };
-                var peg$f121 = function () {
+                var peg$f121 = function() {
                   return "G";
                 };
-                var peg$f122 = function () {
+                var peg$f122 = function() {
                   return "R";
                 };
-                var peg$f123 = function () {
+                var peg$f123 = function() {
                   return "B";
                 };
-                var peg$f124 = function () {
+                var peg$f124 = function() {
                   return "O";
                 };
-                var peg$f125 = function () {
+                var peg$f125 = function() {
                   return "C";
                 };
-                var peg$f126 = function (col, row) {
+                var peg$f126 = function(col, row) {
                   return col + row;
                 };
-                var peg$f131 = function () {
+                var peg$f131 = function() {
                   return "clk";
                 };
-                var peg$f132 = function () {
+                var peg$f132 = function() {
                   return "egt";
                 };
-                var peg$f133 = function () {
+                var peg$f133 = function() {
                   return "emt";
                 };
-                var peg$f134 = function () {
+                var peg$f134 = function() {
                   return "mct";
                 };
-                var peg$f135 = function (hm, s1, s2, millis) {
+                var peg$f135 = function(hm, s1, s2, millis) {
                   let ret = s1;
                   if (!hm) {
                     addMessage({ message: `Hours and minutes missing` });
@@ -4644,27 +4628,21 @@
                   }
                   if (hm && (hm.match(/:/g) || []).length == 2) {
                     if (hm.search(":") == 2) {
-                      addMessage({
-                        message: `Only 1 digit for hours normally used`,
-                      });
+                      addMessage({ message: `Only 1 digit for hours normally used` });
                     }
                   }
                   if (!s2) {
-                    addMessage({
-                      message: `Only 2 digit for seconds normally used`,
-                    });
+                    addMessage({ message: `Only 2 digit for seconds normally used` });
                   } else {
                     ret += s2;
                   }
                   if (millis) {
-                    addMessage({
-                      message: `Unusual use of millis in clock value`,
-                    });
+                    addMessage({ message: `Unusual use of millis in clock value` });
                     ret += "." + millis;
                   }
                   return ret;
                 };
-                var peg$f136 = function (hm, s1, s2) {
+                var peg$f136 = function(hm, s1, s2) {
                   let ret = s1;
                   if (!hm) {
                     addMessage({ message: `Hours and minutes missing` });
@@ -4673,28 +4651,24 @@
                   }
                   if (hm && (hm.match(/:/g) || []).length == 2) {
                     if (hm.search(":") == 1) {
-                      addMessage({
-                        message: `Only 2 digits for hours normally used`,
-                      });
+                      addMessage({ message: `Only 2 digits for hours normally used` });
                     }
                   }
                   if (!s2) {
-                    addMessage({
-                      message: `Only 2 digit for seconds normally used`,
-                    });
+                    addMessage({ message: `Only 2 digit for seconds normally used` });
                   } else {
                     ret += s2;
                   }
                   return ret;
                 };
-                var peg$f137 = function (hours, minutes) {
+                var peg$f137 = function(hours, minutes) {
                   if (!minutes) {
                     addMessage({ message: `No hours found` });
                     return hours;
                   }
                   return hours + minutes;
                 };
-                var peg$f138 = function (h1, h2) {
+                var peg$f138 = function(h1, h2) {
                   let ret = h1;
                   if (h2) {
                     ret += h2 + ":";
@@ -4703,36 +4677,34 @@
                   }
                   return ret;
                 };
-                var peg$f139 = function (m1, m2) {
+                var peg$f139 = function(m1, m2) {
                   let ret = m1;
                   if (m2) {
                     ret += m2 + ":";
                   } else {
                     ret += ":";
-                    addMessage({
-                      message: `Only 2 digits for minutes normally used`,
-                    });
+                    addMessage({ message: `Only 2 digits for minutes normally used` });
                   }
                   return ret;
                 };
-                var peg$f140 = function (d) {
+                var peg$f140 = function(d) {
                   return d;
                 };
-                var peg$f141 = function (vari, all) {
+                var peg$f141 = function(vari, all) {
                   var arr = all ? all : [];
                   arr.unshift(vari);
                   return arr;
                 };
-                var peg$f142 = function (num) {
+                var peg$f142 = function(num) {
                   return num;
                 };
-                var peg$f143 = function (digits) {
+                var peg$f143 = function(digits) {
                   return makeInteger(digits);
                 };
-                var peg$f144 = function () {
+                var peg$f144 = function() {
                   return "";
                 };
-                var peg$f145 = function (fig, disc, str, col, row, pr, ch) {
+                var peg$f145 = function(fig, disc, str, col, row, pr, ch) {
                   var hm = {};
                   hm.fig = fig ? fig : null;
                   hm.disc = disc ? disc : null;
@@ -4741,45 +4713,21 @@
                   hm.row = row;
                   hm.check = ch ? ch : null;
                   hm.promotion = pr;
-                  hm.notation =
-                    (fig ? fig : "") +
-                    (disc ? disc : "") +
-                    (str ? str : "") +
-                    col +
-                    row +
-                    (pr ? pr : "") +
-                    (ch ? ch : "");
+                  hm.notation = (fig ? fig : "") + (disc ? disc : "") + (str ? str : "") + col + row + (pr ? pr : "") + (ch ? ch : "");
                   return hm;
                 };
-                var peg$f146 = function (
-                  fig,
-                  cols,
-                  rows,
-                  str,
-                  col,
-                  row,
-                  pr,
-                  ch,
-                ) {
+                var peg$f146 = function(fig, cols, rows, str, col, row, pr, ch) {
                   var hm = {};
                   hm.fig = fig ? fig : null;
                   hm.strike = str == "x" ? str : null;
                   hm.col = col;
                   hm.row = row;
-                  hm.notation =
-                    (fig && fig !== "P" ? fig : "") +
-                    cols +
-                    rows +
-                    (str == "x" ? str : "-") +
-                    col +
-                    row +
-                    (pr ? pr : "") +
-                    (ch ? ch : "");
+                  hm.notation = (fig && fig !== "P" ? fig : "") + cols + rows + (str == "x" ? str : "-") + col + row + (pr ? pr : "") + (ch ? ch : "");
                   hm.check = ch ? ch : null;
                   hm.promotion = pr;
                   return hm;
                 };
-                var peg$f147 = function (fig, str, col, row, pr, ch) {
+                var peg$f147 = function(fig, str, col, row, pr, ch) {
                   var hm = {};
                   hm.fig = fig ? fig : null;
                   hm.strike = str ? str : null;
@@ -4787,28 +4735,22 @@
                   hm.row = row;
                   hm.check = ch ? ch : null;
                   hm.promotion = pr;
-                  hm.notation =
-                    (fig ? fig : "") +
-                    (str ? str : "") +
-                    col +
-                    row +
-                    (pr ? pr : "") +
-                    (ch ? ch : "");
+                  hm.notation = (fig ? fig : "") + (str ? str : "") + col + row + (pr ? pr : "") + (ch ? ch : "");
                   return hm;
                 };
-                var peg$f148 = function (ch) {
+                var peg$f148 = function(ch) {
                   var hm = {};
                   hm.notation = "O-O-O" + (ch ? ch : "");
                   hm.check = ch ? ch : null;
                   return hm;
                 };
-                var peg$f149 = function (ch) {
+                var peg$f149 = function(ch) {
                   var hm = {};
                   hm.notation = "O-O" + (ch ? ch : "");
                   hm.check = ch ? ch : null;
                   return hm;
                 };
-                var peg$f150 = function (fig, col, row) {
+                var peg$f150 = function(fig, col, row) {
                   var hm = {};
                   hm.fig = fig;
                   hm.drop = true;
@@ -4817,101 +4759,101 @@
                   hm.notation = fig + "@" + col + row;
                   return hm;
                 };
-                var peg$f151 = function () {
+                var peg$f151 = function() {
                   var hm = {};
                   hm.notation = "Z0";
                   return hm;
                 };
-                var peg$f152 = function (ch) {
+                var peg$f152 = function(ch) {
                   return ch[1];
                 };
-                var peg$f153 = function (ch) {
+                var peg$f153 = function(ch) {
                   return ch[1];
                 };
-                var peg$f154 = function (f) {
+                var peg$f154 = function(f) {
                   return "=" + f;
                 };
-                var peg$f155 = function (nag, nags) {
+                var peg$f155 = function(nag, nags) {
                   var arr = nags ? nags : [];
                   arr.unshift(nag);
                   return arr;
                 };
-                var peg$f156 = function (num) {
+                var peg$f156 = function(num) {
                   return "$" + num;
                 };
-                var peg$f157 = function () {
+                var peg$f157 = function() {
                   return "$3";
                 };
-                var peg$f158 = function () {
+                var peg$f158 = function() {
                   return "$4";
                 };
-                var peg$f159 = function () {
+                var peg$f159 = function() {
                   return "$5";
                 };
-                var peg$f160 = function () {
+                var peg$f160 = function() {
                   return "$6";
                 };
-                var peg$f161 = function () {
+                var peg$f161 = function() {
                   return "$1";
                 };
-                var peg$f162 = function () {
+                var peg$f162 = function() {
                   return "$2";
                 };
-                var peg$f163 = function () {
+                var peg$f163 = function() {
                   return "$3";
                 };
-                var peg$f164 = function () {
+                var peg$f164 = function() {
                   return "$4";
                 };
-                var peg$f165 = function () {
+                var peg$f165 = function() {
                   return "$5";
                 };
-                var peg$f166 = function () {
+                var peg$f166 = function() {
                   return "$6";
                 };
-                var peg$f167 = function () {
+                var peg$f167 = function() {
                   return "$7";
                 };
-                var peg$f168 = function () {
+                var peg$f168 = function() {
                   return "$10";
                 };
-                var peg$f169 = function () {
+                var peg$f169 = function() {
                   return "$13";
                 };
-                var peg$f170 = function () {
+                var peg$f170 = function() {
                   return "$14";
                 };
-                var peg$f171 = function () {
+                var peg$f171 = function() {
                   return "$15";
                 };
-                var peg$f172 = function () {
+                var peg$f172 = function() {
                   return "$16";
                 };
-                var peg$f173 = function () {
+                var peg$f173 = function() {
                   return "$17";
                 };
-                var peg$f174 = function () {
+                var peg$f174 = function() {
                   return "$18";
                 };
-                var peg$f175 = function () {
+                var peg$f175 = function() {
                   return "$19";
                 };
-                var peg$f176 = function () {
+                var peg$f176 = function() {
                   return "$22";
                 };
-                var peg$f177 = function () {
+                var peg$f177 = function() {
                   return "$32";
                 };
-                var peg$f178 = function () {
+                var peg$f178 = function() {
                   return "$36";
                 };
-                var peg$f179 = function () {
+                var peg$f179 = function() {
                   return "$40";
                 };
-                var peg$f180 = function () {
+                var peg$f180 = function() {
                   return "$132";
                 };
-                var peg$f181 = function () {
+                var peg$f181 = function() {
                   return "$220";
                 };
                 var peg$currPos = options.peg$currPos | 0;
@@ -4923,14 +4865,9 @@
                 var peg$result;
                 if (options.startRule) {
                   if (!(options.startRule in peg$startRuleFunctions)) {
-                    throw new Error(
-                      `Can't start parsing from rule "` +
-                        options.startRule +
-                        '".',
-                    );
+                    throw new Error(`Can't start parsing from rule "` + options.startRule + '".');
                   }
-                  peg$startRuleFunction =
-                    peg$startRuleFunctions[options.startRule];
+                  peg$startRuleFunction = peg$startRuleFunctions[options.startRule];
                 }
                 function location() {
                   return peg$computeLocation(peg$savedPos, peg$currPos);
@@ -4960,12 +4897,13 @@
                       p = peg$posDetailsCache.length - 1;
                     } else {
                       p = pos;
-                      while (!peg$posDetailsCache[--p]) {}
+                      while (!peg$posDetailsCache[--p]) {
+                      }
                     }
                     details = peg$posDetailsCache[p];
                     details = {
                       line: details.line,
-                      column: details.column,
+                      column: details.column
                     };
                     while (p < pos) {
                       if (input.charCodeAt(p) === 10) {
@@ -4988,13 +4926,13 @@
                     start: {
                       offset: startPos,
                       line: startPosDetails.line,
-                      column: startPosDetails.column,
+                      column: startPosDetails.column
                     },
                     end: {
                       offset: endPos,
                       line: endPosDetails.line,
-                      column: endPosDetails.column,
-                    },
+                      column: endPosDetails.column
+                    }
                   };
                   return res;
                 }
@@ -5009,12 +4947,7 @@
                   peg$maxFailExpected.push(expected);
                 }
                 function peg$buildStructuredError(expected, found, location2) {
-                  return new peg$SyntaxError2(
-                    peg$SyntaxError2.buildMessage(expected, found),
-                    expected,
-                    found,
-                    location2,
-                  );
+                  return new peg$SyntaxError2(peg$SyntaxError2.buildMessage(expected, found), expected, found, location2);
                 }
                 function peg$parseBOM() {
                   var s0;
@@ -5458,12 +5391,10 @@
                                                   }
                                                   if (s0 === peg$FAILED) {
                                                     s0 = peg$currPos;
-                                                    s1 =
-                                                      peg$parseeventDateKey();
+                                                    s1 = peg$parseeventDateKey();
                                                     if (s1 !== peg$FAILED) {
                                                       s2 = peg$parsews();
-                                                      s3 =
-                                                        peg$parsedateString();
+                                                      s3 = peg$parsedateString();
                                                       if (s3 !== peg$FAILED) {
                                                         peg$savedPos = s0;
                                                         s0 = peg$f25(s3);
@@ -5477,8 +5408,7 @@
                                                     }
                                                     if (s0 === peg$FAILED) {
                                                       s0 = peg$currPos;
-                                                      s1 =
-                                                        peg$parseeventSponsorKey();
+                                                      s1 = peg$parseeventSponsorKey();
                                                       if (s1 !== peg$FAILED) {
                                                         s2 = peg$parsews();
                                                         s3 = peg$parsestring();
@@ -5495,15 +5425,11 @@
                                                       }
                                                       if (s0 === peg$FAILED) {
                                                         s0 = peg$currPos;
-                                                        s1 =
-                                                          peg$parsesectionKey();
+                                                        s1 = peg$parsesectionKey();
                                                         if (s1 !== peg$FAILED) {
                                                           s2 = peg$parsews();
-                                                          s3 =
-                                                            peg$parsestring();
-                                                          if (
-                                                            s3 !== peg$FAILED
-                                                          ) {
+                                                          s3 = peg$parsestring();
+                                                          if (s3 !== peg$FAILED) {
                                                             peg$savedPos = s0;
                                                             s0 = peg$f27(s3);
                                                           } else {
@@ -5516,17 +5442,11 @@
                                                         }
                                                         if (s0 === peg$FAILED) {
                                                           s0 = peg$currPos;
-                                                          s1 =
-                                                            peg$parsestageKey();
-                                                          if (
-                                                            s1 !== peg$FAILED
-                                                          ) {
+                                                          s1 = peg$parsestageKey();
+                                                          if (s1 !== peg$FAILED) {
                                                             s2 = peg$parsews();
-                                                            s3 =
-                                                              peg$parsestring();
-                                                            if (
-                                                              s3 !== peg$FAILED
-                                                            ) {
+                                                            s3 = peg$parsestring();
+                                                            if (s3 !== peg$FAILED) {
                                                               peg$savedPos = s0;
                                                               s0 = peg$f28(s3);
                                                             } else {
@@ -5537,1094 +5457,501 @@
                                                             peg$currPos = s0;
                                                             s0 = peg$FAILED;
                                                           }
-                                                          if (
-                                                            s0 === peg$FAILED
-                                                          ) {
+                                                          if (s0 === peg$FAILED) {
                                                             s0 = peg$currPos;
-                                                            s1 =
-                                                              peg$parseboardKey();
-                                                            if (
-                                                              s1 !== peg$FAILED
-                                                            ) {
-                                                              s2 =
-                                                                peg$parsews();
-                                                              s3 =
-                                                                peg$parseintegerString();
-                                                              if (
-                                                                s3 !==
-                                                                peg$FAILED
-                                                              ) {
-                                                                peg$savedPos =
-                                                                  s0;
-                                                                s0 =
-                                                                  peg$f29(s3);
+                                                            s1 = peg$parseboardKey();
+                                                            if (s1 !== peg$FAILED) {
+                                                              s2 = peg$parsews();
+                                                              s3 = peg$parseintegerString();
+                                                              if (s3 !== peg$FAILED) {
+                                                                peg$savedPos = s0;
+                                                                s0 = peg$f29(s3);
                                                               } else {
-                                                                peg$currPos =
-                                                                  s0;
+                                                                peg$currPos = s0;
                                                                 s0 = peg$FAILED;
                                                               }
                                                             } else {
                                                               peg$currPos = s0;
                                                               s0 = peg$FAILED;
                                                             }
-                                                            if (
-                                                              s0 === peg$FAILED
-                                                            ) {
+                                                            if (s0 === peg$FAILED) {
                                                               s0 = peg$currPos;
-                                                              s1 =
-                                                                peg$parseopeningKey();
-                                                              if (
-                                                                s1 !==
-                                                                peg$FAILED
-                                                              ) {
-                                                                s2 =
-                                                                  peg$parsews();
-                                                                s3 =
-                                                                  peg$parsestring();
-                                                                if (
-                                                                  s3 !==
-                                                                  peg$FAILED
-                                                                ) {
-                                                                  peg$savedPos =
-                                                                    s0;
-                                                                  s0 =
-                                                                    peg$f30(s3);
+                                                              s1 = peg$parseopeningKey();
+                                                              if (s1 !== peg$FAILED) {
+                                                                s2 = peg$parsews();
+                                                                s3 = peg$parsestring();
+                                                                if (s3 !== peg$FAILED) {
+                                                                  peg$savedPos = s0;
+                                                                  s0 = peg$f30(s3);
                                                                 } else {
-                                                                  peg$currPos =
-                                                                    s0;
-                                                                  s0 =
-                                                                    peg$FAILED;
+                                                                  peg$currPos = s0;
+                                                                  s0 = peg$FAILED;
                                                                 }
                                                               } else {
-                                                                peg$currPos =
-                                                                  s0;
+                                                                peg$currPos = s0;
                                                                 s0 = peg$FAILED;
                                                               }
-                                                              if (
-                                                                s0 ===
-                                                                peg$FAILED
-                                                              ) {
-                                                                s0 =
-                                                                  peg$currPos;
-                                                                s1 =
-                                                                  peg$parsevariationKey();
-                                                                if (
-                                                                  s1 !==
-                                                                  peg$FAILED
-                                                                ) {
-                                                                  s2 =
-                                                                    peg$parsews();
-                                                                  s3 =
-                                                                    peg$parsestring();
-                                                                  if (
-                                                                    s3 !==
-                                                                    peg$FAILED
-                                                                  ) {
-                                                                    peg$savedPos =
-                                                                      s0;
-                                                                    s0 =
-                                                                      peg$f31(
-                                                                        s3,
-                                                                      );
+                                                              if (s0 === peg$FAILED) {
+                                                                s0 = peg$currPos;
+                                                                s1 = peg$parsevariationKey();
+                                                                if (s1 !== peg$FAILED) {
+                                                                  s2 = peg$parsews();
+                                                                  s3 = peg$parsestring();
+                                                                  if (s3 !== peg$FAILED) {
+                                                                    peg$savedPos = s0;
+                                                                    s0 = peg$f31(s3);
                                                                   } else {
-                                                                    peg$currPos =
-                                                                      s0;
-                                                                    s0 =
-                                                                      peg$FAILED;
+                                                                    peg$currPos = s0;
+                                                                    s0 = peg$FAILED;
                                                                   }
                                                                 } else {
-                                                                  peg$currPos =
-                                                                    s0;
-                                                                  s0 =
-                                                                    peg$FAILED;
+                                                                  peg$currPos = s0;
+                                                                  s0 = peg$FAILED;
                                                                 }
-                                                                if (
-                                                                  s0 ===
-                                                                  peg$FAILED
-                                                                ) {
-                                                                  s0 =
-                                                                    peg$currPos;
-                                                                  s1 =
-                                                                    peg$parsesubVariationKey();
-                                                                  if (
-                                                                    s1 !==
-                                                                    peg$FAILED
-                                                                  ) {
-                                                                    s2 =
-                                                                      peg$parsews();
-                                                                    s3 =
-                                                                      peg$parsestring();
-                                                                    if (
-                                                                      s3 !==
-                                                                      peg$FAILED
-                                                                    ) {
-                                                                      peg$savedPos =
-                                                                        s0;
-                                                                      s0 =
-                                                                        peg$f32(
-                                                                          s3,
-                                                                        );
+                                                                if (s0 === peg$FAILED) {
+                                                                  s0 = peg$currPos;
+                                                                  s1 = peg$parsesubVariationKey();
+                                                                  if (s1 !== peg$FAILED) {
+                                                                    s2 = peg$parsews();
+                                                                    s3 = peg$parsestring();
+                                                                    if (s3 !== peg$FAILED) {
+                                                                      peg$savedPos = s0;
+                                                                      s0 = peg$f32(s3);
                                                                     } else {
-                                                                      peg$currPos =
-                                                                        s0;
-                                                                      s0 =
-                                                                        peg$FAILED;
+                                                                      peg$currPos = s0;
+                                                                      s0 = peg$FAILED;
                                                                     }
                                                                   } else {
-                                                                    peg$currPos =
-                                                                      s0;
-                                                                    s0 =
-                                                                      peg$FAILED;
+                                                                    peg$currPos = s0;
+                                                                    s0 = peg$FAILED;
                                                                   }
-                                                                  if (
-                                                                    s0 ===
-                                                                    peg$FAILED
-                                                                  ) {
-                                                                    s0 =
-                                                                      peg$currPos;
-                                                                    s1 =
-                                                                      peg$parseecoKey();
-                                                                    if (
-                                                                      s1 !==
-                                                                      peg$FAILED
-                                                                    ) {
-                                                                      s2 =
-                                                                        peg$parsews();
-                                                                      s3 =
-                                                                        peg$parsestring();
-                                                                      if (
-                                                                        s3 !==
-                                                                        peg$FAILED
-                                                                      ) {
-                                                                        peg$savedPos =
-                                                                          s0;
-                                                                        s0 =
-                                                                          peg$f33(
-                                                                            s3,
-                                                                          );
+                                                                  if (s0 === peg$FAILED) {
+                                                                    s0 = peg$currPos;
+                                                                    s1 = peg$parseecoKey();
+                                                                    if (s1 !== peg$FAILED) {
+                                                                      s2 = peg$parsews();
+                                                                      s3 = peg$parsestring();
+                                                                      if (s3 !== peg$FAILED) {
+                                                                        peg$savedPos = s0;
+                                                                        s0 = peg$f33(s3);
                                                                       } else {
-                                                                        peg$currPos =
-                                                                          s0;
-                                                                        s0 =
-                                                                          peg$FAILED;
+                                                                        peg$currPos = s0;
+                                                                        s0 = peg$FAILED;
                                                                       }
                                                                     } else {
-                                                                      peg$currPos =
-                                                                        s0;
-                                                                      s0 =
-                                                                        peg$FAILED;
+                                                                      peg$currPos = s0;
+                                                                      s0 = peg$FAILED;
                                                                     }
-                                                                    if (
-                                                                      s0 ===
-                                                                      peg$FAILED
-                                                                    ) {
-                                                                      s0 =
-                                                                        peg$currPos;
-                                                                      s1 =
-                                                                        peg$parsenicKey();
-                                                                      if (
-                                                                        s1 !==
-                                                                        peg$FAILED
-                                                                      ) {
-                                                                        s2 =
-                                                                          peg$parsews();
-                                                                        s3 =
-                                                                          peg$parsestring();
-                                                                        if (
-                                                                          s3 !==
-                                                                          peg$FAILED
-                                                                        ) {
-                                                                          peg$savedPos =
-                                                                            s0;
-                                                                          s0 =
-                                                                            peg$f34(
-                                                                              s3,
-                                                                            );
+                                                                    if (s0 === peg$FAILED) {
+                                                                      s0 = peg$currPos;
+                                                                      s1 = peg$parsenicKey();
+                                                                      if (s1 !== peg$FAILED) {
+                                                                        s2 = peg$parsews();
+                                                                        s3 = peg$parsestring();
+                                                                        if (s3 !== peg$FAILED) {
+                                                                          peg$savedPos = s0;
+                                                                          s0 = peg$f34(s3);
                                                                         } else {
-                                                                          peg$currPos =
-                                                                            s0;
-                                                                          s0 =
-                                                                            peg$FAILED;
+                                                                          peg$currPos = s0;
+                                                                          s0 = peg$FAILED;
                                                                         }
                                                                       } else {
-                                                                        peg$currPos =
-                                                                          s0;
-                                                                        s0 =
-                                                                          peg$FAILED;
+                                                                        peg$currPos = s0;
+                                                                        s0 = peg$FAILED;
                                                                       }
-                                                                      if (
-                                                                        s0 ===
-                                                                        peg$FAILED
-                                                                      ) {
-                                                                        s0 =
-                                                                          peg$currPos;
-                                                                        s1 =
-                                                                          peg$parsetimeKey();
-                                                                        if (
-                                                                          s1 !==
-                                                                          peg$FAILED
-                                                                        ) {
-                                                                          s2 =
-                                                                            peg$parsews();
-                                                                          s3 =
-                                                                            peg$parsetimeString();
-                                                                          if (
-                                                                            s3 !==
-                                                                            peg$FAILED
-                                                                          ) {
-                                                                            peg$savedPos =
-                                                                              s0;
-                                                                            s0 =
-                                                                              peg$f35(
-                                                                                s3,
-                                                                              );
+                                                                      if (s0 === peg$FAILED) {
+                                                                        s0 = peg$currPos;
+                                                                        s1 = peg$parsetimeKey();
+                                                                        if (s1 !== peg$FAILED) {
+                                                                          s2 = peg$parsews();
+                                                                          s3 = peg$parsetimeString();
+                                                                          if (s3 !== peg$FAILED) {
+                                                                            peg$savedPos = s0;
+                                                                            s0 = peg$f35(s3);
                                                                           } else {
-                                                                            peg$currPos =
-                                                                              s0;
-                                                                            s0 =
-                                                                              peg$FAILED;
+                                                                            peg$currPos = s0;
+                                                                            s0 = peg$FAILED;
                                                                           }
                                                                         } else {
-                                                                          peg$currPos =
-                                                                            s0;
-                                                                          s0 =
-                                                                            peg$FAILED;
+                                                                          peg$currPos = s0;
+                                                                          s0 = peg$FAILED;
                                                                         }
-                                                                        if (
-                                                                          s0 ===
-                                                                          peg$FAILED
-                                                                        ) {
-                                                                          s0 =
-                                                                            peg$currPos;
-                                                                          s1 =
-                                                                            peg$parseutcTimeKey();
-                                                                          if (
-                                                                            s1 !==
-                                                                            peg$FAILED
-                                                                          ) {
-                                                                            s2 =
-                                                                              peg$parsews();
-                                                                            s3 =
-                                                                              peg$parsetimeString();
-                                                                            if (
-                                                                              s3 !==
-                                                                              peg$FAILED
-                                                                            ) {
-                                                                              peg$savedPos =
-                                                                                s0;
-                                                                              s0 =
-                                                                                peg$f36(
-                                                                                  s3,
-                                                                                );
+                                                                        if (s0 === peg$FAILED) {
+                                                                          s0 = peg$currPos;
+                                                                          s1 = peg$parseutcTimeKey();
+                                                                          if (s1 !== peg$FAILED) {
+                                                                            s2 = peg$parsews();
+                                                                            s3 = peg$parsetimeString();
+                                                                            if (s3 !== peg$FAILED) {
+                                                                              peg$savedPos = s0;
+                                                                              s0 = peg$f36(s3);
                                                                             } else {
-                                                                              peg$currPos =
-                                                                                s0;
-                                                                              s0 =
-                                                                                peg$FAILED;
+                                                                              peg$currPos = s0;
+                                                                              s0 = peg$FAILED;
                                                                             }
                                                                           } else {
-                                                                            peg$currPos =
-                                                                              s0;
-                                                                            s0 =
-                                                                              peg$FAILED;
+                                                                            peg$currPos = s0;
+                                                                            s0 = peg$FAILED;
                                                                           }
-                                                                          if (
-                                                                            s0 ===
-                                                                            peg$FAILED
-                                                                          ) {
-                                                                            s0 =
-                                                                              peg$currPos;
-                                                                            s1 =
-                                                                              peg$parseutcDateKey();
-                                                                            if (
-                                                                              s1 !==
-                                                                              peg$FAILED
-                                                                            ) {
-                                                                              s2 =
-                                                                                peg$parsews();
-                                                                              s3 =
-                                                                                peg$parsedateString();
-                                                                              if (
-                                                                                s3 !==
-                                                                                peg$FAILED
-                                                                              ) {
-                                                                                peg$savedPos =
-                                                                                  s0;
-                                                                                s0 =
-                                                                                  peg$f37(
-                                                                                    s3,
-                                                                                  );
+                                                                          if (s0 === peg$FAILED) {
+                                                                            s0 = peg$currPos;
+                                                                            s1 = peg$parseutcDateKey();
+                                                                            if (s1 !== peg$FAILED) {
+                                                                              s2 = peg$parsews();
+                                                                              s3 = peg$parsedateString();
+                                                                              if (s3 !== peg$FAILED) {
+                                                                                peg$savedPos = s0;
+                                                                                s0 = peg$f37(s3);
                                                                               } else {
-                                                                                peg$currPos =
-                                                                                  s0;
-                                                                                s0 =
-                                                                                  peg$FAILED;
+                                                                                peg$currPos = s0;
+                                                                                s0 = peg$FAILED;
                                                                               }
                                                                             } else {
-                                                                              peg$currPos =
-                                                                                s0;
-                                                                              s0 =
-                                                                                peg$FAILED;
+                                                                              peg$currPos = s0;
+                                                                              s0 = peg$FAILED;
                                                                             }
-                                                                            if (
-                                                                              s0 ===
-                                                                              peg$FAILED
-                                                                            ) {
-                                                                              s0 =
-                                                                                peg$currPos;
-                                                                              s1 =
-                                                                                peg$parsetimeControlKey();
-                                                                              if (
-                                                                                s1 !==
-                                                                                peg$FAILED
-                                                                              ) {
-                                                                                s2 =
-                                                                                  peg$parsews();
-                                                                                s3 =
-                                                                                  peg$parsetimeControl();
-                                                                                if (
-                                                                                  s3 !==
-                                                                                  peg$FAILED
-                                                                                ) {
-                                                                                  peg$savedPos =
-                                                                                    s0;
-                                                                                  s0 =
-                                                                                    peg$f38(
-                                                                                      s3,
-                                                                                    );
+                                                                            if (s0 === peg$FAILED) {
+                                                                              s0 = peg$currPos;
+                                                                              s1 = peg$parsetimeControlKey();
+                                                                              if (s1 !== peg$FAILED) {
+                                                                                s2 = peg$parsews();
+                                                                                s3 = peg$parsetimeControl();
+                                                                                if (s3 !== peg$FAILED) {
+                                                                                  peg$savedPos = s0;
+                                                                                  s0 = peg$f38(s3);
                                                                                 } else {
-                                                                                  peg$currPos =
-                                                                                    s0;
-                                                                                  s0 =
-                                                                                    peg$FAILED;
+                                                                                  peg$currPos = s0;
+                                                                                  s0 = peg$FAILED;
                                                                                 }
                                                                               } else {
-                                                                                peg$currPos =
-                                                                                  s0;
-                                                                                s0 =
-                                                                                  peg$FAILED;
+                                                                                peg$currPos = s0;
+                                                                                s0 = peg$FAILED;
                                                                               }
-                                                                              if (
-                                                                                s0 ===
-                                                                                peg$FAILED
-                                                                              ) {
-                                                                                s0 =
-                                                                                  peg$currPos;
-                                                                                s1 =
-                                                                                  peg$parsesetUpKey();
-                                                                                if (
-                                                                                  s1 !==
-                                                                                  peg$FAILED
-                                                                                ) {
-                                                                                  s2 =
-                                                                                    peg$parsews();
-                                                                                  s3 =
-                                                                                    peg$parsestring();
-                                                                                  if (
-                                                                                    s3 !==
-                                                                                    peg$FAILED
-                                                                                  ) {
-                                                                                    peg$savedPos =
-                                                                                      s0;
-                                                                                    s0 =
-                                                                                      peg$f39(
-                                                                                        s3,
-                                                                                      );
+                                                                              if (s0 === peg$FAILED) {
+                                                                                s0 = peg$currPos;
+                                                                                s1 = peg$parsesetUpKey();
+                                                                                if (s1 !== peg$FAILED) {
+                                                                                  s2 = peg$parsews();
+                                                                                  s3 = peg$parsestring();
+                                                                                  if (s3 !== peg$FAILED) {
+                                                                                    peg$savedPos = s0;
+                                                                                    s0 = peg$f39(s3);
                                                                                   } else {
-                                                                                    peg$currPos =
-                                                                                      s0;
-                                                                                    s0 =
-                                                                                      peg$FAILED;
+                                                                                    peg$currPos = s0;
+                                                                                    s0 = peg$FAILED;
                                                                                   }
                                                                                 } else {
-                                                                                  peg$currPos =
-                                                                                    s0;
-                                                                                  s0 =
-                                                                                    peg$FAILED;
+                                                                                  peg$currPos = s0;
+                                                                                  s0 = peg$FAILED;
                                                                                 }
-                                                                                if (
-                                                                                  s0 ===
-                                                                                  peg$FAILED
-                                                                                ) {
-                                                                                  s0 =
-                                                                                    peg$currPos;
-                                                                                  s1 =
-                                                                                    peg$parsefenKey();
-                                                                                  if (
-                                                                                    s1 !==
-                                                                                    peg$FAILED
-                                                                                  ) {
-                                                                                    s2 =
-                                                                                      peg$parsews();
-                                                                                    s3 =
-                                                                                      peg$parsestring();
-                                                                                    if (
-                                                                                      s3 !==
-                                                                                      peg$FAILED
-                                                                                    ) {
-                                                                                      peg$savedPos =
-                                                                                        s0;
-                                                                                      s0 =
-                                                                                        peg$f40(
-                                                                                          s3,
-                                                                                        );
+                                                                                if (s0 === peg$FAILED) {
+                                                                                  s0 = peg$currPos;
+                                                                                  s1 = peg$parsefenKey();
+                                                                                  if (s1 !== peg$FAILED) {
+                                                                                    s2 = peg$parsews();
+                                                                                    s3 = peg$parsestring();
+                                                                                    if (s3 !== peg$FAILED) {
+                                                                                      peg$savedPos = s0;
+                                                                                      s0 = peg$f40(s3);
                                                                                     } else {
-                                                                                      peg$currPos =
-                                                                                        s0;
-                                                                                      s0 =
-                                                                                        peg$FAILED;
+                                                                                      peg$currPos = s0;
+                                                                                      s0 = peg$FAILED;
                                                                                     }
                                                                                   } else {
-                                                                                    peg$currPos =
-                                                                                      s0;
-                                                                                    s0 =
-                                                                                      peg$FAILED;
+                                                                                    peg$currPos = s0;
+                                                                                    s0 = peg$FAILED;
                                                                                   }
-                                                                                  if (
-                                                                                    s0 ===
-                                                                                    peg$FAILED
-                                                                                  ) {
-                                                                                    s0 =
-                                                                                      peg$currPos;
-                                                                                    s1 =
-                                                                                      peg$parseterminationKey();
-                                                                                    if (
-                                                                                      s1 !==
-                                                                                      peg$FAILED
-                                                                                    ) {
-                                                                                      s2 =
-                                                                                        peg$parsews();
-                                                                                      s3 =
-                                                                                        peg$parsestring();
-                                                                                      if (
-                                                                                        s3 !==
-                                                                                        peg$FAILED
-                                                                                      ) {
-                                                                                        peg$savedPos =
-                                                                                          s0;
-                                                                                        s0 =
-                                                                                          peg$f41(
-                                                                                            s3,
-                                                                                          );
+                                                                                  if (s0 === peg$FAILED) {
+                                                                                    s0 = peg$currPos;
+                                                                                    s1 = peg$parseterminationKey();
+                                                                                    if (s1 !== peg$FAILED) {
+                                                                                      s2 = peg$parsews();
+                                                                                      s3 = peg$parsestring();
+                                                                                      if (s3 !== peg$FAILED) {
+                                                                                        peg$savedPos = s0;
+                                                                                        s0 = peg$f41(s3);
                                                                                       } else {
-                                                                                        peg$currPos =
-                                                                                          s0;
-                                                                                        s0 =
-                                                                                          peg$FAILED;
+                                                                                        peg$currPos = s0;
+                                                                                        s0 = peg$FAILED;
                                                                                       }
                                                                                     } else {
-                                                                                      peg$currPos =
-                                                                                        s0;
-                                                                                      s0 =
-                                                                                        peg$FAILED;
+                                                                                      peg$currPos = s0;
+                                                                                      s0 = peg$FAILED;
                                                                                     }
-                                                                                    if (
-                                                                                      s0 ===
-                                                                                      peg$FAILED
-                                                                                    ) {
-                                                                                      s0 =
-                                                                                        peg$currPos;
-                                                                                      s1 =
-                                                                                        peg$parseannotatorKey();
-                                                                                      if (
-                                                                                        s1 !==
-                                                                                        peg$FAILED
-                                                                                      ) {
-                                                                                        s2 =
-                                                                                          peg$parsews();
-                                                                                        s3 =
-                                                                                          peg$parsestring();
-                                                                                        if (
-                                                                                          s3 !==
-                                                                                          peg$FAILED
-                                                                                        ) {
-                                                                                          peg$savedPos =
-                                                                                            s0;
-                                                                                          s0 =
-                                                                                            peg$f42(
-                                                                                              s3,
-                                                                                            );
+                                                                                    if (s0 === peg$FAILED) {
+                                                                                      s0 = peg$currPos;
+                                                                                      s1 = peg$parseannotatorKey();
+                                                                                      if (s1 !== peg$FAILED) {
+                                                                                        s2 = peg$parsews();
+                                                                                        s3 = peg$parsestring();
+                                                                                        if (s3 !== peg$FAILED) {
+                                                                                          peg$savedPos = s0;
+                                                                                          s0 = peg$f42(s3);
                                                                                         } else {
-                                                                                          peg$currPos =
-                                                                                            s0;
-                                                                                          s0 =
-                                                                                            peg$FAILED;
+                                                                                          peg$currPos = s0;
+                                                                                          s0 = peg$FAILED;
                                                                                         }
                                                                                       } else {
-                                                                                        peg$currPos =
-                                                                                          s0;
-                                                                                        s0 =
-                                                                                          peg$FAILED;
+                                                                                        peg$currPos = s0;
+                                                                                        s0 = peg$FAILED;
                                                                                       }
-                                                                                      if (
-                                                                                        s0 ===
-                                                                                        peg$FAILED
-                                                                                      ) {
-                                                                                        s0 =
-                                                                                          peg$currPos;
-                                                                                        s1 =
-                                                                                          peg$parsemodeKey();
-                                                                                        if (
-                                                                                          s1 !==
-                                                                                          peg$FAILED
-                                                                                        ) {
-                                                                                          s2 =
-                                                                                            peg$parsews();
-                                                                                          s3 =
-                                                                                            peg$parsestring();
-                                                                                          if (
-                                                                                            s3 !==
-                                                                                            peg$FAILED
-                                                                                          ) {
-                                                                                            peg$savedPos =
-                                                                                              s0;
-                                                                                            s0 =
-                                                                                              peg$f43(
-                                                                                                s3,
-                                                                                              );
+                                                                                      if (s0 === peg$FAILED) {
+                                                                                        s0 = peg$currPos;
+                                                                                        s1 = peg$parsemodeKey();
+                                                                                        if (s1 !== peg$FAILED) {
+                                                                                          s2 = peg$parsews();
+                                                                                          s3 = peg$parsestring();
+                                                                                          if (s3 !== peg$FAILED) {
+                                                                                            peg$savedPos = s0;
+                                                                                            s0 = peg$f43(s3);
                                                                                           } else {
-                                                                                            peg$currPos =
-                                                                                              s0;
-                                                                                            s0 =
-                                                                                              peg$FAILED;
+                                                                                            peg$currPos = s0;
+                                                                                            s0 = peg$FAILED;
                                                                                           }
                                                                                         } else {
-                                                                                          peg$currPos =
-                                                                                            s0;
-                                                                                          s0 =
-                                                                                            peg$FAILED;
+                                                                                          peg$currPos = s0;
+                                                                                          s0 = peg$FAILED;
                                                                                         }
-                                                                                        if (
-                                                                                          s0 ===
-                                                                                          peg$FAILED
-                                                                                        ) {
-                                                                                          s0 =
-                                                                                            peg$currPos;
-                                                                                          s1 =
-                                                                                            peg$parseplyCountKey();
-                                                                                          if (
-                                                                                            s1 !==
-                                                                                            peg$FAILED
-                                                                                          ) {
-                                                                                            s2 =
-                                                                                              peg$parsews();
-                                                                                            s3 =
-                                                                                              peg$parseintegerString();
-                                                                                            if (
-                                                                                              s3 !==
-                                                                                              peg$FAILED
-                                                                                            ) {
-                                                                                              peg$savedPos =
-                                                                                                s0;
-                                                                                              s0 =
-                                                                                                peg$f44(
-                                                                                                  s3,
-                                                                                                );
+                                                                                        if (s0 === peg$FAILED) {
+                                                                                          s0 = peg$currPos;
+                                                                                          s1 = peg$parseplyCountKey();
+                                                                                          if (s1 !== peg$FAILED) {
+                                                                                            s2 = peg$parsews();
+                                                                                            s3 = peg$parseintegerString();
+                                                                                            if (s3 !== peg$FAILED) {
+                                                                                              peg$savedPos = s0;
+                                                                                              s0 = peg$f44(s3);
                                                                                             } else {
-                                                                                              peg$currPos =
-                                                                                                s0;
-                                                                                              s0 =
-                                                                                                peg$FAILED;
+                                                                                              peg$currPos = s0;
+                                                                                              s0 = peg$FAILED;
                                                                                             }
                                                                                           } else {
-                                                                                            peg$currPos =
-                                                                                              s0;
-                                                                                            s0 =
-                                                                                              peg$FAILED;
+                                                                                            peg$currPos = s0;
+                                                                                            s0 = peg$FAILED;
                                                                                           }
-                                                                                          if (
-                                                                                            s0 ===
-                                                                                            peg$FAILED
-                                                                                          ) {
-                                                                                            s0 =
-                                                                                              peg$currPos;
-                                                                                            s1 =
-                                                                                              peg$parsevariantKey();
-                                                                                            if (
-                                                                                              s1 !==
-                                                                                              peg$FAILED
-                                                                                            ) {
-                                                                                              s2 =
-                                                                                                peg$parsews();
-                                                                                              s3 =
-                                                                                                peg$parsestring();
-                                                                                              if (
-                                                                                                s3 !==
-                                                                                                peg$FAILED
-                                                                                              ) {
-                                                                                                peg$savedPos =
-                                                                                                  s0;
-                                                                                                s0 =
-                                                                                                  peg$f45(
-                                                                                                    s3,
-                                                                                                  );
+                                                                                          if (s0 === peg$FAILED) {
+                                                                                            s0 = peg$currPos;
+                                                                                            s1 = peg$parsevariantKey();
+                                                                                            if (s1 !== peg$FAILED) {
+                                                                                              s2 = peg$parsews();
+                                                                                              s3 = peg$parsestring();
+                                                                                              if (s3 !== peg$FAILED) {
+                                                                                                peg$savedPos = s0;
+                                                                                                s0 = peg$f45(s3);
                                                                                               } else {
-                                                                                                peg$currPos =
-                                                                                                  s0;
-                                                                                                s0 =
-                                                                                                  peg$FAILED;
+                                                                                                peg$currPos = s0;
+                                                                                                s0 = peg$FAILED;
                                                                                               }
                                                                                             } else {
-                                                                                              peg$currPos =
-                                                                                                s0;
-                                                                                              s0 =
-                                                                                                peg$FAILED;
+                                                                                              peg$currPos = s0;
+                                                                                              s0 = peg$FAILED;
                                                                                             }
-                                                                                            if (
-                                                                                              s0 ===
-                                                                                              peg$FAILED
-                                                                                            ) {
-                                                                                              s0 =
-                                                                                                peg$currPos;
-                                                                                              s1 =
-                                                                                                peg$parsewhiteRatingDiffKey();
-                                                                                              if (
-                                                                                                s1 !==
-                                                                                                peg$FAILED
-                                                                                              ) {
-                                                                                                s2 =
-                                                                                                  peg$parsews();
-                                                                                                s3 =
-                                                                                                  peg$parsestring();
-                                                                                                if (
-                                                                                                  s3 !==
-                                                                                                  peg$FAILED
-                                                                                                ) {
-                                                                                                  peg$savedPos =
-                                                                                                    s0;
-                                                                                                  s0 =
-                                                                                                    peg$f46(
-                                                                                                      s3,
-                                                                                                    );
+                                                                                            if (s0 === peg$FAILED) {
+                                                                                              s0 = peg$currPos;
+                                                                                              s1 = peg$parsewhiteRatingDiffKey();
+                                                                                              if (s1 !== peg$FAILED) {
+                                                                                                s2 = peg$parsews();
+                                                                                                s3 = peg$parsestring();
+                                                                                                if (s3 !== peg$FAILED) {
+                                                                                                  peg$savedPos = s0;
+                                                                                                  s0 = peg$f46(s3);
                                                                                                 } else {
-                                                                                                  peg$currPos =
-                                                                                                    s0;
-                                                                                                  s0 =
-                                                                                                    peg$FAILED;
+                                                                                                  peg$currPos = s0;
+                                                                                                  s0 = peg$FAILED;
                                                                                                 }
                                                                                               } else {
-                                                                                                peg$currPos =
-                                                                                                  s0;
-                                                                                                s0 =
-                                                                                                  peg$FAILED;
+                                                                                                peg$currPos = s0;
+                                                                                                s0 = peg$FAILED;
                                                                                               }
-                                                                                              if (
-                                                                                                s0 ===
-                                                                                                peg$FAILED
-                                                                                              ) {
-                                                                                                s0 =
-                                                                                                  peg$currPos;
-                                                                                                s1 =
-                                                                                                  peg$parseblackRatingDiffKey();
-                                                                                                if (
-                                                                                                  s1 !==
-                                                                                                  peg$FAILED
-                                                                                                ) {
-                                                                                                  s2 =
-                                                                                                    peg$parsews();
-                                                                                                  s3 =
-                                                                                                    peg$parsestring();
-                                                                                                  if (
-                                                                                                    s3 !==
-                                                                                                    peg$FAILED
-                                                                                                  ) {
-                                                                                                    peg$savedPos =
-                                                                                                      s0;
-                                                                                                    s0 =
-                                                                                                      peg$f47(
-                                                                                                        s3,
-                                                                                                      );
+                                                                                              if (s0 === peg$FAILED) {
+                                                                                                s0 = peg$currPos;
+                                                                                                s1 = peg$parseblackRatingDiffKey();
+                                                                                                if (s1 !== peg$FAILED) {
+                                                                                                  s2 = peg$parsews();
+                                                                                                  s3 = peg$parsestring();
+                                                                                                  if (s3 !== peg$FAILED) {
+                                                                                                    peg$savedPos = s0;
+                                                                                                    s0 = peg$f47(s3);
                                                                                                   } else {
-                                                                                                    peg$currPos =
-                                                                                                      s0;
-                                                                                                    s0 =
-                                                                                                      peg$FAILED;
+                                                                                                    peg$currPos = s0;
+                                                                                                    s0 = peg$FAILED;
                                                                                                   }
                                                                                                 } else {
-                                                                                                  peg$currPos =
-                                                                                                    s0;
-                                                                                                  s0 =
-                                                                                                    peg$FAILED;
+                                                                                                  peg$currPos = s0;
+                                                                                                  s0 = peg$FAILED;
                                                                                                 }
-                                                                                                if (
-                                                                                                  s0 ===
-                                                                                                  peg$FAILED
-                                                                                                ) {
-                                                                                                  s0 =
-                                                                                                    peg$currPos;
-                                                                                                  s1 =
-                                                                                                    peg$parsewhiteFideIdKey();
-                                                                                                  if (
-                                                                                                    s1 !==
-                                                                                                    peg$FAILED
-                                                                                                  ) {
-                                                                                                    s2 =
-                                                                                                      peg$parsews();
-                                                                                                    s3 =
-                                                                                                      peg$parsestring();
-                                                                                                    if (
-                                                                                                      s3 !==
-                                                                                                      peg$FAILED
-                                                                                                    ) {
-                                                                                                      peg$savedPos =
-                                                                                                        s0;
-                                                                                                      s0 =
-                                                                                                        peg$f48(
-                                                                                                          s3,
-                                                                                                        );
+                                                                                                if (s0 === peg$FAILED) {
+                                                                                                  s0 = peg$currPos;
+                                                                                                  s1 = peg$parsewhiteFideIdKey();
+                                                                                                  if (s1 !== peg$FAILED) {
+                                                                                                    s2 = peg$parsews();
+                                                                                                    s3 = peg$parsestring();
+                                                                                                    if (s3 !== peg$FAILED) {
+                                                                                                      peg$savedPos = s0;
+                                                                                                      s0 = peg$f48(s3);
                                                                                                     } else {
-                                                                                                      peg$currPos =
-                                                                                                        s0;
-                                                                                                      s0 =
-                                                                                                        peg$FAILED;
+                                                                                                      peg$currPos = s0;
+                                                                                                      s0 = peg$FAILED;
                                                                                                     }
                                                                                                   } else {
-                                                                                                    peg$currPos =
-                                                                                                      s0;
-                                                                                                    s0 =
-                                                                                                      peg$FAILED;
+                                                                                                    peg$currPos = s0;
+                                                                                                    s0 = peg$FAILED;
                                                                                                   }
-                                                                                                  if (
-                                                                                                    s0 ===
-                                                                                                    peg$FAILED
-                                                                                                  ) {
-                                                                                                    s0 =
-                                                                                                      peg$currPos;
-                                                                                                    s1 =
-                                                                                                      peg$parseblackFideIdKey();
-                                                                                                    if (
-                                                                                                      s1 !==
-                                                                                                      peg$FAILED
-                                                                                                    ) {
-                                                                                                      s2 =
-                                                                                                        peg$parsews();
-                                                                                                      s3 =
-                                                                                                        peg$parsestring();
-                                                                                                      if (
-                                                                                                        s3 !==
-                                                                                                        peg$FAILED
-                                                                                                      ) {
-                                                                                                        peg$savedPos =
-                                                                                                          s0;
-                                                                                                        s0 =
-                                                                                                          peg$f49(
-                                                                                                            s3,
-                                                                                                          );
+                                                                                                  if (s0 === peg$FAILED) {
+                                                                                                    s0 = peg$currPos;
+                                                                                                    s1 = peg$parseblackFideIdKey();
+                                                                                                    if (s1 !== peg$FAILED) {
+                                                                                                      s2 = peg$parsews();
+                                                                                                      s3 = peg$parsestring();
+                                                                                                      if (s3 !== peg$FAILED) {
+                                                                                                        peg$savedPos = s0;
+                                                                                                        s0 = peg$f49(s3);
                                                                                                       } else {
-                                                                                                        peg$currPos =
-                                                                                                          s0;
-                                                                                                        s0 =
-                                                                                                          peg$FAILED;
+                                                                                                        peg$currPos = s0;
+                                                                                                        s0 = peg$FAILED;
                                                                                                       }
                                                                                                     } else {
-                                                                                                      peg$currPos =
-                                                                                                        s0;
-                                                                                                      s0 =
-                                                                                                        peg$FAILED;
+                                                                                                      peg$currPos = s0;
+                                                                                                      s0 = peg$FAILED;
                                                                                                     }
-                                                                                                    if (
-                                                                                                      s0 ===
-                                                                                                      peg$FAILED
-                                                                                                    ) {
-                                                                                                      s0 =
-                                                                                                        peg$currPos;
-                                                                                                      s1 =
-                                                                                                        peg$parsewhiteTeamKey();
-                                                                                                      if (
-                                                                                                        s1 !==
-                                                                                                        peg$FAILED
-                                                                                                      ) {
-                                                                                                        s2 =
-                                                                                                          peg$parsews();
-                                                                                                        s3 =
-                                                                                                          peg$parsestring();
-                                                                                                        if (
-                                                                                                          s3 !==
-                                                                                                          peg$FAILED
-                                                                                                        ) {
-                                                                                                          peg$savedPos =
-                                                                                                            s0;
-                                                                                                          s0 =
-                                                                                                            peg$f50(
-                                                                                                              s3,
-                                                                                                            );
+                                                                                                    if (s0 === peg$FAILED) {
+                                                                                                      s0 = peg$currPos;
+                                                                                                      s1 = peg$parsewhiteTeamKey();
+                                                                                                      if (s1 !== peg$FAILED) {
+                                                                                                        s2 = peg$parsews();
+                                                                                                        s3 = peg$parsestring();
+                                                                                                        if (s3 !== peg$FAILED) {
+                                                                                                          peg$savedPos = s0;
+                                                                                                          s0 = peg$f50(s3);
                                                                                                         } else {
-                                                                                                          peg$currPos =
-                                                                                                            s0;
-                                                                                                          s0 =
-                                                                                                            peg$FAILED;
+                                                                                                          peg$currPos = s0;
+                                                                                                          s0 = peg$FAILED;
                                                                                                         }
                                                                                                       } else {
-                                                                                                        peg$currPos =
-                                                                                                          s0;
-                                                                                                        s0 =
-                                                                                                          peg$FAILED;
+                                                                                                        peg$currPos = s0;
+                                                                                                        s0 = peg$FAILED;
                                                                                                       }
-                                                                                                      if (
-                                                                                                        s0 ===
-                                                                                                        peg$FAILED
-                                                                                                      ) {
-                                                                                                        s0 =
-                                                                                                          peg$currPos;
-                                                                                                        s1 =
-                                                                                                          peg$parseblackTeamKey();
-                                                                                                        if (
-                                                                                                          s1 !==
-                                                                                                          peg$FAILED
-                                                                                                        ) {
-                                                                                                          s2 =
-                                                                                                            peg$parsews();
-                                                                                                          s3 =
-                                                                                                            peg$parsestring();
-                                                                                                          if (
-                                                                                                            s3 !==
-                                                                                                            peg$FAILED
-                                                                                                          ) {
-                                                                                                            peg$savedPos =
-                                                                                                              s0;
-                                                                                                            s0 =
-                                                                                                              peg$f51(
-                                                                                                                s3,
-                                                                                                              );
+                                                                                                      if (s0 === peg$FAILED) {
+                                                                                                        s0 = peg$currPos;
+                                                                                                        s1 = peg$parseblackTeamKey();
+                                                                                                        if (s1 !== peg$FAILED) {
+                                                                                                          s2 = peg$parsews();
+                                                                                                          s3 = peg$parsestring();
+                                                                                                          if (s3 !== peg$FAILED) {
+                                                                                                            peg$savedPos = s0;
+                                                                                                            s0 = peg$f51(s3);
                                                                                                           } else {
-                                                                                                            peg$currPos =
-                                                                                                              s0;
-                                                                                                            s0 =
-                                                                                                              peg$FAILED;
+                                                                                                            peg$currPos = s0;
+                                                                                                            s0 = peg$FAILED;
                                                                                                           }
                                                                                                         } else {
-                                                                                                          peg$currPos =
-                                                                                                            s0;
-                                                                                                          s0 =
-                                                                                                            peg$FAILED;
+                                                                                                          peg$currPos = s0;
+                                                                                                          s0 = peg$FAILED;
                                                                                                         }
-                                                                                                        if (
-                                                                                                          s0 ===
-                                                                                                          peg$FAILED
-                                                                                                        ) {
-                                                                                                          s0 =
-                                                                                                            peg$currPos;
-                                                                                                          s1 =
-                                                                                                            peg$parseclockKey();
-                                                                                                          if (
-                                                                                                            s1 !==
-                                                                                                            peg$FAILED
-                                                                                                          ) {
-                                                                                                            s2 =
-                                                                                                              peg$parsews();
-                                                                                                            s3 =
-                                                                                                              peg$parsecolorClockTimeQ();
-                                                                                                            if (
-                                                                                                              s3 !==
-                                                                                                              peg$FAILED
-                                                                                                            ) {
-                                                                                                              peg$savedPos =
-                                                                                                                s0;
-                                                                                                              s0 =
-                                                                                                                peg$f52(
-                                                                                                                  s3,
-                                                                                                                );
+                                                                                                        if (s0 === peg$FAILED) {
+                                                                                                          s0 = peg$currPos;
+                                                                                                          s1 = peg$parseclockKey();
+                                                                                                          if (s1 !== peg$FAILED) {
+                                                                                                            s2 = peg$parsews();
+                                                                                                            s3 = peg$parsecolorClockTimeQ();
+                                                                                                            if (s3 !== peg$FAILED) {
+                                                                                                              peg$savedPos = s0;
+                                                                                                              s0 = peg$f52(s3);
                                                                                                             } else {
-                                                                                                              peg$currPos =
-                                                                                                                s0;
-                                                                                                              s0 =
-                                                                                                                peg$FAILED;
+                                                                                                              peg$currPos = s0;
+                                                                                                              s0 = peg$FAILED;
                                                                                                             }
                                                                                                           } else {
-                                                                                                            peg$currPos =
-                                                                                                              s0;
-                                                                                                            s0 =
-                                                                                                              peg$FAILED;
+                                                                                                            peg$currPos = s0;
+                                                                                                            s0 = peg$FAILED;
                                                                                                           }
-                                                                                                          if (
-                                                                                                            s0 ===
-                                                                                                            peg$FAILED
-                                                                                                          ) {
-                                                                                                            s0 =
-                                                                                                              peg$currPos;
-                                                                                                            s1 =
-                                                                                                              peg$parsewhiteClockKey();
-                                                                                                            if (
-                                                                                                              s1 !==
-                                                                                                              peg$FAILED
-                                                                                                            ) {
-                                                                                                              s2 =
-                                                                                                                peg$parsews();
-                                                                                                              s3 =
-                                                                                                                peg$parseclockTimeQ();
-                                                                                                              if (
-                                                                                                                s3 !==
-                                                                                                                peg$FAILED
-                                                                                                              ) {
-                                                                                                                peg$savedPos =
-                                                                                                                  s0;
-                                                                                                                s0 =
-                                                                                                                  peg$f53(
-                                                                                                                    s3,
-                                                                                                                  );
+                                                                                                          if (s0 === peg$FAILED) {
+                                                                                                            s0 = peg$currPos;
+                                                                                                            s1 = peg$parsewhiteClockKey();
+                                                                                                            if (s1 !== peg$FAILED) {
+                                                                                                              s2 = peg$parsews();
+                                                                                                              s3 = peg$parseclockTimeQ();
+                                                                                                              if (s3 !== peg$FAILED) {
+                                                                                                                peg$savedPos = s0;
+                                                                                                                s0 = peg$f53(s3);
                                                                                                               } else {
-                                                                                                                peg$currPos =
-                                                                                                                  s0;
-                                                                                                                s0 =
-                                                                                                                  peg$FAILED;
+                                                                                                                peg$currPos = s0;
+                                                                                                                s0 = peg$FAILED;
                                                                                                               }
                                                                                                             } else {
-                                                                                                              peg$currPos =
-                                                                                                                s0;
-                                                                                                              s0 =
-                                                                                                                peg$FAILED;
+                                                                                                              peg$currPos = s0;
+                                                                                                              s0 = peg$FAILED;
                                                                                                             }
-                                                                                                            if (
-                                                                                                              s0 ===
-                                                                                                              peg$FAILED
-                                                                                                            ) {
-                                                                                                              s0 =
-                                                                                                                peg$currPos;
-                                                                                                              s1 =
-                                                                                                                peg$parseblackClockKey();
-                                                                                                              if (
-                                                                                                                s1 !==
-                                                                                                                peg$FAILED
-                                                                                                              ) {
-                                                                                                                s2 =
-                                                                                                                  peg$parsews();
-                                                                                                                s3 =
-                                                                                                                  peg$parseclockTimeQ();
-                                                                                                                if (
-                                                                                                                  s3 !==
-                                                                                                                  peg$FAILED
-                                                                                                                ) {
-                                                                                                                  peg$savedPos =
-                                                                                                                    s0;
-                                                                                                                  s0 =
-                                                                                                                    peg$f54(
-                                                                                                                      s3,
-                                                                                                                    );
+                                                                                                            if (s0 === peg$FAILED) {
+                                                                                                              s0 = peg$currPos;
+                                                                                                              s1 = peg$parseblackClockKey();
+                                                                                                              if (s1 !== peg$FAILED) {
+                                                                                                                s2 = peg$parsews();
+                                                                                                                s3 = peg$parseclockTimeQ();
+                                                                                                                if (s3 !== peg$FAILED) {
+                                                                                                                  peg$savedPos = s0;
+                                                                                                                  s0 = peg$f54(s3);
                                                                                                                 } else {
-                                                                                                                  peg$currPos =
-                                                                                                                    s0;
-                                                                                                                  s0 =
-                                                                                                                    peg$FAILED;
+                                                                                                                  peg$currPos = s0;
+                                                                                                                  s0 = peg$FAILED;
                                                                                                                 }
                                                                                                               } else {
-                                                                                                                peg$currPos =
-                                                                                                                  s0;
-                                                                                                                s0 =
-                                                                                                                  peg$FAILED;
+                                                                                                                peg$currPos = s0;
+                                                                                                                s0 = peg$FAILED;
                                                                                                               }
-                                                                                                              if (
-                                                                                                                s0 ===
-                                                                                                                peg$FAILED
-                                                                                                              ) {
-                                                                                                                s0 =
-                                                                                                                  peg$currPos;
-                                                                                                                s1 =
-                                                                                                                  peg$currPos;
+                                                                                                              if (s0 === peg$FAILED) {
+                                                                                                                s0 = peg$currPos;
+                                                                                                                s1 = peg$currPos;
                                                                                                                 peg$silentFails++;
-                                                                                                                s2 =
-                                                                                                                  peg$parsevalidatedKey();
+                                                                                                                s2 = peg$parsevalidatedKey();
                                                                                                                 peg$silentFails--;
-                                                                                                                if (
-                                                                                                                  s2 !==
-                                                                                                                  peg$FAILED
-                                                                                                                ) {
-                                                                                                                  peg$currPos =
-                                                                                                                    s1;
-                                                                                                                  s1 =
-                                                                                                                    void 0;
+                                                                                                                if (s2 !== peg$FAILED) {
+                                                                                                                  peg$currPos = s1;
+                                                                                                                  s1 = void 0;
                                                                                                                 } else {
-                                                                                                                  s1 =
-                                                                                                                    peg$FAILED;
+                                                                                                                  s1 = peg$FAILED;
                                                                                                                 }
-                                                                                                                if (
-                                                                                                                  s1 !==
-                                                                                                                  peg$FAILED
-                                                                                                                ) {
-                                                                                                                  s2 =
-                                                                                                                    peg$parsestringNoQuot();
-                                                                                                                  s3 =
-                                                                                                                    peg$parsews();
-                                                                                                                  s4 =
-                                                                                                                    peg$parsestring();
-                                                                                                                  if (
-                                                                                                                    s4 !==
-                                                                                                                    peg$FAILED
-                                                                                                                  ) {
-                                                                                                                    peg$savedPos =
-                                                                                                                      s0;
-                                                                                                                    s0 =
-                                                                                                                      peg$f55(
-                                                                                                                        s2,
-                                                                                                                        s4,
-                                                                                                                      );
+                                                                                                                if (s1 !== peg$FAILED) {
+                                                                                                                  s2 = peg$parsestringNoQuot();
+                                                                                                                  s3 = peg$parsews();
+                                                                                                                  s4 = peg$parsestring();
+                                                                                                                  if (s4 !== peg$FAILED) {
+                                                                                                                    peg$savedPos = s0;
+                                                                                                                    s0 = peg$f55(s2, s4);
                                                                                                                   } else {
-                                                                                                                    peg$currPos =
-                                                                                                                      s0;
-                                                                                                                    s0 =
-                                                                                                                      peg$FAILED;
+                                                                                                                    peg$currPos = s0;
+                                                                                                                    s0 = peg$FAILED;
                                                                                                                   }
                                                                                                                 } else {
-                                                                                                                  peg$currPos =
-                                                                                                                    s0;
-                                                                                                                  s0 =
-                                                                                                                    peg$FAILED;
+                                                                                                                  peg$currPos = s0;
+                                                                                                                  s0 = peg$FAILED;
                                                                                                                 }
-                                                                                                                if (
-                                                                                                                  s0 ===
-                                                                                                                  peg$FAILED
-                                                                                                                ) {
-                                                                                                                  s0 =
-                                                                                                                    peg$currPos;
-                                                                                                                  s1 =
-                                                                                                                    peg$currPos;
+                                                                                                                if (s0 === peg$FAILED) {
+                                                                                                                  s0 = peg$currPos;
+                                                                                                                  s1 = peg$currPos;
                                                                                                                   peg$silentFails++;
-                                                                                                                  s2 =
-                                                                                                                    peg$parsevalidatedKey();
+                                                                                                                  s2 = peg$parsevalidatedKey();
                                                                                                                   peg$silentFails--;
-                                                                                                                  if (
-                                                                                                                    s2 ===
-                                                                                                                    peg$FAILED
-                                                                                                                  ) {
-                                                                                                                    s1 =
-                                                                                                                      void 0;
+                                                                                                                  if (s2 === peg$FAILED) {
+                                                                                                                    s1 = void 0;
                                                                                                                   } else {
-                                                                                                                    peg$currPos =
-                                                                                                                      s1;
-                                                                                                                    s1 =
-                                                                                                                      peg$FAILED;
+                                                                                                                    peg$currPos = s1;
+                                                                                                                    s1 = peg$FAILED;
                                                                                                                   }
-                                                                                                                  if (
-                                                                                                                    s1 !==
-                                                                                                                    peg$FAILED
-                                                                                                                  ) {
-                                                                                                                    s2 =
-                                                                                                                      peg$parsestringNoQuot();
-                                                                                                                    s3 =
-                                                                                                                      peg$parsews();
-                                                                                                                    s4 =
-                                                                                                                      peg$parsestring();
-                                                                                                                    if (
-                                                                                                                      s4 !==
-                                                                                                                      peg$FAILED
-                                                                                                                    ) {
-                                                                                                                      peg$savedPos =
-                                                                                                                        s0;
-                                                                                                                      s0 =
-                                                                                                                        peg$f56(
-                                                                                                                          s2,
-                                                                                                                          s4,
-                                                                                                                        );
+                                                                                                                  if (s1 !== peg$FAILED) {
+                                                                                                                    s2 = peg$parsestringNoQuot();
+                                                                                                                    s3 = peg$parsews();
+                                                                                                                    s4 = peg$parsestring();
+                                                                                                                    if (s4 !== peg$FAILED) {
+                                                                                                                      peg$savedPos = s0;
+                                                                                                                      s0 = peg$f56(s2, s4);
                                                                                                                     } else {
-                                                                                                                      peg$currPos =
-                                                                                                                        s0;
-                                                                                                                      s0 =
-                                                                                                                        peg$FAILED;
+                                                                                                                      peg$currPos = s0;
+                                                                                                                      s0 = peg$FAILED;
                                                                                                                     }
                                                                                                                   } else {
-                                                                                                                    peg$currPos =
-                                                                                                                      s0;
-                                                                                                                    s0 =
-                                                                                                                      peg$FAILED;
+                                                                                                                    peg$currPos = s0;
+                                                                                                                    s0 = peg$FAILED;
                                                                                                                   }
                                                                                                                 }
                                                                                                               }
@@ -11691,9 +11018,7 @@
                                   s0 = s1;
                                   if (s0 === peg$FAILED) {
                                     s0 = peg$currPos;
-                                    if (
-                                      input.charCodeAt(peg$currPos) === 8265
-                                    ) {
+                                    if (input.charCodeAt(peg$currPos) === 8265) {
                                       s1 = peg$c192;
                                       peg$currPos++;
                                     } else {
@@ -11709,9 +11034,7 @@
                                     s0 = s1;
                                     if (s0 === peg$FAILED) {
                                       s0 = peg$currPos;
-                                      if (
-                                        input.charCodeAt(peg$currPos) === 8264
-                                      ) {
+                                      if (input.charCodeAt(peg$currPos) === 8264) {
                                         s1 = peg$c193;
                                         peg$currPos++;
                                       } else {
@@ -11727,9 +11050,7 @@
                                       s0 = s1;
                                       if (s0 === peg$FAILED) {
                                         s0 = peg$currPos;
-                                        if (
-                                          input.charCodeAt(peg$currPos) === 9633
-                                        ) {
+                                        if (input.charCodeAt(peg$currPos) === 9633) {
                                           s1 = peg$c194;
                                           peg$currPos++;
                                         } else {
@@ -11745,9 +11066,7 @@
                                         s0 = s1;
                                         if (s0 === peg$FAILED) {
                                           s0 = peg$currPos;
-                                          if (
-                                            input.charCodeAt(peg$currPos) === 61
-                                          ) {
+                                          if (input.charCodeAt(peg$currPos) === 61) {
                                             s1 = peg$c151;
                                             peg$currPos++;
                                           } else {
@@ -11763,10 +11082,7 @@
                                           s0 = s1;
                                           if (s0 === peg$FAILED) {
                                             s0 = peg$currPos;
-                                            if (
-                                              input.charCodeAt(peg$currPos) ===
-                                              8734
-                                            ) {
+                                            if (input.charCodeAt(peg$currPos) === 8734) {
                                               s1 = peg$c195;
                                               peg$currPos++;
                                             } else {
@@ -11782,11 +11098,7 @@
                                             s0 = s1;
                                             if (s0 === peg$FAILED) {
                                               s0 = peg$currPos;
-                                              if (
-                                                input.charCodeAt(
-                                                  peg$currPos,
-                                                ) === 10866
-                                              ) {
+                                              if (input.charCodeAt(peg$currPos) === 10866) {
                                                 s1 = peg$c196;
                                                 peg$currPos++;
                                               } else {
@@ -11802,11 +11114,7 @@
                                               s0 = s1;
                                               if (s0 === peg$FAILED) {
                                                 s0 = peg$currPos;
-                                                if (
-                                                  input.charCodeAt(
-                                                    peg$currPos,
-                                                  ) === 10865
-                                                ) {
+                                                if (input.charCodeAt(peg$currPos) === 10865) {
                                                   s1 = peg$c197;
                                                   peg$currPos++;
                                                 } else {
@@ -11822,11 +11130,7 @@
                                                 s0 = s1;
                                                 if (s0 === peg$FAILED) {
                                                   s0 = peg$currPos;
-                                                  if (
-                                                    input.charCodeAt(
-                                                      peg$currPos,
-                                                    ) === 177
-                                                  ) {
+                                                  if (input.charCodeAt(peg$currPos) === 177) {
                                                     s1 = peg$c198;
                                                     peg$currPos++;
                                                   } else {
@@ -11842,18 +11146,12 @@
                                                   s0 = s1;
                                                   if (s0 === peg$FAILED) {
                                                     s0 = peg$currPos;
-                                                    if (
-                                                      input.charCodeAt(
-                                                        peg$currPos,
-                                                      ) === 8723
-                                                    ) {
+                                                    if (input.charCodeAt(peg$currPos) === 8723) {
                                                       s1 = peg$c199;
                                                       peg$currPos++;
                                                     } else {
                                                       s1 = peg$FAILED;
-                                                      if (
-                                                        peg$silentFails === 0
-                                                      ) {
+                                                      if (peg$silentFails === 0) {
                                                         peg$fail(peg$e210);
                                                       }
                                                     }
@@ -11864,19 +11162,12 @@
                                                     s0 = s1;
                                                     if (s0 === peg$FAILED) {
                                                       s0 = peg$currPos;
-                                                      if (
-                                                        input.substr(
-                                                          peg$currPos,
-                                                          2,
-                                                        ) === peg$c181
-                                                      ) {
+                                                      if (input.substr(peg$currPos, 2) === peg$c181) {
                                                         s1 = peg$c181;
                                                         peg$currPos += 2;
                                                       } else {
                                                         s1 = peg$FAILED;
-                                                        if (
-                                                          peg$silentFails === 0
-                                                        ) {
+                                                        if (peg$silentFails === 0) {
                                                           peg$fail(peg$e192);
                                                         }
                                                       }
@@ -11887,20 +11178,12 @@
                                                       s0 = s1;
                                                       if (s0 === peg$FAILED) {
                                                         s0 = peg$currPos;
-                                                        if (
-                                                          input.substr(
-                                                            peg$currPos,
-                                                            2,
-                                                          ) === peg$c200
-                                                        ) {
+                                                        if (input.substr(peg$currPos, 2) === peg$c200) {
                                                           s1 = peg$c200;
                                                           peg$currPos += 2;
                                                         } else {
                                                           s1 = peg$FAILED;
-                                                          if (
-                                                            peg$silentFails ===
-                                                            0
-                                                          ) {
+                                                          if (peg$silentFails === 0) {
                                                             peg$fail(peg$e211);
                                                           }
                                                         }
@@ -11911,196 +11194,98 @@
                                                         s0 = s1;
                                                         if (s0 === peg$FAILED) {
                                                           s0 = peg$currPos;
-                                                          if (
-                                                            input.charCodeAt(
-                                                              peg$currPos,
-                                                            ) === 10752
-                                                          ) {
+                                                          if (input.charCodeAt(peg$currPos) === 10752) {
                                                             s1 = peg$c201;
                                                             peg$currPos++;
                                                           } else {
                                                             s1 = peg$FAILED;
-                                                            if (
-                                                              peg$silentFails ===
-                                                              0
-                                                            ) {
-                                                              peg$fail(
-                                                                peg$e212,
-                                                              );
+                                                            if (peg$silentFails === 0) {
+                                                              peg$fail(peg$e212);
                                                             }
                                                           }
-                                                          if (
-                                                            s1 !== peg$FAILED
-                                                          ) {
+                                                          if (s1 !== peg$FAILED) {
                                                             peg$savedPos = s0;
                                                             s1 = peg$f176();
                                                           }
                                                           s0 = s1;
-                                                          if (
-                                                            s0 === peg$FAILED
-                                                          ) {
+                                                          if (s0 === peg$FAILED) {
                                                             s0 = peg$currPos;
-                                                            if (
-                                                              input.charCodeAt(
-                                                                peg$currPos,
-                                                              ) === 10227
-                                                            ) {
+                                                            if (input.charCodeAt(peg$currPos) === 10227) {
                                                               s1 = peg$c202;
                                                               peg$currPos++;
                                                             } else {
                                                               s1 = peg$FAILED;
-                                                              if (
-                                                                peg$silentFails ===
-                                                                0
-                                                              ) {
-                                                                peg$fail(
-                                                                  peg$e213,
-                                                                );
+                                                              if (peg$silentFails === 0) {
+                                                                peg$fail(peg$e213);
                                                               }
                                                             }
-                                                            if (
-                                                              s1 !== peg$FAILED
-                                                            ) {
+                                                            if (s1 !== peg$FAILED) {
                                                               peg$savedPos = s0;
                                                               s1 = peg$f177();
                                                             }
                                                             s0 = s1;
-                                                            if (
-                                                              s0 === peg$FAILED
-                                                            ) {
+                                                            if (s0 === peg$FAILED) {
                                                               s0 = peg$currPos;
-                                                              if (
-                                                                input.charCodeAt(
-                                                                  peg$currPos,
-                                                                ) === 8594
-                                                              ) {
+                                                              if (input.charCodeAt(peg$currPos) === 8594) {
                                                                 s1 = peg$c203;
                                                                 peg$currPos++;
                                                               } else {
                                                                 s1 = peg$FAILED;
-                                                                if (
-                                                                  peg$silentFails ===
-                                                                  0
-                                                                ) {
-                                                                  peg$fail(
-                                                                    peg$e214,
-                                                                  );
+                                                                if (peg$silentFails === 0) {
+                                                                  peg$fail(peg$e214);
                                                                 }
                                                               }
-                                                              if (
-                                                                s1 !==
-                                                                peg$FAILED
-                                                              ) {
-                                                                peg$savedPos =
-                                                                  s0;
+                                                              if (s1 !== peg$FAILED) {
+                                                                peg$savedPos = s0;
                                                                 s1 = peg$f178();
                                                               }
                                                               s0 = s1;
-                                                              if (
-                                                                s0 ===
-                                                                peg$FAILED
-                                                              ) {
-                                                                s0 =
-                                                                  peg$currPos;
-                                                                if (
-                                                                  input.charCodeAt(
-                                                                    peg$currPos,
-                                                                  ) === 8593
-                                                                ) {
+                                                              if (s0 === peg$FAILED) {
+                                                                s0 = peg$currPos;
+                                                                if (input.charCodeAt(peg$currPos) === 8593) {
                                                                   s1 = peg$c204;
                                                                   peg$currPos++;
                                                                 } else {
-                                                                  s1 =
-                                                                    peg$FAILED;
-                                                                  if (
-                                                                    peg$silentFails ===
-                                                                    0
-                                                                  ) {
-                                                                    peg$fail(
-                                                                      peg$e215,
-                                                                    );
+                                                                  s1 = peg$FAILED;
+                                                                  if (peg$silentFails === 0) {
+                                                                    peg$fail(peg$e215);
                                                                   }
                                                                 }
-                                                                if (
-                                                                  s1 !==
-                                                                  peg$FAILED
-                                                                ) {
-                                                                  peg$savedPos =
-                                                                    s0;
-                                                                  s1 =
-                                                                    peg$f179();
+                                                                if (s1 !== peg$FAILED) {
+                                                                  peg$savedPos = s0;
+                                                                  s1 = peg$f179();
                                                                 }
                                                                 s0 = s1;
-                                                                if (
-                                                                  s0 ===
-                                                                  peg$FAILED
-                                                                ) {
-                                                                  s0 =
-                                                                    peg$currPos;
-                                                                  if (
-                                                                    input.charCodeAt(
-                                                                      peg$currPos,
-                                                                    ) === 8646
-                                                                  ) {
-                                                                    s1 =
-                                                                      peg$c205;
+                                                                if (s0 === peg$FAILED) {
+                                                                  s0 = peg$currPos;
+                                                                  if (input.charCodeAt(peg$currPos) === 8646) {
+                                                                    s1 = peg$c205;
                                                                     peg$currPos++;
                                                                   } else {
-                                                                    s1 =
-                                                                      peg$FAILED;
-                                                                    if (
-                                                                      peg$silentFails ===
-                                                                      0
-                                                                    ) {
-                                                                      peg$fail(
-                                                                        peg$e216,
-                                                                      );
+                                                                    s1 = peg$FAILED;
+                                                                    if (peg$silentFails === 0) {
+                                                                      peg$fail(peg$e216);
                                                                     }
                                                                   }
-                                                                  if (
-                                                                    s1 !==
-                                                                    peg$FAILED
-                                                                  ) {
-                                                                    peg$savedPos =
-                                                                      s0;
-                                                                    s1 =
-                                                                      peg$f180();
+                                                                  if (s1 !== peg$FAILED) {
+                                                                    peg$savedPos = s0;
+                                                                    s1 = peg$f180();
                                                                   }
                                                                   s0 = s1;
-                                                                  if (
-                                                                    s0 ===
-                                                                    peg$FAILED
-                                                                  ) {
-                                                                    s0 =
-                                                                      peg$currPos;
-                                                                    if (
-                                                                      input.charCodeAt(
-                                                                        peg$currPos,
-                                                                      ) === 68
-                                                                    ) {
-                                                                      s1 =
-                                                                        peg$c206;
+                                                                  if (s0 === peg$FAILED) {
+                                                                    s0 = peg$currPos;
+                                                                    if (input.charCodeAt(peg$currPos) === 68) {
+                                                                      s1 = peg$c206;
                                                                       peg$currPos++;
                                                                     } else {
-                                                                      s1 =
-                                                                        peg$FAILED;
-                                                                      if (
-                                                                        peg$silentFails ===
-                                                                        0
-                                                                      ) {
-                                                                        peg$fail(
-                                                                          peg$e217,
-                                                                        );
+                                                                      s1 = peg$FAILED;
+                                                                      if (peg$silentFails === 0) {
+                                                                        peg$fail(peg$e217);
                                                                       }
                                                                     }
-                                                                    if (
-                                                                      s1 !==
-                                                                      peg$FAILED
-                                                                    ) {
-                                                                      peg$savedPos =
-                                                                        s0;
-                                                                      s1 =
-                                                                        peg$f181();
+                                                                    if (s1 !== peg$FAILED) {
+                                                                      peg$savedPos = s0;
+                                                                      s1 = peg$f181();
                                                                     }
                                                                     s0 = s1;
                                                                   }
@@ -12264,28 +11449,26 @@
                 }
                 function merge(array) {
                   var ret = {};
-                  array.forEach(function (json) {
+                  array.forEach(function(json) {
                     for (var key in json) {
                       if (Array.isArray(json[key])) {
-                        ret[key] = ret[key]
-                          ? ret[key].concat(json[key])
-                          : json[key];
+                        ret[key] = ret[key] ? ret[key].concat(json[key]) : json[key];
                       } else {
-                        ret[key] = ret[key]
-                          ? trimEnd(ret[key]) + " " + trimStart(json[key])
-                          : json[key];
+                        ret[key] = ret[key] ? trimEnd(ret[key]) + " " + trimStart(json[key]) : json[key];
                       }
                     }
                   });
                   return ret;
                 }
                 function trimStart(st) {
-                  if (typeof st !== "string") return st;
+                  if (typeof st !== "string")
+                    return st;
                   var r = /^\s+/;
                   return st.replace(r, "");
                 }
                 function trimEnd(st) {
-                  if (typeof st !== "string") return st;
+                  if (typeof st !== "string")
+                    return st;
                   var r = /\s+$/;
                   return st.replace(r, "");
                 }
@@ -12298,7 +11481,7 @@
                       peg$currPos,
                       peg$FAILED,
                       peg$maxFailExpected,
-                      peg$maxFailPos,
+                      peg$maxFailPos
                     }
                   );
                 }
@@ -12308,29 +11491,20 @@
                   if (peg$result !== peg$FAILED && peg$currPos < input.length) {
                     peg$fail(peg$endExpectation());
                   }
-                  throw peg$buildStructuredError(
-                    peg$maxFailExpected,
-                    peg$maxFailPos < input.length
-                      ? input.charAt(peg$maxFailPos)
-                      : null,
-                    peg$maxFailPos < input.length
-                      ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1)
-                      : peg$computeLocation(peg$maxFailPos, peg$maxFailPos),
-                  );
+                  throw peg$buildStructuredError(peg$maxFailExpected, peg$maxFailPos < input.length ? input.charAt(peg$maxFailPos) : null, peg$maxFailPos < input.length ? peg$computeLocation(peg$maxFailPos, peg$maxFailPos + 1) : peg$computeLocation(peg$maxFailPos, peg$maxFailPos));
                 }
               }
               return {
                 StartRules: ["pgn", "tags", "game", "games"],
                 SyntaxError: peg$SyntaxError2,
-                parse: peg$parse2,
+                parse: peg$parse2
               };
             });
           })(_pgnParser$1);
           return _pgnParser$1.exports;
         }
         var _pgnParserExports = require_pgnParser();
-        var PegParser =
-          /* @__PURE__ */ getDefaultExportFromCjs(_pgnParserExports);
+        var PegParser = /* @__PURE__ */ getDefaultExportFromCjs(_pgnParserExports);
         function parse2(input, options) {
           if (!options || options.startRule === "games") {
             return parseGames(input, options);
@@ -12368,10 +11542,7 @@
               let lineContent = lines[i] || "";
               if (lineNum === line) {
                 if (column <= lineContent.length) {
-                  lineContent =
-                    lineContent.substring(0, column - 1) +
-                    "**" +
-                    lineContent.substring(column - 1);
+                  lineContent = lineContent.substring(0, column - 1) + "**" + lineContent.substring(column - 1);
                 } else {
                   lineContent += "**";
                 }
@@ -12398,7 +11569,7 @@ ${contextLines.join("\n")}`;
                       parseTree.messages.push({
                         key: "Result",
                         value: tmp,
-                        message: "Result in tags is different to result in SAN",
+                        message: "Result in tags is different to result in SAN"
                       });
                     }
                   }
@@ -12419,23 +11590,17 @@ ${contextLines.join("\n")}`;
                 }
                 _move.turn = _currentTurn;
                 if (_move.variations) {
-                  _move.variations.forEach(function (variation) {
+                  _move.variations.forEach(function(variation) {
                     let varTurn = _currentTurn;
-                    variation.forEach(
-                      (varMove) => (varTurn = setTurn(varMove, varTurn)),
-                    );
+                    variation.forEach((varMove) => varTurn = setTurn(varMove, varTurn));
                   });
                 }
                 return switchTurn(_currentTurn);
               }
-              const START =
-                "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-              let fen =
-                _options.fen || (_game.tags && _game.tags["FEN"]) || START;
+              const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+              let fen = _options.fen || _game.tags && _game.tags["FEN"] || START;
               let currentTurn = getTurnFromFEN(fen);
-              _game.moves.forEach(
-                (move3) => (currentTurn = setTurn(move3, currentTurn)),
-              );
+              _game.moves.forEach((move3) => currentTurn = setTurn(move3, currentTurn));
               return _game;
             }
             if (!parseResult.moves) {
@@ -12447,19 +11612,17 @@ ${contextLines.join("\n")}`;
         }
         function parseGames(input, options = { startRule: "games" }) {
           function handleGamesAnomaly(parseTree) {
-            if (!Array.isArray(parseTree)) return [];
-            if (parseTree.length === 0) return parseTree;
+            if (!Array.isArray(parseTree))
+              return [];
+            if (parseTree.length === 0)
+              return parseTree;
             let last = parseTree.pop();
             if (last.tags !== void 0 || last.moves.length > 0) {
               parseTree.push(last);
             }
             return parseTree;
           }
-          function postParseGames(
-            parseTrees,
-            input2,
-            options2 = { startRule: "games" },
-          ) {
+          function postParseGames(parseTrees, input2, options2 = { startRule: "games" }) {
             return handleGamesAnomaly(parseTrees);
           }
           try {
@@ -12477,13 +11640,12 @@ ${contextLines.join("\n")}`;
             throw parseError(input, options, error);
           }
         }
-        const normalizeLineEndings = (str, normalized = "\n") =>
-          str.replace(/\r?\n/g, normalized);
+        const normalizeLineEndings = (str, normalized = "\n") => str.replace(/\r?\n/g, normalized);
         function split(input, options = { startRule: "games" }) {
           let result = normalizeLineEndings(input).split(/\n\n+/);
           let res = [];
           let g = { tags: "", pgn: "", all: "" };
-          result.forEach(function (part) {
+          result.forEach(function(part) {
             if (part.startsWith("[")) {
               g.tags = part;
             } else if (part) {
@@ -12500,8 +11662,8 @@ ${contextLines.join("\n")}`;
         exports2.parseGame = parseGame;
         exports2.parseGames = parseGames;
         exports2.split = split;
-      });
-    },
+      }));
+    }
   });
 
   // node_modules/chessground/dist/types.js
@@ -12511,14 +11673,15 @@ ${contextLines.join("\n")}`;
       colors = ["white", "black"];
       files = ["a", "b", "c", "d", "e", "f", "g", "h"];
       ranks = ["1", "2", "3", "4", "5", "6", "7", "8"];
-    },
+    }
   });
 
   // node_modules/chessground/dist/util.js
   function memo(f) {
     let v;
     const ret = () => {
-      if (v === void 0) v = f();
+      if (v === void 0)
+        v = f();
       return v;
     };
     ret.clear = () => {
@@ -12533,33 +11696,16 @@ ${contextLines.join("\n")}`;
       pos[1] = 7 - pos[1];
     }
     return [
-      bounds.left + (bounds.width * pos[0]) / 8 + bounds.width / 16,
-      bounds.top + (bounds.height * (7 - pos[1])) / 8 + bounds.height / 16,
+      bounds.left + bounds.width * pos[0] / 8 + bounds.width / 16,
+      bounds.top + bounds.height * (7 - pos[1]) / 8 + bounds.height / 16
     ];
   }
-  var invRanks,
-    allKeys,
-    pos2key,
-    key2pos,
-    allPos,
-    timer,
-    opposite,
-    distanceSq,
-    samePiece,
-    posToTranslate,
-    translate,
-    translateAndScale,
-    setVisible,
-    eventPosition,
-    isRightButton,
-    createEl;
+  var invRanks, allKeys, pos2key, key2pos, allPos, timer, opposite, distanceSq, samePiece, posToTranslate, translate, translateAndScale, setVisible, eventPosition, isRightButton, createEl;
   var init_util = __esm({
     "node_modules/chessground/dist/util.js"() {
       init_types();
       invRanks = [...ranks].reverse();
-      allKeys = Array.prototype.concat(
-        ...files.map((c) => ranks.map((r) => c + r)),
-      );
+      allKeys = Array.prototype.concat(...files.map((c) => ranks.map((r) => c + r)));
       pos2key = (pos) => allKeys[8 * pos[0] + pos[1]];
       key2pos = (k) => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
       allPos = allKeys.map(key2pos);
@@ -12573,23 +11719,23 @@ ${contextLines.join("\n")}`;
             startAt = void 0;
           },
           stop() {
-            if (!startAt) return 0;
+            if (!startAt)
+              return 0;
             const time = performance.now() - startAt;
             startAt = void 0;
             return time;
-          },
+          }
         };
       };
-      opposite = (c) => (c === "white" ? "black" : "white");
+      opposite = (c) => c === "white" ? "black" : "white";
       distanceSq = (pos1, pos2) => {
-        const dx = pos1[0] - pos2[0],
-          dy = pos1[1] - pos2[1];
+        const dx = pos1[0] - pos2[0], dy = pos1[1] - pos2[1];
         return dx * dx + dy * dy;
       };
       samePiece = (p1, p2) => p1.role === p2.role && p1.color === p2.color;
       posToTranslate = (bounds) => (pos, asWhite) => [
-        ((asWhite ? pos[0] : 7 - pos[0]) * bounds.width) / 8,
-        ((asWhite ? 7 - pos[1] : pos[1]) * bounds.height) / 8,
+        (asWhite ? pos[0] : 7 - pos[0]) * bounds.width / 8,
+        (asWhite ? 7 - pos[1] : pos[1]) * bounds.height / 8
       ];
       translate = (el, pos) => {
         el.style.transform = `translate(${pos[0]}px,${pos[1]}px)`;
@@ -12602,7 +11748,8 @@ ${contextLines.join("\n")}`;
       };
       eventPosition = (e) => {
         var _a;
-        if (e.clientX || e.clientX === 0) return [e.clientX, e.clientY];
+        if (e.clientX || e.clientX === 0)
+          return [e.clientX, e.clientY];
         if ((_a = e.targetTouches) === null || _a === void 0 ? void 0 : _a[0])
           return [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
         return;
@@ -12610,10 +11757,11 @@ ${contextLines.join("\n")}`;
       isRightButton = (e) => e.button === 2;
       createEl = (tagName, className) => {
         const el = document.createElement(tagName);
-        if (className) el.className = className;
+        if (className)
+          el.className = className;
         return el;
       };
-    },
+    }
   });
 
   // node_modules/chessground/dist/premove.js
@@ -12621,11 +11769,7 @@ ${contextLines.join("\n")}`;
     const backrank = color === "white" ? "1" : "8";
     const files2 = [];
     for (const [key, piece] of pieces) {
-      if (
-        key[1] === backrank &&
-        piece.color === color &&
-        piece.role === "rook"
-      ) {
+      if (key[1] === backrank && piece.color === color && piece.role === "rook") {
         files2.push(key2pos(key)[0]);
       }
     }
@@ -12633,48 +11777,24 @@ ${contextLines.join("\n")}`;
   }
   function premove(pieces, key, canCastle) {
     const piece = pieces.get(key);
-    if (!piece) return [];
-    const pos = key2pos(key),
-      r = piece.role,
-      mobility =
-        r === "pawn"
-          ? pawn(piece.color)
-          : r === "knight"
-            ? knight
-            : r === "bishop"
-              ? bishop
-              : r === "rook"
-                ? rook
-                : r === "queen"
-                  ? queen
-                  : king(
-                      piece.color,
-                      rookFilesOf(pieces, piece.color),
-                      canCastle,
-                    );
-    return allPos
-      .filter(
-        (pos2) =>
-          (pos[0] !== pos2[0] || pos[1] !== pos2[1]) &&
-          mobility(pos[0], pos[1], pos2[0], pos2[1]),
-      )
-      .map(pos2key);
+    if (!piece)
+      return [];
+    const pos = key2pos(key), r = piece.role, mobility = r === "pawn" ? pawn(piece.color) : r === "knight" ? knight : r === "bishop" ? bishop : r === "rook" ? rook : r === "queen" ? queen : king(piece.color, rookFilesOf(pieces, piece.color), canCastle);
+    return allPos.filter((pos2) => (pos[0] !== pos2[0] || pos[1] !== pos2[1]) && mobility(pos[0], pos[1], pos2[0], pos2[1])).map(pos2key);
   }
   var diff, pawn, knight, bishop, rook, queen, king;
   var init_premove = __esm({
     "node_modules/chessground/dist/premove.js"() {
       init_util();
       diff = (a, b) => Math.abs(a - b);
-      pawn = (color) => (x1, y1, x2, y2) =>
-        diff(x1, x2) < 2 &&
-        (color === "white"
-          ? // allow 2 squares from first two ranks, for horde
-            y2 === y1 + 1 || (y1 <= 1 && y2 === y1 + 2 && x1 === x2)
-          : y2 === y1 - 1 || (y1 >= 6 && y2 === y1 - 2 && x1 === x2));
+      pawn = (color) => (x1, y1, x2, y2) => diff(x1, x2) < 2 && (color === "white" ? (
+        // allow 2 squares from first two ranks, for horde
+        y2 === y1 + 1 || y1 <= 1 && y2 === y1 + 2 && x1 === x2
+      ) : y2 === y1 - 1 || y1 >= 6 && y2 === y1 - 2 && x1 === x2);
       knight = (x1, y1, x2, y2) => {
         const xd = diff(x1, x2);
         const yd = diff(y1, y2);
-        return (xd === 1 && yd === 2) || (xd === 2 && yd === 1);
+        return xd === 1 && yd === 2 || xd === 2 && yd === 1;
       };
       bishop = (x1, y1, x2, y2) => {
         return diff(x1, x2) === diff(y1, y2);
@@ -12685,38 +11805,31 @@ ${contextLines.join("\n")}`;
       queen = (x1, y1, x2, y2) => {
         return bishop(x1, y1, x2, y2) || rook(x1, y1, x2, y2);
       };
-      king = (color, rookFiles, canCastle) => (x1, y1, x2, y2) =>
-        (diff(x1, x2) < 2 && diff(y1, y2) < 2) ||
-        (canCastle &&
-          y1 === y2 &&
-          y1 === (color === "white" ? 0 : 7) &&
-          ((x1 === 4 &&
-            ((x2 === 2 && rookFiles.includes(0)) ||
-              (x2 === 6 && rookFiles.includes(7)))) ||
-            rookFiles.includes(x2)));
-    },
+      king = (color, rookFiles, canCastle) => (x1, y1, x2, y2) => diff(x1, x2) < 2 && diff(y1, y2) < 2 || canCastle && y1 === y2 && y1 === (color === "white" ? 0 : 7) && (x1 === 4 && (x2 === 2 && rookFiles.includes(0) || x2 === 6 && rookFiles.includes(7)) || rookFiles.includes(x2));
+    }
   });
 
   // node_modules/chessground/dist/board.js
   function callUserFunction(f, ...args) {
-    if (f) f(...args);
+    if (f)
+      f(...args);
   }
   function toggleOrientation(state2) {
     state2.orientation = opposite(state2.orientation);
-    state2.animation.current =
-      state2.draggable.current =
-      state2.selected =
-        void 0;
+    state2.animation.current = state2.draggable.current = state2.selected = void 0;
   }
   function setPieces(state2, pieces) {
     for (const [key, piece] of pieces) {
-      if (piece) state2.pieces.set(key, piece);
-      else state2.pieces.delete(key);
+      if (piece)
+        state2.pieces.set(key, piece);
+      else
+        state2.pieces.delete(key);
     }
   }
   function setCheck(state2, color) {
     state2.check = void 0;
-    if (color === true) color = state2.turnColor;
+    if (color === true)
+      color = state2.turnColor;
     if (color)
       for (const [k, p] of state2.pieces) {
         if (p.role === "king" && p.color === color) {
@@ -12748,16 +11861,20 @@ ${contextLines.join("\n")}`;
     }
   }
   function tryAutoCastle(state2, orig, dest) {
-    if (!state2.autoCastle) return false;
+    if (!state2.autoCastle)
+      return false;
     const king2 = state2.pieces.get(orig);
-    if (!king2 || king2.role !== "king") return false;
+    if (!king2 || king2.role !== "king")
+      return false;
     const origPos = key2pos(orig);
     const destPos = key2pos(dest);
-    if ((origPos[1] !== 0 && origPos[1] !== 7) || origPos[1] !== destPos[1])
+    if (origPos[1] !== 0 && origPos[1] !== 7 || origPos[1] !== destPos[1])
       return false;
     if (origPos[0] === 4 && !state2.pieces.has(dest)) {
-      if (destPos[0] === 6) dest = pos2key([7, destPos[1]]);
-      else if (destPos[0] === 2) dest = pos2key([0, destPos[1]]);
+      if (destPos[0] === 6)
+        dest = pos2key([7, destPos[1]]);
+      else if (destPos[0] === 2)
+        dest = pos2key([0, destPos[1]]);
     }
     const rook2 = state2.pieces.get(dest);
     if (!rook2 || rook2.color !== king2.color || rook2.role !== "rook")
@@ -12774,12 +11891,12 @@ ${contextLines.join("\n")}`;
     return true;
   }
   function baseMove(state2, orig, dest) {
-    const origPiece = state2.pieces.get(orig),
-      destPiece = state2.pieces.get(dest);
-    if (orig === dest || !origPiece) return false;
-    const captured =
-      destPiece && destPiece.color !== origPiece.color ? destPiece : void 0;
-    if (dest === state2.selected) unselect(state2);
+    const origPiece = state2.pieces.get(orig), destPiece = state2.pieces.get(dest);
+    if (orig === dest || !origPiece)
+      return false;
+    const captured = destPiece && destPiece.color !== origPiece.color ? destPiece : void 0;
+    if (dest === state2.selected)
+      unselect(state2);
     callUserFunction(state2.events.move, orig, dest, captured);
     if (!tryAutoCastle(state2, orig, dest)) {
       state2.pieces.set(dest, origPiece);
@@ -12792,8 +11909,10 @@ ${contextLines.join("\n")}`;
   }
   function baseNewPiece(state2, piece, key, force) {
     if (state2.pieces.has(key)) {
-      if (force) state2.pieces.delete(key);
-      else return false;
+      if (force)
+        state2.pieces.delete(key);
+      else
+        return false;
     }
     callUserFunction(state2.events.dropNewPiece, piece, key);
     state2.pieces.set(key, piece);
@@ -12822,15 +11941,16 @@ ${contextLines.join("\n")}`;
         const metadata = {
           premove: false,
           ctrlKey: state2.stats.ctrlKey,
-          holdTime,
+          holdTime
         };
-        if (result !== true) metadata.captured = result;
+        if (result !== true)
+          metadata.captured = result;
         callUserFunction(state2.movable.events.after, orig, dest, metadata);
         return true;
       }
     } else if (canPremove(state2, orig, dest)) {
       setPremove(state2, orig, dest, {
-        ctrlKey: state2.stats.ctrlKey,
+        ctrlKey: state2.stats.ctrlKey
       });
       unselect(state2);
       return true;
@@ -12845,7 +11965,7 @@ ${contextLines.join("\n")}`;
       baseNewPiece(state2, piece, dest, force);
       callUserFunction(state2.movable.events.afterNewPiece, piece.role, dest, {
         premove: false,
-        predrop: false,
+        predrop: false
       });
     } else if (piece && canPredrop(state2, orig, dest)) {
       setPredrop(state2, piece.role, dest);
@@ -12863,20 +11983,14 @@ ${contextLines.join("\n")}`;
         unselect(state2);
         state2.hold.cancel();
         return;
-      } else if (
-        (state2.selectable.enabled || force) &&
-        state2.selected !== key
-      ) {
+      } else if ((state2.selectable.enabled || force) && state2.selected !== key) {
         if (userMove(state2, state2.selected, key)) {
           state2.stats.dragged = false;
           return;
         }
       }
     }
-    if (
-      (state2.selectable.enabled || state2.draggable.enabled) &&
-      (isMovable(state2, key) || isPremovable(state2, key))
-    ) {
+    if ((state2.selectable.enabled || state2.draggable.enabled) && (isMovable(state2, key) || isPremovable(state2, key))) {
       setSelected(state2, key);
       state2.hold.start();
     }
@@ -12885,13 +11999,10 @@ ${contextLines.join("\n")}`;
     state2.selected = key;
     if (isPremovable(state2, key)) {
       if (!state2.premovable.customDests) {
-        state2.premovable.dests = premove(
-          state2.pieces,
-          key,
-          state2.premovable.castle,
-        );
+        state2.premovable.dests = premove(state2.pieces, key, state2.premovable.castle);
       }
-    } else state2.premovable.dests = void 0;
+    } else
+      state2.premovable.dests = void 0;
   }
   function unselect(state2) {
     state2.selected = void 0;
@@ -12900,80 +12011,42 @@ ${contextLines.join("\n")}`;
   }
   function isMovable(state2, orig) {
     const piece = state2.pieces.get(orig);
-    return (
-      !!piece &&
-      (state2.movable.color === "both" ||
-        (state2.movable.color === piece.color &&
-          state2.turnColor === piece.color))
-    );
+    return !!piece && (state2.movable.color === "both" || state2.movable.color === piece.color && state2.turnColor === piece.color);
   }
   function canDrop(state2, orig, dest) {
     const piece = state2.pieces.get(orig);
-    return (
-      !!piece &&
-      (orig === dest || !state2.pieces.has(dest)) &&
-      (state2.movable.color === "both" ||
-        (state2.movable.color === piece.color &&
-          state2.turnColor === piece.color))
-    );
+    return !!piece && (orig === dest || !state2.pieces.has(dest)) && (state2.movable.color === "both" || state2.movable.color === piece.color && state2.turnColor === piece.color);
   }
   function isPremovable(state2, orig) {
     const piece = state2.pieces.get(orig);
-    return (
-      !!piece &&
-      state2.premovable.enabled &&
-      state2.movable.color === piece.color &&
-      state2.turnColor !== piece.color
-    );
+    return !!piece && state2.premovable.enabled && state2.movable.color === piece.color && state2.turnColor !== piece.color;
   }
   function canPremove(state2, orig, dest) {
     var _a, _b;
-    const validPremoves =
-      (_b =
-        (_a = state2.premovable.customDests) === null || _a === void 0
-          ? void 0
-          : _a.get(orig)) !== null && _b !== void 0
-        ? _b
-        : premove(state2.pieces, orig, state2.premovable.castle);
-    return (
-      orig !== dest &&
-      isPremovable(state2, orig) &&
-      validPremoves.includes(dest)
-    );
+    const validPremoves = (_b = (_a = state2.premovable.customDests) === null || _a === void 0 ? void 0 : _a.get(orig)) !== null && _b !== void 0 ? _b : premove(state2.pieces, orig, state2.premovable.castle);
+    return orig !== dest && isPremovable(state2, orig) && validPremoves.includes(dest);
   }
   function canPredrop(state2, orig, dest) {
     const piece = state2.pieces.get(orig);
     const destPiece = state2.pieces.get(dest);
-    return (
-      !!piece &&
-      (!destPiece || destPiece.color !== state2.movable.color) &&
-      state2.predroppable.enabled &&
-      (piece.role !== "pawn" || (dest[1] !== "1" && dest[1] !== "8")) &&
-      state2.movable.color === piece.color &&
-      state2.turnColor !== piece.color
-    );
+    return !!piece && (!destPiece || destPiece.color !== state2.movable.color) && state2.predroppable.enabled && (piece.role !== "pawn" || dest[1] !== "1" && dest[1] !== "8") && state2.movable.color === piece.color && state2.turnColor !== piece.color;
   }
   function isDraggable(state2, orig) {
     const piece = state2.pieces.get(orig);
-    return (
-      !!piece &&
-      state2.draggable.enabled &&
-      (state2.movable.color === "both" ||
-        (state2.movable.color === piece.color &&
-          (state2.turnColor === piece.color || state2.premovable.enabled)))
-    );
+    return !!piece && state2.draggable.enabled && (state2.movable.color === "both" || state2.movable.color === piece.color && (state2.turnColor === piece.color || state2.premovable.enabled));
   }
   function playPremove(state2) {
     const move3 = state2.premovable.current;
-    if (!move3) return false;
-    const orig = move3[0],
-      dest = move3[1];
+    if (!move3)
+      return false;
+    const orig = move3[0], dest = move3[1];
     let success = false;
     if (canMove(state2, orig, dest)) {
       const result = baseUserMove(state2, orig, dest);
       if (result) {
         const metadata = { premove: true };
-        if (result !== true) metadata.captured = result;
+        if (result !== true)
+          metadata.captured = result;
         callUserFunction(state2.movable.events.after, orig, dest, metadata);
         success = true;
       }
@@ -12984,22 +12057,18 @@ ${contextLines.join("\n")}`;
   function playPredrop(state2, validate) {
     const drop2 = state2.predroppable.current;
     let success = false;
-    if (!drop2) return false;
+    if (!drop2)
+      return false;
     if (validate(drop2)) {
       const piece = {
         role: drop2.role,
-        color: state2.movable.color,
+        color: state2.movable.color
       };
       if (baseNewPiece(state2, piece, drop2.key)) {
-        callUserFunction(
-          state2.movable.events.afterNewPiece,
-          drop2.role,
-          drop2.key,
-          {
-            premove: false,
-            predrop: true,
-          },
-        );
+        callUserFunction(state2.movable.events.afterNewPiece, drop2.role, drop2.key, {
+          premove: false,
+          predrop: true
+        });
         success = true;
       }
     }
@@ -13012,38 +12081,24 @@ ${contextLines.join("\n")}`;
     unselect(state2);
   }
   function stop(state2) {
-    state2.movable.color =
-      state2.movable.dests =
-      state2.animation.current =
-        void 0;
+    state2.movable.color = state2.movable.dests = state2.animation.current = void 0;
     cancelMove(state2);
   }
   function getKeyAtDomPos(pos, asWhite, bounds) {
-    let file2 = Math.floor((8 * (pos[0] - bounds.left)) / bounds.width);
-    if (!asWhite) file2 = 7 - file2;
-    let rank2 = 7 - Math.floor((8 * (pos[1] - bounds.top)) / bounds.height);
-    if (!asWhite) rank2 = 7 - rank2;
-    return file2 >= 0 && file2 < 8 && rank2 >= 0 && rank2 < 8
-      ? pos2key([file2, rank2])
-      : void 0;
+    let file2 = Math.floor(8 * (pos[0] - bounds.left) / bounds.width);
+    if (!asWhite)
+      file2 = 7 - file2;
+    let rank2 = 7 - Math.floor(8 * (pos[1] - bounds.top) / bounds.height);
+    if (!asWhite)
+      rank2 = 7 - rank2;
+    return file2 >= 0 && file2 < 8 && rank2 >= 0 && rank2 < 8 ? pos2key([file2, rank2]) : void 0;
   }
   function getSnappedKeyAtDomPos(orig, pos, asWhite, bounds) {
     const origPos = key2pos(orig);
-    const validSnapPos = allPos.filter(
-      (pos2) =>
-        queen(origPos[0], origPos[1], pos2[0], pos2[1]) ||
-        knight(origPos[0], origPos[1], pos2[0], pos2[1]),
-    );
-    const validSnapCenters = validSnapPos.map((pos2) =>
-      computeSquareCenter(pos2key(pos2), asWhite, bounds),
-    );
-    const validSnapDistances = validSnapCenters.map((pos2) =>
-      distanceSq(pos, pos2),
-    );
-    const [, closestSnapIndex] = validSnapDistances.reduce(
-      (a, b, index) => (a[0] < b ? a : [b, index]),
-      [validSnapDistances[0], 0],
-    );
+    const validSnapPos = allPos.filter((pos2) => queen(origPos[0], origPos[1], pos2[0], pos2[1]) || knight(origPos[0], origPos[1], pos2[0], pos2[1]));
+    const validSnapCenters = validSnapPos.map((pos2) => computeSquareCenter(pos2key(pos2), asWhite, bounds));
+    const validSnapDistances = validSnapCenters.map((pos2) => distanceSq(pos, pos2));
+    const [, closestSnapIndex] = validSnapDistances.reduce((a, b, index) => a[0] < b ? a : [b, index], [validSnapDistances[0], 0]);
     return pos2key(validSnapPos[closestSnapIndex]);
   }
   var canMove, whitePov;
@@ -13053,28 +12108,18 @@ ${contextLines.join("\n")}`;
       init_premove();
       canMove = (state2, orig, dest) => {
         var _a, _b;
-        return (
-          orig !== dest &&
-          isMovable(state2, orig) &&
-          (state2.movable.free ||
-            !!((_b =
-              (_a = state2.movable.dests) === null || _a === void 0
-                ? void 0
-                : _a.get(orig)) === null || _b === void 0
-              ? void 0
-              : _b.includes(dest)))
-        );
+        return orig !== dest && isMovable(state2, orig) && (state2.movable.free || !!((_b = (_a = state2.movable.dests) === null || _a === void 0 ? void 0 : _a.get(orig)) === null || _b === void 0 ? void 0 : _b.includes(dest)));
       };
       whitePov = (s) => s.orientation === "white";
-    },
+    }
   });
 
   // node_modules/chessground/dist/fen.js
   function read(fen) {
-    if (fen === "start") fen = initial;
+    if (fen === "start")
+      fen = initial;
     const pieces = /* @__PURE__ */ new Map();
-    let row = 7,
-      col = 0;
+    let row = 7, col = 0;
     for (const c of fen) {
       switch (c) {
         case " ":
@@ -13082,22 +12127,25 @@ ${contextLines.join("\n")}`;
           return pieces;
         case "/":
           --row;
-          if (row < 0) return pieces;
+          if (row < 0)
+            return pieces;
           col = 0;
           break;
         case "~": {
           const piece = pieces.get(pos2key([col - 1, row]));
-          if (piece) piece.promoted = true;
+          if (piece)
+            piece.promoted = true;
           break;
         }
         default: {
           const nb = c.charCodeAt(0);
-          if (nb < 57) col += nb - 48;
+          if (nb < 57)
+            col += nb - 48;
           else {
             const role = c.toLowerCase();
             pieces.set(pos2key([col, row]), {
               role: roles[role],
-              color: c === role ? "black" : "white",
+              color: c === role ? "black" : "white"
             });
             ++col;
           }
@@ -13107,22 +12155,18 @@ ${contextLines.join("\n")}`;
     return pieces;
   }
   function write(pieces) {
-    return invRanks
-      .map((y) =>
-        files
-          .map((x) => {
-            const piece = pieces.get(x + y);
-            if (piece) {
-              let p = letters[piece.role];
-              if (piece.color === "white") p = p.toUpperCase();
-              if (piece.promoted) p += "~";
-              return p;
-            } else return "1";
-          })
-          .join(""),
-      )
-      .join("/")
-      .replace(/1{2,}/g, (s) => s.length.toString());
+    return invRanks.map((y) => files.map((x) => {
+      const piece = pieces.get(x + y);
+      if (piece) {
+        let p = letters[piece.role];
+        if (piece.color === "white")
+          p = p.toUpperCase();
+        if (piece.promoted)
+          p += "~";
+        return p;
+      } else
+        return "1";
+    }).join("")).join("/").replace(/1{2,}/g, (s) => s.length.toString());
   }
   var initial, roles, letters;
   var init_fen = __esm({
@@ -13136,7 +12180,7 @@ ${contextLines.join("\n")}`;
         n: "knight",
         b: "bishop",
         q: "queen",
-        k: "king",
+        k: "king"
       };
       letters = {
         pawn: "p",
@@ -13144,9 +12188,9 @@ ${contextLines.join("\n")}`;
         knight: "n",
         bishop: "b",
         queen: "q",
-        king: "k",
+        king: "k"
       };
-    },
+    }
   });
 
   // node_modules/chessground/dist/config.js
@@ -13161,58 +12205,42 @@ ${contextLines.join("\n")}`;
     var _a, _b, _c;
     if ((_a = config2.movable) === null || _a === void 0 ? void 0 : _a.dests)
       state2.movable.dests = void 0;
-    if (
-      (_b = config2.drawable) === null || _b === void 0 ? void 0 : _b.autoShapes
-    )
+    if ((_b = config2.drawable) === null || _b === void 0 ? void 0 : _b.autoShapes)
       state2.drawable.autoShapes = [];
     deepMerge(state2, config2);
     if (config2.fen) {
       state2.pieces = read(config2.fen);
-      state2.drawable.shapes =
-        ((_c = config2.drawable) === null || _c === void 0
-          ? void 0
-          : _c.shapes) || [];
+      state2.drawable.shapes = ((_c = config2.drawable) === null || _c === void 0 ? void 0 : _c.shapes) || [];
     }
-    if ("check" in config2) setCheck(state2, config2.check || false);
-    if ("lastMove" in config2 && !config2.lastMove) state2.lastMove = void 0;
-    else if (config2.lastMove) state2.lastMove = config2.lastMove;
-    if (state2.selected) setSelected(state2, state2.selected);
+    if ("check" in config2)
+      setCheck(state2, config2.check || false);
+    if ("lastMove" in config2 && !config2.lastMove)
+      state2.lastMove = void 0;
+    else if (config2.lastMove)
+      state2.lastMove = config2.lastMove;
+    if (state2.selected)
+      setSelected(state2, state2.selected);
     applyAnimation(state2, config2);
     if (!state2.movable.rookCastle && state2.movable.dests) {
-      const rank2 = state2.movable.color === "white" ? "1" : "8",
-        kingStartPos = "e" + rank2,
-        dests = state2.movable.dests.get(kingStartPos),
-        king2 = state2.pieces.get(kingStartPos);
-      if (!dests || !king2 || king2.role !== "king") return;
-      state2.movable.dests.set(
-        kingStartPos,
-        dests.filter(
-          (d) =>
-            !(d === "a" + rank2 && dests.includes("c" + rank2)) &&
-            !(d === "h" + rank2 && dests.includes("g" + rank2)),
-        ),
-      );
+      const rank2 = state2.movable.color === "white" ? "1" : "8", kingStartPos = "e" + rank2, dests = state2.movable.dests.get(kingStartPos), king2 = state2.pieces.get(kingStartPos);
+      if (!dests || !king2 || king2.role !== "king")
+        return;
+      state2.movable.dests.set(kingStartPos, dests.filter((d) => !(d === "a" + rank2 && dests.includes("c" + rank2)) && !(d === "h" + rank2 && dests.includes("g" + rank2))));
     }
   }
   function deepMerge(base, extend) {
     for (const key in extend) {
-      if (
-        key === "__proto__" ||
-        key === "constructor" ||
-        !Object.prototype.hasOwnProperty.call(extend, key)
-      )
+      if (key === "__proto__" || key === "constructor" || !Object.prototype.hasOwnProperty.call(extend, key))
         continue;
-      if (
-        Object.prototype.hasOwnProperty.call(base, key) &&
-        isPlainObject(base[key]) &&
-        isPlainObject(extend[key])
-      )
+      if (Object.prototype.hasOwnProperty.call(base, key) && isPlainObject(base[key]) && isPlainObject(extend[key]))
         deepMerge(base[key], extend[key]);
-      else base[key] = extend[key];
+      else
+        base[key] = extend[key];
     }
   }
   function isPlainObject(o) {
-    if (typeof o !== "object" || o === null) return false;
+    if (typeof o !== "object" || o === null)
+      return false;
     const proto = Object.getPrototypeOf(o);
     return proto === Object.prototype || proto === null;
   }
@@ -13220,7 +12248,7 @@ ${contextLines.join("\n")}`;
     "node_modules/chessground/dist/config.js"() {
       init_board();
       init_fen();
-    },
+    }
   });
 
   // node_modules/chessground/dist/anim.js
@@ -13230,12 +12258,7 @@ ${contextLines.join("\n")}`;
     return result;
   }
   function computePlan(prevPieces, current) {
-    const anims = /* @__PURE__ */ new Map(),
-      animedOrigs = [],
-      fadings = /* @__PURE__ */ new Map(),
-      missings = [],
-      news = [],
-      prePieces = /* @__PURE__ */ new Map();
+    const anims = /* @__PURE__ */ new Map(), animedOrigs = [], fadings = /* @__PURE__ */ new Map(), missings = [], news = [], prePieces = /* @__PURE__ */ new Map();
     let curP, preP, vector;
     for (const [k, p] of prevPieces) {
       prePieces.set(k, makePiece(k, p));
@@ -13249,14 +12272,13 @@ ${contextLines.join("\n")}`;
             missings.push(preP);
             news.push(makePiece(key, curP));
           }
-        } else news.push(makePiece(key, curP));
-      } else if (preP) missings.push(preP);
+        } else
+          news.push(makePiece(key, curP));
+      } else if (preP)
+        missings.push(preP);
     }
     for (const newP of news) {
-      preP = closer(
-        newP,
-        missings.filter((p) => samePiece(newP.piece, p.piece)),
-      );
+      preP = closer(newP, missings.filter((p) => samePiece(newP.piece, p.piece)));
       if (preP) {
         vector = [preP.pos[0] - newP.pos[0], preP.pos[1] - newP.pos[1]];
         anims.set(newP.key, vector.concat(vector));
@@ -13264,17 +12286,19 @@ ${contextLines.join("\n")}`;
       }
     }
     for (const p of missings) {
-      if (!animedOrigs.includes(p.key)) fadings.set(p.key, p.piece);
+      if (!animedOrigs.includes(p.key))
+        fadings.set(p.key, p.piece);
     }
     return {
       anims,
-      fadings,
+      fadings
     };
   }
   function step(state2, now) {
     const cur = state2.animation.current;
     if (cur === void 0) {
-      if (!state2.dom.destroyed) state2.dom.redrawNow();
+      if (!state2.dom.destroyed)
+        state2.dom.redrawNow();
       return;
     }
     const rest = 1 - (now - cur.start) * cur.frequency;
@@ -13296,14 +12320,14 @@ ${contextLines.join("\n")}`;
     const result = mutation(state2);
     const plan = computePlan(prevPieces, state2);
     if (plan.anims.size || plan.fadings.size) {
-      const alreadyRunning =
-        state2.animation.current && state2.animation.current.start;
+      const alreadyRunning = state2.animation.current && state2.animation.current.start;
       state2.animation.current = {
         start: performance.now(),
         frequency: 1 / state2.animation.duration,
-        plan,
+        plan
       };
-      if (!alreadyRunning) step(state2, performance.now());
+      if (!alreadyRunning)
+        step(state2, performance.now());
     } else {
       state2.dom.redraw();
     }
@@ -13313,39 +12337,32 @@ ${contextLines.join("\n")}`;
   var init_anim = __esm({
     "node_modules/chessground/dist/anim.js"() {
       init_util();
-      anim = (mutation, state2) =>
-        state2.animation.enabled
-          ? animate(mutation, state2)
-          : render(mutation, state2);
+      anim = (mutation, state2) => state2.animation.enabled ? animate(mutation, state2) : render(mutation, state2);
       makePiece = (key, piece) => ({
         key,
         pos: key2pos(key),
-        piece,
+        piece
       });
-      closer = (piece, pieces) =>
-        pieces.sort(
-          (p1, p2) =>
-            distanceSq(piece.pos, p1.pos) - distanceSq(piece.pos, p2.pos),
-        )[0];
-      easing = (t) =>
-        t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-    },
+      closer = (piece, pieces) => pieces.sort((p1, p2) => distanceSq(piece.pos, p1.pos) - distanceSq(piece.pos, p2.pos))[0];
+      easing = (t) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+    }
   });
 
   // node_modules/chessground/dist/draw.js
   function start(state2, e) {
-    if (e.touches && e.touches.length > 1) return;
+    if (e.touches && e.touches.length > 1)
+      return;
     e.stopPropagation();
     e.preventDefault();
     e.ctrlKey ? unselect(state2) : cancelMove(state2);
-    const pos = eventPosition(e),
-      orig = getKeyAtDomPos(pos, whitePov(state2), state2.dom.bounds());
-    if (!orig) return;
+    const pos = eventPosition(e), orig = getKeyAtDomPos(pos, whitePov(state2), state2.dom.bounds());
+    if (!orig)
+      return;
     state2.drawable.current = {
       orig,
       pos,
       brush: eventBrush(e),
-      snapToValidMove: state2.drawable.defaultSnapToValidMove,
+      snapToValidMove: state2.drawable.defaultSnapToValidMove
     };
     processDraw(state2);
   }
@@ -13353,22 +12370,11 @@ ${contextLines.join("\n")}`;
     requestAnimationFrame(() => {
       const cur = state2.drawable.current;
       if (cur) {
-        const keyAtDomPos = getKeyAtDomPos(
-          cur.pos,
-          whitePov(state2),
-          state2.dom.bounds(),
-        );
+        const keyAtDomPos = getKeyAtDomPos(cur.pos, whitePov(state2), state2.dom.bounds());
         if (!keyAtDomPos) {
           cur.snapToValidMove = false;
         }
-        const mouseSq = cur.snapToValidMove
-          ? getSnappedKeyAtDomPos(
-              cur.orig,
-              cur.pos,
-              whitePov(state2),
-              state2.dom.bounds(),
-            )
-          : keyAtDomPos;
+        const mouseSq = cur.snapToValidMove ? getSnappedKeyAtDomPos(cur.orig, cur.pos, whitePov(state2), state2.dom.bounds()) : keyAtDomPos;
         if (mouseSq !== cur.mouseSq) {
           cur.mouseSq = mouseSq;
           cur.dest = mouseSq !== cur.orig ? mouseSq : void 0;
@@ -13379,12 +12385,14 @@ ${contextLines.join("\n")}`;
     });
   }
   function move(state2, e) {
-    if (state2.drawable.current) state2.drawable.current.pos = eventPosition(e);
+    if (state2.drawable.current)
+      state2.drawable.current.pos = eventPosition(e);
   }
   function end(state2) {
     const cur = state2.drawable.current;
     if (cur) {
-      if (cur.mouseSq) addShape(state2.drawable, cur);
+      if (cur.mouseSq)
+        addShape(state2.drawable, cur);
       cancel(state2);
     }
   }
@@ -13404,28 +12412,25 @@ ${contextLines.join("\n")}`;
   function eventBrush(e) {
     var _a;
     const modA = (e.shiftKey || e.ctrlKey) && isRightButton(e);
-    const modB =
-      e.altKey ||
-      e.metaKey ||
-      ((_a = e.getModifierState) === null || _a === void 0
-        ? void 0
-        : _a.call(e, "AltGraph"));
+    const modB = e.altKey || e.metaKey || ((_a = e.getModifierState) === null || _a === void 0 ? void 0 : _a.call(e, "AltGraph"));
     return brushes[(modA ? 1 : 0) + (modB ? 2 : 0)];
   }
   function addShape(drawable, cur) {
     const sameShape = (s) => s.orig === cur.orig && s.dest === cur.dest;
     const similar = drawable.shapes.find(sameShape);
-    if (similar) drawable.shapes = drawable.shapes.filter((s) => !sameShape(s));
+    if (similar)
+      drawable.shapes = drawable.shapes.filter((s) => !sameShape(s));
     if (!similar || similar.brush !== cur.brush)
       drawable.shapes.push({
         orig: cur.orig,
         dest: cur.dest,
-        brush: cur.brush,
+        brush: cur.brush
       });
     onChange(drawable);
   }
   function onChange(drawable) {
-    if (drawable.onChange) drawable.onChange(drawable.shapes);
+    if (drawable.onChange)
+      drawable.onChange(drawable.shapes);
   }
   var brushes;
   var init_draw = __esm({
@@ -13433,36 +12438,28 @@ ${contextLines.join("\n")}`;
       init_board();
       init_util();
       brushes = ["green", "red", "blue", "yellow"];
-    },
+    }
   });
 
   // node_modules/chessground/dist/drag.js
   function start2(s, e) {
-    if (!(s.trustAllEvents || e.isTrusted)) return;
-    if (e.buttons !== void 0 && e.buttons > 1) return;
-    if (e.touches && e.touches.length > 1) return;
-    const bounds = s.dom.bounds(),
-      position = eventPosition(e),
-      orig = getKeyAtDomPos(position, whitePov(s), bounds);
-    if (!orig) return;
+    if (!(s.trustAllEvents || e.isTrusted))
+      return;
+    if (e.buttons !== void 0 && e.buttons > 1)
+      return;
+    if (e.touches && e.touches.length > 1)
+      return;
+    const bounds = s.dom.bounds(), position = eventPosition(e), orig = getKeyAtDomPos(position, whitePov(s), bounds);
+    if (!orig)
+      return;
     const piece = s.pieces.get(orig);
     const previouslySelected = s.selected;
-    if (
-      !previouslySelected &&
-      s.drawable.enabled &&
-      (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor)
-    )
+    if (!previouslySelected && s.drawable.enabled && (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor))
       clear(s);
-    if (
-      e.cancelable !== false &&
-      (!e.touches ||
-        s.blockTouchScroll ||
-        piece ||
-        previouslySelected ||
-        pieceCloseTo(s, position))
-    )
+    if (e.cancelable !== false && (!e.touches || s.blockTouchScroll || piece || previouslySelected || pieceCloseTo(s, position)))
       e.preventDefault();
-    else if (e.touches) return;
+    else if (e.touches)
+      return;
     const hadPremove = !!s.premovable.current;
     const hadPredrop = !!s.predroppable.current;
     s.stats.ctrlKey = e.ctrlKey;
@@ -13483,7 +12480,7 @@ ${contextLines.join("\n")}`;
         element,
         previouslySelected,
         originTarget: e.target,
-        keyHasChanged: false,
+        keyHasChanged: false
       };
       element.cgDragging = true;
       element.classList.add("dragging");
@@ -13495,18 +12492,19 @@ ${contextLines.join("\n")}`;
       }
       processDrag(s);
     } else {
-      if (hadPremove) unsetPremove(s);
-      if (hadPredrop) unsetPredrop(s);
+      if (hadPremove)
+        unsetPremove(s);
+      if (hadPredrop)
+        unsetPredrop(s);
     }
     s.dom.redraw();
   }
   function pieceCloseTo(s, pos) {
-    const asWhite = whitePov(s),
-      bounds = s.dom.bounds(),
-      radiusSq = Math.pow(bounds.width / 8, 2);
+    const asWhite = whitePov(s), bounds = s.dom.bounds(), radiusSq = Math.pow(bounds.width / 8, 2);
     for (const key of s.pieces.keys()) {
       const center = computeSquareCenter(key, asWhite, bounds);
-      if (distanceSq(center, pos) <= radiusSq) return true;
+      if (distanceSq(center, pos) <= radiusSq)
+        return true;
     }
     return false;
   }
@@ -13525,7 +12523,7 @@ ${contextLines.join("\n")}`;
       originTarget: e.target,
       newPiece: true,
       force: !!force,
-      keyHasChanged: false,
+      keyHasChanged: false
     };
     processDrag(s);
   }
@@ -13533,25 +12531,21 @@ ${contextLines.join("\n")}`;
     requestAnimationFrame(() => {
       var _a;
       const cur = s.draggable.current;
-      if (!cur) return;
-      if (
-        (_a = s.animation.current) === null || _a === void 0
-          ? void 0
-          : _a.plan.anims.has(cur.orig)
-      )
+      if (!cur)
+        return;
+      if ((_a = s.animation.current) === null || _a === void 0 ? void 0 : _a.plan.anims.has(cur.orig))
         s.animation.current = void 0;
       const origPiece = s.pieces.get(cur.orig);
-      if (!origPiece || !samePiece(origPiece, cur.piece)) cancel2(s);
+      if (!origPiece || !samePiece(origPiece, cur.piece))
+        cancel2(s);
       else {
-        if (
-          !cur.started &&
-          distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2)
-        )
+        if (!cur.started && distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2))
           cur.started = true;
         if (cur.started) {
           if (typeof cur.element === "function") {
             const found = cur.element();
-            if (!found) return;
+            if (!found)
+              return;
             found.cgDragging = true;
             found.classList.add("dragging");
             cur.element = found;
@@ -13559,11 +12553,9 @@ ${contextLines.join("\n")}`;
           const bounds = s.dom.bounds();
           translate(cur.element, [
             cur.pos[0] - bounds.left - bounds.width / 16,
-            cur.pos[1] - bounds.top - bounds.height / 16,
+            cur.pos[1] - bounds.top - bounds.height / 16
           ]);
-          cur.keyHasChanged ||
-            (cur.keyHasChanged =
-              cur.orig !== getKeyAtDomPos(cur.pos, whitePov(s), bounds));
+          cur.keyHasChanged || (cur.keyHasChanged = cur.orig !== getKeyAtDomPos(cur.pos, whitePov(s), bounds));
         }
       }
       processDrag(s);
@@ -13576,13 +12568,11 @@ ${contextLines.join("\n")}`;
   }
   function end2(s, e) {
     const cur = s.draggable.current;
-    if (!cur) return;
-    if (e.type === "touchend" && e.cancelable !== false) e.preventDefault();
-    if (
-      e.type === "touchend" &&
-      cur.originTarget !== e.target &&
-      !cur.newPiece
-    ) {
+    if (!cur)
+      return;
+    if (e.type === "touchend" && e.cancelable !== false)
+      e.preventDefault();
+    if (e.type === "touchend" && cur.originTarget !== e.target && !cur.newPiece) {
       s.draggable.current = void 0;
       return;
     }
@@ -13591,10 +12581,12 @@ ${contextLines.join("\n")}`;
     const eventPos = eventPosition(e) || cur.pos;
     const dest = getKeyAtDomPos(eventPos, whitePov(s), s.dom.bounds());
     if (dest && cur.started && cur.orig !== dest) {
-      if (cur.newPiece) dropNewPiece(s, cur.orig, dest, cur.force);
+      if (cur.newPiece)
+        dropNewPiece(s, cur.orig, dest, cur.force);
       else {
         s.stats.ctrlKey = e.ctrlKey;
-        if (userMove(s, cur.orig, dest)) s.stats.dragged = true;
+        if (userMove(s, cur.orig, dest))
+          s.stats.dragged = true;
       }
     } else if (cur.newPiece) {
       s.pieces.delete(cur.orig);
@@ -13602,12 +12594,10 @@ ${contextLines.join("\n")}`;
       s.pieces.delete(cur.orig);
       callUserFunction(s.events.change);
     }
-    if (
-      (cur.orig === cur.previouslySelected || cur.keyHasChanged) &&
-      (cur.orig === dest || !dest)
-    )
+    if ((cur.orig === cur.previouslySelected || cur.keyHasChanged) && (cur.orig === dest || !dest))
       unselect(s);
-    else if (!s.selectable.enabled) unselect(s);
+    else if (!s.selectable.enabled)
+      unselect(s);
     removeDragElements(s);
     s.draggable.current = void 0;
     s.dom.redraw();
@@ -13615,7 +12605,8 @@ ${contextLines.join("\n")}`;
   function cancel2(s) {
     const cur = s.draggable.current;
     if (cur) {
-      if (cur.newPiece) s.pieces.delete(cur.orig);
+      if (cur.newPiece)
+        s.pieces.delete(cur.orig);
       s.draggable.current = void 0;
       unselect(s);
       removeDragElements(s);
@@ -13624,12 +12615,14 @@ ${contextLines.join("\n")}`;
   }
   function removeDragElements(s) {
     const e = s.dom.elements;
-    if (e.ghost) setVisible(e.ghost, false);
+    if (e.ghost)
+      setVisible(e.ghost, false);
   }
   function pieceElementByKey(s, key) {
     let el = s.dom.elements.board.firstChild;
     while (el) {
-      if (el.cgKey === key && el.tagName === "PIECE") return el;
+      if (el.cgKey === key && el.tagName === "PIECE")
+        return el;
       el = el.nextSibling;
     }
     return;
@@ -13640,7 +12633,7 @@ ${contextLines.join("\n")}`;
       init_util();
       init_draw();
       init_anim();
-    },
+    }
   });
 
   // node_modules/chessground/dist/explosion.js
@@ -13654,13 +12647,16 @@ ${contextLines.join("\n")}`;
   }
   function setStage(state2, stage) {
     if (state2.exploding) {
-      if (stage) state2.exploding.stage = stage;
-      else state2.exploding = void 0;
+      if (stage)
+        state2.exploding.stage = stage;
+      else
+        state2.exploding = void 0;
       state2.dom.redraw();
     }
   }
   var init_explosion = __esm({
-    "node_modules/chessground/dist/explosion.js"() {},
+    "node_modules/chessground/dist/explosion.js"() {
+    }
   });
 
   // node_modules/chessground/dist/api.js
@@ -13674,10 +12670,7 @@ ${contextLines.join("\n")}`;
         if (config2.orientation && config2.orientation !== state2.orientation)
           toggleOrientation2();
         applyAnimation(state2, config2);
-        (config2.fen ? anim : render)(
-          (state3) => configure(state3, config2),
-          state2,
-        );
+        (config2.fen ? anim : render)((state3) => configure(state3, config2), state2);
       },
       state: state2,
       getFen: () => write(state2.pieces),
@@ -13686,7 +12679,8 @@ ${contextLines.join("\n")}`;
         anim((state3) => setPieces(state3, pieces), state2);
       },
       selectSquare(key, force) {
-        if (key) anim((state3) => selectSquare(state3, key, force), state2);
+        if (key)
+          anim((state3) => selectSquare(state3, key, force), state2);
         else if (state2.selected) {
           unselect(state2);
           state2.dom.redraw();
@@ -13700,7 +12694,8 @@ ${contextLines.join("\n")}`;
       },
       playPremove() {
         if (state2.premovable.current) {
-          if (anim(playPremove, state2)) return true;
+          if (anim(playPremove, state2))
+            return true;
           state2.dom.redraw();
         }
         return false;
@@ -13735,10 +12730,10 @@ ${contextLines.join("\n")}`;
         explosion(state2, keys);
       },
       setAutoShapes(shapes) {
-        render((state3) => (state3.drawable.autoShapes = shapes), state2);
+        render((state3) => state3.drawable.autoShapes = shapes, state2);
       },
       setShapes(shapes) {
-        render((state3) => (state3.drawable.shapes = shapes), state2);
+        render((state3) => state3.drawable.shapes = shapes, state2);
       },
       getKeyAtDomPos(pos) {
         return getKeyAtDomPos(pos, whitePov(state2), state2.dom.bounds());
@@ -13751,7 +12746,7 @@ ${contextLines.join("\n")}`;
         stop(state2);
         state2.dom.unbind && state2.dom.unbind();
         state2.dom.destroyed = true;
-      },
+      }
     };
   }
   var init_api = __esm({
@@ -13762,7 +12757,7 @@ ${contextLines.join("\n")}`;
       init_anim();
       init_drag();
       init_explosion();
-    },
+    }
   });
 
   // node_modules/chessground/dist/state.js
@@ -13783,46 +12778,46 @@ ${contextLines.join("\n")}`;
       trustAllEvents: false,
       highlight: {
         lastMove: true,
-        check: true,
+        check: true
       },
       animation: {
         enabled: true,
-        duration: 200,
+        duration: 200
       },
       movable: {
         free: true,
         color: "both",
         showDests: true,
         events: {},
-        rookCastle: true,
+        rookCastle: true
       },
       premovable: {
         enabled: true,
         showDests: true,
         castle: true,
-        events: {},
+        events: {}
       },
       predroppable: {
         enabled: false,
-        events: {},
+        events: {}
       },
       draggable: {
         enabled: true,
         distance: 3,
         autoDistance: true,
         showGhost: true,
-        deleteOnDropOff: false,
+        deleteOnDropOff: false
       },
       dropmode: {
-        active: false,
+        active: false
       },
       selectable: {
-        enabled: true,
+        enabled: true
       },
       stats: {
         // on touchscreen, default to "tap-tap" moves
         // instead of drag
-        dragged: !("ontouchstart" in window),
+        dragged: !("ontouchstart" in window)
       },
       events: {},
       drawable: {
@@ -13839,76 +12834,46 @@ ${contextLines.join("\n")}`;
           red: { key: "r", color: "#882020", opacity: 1, lineWidth: 10 },
           blue: { key: "b", color: "#003088", opacity: 1, lineWidth: 10 },
           yellow: { key: "y", color: "#e68f00", opacity: 1, lineWidth: 10 },
-          paleBlue: {
-            key: "pb",
-            color: "#003088",
-            opacity: 0.4,
-            lineWidth: 15,
-          },
-          paleGreen: {
-            key: "pg",
-            color: "#15781B",
-            opacity: 0.4,
-            lineWidth: 15,
-          },
+          paleBlue: { key: "pb", color: "#003088", opacity: 0.4, lineWidth: 15 },
+          paleGreen: { key: "pg", color: "#15781B", opacity: 0.4, lineWidth: 15 },
           paleRed: { key: "pr", color: "#882020", opacity: 0.4, lineWidth: 15 },
           paleGrey: {
             key: "pgr",
             color: "#4a4a4a",
             opacity: 0.35,
-            lineWidth: 15,
+            lineWidth: 15
           },
-          purple: {
-            key: "purple",
-            color: "#68217a",
-            opacity: 0.65,
-            lineWidth: 10,
-          },
+          purple: { key: "purple", color: "#68217a", opacity: 0.65, lineWidth: 10 },
           pink: { key: "pink", color: "#ee2080", opacity: 0.5, lineWidth: 10 },
-          white: { key: "white", color: "white", opacity: 1, lineWidth: 10 },
+          white: { key: "white", color: "white", opacity: 1, lineWidth: 10 }
         },
-        prevSvgHash: "",
+        prevSvgHash: ""
       },
-      hold: timer(),
+      hold: timer()
     };
   }
   var init_state = __esm({
     "node_modules/chessground/dist/state.js"() {
       init_fen();
       init_util();
-    },
+    }
   });
 
   // node_modules/chessground/dist/svg.js
   function createDefs() {
     const defs = createElement("defs");
-    const filter = setAttributes(createElement("filter"), {
-      id: "cg-filter-blur",
-    });
-    filter.appendChild(
-      setAttributes(createElement("feGaussianBlur"), { stdDeviation: "0.019" }),
-    );
+    const filter = setAttributes(createElement("filter"), { id: "cg-filter-blur" });
+    filter.appendChild(setAttributes(createElement("feGaussianBlur"), { stdDeviation: "0.019" }));
     defs.appendChild(filter);
     return defs;
   }
   function renderSvg(state2, shapesEl, customsEl) {
     var _a;
-    const d = state2.drawable,
-      curD = d.current,
-      cur = curD && curD.mouseSq ? curD : void 0,
-      dests = /* @__PURE__ */ new Map(),
-      bounds = state2.dom.bounds(),
-      nonPieceAutoShapes = d.autoShapes.filter((autoShape) => !autoShape.piece);
-    for (const s of d.shapes
-      .concat(nonPieceAutoShapes)
-      .concat(cur ? [cur] : [])) {
-      if (!s.dest) continue;
-      const sources =
-          (_a = dests.get(s.dest)) !== null && _a !== void 0
-            ? _a
-            : /* @__PURE__ */ new Set(),
-        from = pos2user(orient(key2pos(s.orig), state2.orientation), bounds),
-        to = pos2user(orient(key2pos(s.dest), state2.orientation), bounds);
+    const d = state2.drawable, curD = d.current, cur = curD && curD.mouseSq ? curD : void 0, dests = /* @__PURE__ */ new Map(), bounds = state2.dom.bounds(), nonPieceAutoShapes = d.autoShapes.filter((autoShape) => !autoShape.piece);
+    for (const s of d.shapes.concat(nonPieceAutoShapes).concat(cur ? [cur] : [])) {
+      if (!s.dest)
+        continue;
+      const sources = (_a = dests.get(s.dest)) !== null && _a !== void 0 ? _a : /* @__PURE__ */ new Set(), from = pos2user(orient(key2pos(s.orig), state2.orientation), bounds), to = pos2user(orient(key2pos(s.dest), state2.orientation), bounds);
       sources.add(moveAngle(from, to));
       dests.set(s.dest, sources);
     }
@@ -13916,26 +12881,22 @@ ${contextLines.join("\n")}`;
       return {
         shape: s,
         current: false,
-        hash: shapeHash(s, isShort(s.dest, dests), false, bounds),
+        hash: shapeHash(s, isShort(s.dest, dests), false, bounds)
       };
     });
     if (cur)
       shapes.push({
         shape: cur,
         current: true,
-        hash: shapeHash(cur, isShort(cur.dest, dests), true, bounds),
+        hash: shapeHash(cur, isShort(cur.dest, dests), true, bounds)
       });
     const fullHash = shapes.map((sc) => sc.hash).join(";");
-    if (fullHash === state2.drawable.prevSvgHash) return;
+    if (fullHash === state2.drawable.prevSvgHash)
+      return;
     state2.drawable.prevSvgHash = fullHash;
     const defsEl = shapesEl.querySelector("defs");
     syncDefs(d, shapes, defsEl);
-    syncShapes(
-      shapes,
-      shapesEl.querySelector("g"),
-      customsEl.querySelector("g"),
-      (s) => renderShape(state2, s, d.brushes, dests, bounds),
-    );
+    syncShapes(shapes, shapesEl.querySelector("g"), customsEl.querySelector("g"), (s) => renderShape(state2, s, d.brushes, dests, bounds));
   }
   function syncDefs(d, shapes, defsEl) {
     var _a;
@@ -13943,9 +12904,7 @@ ${contextLines.join("\n")}`;
     let brush;
     for (const s of shapes.filter((s2) => s2.shape.dest && s2.shape.brush)) {
       brush = makeCustomBrush(d.brushes[s.shape.brush], s.shape.modifiers);
-      if (
-        (_a = s.shape.modifiers) === null || _a === void 0 ? void 0 : _a.hilite
-      )
+      if ((_a = s.shape.modifiers) === null || _a === void 0 ? void 0 : _a.hilite)
         brushes2.set(hilite(brush).key, hilite(brush));
       brushes2.set(brush.key, brush);
     }
@@ -13956,37 +12915,38 @@ ${contextLines.join("\n")}`;
       el = el.nextElementSibling;
     }
     for (const [key, brush2] of brushes2.entries()) {
-      if (!keysInDom.has(key)) defsEl.appendChild(renderMarker(brush2));
+      if (!keysInDom.has(key))
+        defsEl.appendChild(renderMarker(brush2));
     }
   }
   function syncShapes(syncables, shapes, customs, renderShape3) {
     const hashesInDom = /* @__PURE__ */ new Map();
-    for (const sc of syncables) hashesInDom.set(sc.hash, false);
+    for (const sc of syncables)
+      hashesInDom.set(sc.hash, false);
     for (const root of [shapes, customs]) {
       const toRemove = [];
-      let el = root.firstElementChild,
-        elHash;
+      let el = root.firstElementChild, elHash;
       while (el) {
         elHash = el.getAttribute("cgHash");
-        if (hashesInDom.has(elHash)) hashesInDom.set(elHash, true);
-        else toRemove.push(el);
+        if (hashesInDom.has(elHash))
+          hashesInDom.set(elHash, true);
+        else
+          toRemove.push(el);
         el = el.nextElementSibling;
       }
-      for (const el2 of toRemove) root.removeChild(el2);
+      for (const el2 of toRemove)
+        root.removeChild(el2);
     }
     for (const sc of syncables.filter((s) => !hashesInDom.get(s.hash))) {
       for (const svg of renderShape3(sc)) {
-        if (svg.isCustom) customs.appendChild(svg.el);
-        else shapes.appendChild(svg.el);
+        if (svg.isCustom)
+          customs.appendChild(svg.el);
+        else
+          shapes.appendChild(svg.el);
       }
     }
   }
-  function shapeHash(
-    { orig, dest, brush, piece, modifiers, customSvg, label },
-    shorten,
-    current,
-    bounds,
-  ) {
+  function shapeHash({ orig, dest, brush, piece, modifiers, customSvg, label }, shorten, current, bounds) {
     var _a, _b;
     return [
       bounds.width,
@@ -13998,12 +12958,9 @@ ${contextLines.join("\n")}`;
       shorten && "-",
       piece && pieceHash(piece),
       modifiers && modifiersHash(modifiers),
-      customSvg &&
-        `custom-${textHash(customSvg.html)},${(_b = (_a = customSvg.center) === null || _a === void 0 ? void 0 : _a[0]) !== null && _b !== void 0 ? _b : "o"}`,
-      label && `label-${textHash(label.text)}`,
-    ]
-      .filter((x) => x)
-      .join(",");
+      customSvg && `custom-${textHash(customSvg.html)},${(_b = (_a = customSvg.center) === null || _a === void 0 ? void 0 : _a[0]) !== null && _b !== void 0 ? _b : "o"}`,
+      label && `label-${textHash(label.text)}`
+    ].filter((x) => x).join(",");
   }
   function pieceHash(piece) {
     return [piece.color, piece.role, piece.scale].filter((x) => x).join(",");
@@ -14014,82 +12971,38 @@ ${contextLines.join("\n")}`;
   function textHash(s) {
     let h = 0;
     for (let i = 0; i < s.length; i++) {
-      h = ((h << 5) - h + s.charCodeAt(i)) >>> 0;
+      h = (h << 5) - h + s.charCodeAt(i) >>> 0;
     }
     return h.toString();
   }
-  function renderShape(
-    state2,
-    { shape, current, hash: hash2 },
-    brushes2,
-    dests,
-    bounds,
-  ) {
+  function renderShape(state2, { shape, current, hash: hash2 }, brushes2, dests, bounds) {
     var _a, _b;
-    const from = pos2user(
-        orient(key2pos(shape.orig), state2.orientation),
-        bounds,
-      ),
-      to = shape.dest
-        ? pos2user(orient(key2pos(shape.dest), state2.orientation), bounds)
-        : from,
-      brush =
-        shape.brush && makeCustomBrush(brushes2[shape.brush], shape.modifiers),
-      slots = dests.get(shape.dest),
-      svgs = [];
+    const from = pos2user(orient(key2pos(shape.orig), state2.orientation), bounds), to = shape.dest ? pos2user(orient(key2pos(shape.dest), state2.orientation), bounds) : from, brush = shape.brush && makeCustomBrush(brushes2[shape.brush], shape.modifiers), slots = dests.get(shape.dest), svgs = [];
     if (brush) {
       const el = setAttributes(createElement("g"), { cgHash: hash2 });
       svgs.push({ el });
       if (from[0] !== to[0] || from[1] !== to[1])
-        el.appendChild(
-          renderArrow(
-            shape,
-            brush,
-            from,
-            to,
-            current,
-            isShort(shape.dest, dests),
-          ),
-        );
+        el.appendChild(renderArrow(shape, brush, from, to, current, isShort(shape.dest, dests)));
       else
-        el.appendChild(
-          renderCircle(brushes2[shape.brush], from, current, bounds),
-        );
+        el.appendChild(renderCircle(brushes2[shape.brush], from, current, bounds));
     }
     if (shape.label) {
       const label = shape.label;
-      (_a = label.fill) !== null && _a !== void 0
-        ? _a
-        : (label.fill = shape.brush && brushes2[shape.brush].color);
+      (_a = label.fill) !== null && _a !== void 0 ? _a : label.fill = shape.brush && brushes2[shape.brush].color;
       const corner = shape.brush ? void 0 : "tr";
-      svgs.push({
-        el: renderLabel(label, hash2, from, to, slots, corner),
-        isCustom: true,
-      });
+      svgs.push({ el: renderLabel(label, hash2, from, to, slots, corner), isCustom: true });
     }
     if (shape.customSvg) {
-      const on =
-        (_b = shape.customSvg.center) !== null && _b !== void 0 ? _b : "orig";
-      const [x, y] =
-        on === "label"
-          ? labelCoords(from, to, slots).map((c) => c - 0.5)
-          : on === "dest"
-            ? to
-            : from;
-      const el = setAttributes(createElement("g"), {
-        transform: `translate(${x},${y})`,
-        cgHash: hash2,
-      });
+      const on = (_b = shape.customSvg.center) !== null && _b !== void 0 ? _b : "orig";
+      const [x, y] = on === "label" ? labelCoords(from, to, slots).map((c) => c - 0.5) : on === "dest" ? to : from;
+      const el = setAttributes(createElement("g"), { transform: `translate(${x},${y})`, cgHash: hash2 });
       el.innerHTML = `<svg width="1" height="1" viewBox="0 0 100 100">${shape.customSvg.html}</svg>`;
       svgs.push({ el, isCustom: true });
     }
     return svgs;
   }
   function renderCircle(brush, at, current, bounds) {
-    const widths = circleWidth(),
-      radius =
-        (bounds.width + bounds.height) /
-        (4 * Math.max(bounds.width, bounds.height));
+    const widths = circleWidth(), radius = (bounds.width + bounds.height) / (4 * Math.max(bounds.width, bounds.height));
     return setAttributes(createElement("circle"), {
       stroke: brush.color,
       "stroke-width": widths[current ? 0 : 1],
@@ -14097,46 +13010,33 @@ ${contextLines.join("\n")}`;
       opacity: opacity(brush, current),
       cx: at[0],
       cy: at[1],
-      r: radius - widths[1] / 2,
+      r: radius - widths[1] / 2
     });
   }
   function hilite(brush) {
-    return ["#ffffff", "#fff", "white"].includes(brush.color)
-      ? hilites["hilitePrimary"]
-      : hilites["hiliteWhite"];
+    return ["#ffffff", "#fff", "white"].includes(brush.color) ? hilites["hilitePrimary"] : hilites["hiliteWhite"];
   }
   function renderArrow(s, brush, from, to, current, shorten) {
     var _a;
     function renderLine(isHilite) {
       var _a2;
-      const m = arrowMargin(shorten && !current),
-        dx = to[0] - from[0],
-        dy = to[1] - from[1],
-        angle = Math.atan2(dy, dx),
-        xo = Math.cos(angle) * m,
-        yo = Math.sin(angle) * m;
+      const m = arrowMargin(shorten && !current), dx = to[0] - from[0], dy = to[1] - from[1], angle = Math.atan2(dy, dx), xo = Math.cos(angle) * m, yo = Math.sin(angle) * m;
       return setAttributes(createElement("line"), {
         stroke: isHilite ? hilite(brush).color : brush.color,
         "stroke-width": lineWidth(brush, current) + (isHilite ? 0.04 : 0),
         "stroke-linecap": "round",
         "marker-end": `url(#arrowhead-${isHilite ? hilite(brush).key : brush.key})`,
-        opacity: (
-          (_a2 = s.modifiers) === null || _a2 === void 0 ? void 0 : _a2.hilite
-        )
-          ? 1
-          : opacity(brush, current),
+        opacity: ((_a2 = s.modifiers) === null || _a2 === void 0 ? void 0 : _a2.hilite) ? 1 : opacity(brush, current),
         x1: from[0],
         y1: from[1],
         x2: to[0] - xo,
-        y2: to[1] - yo,
+        y2: to[1] - yo
       });
     }
     if (!((_a = s.modifiers) === null || _a === void 0 ? void 0 : _a.hilite))
       return renderLine(false);
     const g = createElement("g");
-    const blurred = setAttributes(createElement("g"), {
-      filter: "url(#cg-filter-blur)",
-    });
+    const blurred = setAttributes(createElement("g"), { filter: "url(#cg-filter-blur)" });
     blurred.appendChild(filterBox(from, to));
     blurred.appendChild(renderLine(true));
     g.appendChild(blurred);
@@ -14151,43 +13051,35 @@ ${contextLines.join("\n")}`;
       markerWidth: 4,
       markerHeight: 4,
       refX: brush.key.startsWith("hilite") ? 1.86 : 2.05,
-      refY: 2,
+      refY: 2
     });
-    marker.appendChild(
-      setAttributes(createElement("path"), {
-        d: "M0,0 V4 L3,2 Z",
-        fill: brush.color,
-      }),
-    );
+    marker.appendChild(setAttributes(createElement("path"), {
+      d: "M0,0 V4 L3,2 Z",
+      fill: brush.color
+    }));
     marker.setAttribute("cgKey", brush.key);
     return marker;
   }
   function renderLabel(label, hash2, from, to, slots, corner) {
     var _a;
-    const labelSize = 0.4,
-      fontSize = labelSize * 0.75 ** label.text.length,
-      at = labelCoords(from, to, slots),
-      cornerOff = corner === "tr" ? 0.4 : 0,
-      g = setAttributes(createElement("g"), {
-        transform: `translate(${at[0] + cornerOff},${at[1] - cornerOff})`,
-        cgHash: hash2,
-      });
-    g.appendChild(
-      setAttributes(createElement("circle"), {
-        r: labelSize / 2,
-        "fill-opacity": corner ? 1 : 0.8,
-        "stroke-opacity": corner ? 1 : 0.7,
-        "stroke-width": 0.03,
-        fill: (_a = label.fill) !== null && _a !== void 0 ? _a : "#666",
-        stroke: "white",
-      }),
-    );
+    const labelSize = 0.4, fontSize = labelSize * 0.75 ** label.text.length, at = labelCoords(from, to, slots), cornerOff = corner === "tr" ? 0.4 : 0, g = setAttributes(createElement("g"), {
+      transform: `translate(${at[0] + cornerOff},${at[1] - cornerOff})`,
+      cgHash: hash2
+    });
+    g.appendChild(setAttributes(createElement("circle"), {
+      r: labelSize / 2,
+      "fill-opacity": corner ? 1 : 0.8,
+      "stroke-opacity": corner ? 1 : 0.7,
+      "stroke-width": 0.03,
+      fill: (_a = label.fill) !== null && _a !== void 0 ? _a : "#666",
+      stroke: "white"
+    }));
     const labelEl = setAttributes(createElement("text"), {
       "font-size": fontSize,
       "font-family": "Noto Sans",
       "text-anchor": "middle",
       fill: "white",
-      y: 0.13 * 0.75 ** label.text.length,
+      y: 0.13 * 0.75 ** label.text.length
     });
     labelEl.innerHTML = label.text;
     g.appendChild(labelEl);
@@ -14210,20 +13102,18 @@ ${contextLines.join("\n")}`;
     return el;
   }
   function makeCustomBrush(base, modifiers) {
-    return !modifiers
-      ? base
-      : {
-          color: base.color,
-          opacity: Math.round(base.opacity * 10) / 10,
-          lineWidth: Math.round(modifiers.lineWidth || base.lineWidth),
-          key: [base.key, modifiers.lineWidth].filter((x) => x).join(""),
-        };
+    return !modifiers ? base : {
+      color: base.color,
+      opacity: Math.round(base.opacity * 10) / 10,
+      lineWidth: Math.round(modifiers.lineWidth || base.lineWidth),
+      key: [base.key, modifiers.lineWidth].filter((x) => x).join("")
+    };
   }
   function circleWidth() {
     return [3 / 64, 4 / 64];
   }
   function lineWidth(brush, current) {
-    return ((brush.lineWidth || 10) * (current ? 0.85 : 1)) / 64;
+    return (brush.lineWidth || 10) * (current ? 0.85 : 1) / 64;
   }
   function opacity(brush, current) {
     return (brush.opacity || 1) * (current ? 0.9 : 1);
@@ -14238,14 +13128,8 @@ ${contextLines.join("\n")}`;
   }
   function filterBox(from, to) {
     const box = {
-      from: [
-        Math.floor(Math.min(from[0], to[0])),
-        Math.floor(Math.min(from[1], to[1])),
-      ],
-      to: [
-        Math.ceil(Math.max(from[0], to[0])),
-        Math.ceil(Math.max(from[1], to[1])),
-      ],
+      from: [Math.floor(Math.min(from[0], to[0])), Math.floor(Math.min(from[1], to[1]))],
+      to: [Math.ceil(Math.max(from[0], to[0])), Math.ceil(Math.max(from[1], to[1]))]
     };
     return setAttributes(createElement("rect"), {
       x: box.from[0],
@@ -14253,17 +13137,15 @@ ${contextLines.join("\n")}`;
       width: box.to[0] - box.from[0],
       height: box.to[1] - box.from[1],
       fill: "none",
-      stroke: "none",
+      stroke: "none"
     });
   }
   function moveAngle(from, to, asSlot = true) {
     const angle = Math.atan2(to[1] - from[1], to[0] - from[0]) + Math.PI;
-    return asSlot ? (Math.round((angle * 8) / Math.PI) + 16) % 16 : angle;
+    return asSlot ? (Math.round(angle * 8 / Math.PI) + 16) % 16 : angle;
   }
   function dist(from, to) {
-    return Math.sqrt(
-      [from[0] - to[0], from[1] - to[1]].reduce((acc, x) => acc + x * x, 0),
-    );
+    return Math.sqrt([from[0] - to[0], from[1] - to[1]].reduce((acc, x) => acc + x * x, 0));
   }
   function labelCoords(from, to, slots) {
     let mag = dist(from, to);
@@ -14274,34 +13156,22 @@ ${contextLines.join("\n")}`;
         mag -= 10 / 64;
         const slot = moveAngle(from, to);
         if (slots.has((slot + 1) % 16) || slots.has((slot + 15) % 16)) {
-          if (slot & 1) mag -= 0.4;
+          if (slot & 1)
+            mag -= 0.4;
         }
       }
     }
-    return [
-      from[0] - Math.cos(angle) * mag,
-      from[1] - Math.sin(angle) * mag,
-    ].map((c) => c + 0.5);
+    return [from[0] - Math.cos(angle) * mag, from[1] - Math.sin(angle) * mag].map((c) => c + 0.5);
   }
   var hilites;
   var init_svg = __esm({
     "node_modules/chessground/dist/svg.js"() {
       init_util();
       hilites = {
-        hilitePrimary: {
-          key: "hilitePrimary",
-          color: "#3291ff",
-          opacity: 1,
-          lineWidth: 1,
-        },
-        hiliteWhite: {
-          key: "hiliteWhite",
-          color: "#ffffff",
-          opacity: 1,
-          lineWidth: 1,
-        },
+        hilitePrimary: { key: "hilitePrimary", color: "#3291ff", opacity: 1, lineWidth: 1 },
+        hiliteWhite: { key: "hiliteWhite", color: "#ffffff", opacity: 1, lineWidth: 1 }
       };
-    },
+    }
   });
 
   // node_modules/chessground/dist/wrap.js
@@ -14322,14 +13192,14 @@ ${contextLines.join("\n")}`;
       svg = setAttributes(createElement("svg"), {
         class: "cg-shapes",
         viewBox: "-4 -4 8 8",
-        preserveAspectRatio: "xMidYMid slice",
+        preserveAspectRatio: "xMidYMid slice"
       });
       svg.appendChild(createDefs());
       svg.appendChild(createElement("g"));
       customSvg = setAttributes(createElement("svg"), {
         class: "cg-custom-svgs",
         viewBox: "-3.5 -3.5 8 8",
-        preserveAspectRatio: "xMidYMid slice",
+        preserveAspectRatio: "xMidYMid slice"
       });
       customSvg.appendChild(createElement("g"));
       autoPieces = createEl("cg-auto-pieces");
@@ -14342,18 +13212,9 @@ ${contextLines.join("\n")}`;
       const ranksPositionClass = s.ranksPosition === "left" ? " left" : "";
       if (s.coordinatesOnSquares) {
         const rankN = s.orientation === "white" ? (i) => i + 1 : (i) => 8 - i;
-        files.forEach((f, i) =>
-          container.appendChild(
-            renderCoords(
-              ranks.map((r) => f + r),
-              "squares rank" + rankN(i) + orientClass + ranksPositionClass,
-            ),
-          ),
-        );
+        files.forEach((f, i) => container.appendChild(renderCoords(ranks.map((r) => f + r), "squares rank" + rankN(i) + orientClass + ranksPositionClass)));
       } else {
-        container.appendChild(
-          renderCoords(ranks, "ranks" + orientClass + ranksPositionClass),
-        );
+        container.appendChild(renderCoords(ranks, "ranks" + orientClass + ranksPositionClass));
         container.appendChild(renderCoords(files, "files" + orientClass));
       }
     }
@@ -14370,7 +13231,7 @@ ${contextLines.join("\n")}`;
       ghost,
       svg,
       customSvg,
-      autoPieces,
+      autoPieces
     };
   }
   function renderCoords(elems, className) {
@@ -14388,21 +13249,22 @@ ${contextLines.join("\n")}`;
       init_util();
       init_types();
       init_svg();
-    },
+    }
   });
 
   // node_modules/chessground/dist/drop.js
   function drop(s, e) {
-    if (!s.dropmode.active) return;
+    if (!s.dropmode.active)
+      return;
     unsetPremove(s);
     unsetPredrop(s);
     const piece = s.dropmode.piece;
     if (piece) {
       s.pieces.set("a0", piece);
       const position = eventPosition(e);
-      const dest =
-        position && getKeyAtDomPos(position, whitePov(s), s.dom.bounds());
-      if (dest) dropNewPiece(s, "a0", dest);
+      const dest = position && getKeyAtDomPos(position, whitePov(s), s.dom.bounds());
+      if (dest)
+        dropNewPiece(s, "a0", dest);
     }
     s.dom.redraw();
   }
@@ -14411,7 +13273,7 @@ ${contextLines.join("\n")}`;
       init_board();
       init_util();
       init_drag();
-    },
+    }
   });
 
   // node_modules/chessground/dist/events.js
@@ -14422,13 +13284,14 @@ ${contextLines.join("\n")}`;
     if (s.disableContextMenu || s.drawable.enabled) {
       boardEl.addEventListener("contextmenu", (e) => e.preventDefault());
     }
-    if (s.viewOnly) return;
+    if (s.viewOnly)
+      return;
     const onStart = startDragOrDraw(s);
     boardEl.addEventListener("touchstart", onStart, {
-      passive: false,
+      passive: false
     });
     boardEl.addEventListener("mousedown", onStart, {
-      passive: false,
+      passive: false
     });
   }
   function bindDocument(s, onResize) {
@@ -14443,12 +13306,7 @@ ${contextLines.join("\n")}`;
       for (const ev of ["touchend", "mouseup"])
         unbinds.push(unbindable(document, ev, onend));
       const onScroll = () => s.dom.bounds.clear();
-      unbinds.push(
-        unbindable(document, "scroll", onScroll, {
-          capture: true,
-          passive: true,
-        }),
-      );
+      unbinds.push(unbindable(document, "scroll", onScroll, { capture: true, passive: true }));
       unbinds.push(unbindable(window, "resize", onScroll, { passive: true }));
     }
     return () => unbinds.forEach((f) => f());
@@ -14465,48 +13323,34 @@ ${contextLines.join("\n")}`;
       init_drop();
       init_util();
       startDragOrDraw = (s) => (e) => {
-        if (s.draggable.current) cancel2(s);
-        else if (s.drawable.current) cancel(s);
+        if (s.draggable.current)
+          cancel2(s);
+        else if (s.drawable.current)
+          cancel(s);
         else if (e.shiftKey || isRightButton(e)) {
-          if (s.drawable.enabled) start(s, e);
+          if (s.drawable.enabled)
+            start(s, e);
         } else if (!s.viewOnly) {
-          if (s.dropmode.active) drop(s, e);
-          else start2(s, e);
+          if (s.dropmode.active)
+            drop(s, e);
+          else
+            start2(s, e);
         }
       };
       dragOrDraw = (s, withDrag, withDraw) => (e) => {
         if (s.drawable.current) {
-          if (s.drawable.enabled) withDraw(s, e);
-        } else if (!s.viewOnly) withDrag(s, e);
+          if (s.drawable.enabled)
+            withDraw(s, e);
+        } else if (!s.viewOnly)
+          withDrag(s, e);
       };
-    },
+    }
   });
 
   // node_modules/chessground/dist/render.js
   function render2(s) {
-    const asWhite = whitePov(s),
-      posToTranslate2 = posToTranslate(s.dom.bounds()),
-      boardEl = s.dom.elements.board,
-      pieces = s.pieces,
-      curAnim = s.animation.current,
-      anims = curAnim ? curAnim.plan.anims : /* @__PURE__ */ new Map(),
-      fadings = curAnim ? curAnim.plan.fadings : /* @__PURE__ */ new Map(),
-      curDrag = s.draggable.current,
-      squares = computeSquareClasses(s),
-      samePieces = /* @__PURE__ */ new Set(),
-      sameSquares = /* @__PURE__ */ new Set(),
-      movedPieces = /* @__PURE__ */ new Map(),
-      movedSquares = /* @__PURE__ */ new Map();
-    let k,
-      el,
-      pieceAtKey,
-      elPieceName,
-      anim2,
-      fading,
-      pMvdset,
-      pMvd,
-      sMvdset,
-      sMvd;
+    const asWhite = whitePov(s), posToTranslate2 = posToTranslate(s.dom.bounds()), boardEl = s.dom.elements.board, pieces = s.pieces, curAnim = s.animation.current, anims = curAnim ? curAnim.plan.anims : /* @__PURE__ */ new Map(), fadings = curAnim ? curAnim.plan.fadings : /* @__PURE__ */ new Map(), curDrag = s.draggable.current, squares = computeSquareClasses(s), samePieces = /* @__PURE__ */ new Set(), sameSquares = /* @__PURE__ */ new Set(), movedPieces = /* @__PURE__ */ new Map(), movedSquares = /* @__PURE__ */ new Map();
+    let k, el, pieceAtKey, elPieceName, anim2, fading, pMvdset, pMvd, sMvdset, sMvd;
     el = boardEl.firstChild;
     while (el) {
       k = el.cgKey;
@@ -14525,11 +13369,7 @@ ${contextLines.join("\n")}`;
           el.classList.remove("fading");
         }
         if (pieceAtKey) {
-          if (
-            anim2 &&
-            el.cgAnimating &&
-            elPieceName === pieceNameOf(pieceAtKey)
-          ) {
+          if (anim2 && el.cgAnimating && elPieceName === pieceNameOf(pieceAtKey)) {
             const pos = key2pos(k);
             pos[0] += anim2[2];
             pos[1] += anim2[3];
@@ -14542,10 +13382,7 @@ ${contextLines.join("\n")}`;
             if (s.addPieceZIndex)
               el.style.zIndex = posZIndex(key2pos(k), asWhite);
           }
-          if (
-            elPieceName === pieceNameOf(pieceAtKey) &&
-            (!fading || !el.cgFading)
-          ) {
+          if (elPieceName === pieceNameOf(pieceAtKey) && (!fading || !el.cgFading)) {
             samePieces.add(k);
           } else {
             if (fading && elPieceName === pieceNameOf(fading)) {
@@ -14560,8 +13397,10 @@ ${contextLines.join("\n")}`;
         }
       } else if (isSquareNode(el)) {
         const cn = el.className;
-        if (squares.get(k) === cn) sameSquares.add(k);
-        else appendValue(movedSquares, cn, el);
+        if (squares.get(k) === cn)
+          sameSquares.add(k);
+        else
+          appendValue(movedSquares, cn, el);
       }
       el = el.nextSibling;
     }
@@ -14593,7 +13432,8 @@ ${contextLines.join("\n")}`;
             pMvd.cgFading = false;
           }
           const pos = key2pos(k2);
-          if (s.addPieceZIndex) pMvd.style.zIndex = posZIndex(pos, asWhite);
+          if (s.addPieceZIndex)
+            pMvd.style.zIndex = posZIndex(pos, asWhite);
           if (anim2) {
             pMvd.cgAnimating = true;
             pMvd.classList.add("anim");
@@ -14602,9 +13442,7 @@ ${contextLines.join("\n")}`;
           }
           translate(pMvd, posToTranslate2(pos, asWhite));
         } else {
-          const pieceName = pieceNameOf(p),
-            pieceNode = createEl("piece", pieceName),
-            pos = key2pos(k2);
+          const pieceName = pieceNameOf(p), pieceNode = createEl("piece", pieceName), pos = key2pos(k2);
           pieceNode.cgPiece = pieceName;
           pieceNode.cgKey = k2;
           if (anim2) {
@@ -14619,15 +13457,16 @@ ${contextLines.join("\n")}`;
         }
       }
     }
-    for (const nodes of movedPieces.values()) removeNodes(s, nodes);
-    for (const nodes of movedSquares.values()) removeNodes(s, nodes);
+    for (const nodes of movedPieces.values())
+      removeNodes(s, nodes);
+    for (const nodes of movedSquares.values())
+      removeNodes(s, nodes);
   }
   function renderResized(s) {
-    const asWhite = whitePov(s),
-      posToTranslate2 = posToTranslate(s.dom.bounds());
+    const asWhite = whitePov(s), posToTranslate2 = posToTranslate(s.dom.bounds());
     let el = s.dom.elements.board.firstChild;
     while (el) {
-      if ((isPieceNode(el) && !el.cgAnimating) || isSquareNode(el)) {
+      if (isPieceNode(el) && !el.cgAnimating || isSquareNode(el)) {
         translate(el, posToTranslate2(key2pos(el.cgKey), asWhite));
       }
       el = el.nextSibling;
@@ -14638,22 +13477,17 @@ ${contextLines.join("\n")}`;
     const bounds = s.dom.elements.wrap.getBoundingClientRect();
     const container = s.dom.elements.container;
     const ratio = bounds.height / bounds.width;
-    const width =
-      (Math.floor((bounds.width * window.devicePixelRatio) / 8) * 8) /
-      window.devicePixelRatio;
+    const width = Math.floor(bounds.width * window.devicePixelRatio / 8) * 8 / window.devicePixelRatio;
     const height = width * ratio;
     container.style.width = width + "px";
     container.style.height = height + "px";
     s.dom.bounds.clear();
-    (_a = s.addDimensionsCssVarsTo) === null || _a === void 0
-      ? void 0
-      : _a.style.setProperty("---cg-width", width + "px");
-    (_b = s.addDimensionsCssVarsTo) === null || _b === void 0
-      ? void 0
-      : _b.style.setProperty("---cg-height", height + "px");
+    (_a = s.addDimensionsCssVarsTo) === null || _a === void 0 ? void 0 : _a.style.setProperty("---cg-width", width + "px");
+    (_b = s.addDimensionsCssVarsTo) === null || _b === void 0 ? void 0 : _b.style.setProperty("---cg-height", height + "px");
   }
   function removeNodes(s, nodes) {
-    for (const node2 of nodes) s.dom.elements.board.removeChild(node2);
+    for (const node2 of nodes)
+      s.dom.elements.board.removeChild(node2);
   }
   function posZIndex(pos, asWhite) {
     const minZ = 3;
@@ -14668,42 +13502,33 @@ ${contextLines.join("\n")}`;
       for (const k of s.lastMove) {
         addSquare(squares, k, "last-move");
       }
-    if (s.check && s.highlight.check) addSquare(squares, s.check, "check");
+    if (s.check && s.highlight.check)
+      addSquare(squares, s.check, "check");
     if (s.selected) {
       addSquare(squares, s.selected, "selected");
       if (s.movable.showDests) {
-        const dests =
-          (_a = s.movable.dests) === null || _a === void 0
-            ? void 0
-            : _a.get(s.selected);
+        const dests = (_a = s.movable.dests) === null || _a === void 0 ? void 0 : _a.get(s.selected);
         if (dests)
           for (const k of dests) {
             addSquare(squares, k, "move-dest" + (s.pieces.has(k) ? " oc" : ""));
           }
-        const pDests =
-          (_c =
-            (_b = s.premovable.customDests) === null || _b === void 0
-              ? void 0
-              : _b.get(s.selected)) !== null && _c !== void 0
-            ? _c
-            : s.premovable.dests;
+        const pDests = (_c = (_b = s.premovable.customDests) === null || _b === void 0 ? void 0 : _b.get(s.selected)) !== null && _c !== void 0 ? _c : s.premovable.dests;
         if (pDests)
           for (const k of pDests) {
-            addSquare(
-              squares,
-              k,
-              "premove-dest" + (s.pieces.has(k) ? " oc" : ""),
-            );
+            addSquare(squares, k, "premove-dest" + (s.pieces.has(k) ? " oc" : ""));
           }
       }
     }
     const premove2 = s.premovable.current;
     if (premove2)
-      for (const k of premove2) addSquare(squares, k, "current-premove");
+      for (const k of premove2)
+        addSquare(squares, k, "current-premove");
     else if (s.predroppable.current)
       addSquare(squares, s.predroppable.current.key, "current-premove");
     const o = s.exploding;
-    if (o) for (const k of o.keys) addSquare(squares, k, "exploding" + o.stage);
+    if (o)
+      for (const k of o.keys)
+        addSquare(squares, k, "exploding" + o.stage);
     if (s.highlight.custom) {
       s.highlight.custom.forEach((v, k) => {
         addSquare(squares, k, v);
@@ -14713,13 +13538,17 @@ ${contextLines.join("\n")}`;
   }
   function addSquare(squares, key, klass) {
     const classes = squares.get(key);
-    if (classes) squares.set(key, `${classes} ${klass}`);
-    else squares.set(key, klass);
+    if (classes)
+      squares.set(key, `${classes} ${klass}`);
+    else
+      squares.set(key, klass);
   }
   function appendValue(map, key, value) {
     const arr = map.get(key);
-    if (arr) arr.push(value);
-    else map.set(key, [value]);
+    if (arr)
+      arr.push(value);
+    else
+      map.set(key, [value]);
   }
   var isPieceNode, isSquareNode, pieceNameOf;
   var init_render = __esm({
@@ -14729,82 +13558,67 @@ ${contextLines.join("\n")}`;
       isPieceNode = (el) => el.tagName === "PIECE";
       isSquareNode = (el) => el.tagName === "SQUARE";
       pieceNameOf = (piece) => `${piece.color} ${piece.role}`;
-    },
+    }
   });
 
   // node_modules/chessground/dist/sync.js
   function syncShapes2(shapes, root, renderShape3) {
-    const hashesInDom = /* @__PURE__ */ new Map(),
-      toRemove = [];
-    for (const sc of shapes) hashesInDom.set(sc.hash, false);
-    let el = root.firstElementChild,
-      elHash;
+    const hashesInDom = /* @__PURE__ */ new Map(), toRemove = [];
+    for (const sc of shapes)
+      hashesInDom.set(sc.hash, false);
+    let el = root.firstElementChild, elHash;
     while (el) {
       elHash = el.getAttribute("cgHash");
-      if (hashesInDom.has(elHash)) hashesInDom.set(elHash, true);
-      else toRemove.push(el);
+      if (hashesInDom.has(elHash))
+        hashesInDom.set(elHash, true);
+      else
+        toRemove.push(el);
       el = el.nextElementSibling;
     }
-    for (const el2 of toRemove) root.removeChild(el2);
+    for (const el2 of toRemove)
+      root.removeChild(el2);
     for (const sc of shapes) {
-      if (!hashesInDom.get(sc.hash)) root.appendChild(renderShape3(sc));
+      if (!hashesInDom.get(sc.hash))
+        root.appendChild(renderShape3(sc));
     }
   }
   var init_sync = __esm({
-    "node_modules/chessground/dist/sync.js"() {},
+    "node_modules/chessground/dist/sync.js"() {
+    }
   });
 
   // node_modules/chessground/dist/autoPieces.js
   function render3(state2, autoPieceEl) {
-    const autoPieces = state2.drawable.autoShapes.filter(
-      (autoShape) => autoShape.piece,
-    );
+    const autoPieces = state2.drawable.autoShapes.filter((autoShape) => autoShape.piece);
     const autoPieceShapes = autoPieces.map((s) => {
       return {
         shape: s,
         hash: hash(s),
-        current: false,
+        current: false
       };
     });
-    syncShapes2(autoPieceShapes, autoPieceEl, (shape) =>
-      renderShape2(state2, shape, state2.dom.bounds()),
-    );
+    syncShapes2(autoPieceShapes, autoPieceEl, (shape) => renderShape2(state2, shape, state2.dom.bounds()));
   }
   function renderResized2(state2) {
     var _a;
-    const asWhite = whitePov(state2),
-      posToTranslate2 = posToTranslate(state2.dom.bounds());
-    let el =
-      (_a = state2.dom.elements.autoPieces) === null || _a === void 0
-        ? void 0
-        : _a.firstChild;
+    const asWhite = whitePov(state2), posToTranslate2 = posToTranslate(state2.dom.bounds());
+    let el = (_a = state2.dom.elements.autoPieces) === null || _a === void 0 ? void 0 : _a.firstChild;
     while (el) {
-      translateAndScale(
-        el,
-        posToTranslate2(key2pos(el.cgKey), asWhite),
-        el.cgScale,
-      );
+      translateAndScale(el, posToTranslate2(key2pos(el.cgKey), asWhite), el.cgScale);
       el = el.nextSibling;
     }
   }
   function renderShape2(state2, { shape, hash: hash2 }, bounds) {
     var _a, _b, _c;
     const orig = shape.orig;
-    const role =
-      (_a = shape.piece) === null || _a === void 0 ? void 0 : _a.role;
-    const color =
-      (_b = shape.piece) === null || _b === void 0 ? void 0 : _b.color;
-    const scale =
-      (_c = shape.piece) === null || _c === void 0 ? void 0 : _c.scale;
+    const role = (_a = shape.piece) === null || _a === void 0 ? void 0 : _a.role;
+    const color = (_b = shape.piece) === null || _b === void 0 ? void 0 : _b.color;
+    const scale = (_c = shape.piece) === null || _c === void 0 ? void 0 : _c.scale;
     const pieceEl = createEl("piece", `${role} ${color}`);
     pieceEl.setAttribute("cgHash", hash2);
     pieceEl.cgKey = orig;
     pieceEl.cgScale = scale;
-    translateAndScale(
-      pieceEl,
-      posToTranslate(bounds)(key2pos(orig), whitePov(state2)),
-      scale,
-    );
+    translateAndScale(pieceEl, posToTranslate(bounds)(key2pos(orig), whitePov(state2)), scale);
     return pieceEl;
   }
   var hash;
@@ -14815,14 +13629,9 @@ ${contextLines.join("\n")}`;
       init_sync();
       hash = (autoPiece) => {
         var _a, _b, _c;
-        return [
-          autoPiece.orig,
-          (_a = autoPiece.piece) === null || _a === void 0 ? void 0 : _a.role,
-          (_b = autoPiece.piece) === null || _b === void 0 ? void 0 : _b.color,
-          (_c = autoPiece.piece) === null || _c === void 0 ? void 0 : _c.scale,
-        ].join(",");
+        return [autoPiece.orig, (_a = autoPiece.piece) === null || _a === void 0 ? void 0 : _a.role, (_b = autoPiece.piece) === null || _b === void 0 ? void 0 : _b.color, (_c = autoPiece.piece) === null || _c === void 0 ? void 0 : _c.scale].join(",");
       };
-    },
+    }
   });
 
   // node_modules/chessground/dist/chessground.js
@@ -14831,32 +13640,32 @@ ${contextLines.join("\n")}`;
     configure(maybeState, config2 || {});
     function redrawAll() {
       const prevUnbind = "dom" in maybeState ? maybeState.dom.unbind : void 0;
-      const elements = renderWrap(element, maybeState),
-        bounds = memo(() => elements.board.getBoundingClientRect()),
-        redrawNow = (skipSvg) => {
-          render2(state2);
-          if (elements.autoPieces) render3(state2, elements.autoPieces);
-          if (!skipSvg && elements.svg)
-            renderSvg(state2, elements.svg, elements.customSvg);
-        },
-        onResize = () => {
-          updateBounds(state2);
-          renderResized(state2);
-          if (elements.autoPieces) renderResized2(state2);
-        };
+      const elements = renderWrap(element, maybeState), bounds = memo(() => elements.board.getBoundingClientRect()), redrawNow = (skipSvg) => {
+        render2(state2);
+        if (elements.autoPieces)
+          render3(state2, elements.autoPieces);
+        if (!skipSvg && elements.svg)
+          renderSvg(state2, elements.svg, elements.customSvg);
+      }, onResize = () => {
+        updateBounds(state2);
+        renderResized(state2);
+        if (elements.autoPieces)
+          renderResized2(state2);
+      };
       const state2 = maybeState;
       state2.dom = {
         elements,
         bounds,
         redraw: debounceRedraw(redrawNow),
         redrawNow,
-        unbind: prevUnbind,
+        unbind: prevUnbind
       };
       state2.drawable.prevSvgHash = "";
       updateBounds(state2);
       redrawNow(false);
       bindBoard(state2, onResize);
-      if (!prevUnbind) state2.dom.unbind = bindDocument(state2, onResize);
+      if (!prevUnbind)
+        state2.dom.unbind = bindDocument(state2, onResize);
       state2.events.insert && state2.events.insert(elements);
       return state2;
     }
@@ -14865,7 +13674,8 @@ ${contextLines.join("\n")}`;
   function debounceRedraw(redrawNow) {
     let redrawing = false;
     return () => {
-      if (redrawing) return;
+      if (redrawing)
+        return;
       redrawing = true;
       requestAnimationFrame(() => {
         redrawNow();
@@ -14884,12 +13694,17 @@ ${contextLines.join("\n")}`;
       init_autoPieces();
       init_svg();
       init_util();
-    },
+    }
   });
 
   // src/ts/features/pgn/mirror.ts
   function assignMirrorState() {
-    const states = ["original", "original_mirror", "invert", "invert_mirror"];
+    const states = [
+      "original",
+      "original_mirror",
+      "invert",
+      "invert_mirror"
+    ];
     const mirrorRandom = Math.floor(Math.random() * states.length);
     return states[mirrorRandom];
   }
@@ -14908,7 +13723,7 @@ ${contextLines.join("\n")}`;
     const fenBoardInverted = swapCase(fenBoard.split("").reverse().join(""));
     const fenBoardMirrored = fenRows.map(mirrorFenRow).join("/");
     const fenBoardMirroredInverted = swapCase(
-      fenBoardMirrored.split("").reverse().join(""),
+      fenBoardMirrored.split("").reverse().join("")
     );
     const fenColorSwapped = fenColor === "w" ? "b" : "w";
     switch (mirrorState2) {
@@ -14923,12 +13738,9 @@ ${contextLines.join("\n")}`;
     }
   }
   function swapCase(str) {
-    return str
-      .split("")
-      .map((ch) =>
-        ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase(),
-      )
-      .join("");
+    return str.split("").map(
+      (ch) => ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()
+    ).join("");
   }
   function mirrorMove(move3, mirrorState2) {
     const notationMaps = {
@@ -14942,14 +13754,14 @@ ${contextLines.join("\n")}`;
         f: "f",
         g: "g",
         h: "h",
-        1: "8",
-        2: "7",
-        3: "6",
-        4: "5",
-        5: "4",
-        6: "3",
-        7: "2",
-        8: "1",
+        "1": "8",
+        "2": "7",
+        "3": "6",
+        "4": "5",
+        "5": "4",
+        "6": "3",
+        "7": "2",
+        "8": "1"
       },
       invert: {
         q: "q",
@@ -14961,14 +13773,14 @@ ${contextLines.join("\n")}`;
         f: "c",
         g: "b",
         h: "a",
-        1: "8",
-        2: "7",
-        3: "6",
-        4: "5",
-        5: "4",
-        6: "3",
-        7: "2",
-        8: "1",
+        "1": "8",
+        "2": "7",
+        "3": "6",
+        "4": "5",
+        "5": "4",
+        "6": "3",
+        "7": "2",
+        "8": "1"
       },
       original_mirror: {
         q: "q",
@@ -14980,14 +13792,14 @@ ${contextLines.join("\n")}`;
         f: "c",
         g: "b",
         h: "a",
-        1: "1",
-        2: "2",
-        3: "3",
-        4: "4",
-        5: "5",
-        6: "6",
-        7: "7",
-        8: "8",
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8"
       },
       original: {
         q: "q",
@@ -14999,29 +13811,25 @@ ${contextLines.join("\n")}`;
         f: "f",
         g: "g",
         h: "h",
-        1: "1",
-        2: "2",
-        3: "3",
-        4: "4",
-        5: "5",
-        6: "6",
-        7: "7",
-        8: "8",
-      },
+        "1": "1",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
+        "7": "7",
+        "8": "8"
+      }
     };
     const notationMap = notationMaps[mirrorState2];
     function transform(val) {
       if (val === void 0) return void 0;
-      return val
-        .split("")
-        .map((char) => notationMap[char] || char)
-        .join("");
+      return val.split("").map((char) => notationMap[char] || char).join("");
     }
     move3.notation.disc = move3.notation.disc ?? transform(move3.notation.disc);
     move3.notation.col = transform(move3.notation.col);
     move3.notation.row = move3.notation.row ?? transform(move3.notation.row);
-    move3.notation.notation =
-      transform(move3.notation.notation) ?? move3.notation.notation;
+    move3.notation.notation = transform(move3.notation.notation) ?? move3.notation.notation;
   }
   function mirrorPgnTree(moves, mirrorState2, parentMove = null) {
     if (!moves || moves.length === 0) return;
@@ -15032,8 +13840,7 @@ ${contextLines.join("\n")}`;
         });
       }
     }
-    const isInverted =
-      mirrorState2 === "invert" || mirrorState2 === "invert_mirror";
+    const isInverted = mirrorState2 === "invert" || mirrorState2 === "invert_mirror";
     if (!isInverted) {
       for (const move3 of moves) mirrorMove(move3, mirrorState2);
       return;
@@ -15066,8 +13873,7 @@ ${contextLines.join("\n")}`;
           if (move3.moveNumber) {
             lastValidMoveNumber = move3.moveNumber;
           } else {
-            move3.moveNumber =
-              index === 0 ? lastValidMoveNumber : lastValidMoveNumber + 1;
+            move3.moveNumber = index === 0 ? lastValidMoveNumber : lastValidMoveNumber + 1;
             lastValidMoveNumber = move3.moveNumber;
           }
         } else {
@@ -15086,7 +13892,7 @@ ${contextLines.join("\n")}`;
   var init_mirror = __esm({
     "src/ts/features/pgn/mirror.ts"() {
       "use strict";
-    },
+    }
   });
 
   // src/ts/core/config.ts
@@ -15122,7 +13928,7 @@ ${contextLines.join("\n")}`;
         Nxh2+ {EV: 92.5%, N: 96.74% of 510k} 24. Kg1 {EV: 8.1%, N: 91.63% of 520k} Nf3+
         {EV: 92.1%, N: 99.09% of 496k} 25. Kf1 {EV: 8.1%, N: 97.24% of 511k} Nxe1 {EV:
             92.4%, N: 97.58% of 602k} *
-            `,
+            `
         ),
         ankiText: getUrlParam("userText", null),
         frontText: getUrlParam("frontText", "true") === "true",
@@ -15145,13 +13951,13 @@ ${contextLines.join("\n")}`;
         timerAdvance: getUrlParam("timerAdvance", "false") === "true",
         timerScore: getUrlParam("timerScore", "false") === "true",
         analysisTime: parseInt(getUrlParam("analysisTime", "4"), 10) * 1e3,
-        animationTime: parseInt(getUrlParam("animationTime", "200"), 10),
+        animationTime: parseInt(getUrlParam("animationTime", "200"), 10)
       };
       (function setBoardMode() {
         const mode = getUrlParam("boardMode", "Viewer");
         if (mode && isBoardMode(mode)) config.boardMode = mode;
       })();
-    },
+    }
   });
 
   // src/ts/core/state.ts
@@ -15161,7 +13967,7 @@ ${contextLines.join("\n")}`;
       "original",
       "original_mirror",
       "invert",
-      "invert_mirror",
+      "invert_mirror"
     ];
     const mirrorStateCheck = mirrorStates.includes(mirrorState2);
     return mirrorStateCheck;
@@ -15181,16 +13987,11 @@ ${contextLines.join("\n")}`;
       init_chessground();
       init_mirror();
       init_config2();
-      parsed = (0, import_pgn_parser.parse)(config.pgn, { startRule: "game" });
-      mirrorState =
-        config.boardMode === "Puzzle"
-          ? assignMirrorState()
-          : getUrlParam("mirrorState", null);
-      if (
-        parsed.tags?.FEN &&
-        !checkCastleRights(parsed.tags.FEN) &&
-        isMirrorState(mirrorState)
-      ) {
+      parsed = (0, import_pgn_parser.parse)(config.pgn, {
+        startRule: "game"
+      });
+      mirrorState = config.boardMode === "Puzzle" ? assignMirrorState() : getUrlParam("mirrorState", null);
+      if (parsed.tags?.FEN && !checkCastleRights(parsed.tags.FEN) && isMirrorState(mirrorState)) {
         parsed.tags.FEN = mirrorFen(parsed.tags.FEN, mirrorState);
         mirrorPgnTree(parsed.moves, mirrorState);
       }
@@ -15218,20 +14019,20 @@ ${contextLines.join("\n")}`;
         cg: Chessground(cgwrap, {
           fen: parsed.tags?.FEN ?? DEFAULT_POSITION,
           premovable: {
-            enabled: true,
+            enabled: true
           },
           movable: {
             free: false,
-            showDests: config.showDests,
+            showDests: config.showDests
           },
           highlight: {
             check: true,
-            lastMove: true,
+            lastMove: true
           },
           animation: {
             enabled: false,
             // will manulally enable later to prevent position load animation
-            duration: config.animationTime,
+            duration: config.animationTime
           },
           drawable: {
             enabled: true,
@@ -15240,58 +14041,42 @@ ${contextLines.join("\n")}`;
                 key: "stockfish",
                 color: "#e5e5e5",
                 opacity: 1,
-                lineWidth: 7,
+                lineWidth: 7
               },
               stockfinished: {
                 key: "stockfinished",
                 color: "white",
                 opacity: 1,
-                lineWidth: 7,
+                lineWidth: 7
               },
               mainLine: {
                 key: "mainLine",
                 color: "#66AA66",
                 opacity: 1,
-                lineWidth: 9,
+                lineWidth: 9
               },
-              altLine: {
-                key: "altLine",
-                color: "#66AAAA",
-                opacity: 1,
-                lineWidth: 9,
-              },
+              altLine: { key: "altLine", color: "#66AAAA", opacity: 1, lineWidth: 9 },
               blunderLine: {
                 key: "blunderLine",
                 color: "var(--incorrect-color)",
                 opacity: 1,
-                lineWidth: 7,
+                lineWidth: 7
               },
               // default
-              green: {
-                key: "green",
-                color: "green",
-                opacity: 0.7,
-                lineWidth: 9,
-              },
+              green: { key: "green", color: "green", opacity: 0.7, lineWidth: 9 },
               red: { key: "red", color: "red", opacity: 0.7, lineWidth: 9 },
               blue: { key: "blue", color: "blue", opacity: 0.7, lineWidth: 9 },
-              yellow: {
-                key: "yellow",
-                color: "yellow",
-                opacity: 0.7,
-                lineWidth: 9,
-              },
-            },
-          },
+              yellow: { key: "yellow", color: "yellow", opacity: 0.7, lineWidth: 9 }
+            }
+          }
         }),
         chess: new Chess(),
         parsedPGN: parsed,
-        delayTime: config.animationTime + 100,
+        delayTime: config.animationTime + 100
       };
       (function setSolvedMode() {
         const solvedMode = getUrlParam("errorTrack", null);
-        if (solvedMode && isSolvedMode(solvedMode))
-          state.errorTrack = solvedMode;
+        if (solvedMode && isSolvedMode(solvedMode)) state.errorTrack = solvedMode;
       })();
       (function setPgnPath() {
         const pgnPath = getUrlParam("pgnPath", null);
@@ -15301,7 +14086,7 @@ ${contextLines.join("\n")}`;
         });
         state.pgnPath = result ? result : [];
       })();
-    },
+    }
   });
 
   // src/ts/core/stateProxy.ts
@@ -15336,10 +14121,7 @@ ${contextLines.join("\n")}`;
             const pathKey = pgnPath.join(",");
             const pathMove = state.pgnPathMap.get(pathKey) ?? null;
             const lastMove = state.lastMove;
-            if (
-              (pathMove || !pgnPath.length) &&
-              !(!state.pgnPath.join(",").length && !pgnPath.length)
-            ) {
+            if ((pathMove || !pgnPath.length) && !(!state.pgnPath.join(",").length && !pgnPath.length)) {
               eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
             }
           } else if (property === "errorTrack") {
@@ -15347,10 +14129,10 @@ ${contextLines.join("\n")}`;
             eventEmitter.emit("puzzleScored", errorTrack);
           }
           return Reflect.set(target, property, value, receiver);
-        },
+        }
       };
       stateProxy = new Proxy(state, stateHandler);
-    },
+    }
   });
 
   // src/json/nags.json
@@ -15391,14 +14173,8 @@ ${contextLines.join("\n")}`;
         $31: ["Black has a slight development advantage", "\u21BA"],
         $32: ["White has a moderate development advantage", "\u27F3"],
         $33: ["Black has a moderate development advantage", "\u27F3"],
-        $34: [
-          "White has a decisive development advantage",
-          "\u21BB\u21BB\u21BB",
-        ],
-        $35: [
-          "Black has a decisive development advantage",
-          "\u21BA\u21BA\u21BA",
-        ],
+        $34: ["White has a decisive development advantage", "\u21BB\u21BB\u21BB"],
+        $35: ["Black has a decisive development advantage", "\u21BA\u21BA\u21BA"],
         $36: ["White has the initiative", "\u2191"],
         $37: ["Black has the initiative", "\u2193"],
         $38: ["White has a lasting initiative", "\u21D1"],
@@ -15415,14 +14191,8 @@ ${contextLines.join("\n")}`;
         $49: ["Black has a slight center control advantage", "\u229E"],
         $50: ["White has a moderate center control advantage", "\u229E\u229E"],
         $51: ["Black has a moderate center control advantage", "\u229E\u229E"],
-        $52: [
-          "White has a decisive center control advantage",
-          "\u229E\u229E\u229E",
-        ],
-        $53: [
-          "Black has a decisive center control advantage",
-          "\u229E\u229E\u229E",
-        ],
+        $52: ["White has a decisive center control advantage", "\u229E\u229E\u229E"],
+        $53: ["Black has a decisive center control advantage", "\u229E\u229E\u229E"],
         $54: ["White has a slight kingside control advantage", "\u29E9"],
         $55: ["Black has a slight kingside control advantage", "\u29E9"],
         $56: ["White has a moderate kingside control advantage", "\u29EB"],
@@ -15508,9 +14278,9 @@ ${contextLines.join("\n")}`;
         $136: ["White has moderate time control pressure", "\u2295"],
         $137: ["Black has moderate time control pressure", "\u2296"],
         $138: ["White has severe time control pressure", "\u2295\u2295"],
-        $139: ["Black has severe time control pressure", "\u2296\u2296"],
+        $139: ["Black has severe time control pressure", "\u2296\u2296"]
       };
-    },
+    }
   });
 
   // src/ts/features/pgn/pgnViewer.ts
@@ -15552,12 +14322,7 @@ ${contextLines.join("\n")}`;
         if (move3.turn === "w" && !altLine)
           html += `<span class="nullMove">|...|</span>`;
         html += `<span class="comment"> ${move3.commentAfter} </span>`;
-        if (
-          move3.turn === "w" &&
-          i < moves.length - 1 &&
-          !altLine &&
-          !move3.variations?.length
-        )
+        if (move3.turn === "w" && i < moves.length - 1 && !altLine && !move3.variations?.length)
           html += `<span class="move-number">${move3.moveNumber}.</span><span class="nullMove">|...|</span>`;
       }
       if (move3.variations && move3.variations.length > 0) {
@@ -15629,9 +14394,7 @@ ${contextLines.join("\n")}`;
     }
     const pgnMove = state.pgnPathMap.get(nextMovePath.join(","));
     const isVariation = pgnMove?.turn === move3.color;
-    nextMovePath = isVariation
-      ? [...nextMovePath, "v", pgnMove.variations.length, 0]
-      : nextMovePath;
+    nextMovePath = isVariation ? [...nextMovePath, "v", pgnMove.variations.length, 0] : nextMovePath;
     const newCustomPgnMove = {
       moveNumber: chessState,
       notation: {
@@ -15640,7 +14403,7 @@ ${contextLines.join("\n")}`;
         strike: move3.san.includes("x") ? "x" : null,
         col: move3.to[0],
         row: move3.to[1],
-        promotion: move3.promotion ? move3.promotion : null,
+        promotion: move3.promotion ? move3.promotion : null
       },
       turn: move3.color,
       before: move3.before,
@@ -15651,7 +14414,7 @@ ${contextLines.join("\n")}`;
       san: move3.san,
       variations: [],
       nag: [],
-      pgnPath: nextMovePath,
+      pgnPath: nextMovePath
     };
     const parentPath = navigateFullMoveSequenceFromPath(nextMovePath);
     if (nextMovePath.length === 1) {
@@ -15672,23 +14435,20 @@ ${contextLines.join("\n")}`;
     const moveHtml = buildPgnHtml([newMove]);
     const pathIndex = newMovePath.at(-1);
     const previousMoveEl = document.querySelector(
-      `[data-path-key="${newMovePath.with(-1, pathIndex - 1).join(",")}"]`,
+      `[data-path-key="${newMovePath.with(-1, pathIndex - 1).join(",")}"]`
     );
     if (newMovePath.length === 1) {
       const pgnContainer = document.getElementById("pgnComment");
       console.log(previousMoveEl?.nextElementSibling);
-      if (
-        newMove.turn === "w" &&
-        previousMoveEl?.nextElementSibling?.classList.contains("move")
-      ) {
+      if (newMove.turn === "w" && previousMoveEl?.nextElementSibling?.classList.contains("move")) {
         pgnContainer?.insertAdjacentHTML(
           "beforeend",
-          `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`,
+          `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`
         );
       } else if (newMove.turn === "b" && previousMoveEl?.nextElementSibling) {
         pgnContainer?.insertAdjacentHTML(
           "beforeend",
-          `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`,
+          `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`
         );
       }
       pgnContainer?.insertAdjacentHTML("beforeend", moveHtml);
@@ -15703,29 +14463,21 @@ ${contextLines.join("\n")}`;
       const newVarHtml = `<span class="altLineBracket">(</span>${moveHtml}<span class="altLineBracket">)</span>`;
       const newVarDivHtml = `<div class="altLine">${newVarHtml}</div>`;
       const variationMoveEl = document.querySelector(
-        `[data-path-key="${parentPath.join(",")}"]`,
+        `[data-path-key="${parentPath.join(",")}"]`
       );
       if (!variationMoveEl) return;
       let nextAltLineEl = variationMoveEl.nextElementSibling;
       while (nextAltLineEl) {
-        if (
-          nextAltLineEl.classList.contains("altLine") ||
-          (nextAltLineEl.localName === "span" &&
-            !nextAltLineEl.classList.contains("nullMove") &&
-            !nextAltLineEl.classList.contains("comment"))
-        ) {
+        if (nextAltLineEl.classList.contains("altLine") || nextAltLineEl.localName === "span" && !nextAltLineEl.classList.contains("nullMove") && !nextAltLineEl.classList.contains("comment")) {
           break;
         }
         nextAltLineEl = nextAltLineEl.nextElementSibling;
       }
       if (nextAltLineEl?.classList.contains("altLine")) {
         nextAltLineEl.insertAdjacentHTML("beforeend", newVarHtml);
-      } else if (
-        parentPath.length === 1 &&
-        (!nextAltLineEl || nextAltLineEl.classList.contains("move"))
-      ) {
+      } else if (parentPath.length === 1 && (!nextAltLineEl || nextAltLineEl.classList.contains("move"))) {
         let insertVarDivHtml = ``;
-        if (nextAltLineEl || (!nextAltLineEl && newMove.turn === "w"))
+        if (nextAltLineEl || !nextAltLineEl && newMove.turn === "w")
           insertVarDivHtml += `<span class="nullMove">|...|</span>`;
         insertVarDivHtml += newVarDivHtml;
         if (nextAltLineEl && !variationMoveEl.nextElementSibling)
@@ -15734,16 +14486,11 @@ ${contextLines.join("\n")}`;
           insertVarDivHtml += `<span class="move-number">${newMove.moveNumber}.</span> <span class="nullMove">|...|</span>`;
         }
         variationMoveEl.insertAdjacentHTML("afterend", insertVarDivHtml);
-      } else if (
-        parentPath.length === 1 &&
-        nextAltLineEl?.classList.contains("move-number")
-      ) {
-        if (
-          variationMoveEl.nextElementSibling?.classList.contains("nullMove")
-        ) {
+      } else if (parentPath.length === 1 && nextAltLineEl?.classList.contains("move-number")) {
+        if (variationMoveEl.nextElementSibling?.classList.contains("nullMove")) {
           variationMoveEl.nextElementSibling.insertAdjacentHTML(
             "afterend",
-            newVarDivHtml,
+            newVarDivHtml
           );
         } else {
           variationMoveEl.insertAdjacentHTML("afterend", newVarDivHtml);
@@ -15800,7 +14547,7 @@ ${contextLines.join("\n")}`;
       const moveResult = chess.move(move3.notation.notation);
       if (!moveResult) {
         console.error(
-          `Invalid move ${move3.notation.notation} at path ${currentPath}`,
+          `Invalid move ${move3.notation.notation} at path ${currentPath}`
         );
         continue;
       }
@@ -15827,11 +14574,9 @@ ${contextLines.join("\n")}`;
     }
   }
   function highlightCurrentMove(pgnPath) {
-    document
-      .querySelectorAll("#pgnComment .move.current")
-      .forEach((el) => el.classList.remove("current"));
+    document.querySelectorAll("#pgnComment .move.current").forEach((el) => el.classList.remove("current"));
     const pgnMoveEl = document.querySelector(
-      `[data-path-key="${pgnPath.join(",")}"]`,
+      `[data-path-key="${pgnPath.join(",")}"]`
     );
     if (pgnMoveEl) {
       pgnMoveEl.classList.add("current");
@@ -15853,7 +14598,7 @@ ${contextLines.join("\n")}`;
       init_chess();
       init_nags();
       init_state2();
-    },
+    }
   });
 
   // src/ts/features/audio/audio.ts
@@ -15866,7 +14611,7 @@ ${contextLines.join("\n")}`;
       "castle",
       "promote",
       "Error",
-      "computer-mouse-click",
+      "computer-mouse-click"
     ];
     const audioMap2 = /* @__PURE__ */ new Map();
     sounds.forEach((sound) => {
@@ -15882,20 +14627,16 @@ ${contextLines.join("\n")}`;
     if (audio) {
       const clone = audio.cloneNode();
       if (clone instanceof HTMLAudioElement) {
-        clone
-          .play()
-          .catch((e) => console.error(`Could not play sound: ${soundName}`, e));
+        clone.play().catch((e) => console.error(`Could not play sound: ${soundName}`, e));
       }
     }
   }
   function moveAudio(move3) {
     if (config.muteAudio) return;
-    const moveType = moveSoundPriority.find((p) =>
-      p.condition(move3.san, move3.flags),
+    const moveType = moveSoundPriority.find(
+      (p) => p.condition(move3.san, move3.flags)
     );
-    const soundToPlay = moveType
-      ? moveSoundMap[moveType.event]
-      : moveSoundMap.move;
+    const soundToPlay = moveType ? moveSoundMap[moveType.event] : moveSoundMap.move;
     playSound(soundToPlay);
   }
   var moveSoundMap, moveSoundPriority, audioMap;
@@ -15909,25 +14650,26 @@ ${contextLines.join("\n")}`;
         castle: "castle",
         capture: "capture",
         check: "check",
-        move: "move",
+        move: "move"
       };
       moveSoundPriority = [
         { event: "checkmate", condition: (san) => san.includes("#") },
         { event: "check", condition: (san) => san.includes("+") },
-        { event: "promote", condition: (_san, flags) => flags.includes("p") },
+        {
+          event: "promote",
+          condition: (_san, flags) => flags.includes("p")
+        },
         {
           event: "castle",
-          condition: (_san, flags) =>
-            flags.includes("k") || flags.includes("q"),
+          condition: (_san, flags) => flags.includes("k") || flags.includes("q")
         },
         {
           event: "capture",
-          condition: (_san, flags) =>
-            flags.includes("c") || flags.includes("e"),
-        },
+          condition: (_san, flags) => flags.includes("c") || flags.includes("e")
+        }
       ];
       audioMap = initAudio();
-    },
+    }
   });
 
   // src/ts/features/ui/uiUtils.ts
@@ -15942,7 +14684,7 @@ ${contextLines.join("\n")}`;
   function borderFlash(colour = null) {
     document.documentElement.style.setProperty(
       "--timer-flash-color",
-      colour ?? state.solvedColour,
+      colour ?? state.solvedColour
     );
     state.cgwrap.classList.add("time-added-flash");
     setTimeout(() => {
@@ -15968,12 +14710,8 @@ ${contextLines.join("\n")}`;
   }
   function rotateBoard() {
     state.boardRotation = state.boardRotation === "white" ? "black" : "white";
-    const coordWhite = getComputedStyle(htmlElement)
-      .getPropertyValue("--coord-white")
-      .trim();
-    const coordBlack = getComputedStyle(htmlElement)
-      .getPropertyValue("--coord-black")
-      .trim();
+    const coordWhite = getComputedStyle(htmlElement).getPropertyValue("--coord-white").trim();
+    const coordBlack = getComputedStyle(htmlElement).getPropertyValue("--coord-black").trim();
     htmlElement.style.setProperty("--coord-white", coordBlack);
     htmlElement.style.setProperty("--coord-black", coordWhite);
     state.cg.set({ orientation: state.boardRotation });
@@ -16030,9 +14768,9 @@ ${contextLines.join("\n")}`;
         },
         get flip() {
           return document.querySelector("#rotateBoard");
-        },
+        }
       };
-    },
+    }
   });
 
   // src/ts/features/board/arrows.ts
@@ -16041,8 +14779,7 @@ ${contextLines.join("\n")}`;
     const shouldFilterDrawn = brushesToRemove.includes("userDrawn");
     if (shouldFilterDrawn) brushesToRemove = shapeArray["All" /* All */];
     const filteredShapes = state.chessGroundShapes.filter((shape) => {
-      const shouldRemove =
-        !shape.brush || brushesToRemove.includes(shape.brush);
+      const shouldRemove = !shape.brush || brushesToRemove.includes(shape.brush);
       if (shouldFilterDrawn) {
         return shouldRemove;
       } else {
@@ -16064,7 +14801,7 @@ ${contextLines.join("\n")}`;
       dest: move3.to,
       brush,
       san: move3.san,
-      customSvg: targetImage ? { html: targetImage, center: "dest" } : void 0,
+      customSvg: targetImage ? { html: targetImage, center: "dest" } : void 0
     });
   }
   function drawArrows(pgnPath) {
@@ -16073,9 +14810,7 @@ ${contextLines.join("\n")}`;
     let nextMovePath = navigateNextMove(state.pgnPath);
     if (config.boardMode === "Viewer") {
       nextMovePath = navigateNextMove(pgnPath);
-    } else if (
-      state.playerColour === (state.chess.turn() === "w" ? "white" : "black")
-    ) {
+    } else if (state.playerColour === (state.chess.turn() === "w" ? "white" : "black")) {
       state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
       return;
     }
@@ -16085,31 +14820,29 @@ ${contextLines.join("\n")}`;
     if (mainLine.variations.length) {
       mainLine.variations.forEach((variation) => {
         const varMove = variation[0];
-        const isBlunder2 = blunderNags.some((blunder) =>
-          varMove.nag?.includes(blunder),
+        const isBlunder2 = blunderNags.some(
+          (blunder) => varMove.nag?.includes(blunder)
         );
         pushShapes(varMove, isBlunder2 ? "blunderLine" : "altLine");
       });
     }
-    const isBlunder = blunderNags.some((blunder) =>
-      mainLine.nag?.includes(blunder),
+    const isBlunder = blunderNags.some(
+      (blunder) => mainLine.nag?.includes(blunder)
     );
     pushShapes(mainLine, isBlunder ? "blunderLine" : "mainLine");
     if (config.boardMode === "Puzzle") {
       const parentMove = state.pgnPathMap.get(pgnPath.join(","));
       const puzzleMoveShapes = state.chessGroundShapes.filter(
-        (shape) => shape.san !== parentMove?.san,
+        (shape) => shape.san !== parentMove?.san
       );
-      state.chessGroundShapes
-        .filter((shape) => shape.san === parentMove?.san)
-        .forEach((filteredShape) => {
-          if (filteredShape.customSvg)
-            puzzleMoveShapes.push({
-              orig: filteredShape.orig,
-              dest: filteredShape.dest,
-              customSvg: filteredShape.customSvg,
-            });
-        });
+      state.chessGroundShapes.filter((shape) => shape.san === parentMove?.san).forEach((filteredShape) => {
+        if (filteredShape.customSvg)
+          puzzleMoveShapes.push({
+            orig: filteredShape.orig,
+            dest: filteredShape.dest,
+            customSvg: filteredShape.customSvg
+          });
+      });
       state.chessGroundShapes = puzzleMoveShapes ?? [];
     }
     state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -16128,22 +14861,22 @@ ${contextLines.join("\n")}`;
         "altLine",
         "blunderLine",
         "stockfish",
-        "stockfinished",
+        "stockfinished"
       ];
       customShapeBrushes = [
         "stockfish",
         "stockfinished",
         "mainLine",
         "altLine",
-        "blunderLine",
+        "blunderLine"
       ];
       shapeArray = {
         ["All" /* All */]: customShapeBrushes,
         ["Stockfish" /* Stockfish */]: ["stockfish", "stockfinished"],
         ["PGN" /* PGN */]: ["mainLine", "altLine", "blunderLine"],
-        ["Drawn" /* Drawn */]: ["userDrawn"],
+        ["Drawn" /* Drawn */]: ["userDrawn"]
       };
-    },
+    }
   });
 
   // src/ts/features/ui/initializeUI.ts
@@ -16200,8 +14933,7 @@ ${contextLines.join("\n")}`;
       }
     }
     const fenParts = state.startFen.split(" ");
-    let boardRotation =
-      fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
+    let boardRotation = fenParts.length > 1 && fenParts[1] === "w" ? "white" : "black";
     if (config.flipBoard) {
       boardRotation = boardRotation === "white" ? "black" : "white";
     }
@@ -16209,12 +14941,8 @@ ${contextLines.join("\n")}`;
     state.playerColour = state.boardRotation;
     state.opponentColour = state.boardRotation === "white" ? "black" : "white";
     if (state.boardRotation === "white") {
-      const coordWhite = getComputedStyle(htmlElement2)
-        .getPropertyValue("--coord-white")
-        .trim();
-      const coordBlack = getComputedStyle(htmlElement2)
-        .getPropertyValue("--coord-black")
-        .trim();
+      const coordWhite = getComputedStyle(htmlElement2).getPropertyValue("--coord-white").trim();
+      const coordBlack = getComputedStyle(htmlElement2).getPropertyValue("--coord-black").trim();
       htmlElement2.style.setProperty("--coord-white", coordBlack);
       htmlElement2.style.setProperty("--coord-black", coordWhite);
     }
@@ -16224,20 +14952,11 @@ ${contextLines.join("\n")}`;
     htmlElement2.style.setProperty("--opponent-color", state.opponentColour);
     if (config.boardMode === "Viewer") {
       if (state.errorTrack === "incorrect") {
-        htmlElement2.style.setProperty(
-          "--border-color",
-          "var(--incorrect-color)",
-        );
+        htmlElement2.style.setProperty("--border-color", "var(--incorrect-color)");
       } else if (state.errorTrack === "correctTime") {
-        htmlElement2.style.setProperty(
-          "--border-color",
-          "var(--perfect-color)",
-        );
+        htmlElement2.style.setProperty("--border-color", "var(--perfect-color)");
       } else if (state.errorTrack === "correct") {
-        htmlElement2.style.setProperty(
-          "--border-color",
-          "var(--correct-color)",
-        );
+        htmlElement2.style.setProperty("--border-color", "var(--correct-color)");
       }
     }
   }
@@ -16261,7 +14980,7 @@ ${contextLines.join("\n")}`;
       init_pgnViewer();
       init_arrows();
       htmlElement2 = document.documentElement;
-    },
+    }
   });
 
   // src/ts/features/timer/timer.ts
@@ -16272,10 +14991,10 @@ ${contextLines.join("\n")}`;
     const deltaTime = timestamp - lastTickTimestamp;
     lastTickTimestamp = timestamp;
     state.puzzleTime = Math.max(0, state.puzzleTime - deltaTime);
-    const percentage = 100 - (state.puzzleTime / totalTime) * 100;
+    const percentage = 100 - state.puzzleTime / totalTime * 100;
     document.documentElement.style.setProperty(
       "--remainingTime",
-      `${percentage.toFixed(2)}%`,
+      `${percentage.toFixed(2)}%`
     );
     if (state.puzzleTime === 0) {
       handleOutOfTime();
@@ -16289,18 +15008,13 @@ ${contextLines.join("\n")}`;
     }
     const deltaTime = extendtimestamp - lastTickExtendTimestamp;
     lastTickExtendTimestamp = extendtimestamp;
-    const deltaTimeFraction = (deltaTime / state.delayTime) * config.increment;
+    const deltaTimeFraction = deltaTime / state.delayTime * config.increment;
     totalExtendTime = Math.min(
       config.increment,
-      totalExtendTime + deltaTimeFraction,
+      totalExtendTime + deltaTimeFraction
     );
-    const percentageIncrease =
-      (deltaTime / state.delayTime) *
-      Math.min(extendPercentage, (config.increment * 100) / totalTime);
-    state.puzzleTime = Math.min(
-      totalTime,
-      state.puzzleTime + deltaTimeFraction,
-    );
+    const percentageIncrease = deltaTime / state.delayTime * Math.min(extendPercentage, config.increment * 100 / totalTime);
+    state.puzzleTime = Math.min(totalTime, state.puzzleTime + deltaTimeFraction);
     extendPercentage -= percentageIncrease;
     if (extendPercentage < 0) {
       state.puzzleTime = totalTime;
@@ -16308,7 +15022,7 @@ ${contextLines.join("\n")}`;
     }
     document.documentElement.style.setProperty(
       "--remainingTime",
-      `${extendPercentage.toFixed(2)}%`,
+      `${extendPercentage.toFixed(2)}%`
     );
     if (totalExtendTime === config.increment) {
       totalExtendTime = 0;
@@ -16344,11 +15058,7 @@ ${contextLines.join("\n")}`;
     }
   }
   function startPlayerTimer() {
-    if (
-      config.boardMode === "Viewer" ||
-      !config.timer ||
-      state.puzzleTime <= 0
-    ) {
+    if (config.boardMode === "Viewer" || !config.timer || state.puzzleTime <= 0) {
       return;
     }
     animationFrameId = requestAnimationFrame(timerLoop);
@@ -16357,9 +15067,7 @@ ${contextLines.join("\n")}`;
     if (config.boardMode === "Viewer" || !config.timer) return;
     stopPlayerTimer();
     totalTime = config.timer;
-    const timerColor = config.randomOrientation
-      ? "var(--incorrect-color)"
-      : state.opponentColour;
+    const timerColor = config.randomOrientation ? "var(--incorrect-color)" : state.opponentColour;
     document.documentElement.style.setProperty("--timer-color", timerColor);
     state.cgwrap.classList.add("timerMode");
     document.documentElement.style.setProperty("--remainingTime", `0%`);
@@ -16367,18 +15075,12 @@ ${contextLines.join("\n")}`;
   function extendPuzzleTime(additionalTime) {
     if (config.boardMode === "Viewer" || !config.timer || state.puzzleTime <= 0)
       return;
-    extendPercentage = 100 - (state.puzzleTime / totalTime) * 100;
+    extendPercentage = 100 - state.puzzleTime / totalTime * 100;
     totalTime = Math.max(state.puzzleTime + additionalTime, config.timer);
     if (animationFrameId) stopPlayerTimer();
     extendAnimationFrameId = requestAnimationFrame(timerExtendLoop);
   }
-  var animationFrameId,
-    lastTickTimestamp,
-    extendAnimationFrameId,
-    lastTickExtendTimestamp,
-    totalExtendTime,
-    totalTime,
-    extendPercentage;
+  var animationFrameId, lastTickTimestamp, extendAnimationFrameId, lastTickExtendTimestamp, totalExtendTime, totalTime, extendPercentage;
   var init_timer = __esm({
     "src/ts/features/timer/timer.ts"() {
       "use strict";
@@ -16390,7 +15092,7 @@ ${contextLines.join("\n")}`;
       extendAnimationFrameId = null;
       lastTickExtendTimestamp = null;
       totalExtendTime = 0;
-    },
+    }
   });
 
   // src/ts/features/board/chessFunctions.ts
@@ -16404,9 +15106,7 @@ ${contextLines.join("\n")}`;
     return state.chess.turn() === "w" ? "white" : "black";
   }
   function toggleClass(querySelector, className) {
-    document
-      .querySelectorAll("." + querySelector)
-      .forEach((el) => el.classList.toggle(className));
+    document.querySelectorAll("." + querySelector).forEach((el) => el.classList.toggle(className));
   }
   function randomOrientation() {
     const orientations = ["black", "white"];
@@ -16417,15 +15117,12 @@ ${contextLines.join("\n")}`;
       fen: FEN,
       turnColor: getcurrentTurnColor(),
       movable: {
-        color:
-          config.boardMode === "Puzzle"
-            ? state.playerColour
-            : getcurrentTurnColor(),
-        dests: toDests(),
+        color: config.boardMode === "Puzzle" ? state.playerColour : getcurrentTurnColor(),
+        dests: toDests()
       },
       drawable: {
-        shapes: state.chessGroundShapes,
-      },
+        shapes: state.chessGroundShapes
+      }
     });
   }
   function animateBoard(lastMove, pathMove) {
@@ -16433,12 +15130,7 @@ ${contextLines.join("\n")}`;
       state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
       state.lastMove = pathMove;
     }
-    if (
-      promoteAnimate &&
-      pathMove?.notation.promotion &&
-      (lastMove?.after === pathMove?.before ||
-        (state.startFen === pathMove?.before && !lastMove))
-    ) {
+    if (promoteAnimate && pathMove?.notation.promotion && (lastMove?.after === pathMove?.before || state.startFen === pathMove?.before && !lastMove)) {
       const tempChess = new Chess(pathMove.before);
       tempChess.remove(pathMove.to);
       state.cg.set({ fen: tempChess.fen() });
@@ -16446,16 +15138,12 @@ ${contextLines.join("\n")}`;
       setTimeout(() => {
         state.cg.set({ animation: { enabled: false } });
         state.cg.set({
-          fen: state.chess.fen(),
+          fen: state.chess.fen()
         });
         state.cg.set({ animation: { enabled: true } });
         state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
       }, config.animationTime);
-    } else if (
-      lastMove?.notation.promotion &&
-      (lastMove?.before === pathMove?.after ||
-        (state.startFen === lastMove?.before && !pathMove))
-    ) {
+    } else if (lastMove?.notation.promotion && (lastMove?.before === pathMove?.after || state.startFen === lastMove?.before && !pathMove)) {
       const tempChess = new Chess(lastMove.after);
       tempChess.remove(lastMove.to);
       tempChess.put({ type: "p", color: lastMove.turn }, lastMove.to);
@@ -16463,22 +15151,21 @@ ${contextLines.join("\n")}`;
       state.cg.set({ fen: tempChess.fen() });
       state.cg.set({ animation: { enabled: true } });
       state.cg.set({
-        fen: state.chess.fen(),
+        fen: state.chess.fen()
       });
     } else {
       state.cg.set({ fen: state.chess.fen() });
     }
     const currentTurnColor = getcurrentTurnColor();
-    const movableColor =
-      config.boardMode === "Puzzle" ? state.playerColour : currentTurnColor;
+    const movableColor = config.boardMode === "Puzzle" ? state.playerColour : currentTurnColor;
     state.cg.set({
       check: state.chess.inCheck(),
       turnColor: currentTurnColor,
       movable: {
         color: movableColor,
-        dests: toDests(),
+        dests: toDests()
       },
-      drawable: { shapes: state.chessGroundShapes },
+      drawable: { shapes: state.chessGroundShapes }
     });
     setTimeout(() => {
       state.cg.playPremove();
@@ -16495,14 +15182,11 @@ ${contextLines.join("\n")}`;
     const legalMoves = state.chess.moves({ verbose: true });
     if (typeof moveInput === "string") {
       return legalMoves.some(
-        (move3) => move3.san === moveInput || move3.lan === moveInput,
+        (move3) => move3.san === moveInput || move3.lan === moveInput
       );
     } else {
       return legalMoves.some(
-        (move3) =>
-          move3.from === moveInput.from &&
-          move3.to === moveInput.to &&
-          (move3.promotion || "q") === (moveInput.promotion || "q"),
+        (move3) => move3.from === moveInput.from && move3.to === moveInput.to && (move3.promotion || "q") === (moveInput.promotion || "q")
         // Default to queen for comparison
       );
     }
@@ -16536,7 +15220,7 @@ ${contextLines.join("\n")}`;
       if (moveObjects.length)
         dests.set(
           s,
-          moveObjects.map((m) => m.to),
+          moveObjects.map((m) => m.to)
         );
     });
     return dests;
@@ -16639,7 +15323,7 @@ ${contextLines.join("\n")}`;
   }
   function promotePopup(orig, dest) {
     stopPlayerTimer();
-    const cancelPopup = function () {
+    const cancelPopup = function() {
       toggleClass("showHide", "hidden");
       setBoard(state.chess.fen());
       setTimeout(() => {
@@ -16647,7 +15331,7 @@ ${contextLines.join("\n")}`;
       }, config.animationTime);
     };
     const promoteButtons = document.querySelectorAll(
-      "#promoteButtonsContainer > button",
+      "#promoteButtonsContainer > button"
     );
     const overlay = document.querySelector("#overlay");
     promoteButtons.forEach((button) => {
@@ -16660,7 +15344,7 @@ ${contextLines.join("\n")}`;
           const move3 = getLegalMove({
             from: orig,
             to: dest,
-            promotion: promoteChoice,
+            promotion: promoteChoice
           });
           if (move3) promoteAnimate = false;
           if (move3 && config.boardMode === "Puzzle") {
@@ -16673,7 +15357,7 @@ ${contextLines.join("\n")}`;
       };
     });
     if (overlay) {
-      overlay.onclick = function () {
+      overlay.onclick = function() {
         cancelPopup();
       };
     }
@@ -16682,12 +15366,9 @@ ${contextLines.join("\n")}`;
   }
   function loadChessgroundBoard() {
     const currentTurnColor = getcurrentTurnColor();
-    const movableColor =
-      config.boardMode === "Puzzle" ? state.playerColour : currentTurnColor;
+    const movableColor = config.boardMode === "Puzzle" ? state.playerColour : currentTurnColor;
     state.cg.set({
-      orientation: config.randomOrientation
-        ? randomOrientation()
-        : state.playerColour,
+      orientation: config.randomOrientation ? randomOrientation() : state.playerColour,
       turnColor: currentTurnColor,
       movable: {
         color: movableColor,
@@ -16697,23 +15378,18 @@ ${contextLines.join("\n")}`;
             if (!isSquare(orig) || !isSquare(dest)) return;
             const delay = config.boardMode === "Viewer" ? 0 : state.delayTime;
             handleMoveAttempt(delay, orig, dest);
-          },
-        },
+          }
+        }
       },
       premovable: {
-        enabled: config.boardMode === "Viewer" ? false : true,
+        enabled: config.boardMode === "Viewer" ? false : true
       },
       check: state.chess.inCheck(),
       events: {
         select: (key) => {
           filterShapes("Drawn" /* Drawn */);
           state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
-          if (
-            (config.boardMode === "Puzzle" &&
-              state.playerColour !== getcurrentTurnColor()) ||
-            !isSquare(key) ||
-            wrongMoveDebounce
-          ) {
+          if (config.boardMode === "Puzzle" && state.playerColour !== getcurrentTurnColor() || !isSquare(key) || wrongMoveDebounce) {
             return;
           }
           const orig = state.cg.state.selected;
@@ -16722,7 +15398,7 @@ ${contextLines.join("\n")}`;
             const moveCheck = getLegalMove({
               from: orig,
               to: dest,
-              promotion: "q",
+              promotion: "q"
             });
             if (!moveCheck || moveCheck.promotion) return;
             const delay = config.boardMode === "Viewer" ? 0 : state.delayTime;
@@ -16730,28 +15406,18 @@ ${contextLines.join("\n")}`;
             state.cg.selectSquare(null);
             return;
           }
-          const arrowMove = state.chessGroundShapes
-            .filter(
-              (shape) =>
-                shape.dest === dest &&
-                shape.brush &&
-                shapePriority.includes(shape.brush),
-            )
-            .sort(
-              (a, b) =>
-                shapePriority.indexOf(a.brush) - shapePriority.indexOf(b.brush),
-            );
+          const arrowMove = state.chessGroundShapes.filter(
+            (shape) => shape.dest === dest && shape.brush && shapePriority.includes(shape.brush)
+          ).sort(
+            (a, b) => shapePriority.indexOf(a.brush) - shapePriority.indexOf(b.brush)
+          );
           if (arrowMove.length > 0 && config.boardMode === "Viewer") {
-            if (
-              arrowMove[0].dest &&
-              isSquare(arrowMove[0].orig) &&
-              isSquare(arrowMove[0].dest)
-            ) {
+            if (arrowMove[0].dest && isSquare(arrowMove[0].orig) && isSquare(arrowMove[0].dest)) {
               handleMoveAttempt(
                 0,
                 arrowMove[0].orig,
                 arrowMove[0].dest,
-                arrowMove[0].san,
+                arrowMove[0].san
               );
             }
           } else if (config.singleClickMove) {
@@ -16763,26 +15429,22 @@ ${contextLines.join("\n")}`;
                   state.delayTime,
                   movesToSquare[0].from,
                   movesToSquare[0].to,
-                  movesToSquare[0].san,
+                  movesToSquare[0].san
                 );
               } else if (config.boardMode === "Viewer") {
                 handleMoveAttempt(
                   0,
                   movesToSquare[0].from,
                   movesToSquare[0].to,
-                  movesToSquare[0].san,
+                  movesToSquare[0].san
                 );
               }
             }
           }
-        },
-      },
+        }
+      }
     });
-    if (
-      !state.chess.isGameOver() &&
-      config.flipBoard &&
-      config.boardMode === "Puzzle"
-    ) {
+    if (!state.chess.isGameOver() && config.flipBoard && config.boardMode === "Puzzle") {
       playAiMove(state.delayTime);
     } else if (config.boardMode === "Puzzle") {
       startPlayerTimer();
@@ -16805,7 +15467,7 @@ ${contextLines.join("\n")}`;
       init_audio();
       promoteAnimate = true;
       wrongMoveDebounce = null;
-    },
+    }
   });
 
   // src/ts/features/analysis/handleStockfish.ts
@@ -16822,7 +15484,7 @@ ${contextLines.join("\n")}`;
     if (typeof message !== "string") {
       console.warn(
         "Received a non-string message from the Stockfish worker:",
-        message,
+        message
       );
       return;
     }
@@ -16844,7 +15506,7 @@ ${contextLines.join("\n")}`;
       }
       document.documentElement.style.setProperty(
         "--centipawn",
-        analysisCache.advantage,
+        analysisCache.advantage
       );
       if (firstMove === analysisCache.moveUci) {
         return;
@@ -16904,12 +15566,7 @@ ${contextLines.join("\n")}`;
     });
   }
   function startAnalysis(movetime) {
-    if (
-      !state.analysisToggledOn ||
-      !stockfish ||
-      state.stockfishRestart ||
-      state.chess.moves().length === 0
-    )
+    if (!state.analysisToggledOn || !stockfish || state.stockfishRestart || state.chess.moves().length === 0)
       return;
     if (state.isStockfishBusy) {
       state.stockfishRestart = true;
@@ -16922,7 +15579,7 @@ ${contextLines.join("\n")}`;
         // Set the new FEN
         moveUci: "",
         move: null,
-        advantage: analysisCache.advantage,
+        advantage: analysisCache.advantage
       };
       filterShapes("Stockfish" /* Stockfish */);
       state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
@@ -16950,9 +15607,7 @@ ${contextLines.join("\n")}`;
     }
     state.analysisToggledOn = !state.analysisToggledOn;
     toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
-    toggleButton.innerHTML = state.analysisToggledOn
-      ? "<span class='material-icons md-small'>developer_board</span>"
-      : "<span class='material-icons md-small'>developer_board_off</span>";
+    toggleButton.innerHTML = state.analysisToggledOn ? "<span class='material-icons md-small'>developer_board</span>" : "<span class='material-icons md-small'>developer_board_off</span>";
     state.cgwrap.classList.toggle("analysisMode", state.analysisToggledOn);
     if (state.analysisToggledOn) {
       startAnalysis(config.analysisTime);
@@ -16979,9 +15634,9 @@ ${contextLines.join("\n")}`;
         fen: "",
         moveUci: "",
         move: null,
-        advantage: "50.0%",
+        advantage: "50.0%"
       };
-    },
+    }
   });
 
   // src/ts/features/ui/eventListeners.ts
@@ -16990,10 +15645,7 @@ ${contextLines.join("\n")}`;
     if (pgnContainer) {
       pgnContainer.addEventListener("click", (event) => {
         const target = event.target;
-        if (
-          !(target instanceof HTMLSpanElement) ||
-          !target.classList.contains("move")
-        )
+        if (!(target instanceof HTMLSpanElement) || !target.classList.contains("move"))
           return;
         const pathKey = target.dataset.pathKey;
         if (pathKey) {
@@ -17040,31 +15692,26 @@ ${contextLines.join("\n")}`;
       }
     });
     const actions = {
-      resetBoard: resetBoard,
-      navBackward: navBackward,
-      navForward: navForward,
-      rotateBoard: rotateBoard,
-      copyFen: copyFen,
-      stockfishToggle: () => toggleStockfishAnalysis(),
+      resetBoard,
+      navBackward,
+      navForward,
+      rotateBoard,
+      copyFen,
+      stockfishToggle: () => toggleStockfishAnalysis()
     };
-    document
-      .querySelector("#buttons-container")
-      ?.addEventListener("click", (event) => {
-        const target = event.target;
-        if (!(target instanceof HTMLElement)) return;
-        const button = target.closest("button");
-        if (!button) return;
-        const handler = actions[button.id];
-        if (handler) {
-          handler();
-        }
-      });
+    document.querySelector("#buttons-container")?.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const button = target.closest("button");
+      if (!button) return;
+      const handler = actions[button.id];
+      if (handler) {
+        handler();
+      }
+    });
     const promoteOverlay = document.getElementById("overlay");
     state.cgwrap.addEventListener("wheel", (event) => {
-      if (
-        (promoteOverlay && !promoteOverlay.classList.contains("hidden")) ||
-        config.boardMode !== "Viewer"
-      )
+      if (promoteOverlay && !promoteOverlay.classList.contains("hidden") || config.boardMode !== "Viewer")
         return;
       event.preventDefault();
       if (event.deltaY < 0) {
@@ -17074,10 +15721,7 @@ ${contextLines.join("\n")}`;
       }
     });
     document.addEventListener("keydown", (event) => {
-      if (
-        (promoteOverlay && !promoteOverlay.classList.contains("hidden")) ||
-        config.boardMode !== "Viewer"
-      )
+      if (promoteOverlay && !promoteOverlay.classList.contains("hidden") || config.boardMode !== "Viewer")
         return;
       switch (event.key) {
         case "ArrowLeft":
@@ -17094,19 +15738,16 @@ ${contextLines.join("\n")}`;
     window.addEventListener("error", (event) => {
       const message = event.message || "";
       const filename = event.filename || "";
-      const isDetailedStockfishCrash =
-        message.includes("abort") && filename.includes("_stockfish.js");
+      const isDetailedStockfishCrash = message.includes("abort") && filename.includes("_stockfish.js");
       const isGenericCrossOriginError = message === "Script error.";
       if (isDetailedStockfishCrash || isGenericCrossOriginError) {
         event.preventDefault();
-        console.warn(
-          "Caught a fatal Stockfish crash via global error handler.",
-        );
+        console.warn("Caught a fatal Stockfish crash via global error handler.");
         if (isGenericCrossOriginError) {
           console.log("generic message:", message);
         } else {
           console.log(
-            `Crash details: Message: "${message}", Filename: "${filename}"`,
+            `Crash details: Message: "${message}", Filename: "${filename}"`
           );
         }
         handleStockfishCrash("window.onerror");
@@ -17135,7 +15776,7 @@ ${contextLines.join("\n")}`;
       init_uiUtils();
       init_initializeUI();
       init_handleStockfish();
-    },
+    }
   });
 
   // src/ts/features/board/pgnPathChanged.ts
@@ -17162,10 +15803,7 @@ ${contextLines.join("\n")}`;
     if (endOfLineCheck) {
       if (config.boardMode === "Puzzle") {
         state.puzzleComplete = true;
-        const correctState =
-          state.puzzleTime > 0 && !config.timerScore
-            ? "correctTime"
-            : "correct";
+        const correctState = state.puzzleTime > 0 && !config.timerScore ? "correctTime" : "correct";
         stateProxy.errorTrack = state.errorTrack ?? correctState;
       } else {
         state.chessGroundShapes = [];
@@ -17194,7 +15832,7 @@ ${contextLines.join("\n")}`;
       init_arrows();
       init_audio();
       init_handleStockfish();
-    },
+    }
   });
 
   // src/ts/features/board/puzzleScored.ts
@@ -17211,10 +15849,7 @@ ${contextLines.join("\n")}`;
       state.solvedColour = "var(--perfect-color)";
     } else if (errorTrack === "incorrect") {
       state.solvedColour = "var(--incorrect-color)";
-      if (
-        (config.timerAdvance && state.puzzleTime === 0) ||
-        config.handicapAdvance
-      ) {
+      if (config.timerAdvance && state.puzzleTime === 0 || config.handicapAdvance) {
         stateCopy.puzzleComplete = true;
       }
     }
@@ -17223,7 +15858,7 @@ ${contextLines.join("\n")}`;
       state.cgwrap.classList.remove("timerMode");
       document.documentElement.style.setProperty(
         "--border-color",
-        state.solvedColour,
+        state.solvedColour
       );
       state.cg.set({ viewOnly: true });
       setTimeout(() => {
@@ -17245,7 +15880,7 @@ ${contextLines.join("\n")}`;
       init_pgnViewer();
       init_uiUtils();
       init_timer();
-    },
+    }
   });
 
   // src/ts/main.ts
@@ -17275,7 +15910,7 @@ ${contextLines.join("\n")}`;
         positionPromoteOverlay();
         setupEventListeners();
       })();
-    },
+    }
   });
   require_main();
 })();
