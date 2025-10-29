@@ -1,83 +1,83 @@
 <script>
-    // User Variables
-    var userConfig = {
-        fontSize: 18,
-        muteAudio: false,
+  // User Variables
+  var userConfig = {
+    fontSize: 18,
+    muteAudio: false,
 
-        puzzleSettings: {
-            _title: "Puzzle Settings",
-            _collapsed: false, // Set to false to have it open by default
-            flip: false, // Sets whether Puzzle begins from First or second move of PGN.
-        },
+    puzzleSettings: {
+      _title: "Puzzle Settings",
+      _collapsed: false, // Set to false to have it open by default
+      flip: false, // Sets whether Puzzle begins from First or second move of PGN.
+    },
 
-        boardSettings: {
-            _title: "Board Settings",
-            _collapsed: true, // This section will be closed by default
-            showDests: true, // Indicate legal moves for clicked piece.
-        },
+    boardSettings: {
+      _title: "Board Settings",
+      _collapsed: true, // This section will be closed by default
+      showDests: true, // Indicate legal moves for clicked piece.
+    },
 
-        mirrorSettings: {
-            _title: "Mirror Settings",
-            _collapsed: true, // This section will be closed by default
-            mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
-        },
-    }
+    mirrorSettings: {
+      _title: "Mirror Settings",
+      _collapsed: true, // This section will be closed by default
+      mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+    },
+  };
 </script>
 <script src="_persistence.js"></script>
 <iframe id="Board" style="visibility: hidden"></iframe>
 <script>
-    (function initIframe() {
-        {{#textField}}
-        const userText = `{{textField}}`;
-        {{/textField}}
-        const background = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
-        const PGN = `{{text:PGN}}`;
+  (function initIframe() {
+      {{#textField}}
+      const userText = `{{textField}}`;
+      {{/textField}}
+      const background = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+      const PGN = `{{text:PGN}}`;
 
-        const flattenConfig = (config) => {
-            const params = {};
-            for (const key in config) {
-                const value = config[key];
+      const flattenConfig = (config) => {
+          const params = {};
+          for (const key in config) {
+              const value = config[key];
 
-                if (typeof value === 'object' && value !== null && !key.startsWith('_')) {
-                    const nestedParams = {};
-                    for (const nestedKey in value) {
-                        if (!nestedKey.startsWith('_')) {
-                            nestedParams[nestedKey] = value[nestedKey];
-                        }
-                    }
-                    Object.assign(params, nestedParams);
-                }
-                else if (typeof value !== 'object' && !key.startsWith('_')) {
-                    params[key] = value;
-                }
-            }
-            return params;
-        };
+              if (typeof value === 'object' && value !== null && !key.startsWith('_')) {
+                  const nestedParams = {};
+                  for (const nestedKey in value) {
+                      if (!nestedKey.startsWith('_')) {
+                          nestedParams[nestedKey] = value[nestedKey];
+                      }
+                  }
+                  Object.assign(params, nestedParams);
+              }
+              else if (typeof value !== 'object' && !key.startsWith('_')) {
+                  params[key] = value;
+              }
+          }
+          return params;
+      };
 
-        const params = flattenConfig(userConfig);
-        params.PGN = PGN;
-        params.background = background;
-        params.boardMode = 'Viewer';
+      const params = flattenConfig(userConfig);
+      params.PGN = PGN;
+      params.background = background;
+      params.boardMode = 'Viewer';
 
-        {{#textField}}
-        params.userText = userText;
-        {{/textField}}
-        // handle anki persistence
-        if (Persistence.isAvailable()) {
-            ['pgnPath', 'errorTrack', 'mirrorState'].forEach(key => {
-                const value = Persistence.getItem(key);
-                if (value) {
-                    params[key] = value;
-                }
-            });
-            Persistence.clear();
-        }
+      {{#textField}}
+      params.userText = userText;
+      {{/textField}}
+      // handle anki persistence
+      if (Persistence.isAvailable()) {
+          ['pgnPath', 'errorTrack', 'mirrorState'].forEach(key => {
+              const value = Persistence.getItem(key);
+              if (value) {
+                  params[key] = value;
+              }
+          });
+          Persistence.clear();
+      }
 
-        const query = new URLSearchParams(params).toString();
-        const iframe = document.getElementById("Board");
-        iframe.onload = function() { iframe.style.visibility = "visible"; };
-        iframe.src = `_chess3.0.html?${query}`;
-        document.querySelector("#Board").contentWindow.focus();
+      const query = new URLSearchParams(params).toString();
+      const iframe = document.getElementById("Board");
+      iframe.onload = function() { iframe.style.visibility = "visible"; };
+      iframe.src = `_chess3.0.html?${query}`;
+      document.querySelector("#Board").contentWindow.focus();
 
-    })();
+  })();
 </script>

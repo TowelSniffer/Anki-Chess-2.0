@@ -251,12 +251,17 @@ body {
   grid-area: one;
   padding: 0px;
   font-family: serif;
-  width: calc(min(100vw, 1000px) - min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) - 30px);
+  width: calc(
+    min(100vw, 1000px) -
+      min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) - 30px
+  );
   box-shadow: 0px 0px 3px 0px black;
   background: #242424;
-  color: #D7DEE9;
+  color: #d7dee9;
   border-radius: 4px;
-  max-height: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) + 14px);
+  max-height: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) + 14px
+  );
   margin-top: 1px;
   overflow: scroll;
   box-sizing: border-box;
@@ -266,8 +271,8 @@ body {
   justify-content: center;
   align-items: center;
   width: 100%;
-  background: #2C2C2C;
-  color: #D7DEE9;
+  background: #2c2c2c;
+  color: #d7dee9;
   border-bottom: 1px solid black;
 }
 #container #commentBox #userTextContainer #textField {
@@ -278,7 +283,7 @@ body {
   justify-content: center;
   align-items: center;
   border-bottom: 1px solid black;
-  background: #2C2C2C;
+  background: #2c2c2c;
   position: sticky;
   top: 0;
   z-index: 25;
@@ -302,8 +307,13 @@ body {
     grid-template-columns: auto;
   }
   #commentBox {
-    width: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) + 12px);
-    height: calc(100vh - min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) - 34px);
+    width: calc(
+      min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) + 12px
+    );
+    height: calc(
+      100vh - min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) -
+        34px
+    );
     margin-left: 1px;
   }
 }
@@ -356,10 +366,14 @@ button.navBtn {
   border-radius: 4px;
   border: 1px solid black;
   background-color: #242424;
-  color: #D7DEE9;
+  color: #d7dee9;
   box-shadow: 0px 0px 3px 0px black;
-  height: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.1);
-  width: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.1);
+  height: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.1
+  );
+  width: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.1
+  );
   max-width: 50px;
   max-height: 50px;
   margin: 3px;
@@ -373,14 +387,14 @@ button.navBtn:hover {
   color: #333;
 }
 button.navBtn:active {
-  background-color: #557D38;
+  background-color: #557d38;
 }
 button.navBtn {
 }
 button.navBtn.active-toggle {
   background-color: #a5d6a7;
   box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
-  color: #2C2C2C;
+  color: #2c2c2c;
 }
 button.navBtn:focus {
   outline: 0;
@@ -397,10 +411,16 @@ button.navBtn span.flipBoardIcon {
   transform: rotate(270deg);
 }
 button.navBtn span.material-icons {
-  font-size: min(60px, min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.12);
+  font-size: min(
+    60px,
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.12
+  );
 }
 button.navBtn span.md-small {
-  font-size: min(38px, min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.075);
+  font-size: min(
+    38px,
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.075
+  );
 }
 #pgnComment .move-number {
   height: 1.5em;
@@ -442,7 +462,7 @@ button.navBtn span.md-small {
 }
 #pgnComment .comment {
   font-size: 0.8em;
-  color: #D7DEE9;
+  color: #d7dee9;
   padding: 0.3em;
   background: #404040;
 }
@@ -505,7 +525,9 @@ button.navBtn span.md-small {
   justify-content: center;
   align-items: center;
   position: absolute;
-  height: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.25);
+  height: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.25
+  );
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
   width: min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px);
@@ -516,8 +538,12 @@ button.navBtn span.md-small {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125);
-  width: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125);
+  height: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125
+  );
+  width: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125
+  );
   border: 0px;
   margin: 10px;
   top: 0.07em;
@@ -535,15 +561,19 @@ button.navBtn span.md-small {
   color: #333;
 }
 #promoteButtonsContainer button.promoteBtn:active {
-  background-color: #557D38;
+  background-color: #557d38;
 }
 #promoteButtonsContainer button.promoteBtn:focus {
   outline: 0;
 }
 #promoteButtonsContainer button.promoteBtn .promotePiece {
   margin: 0;
-  height: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125);
-  width: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125);
+  height: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125
+  );
+  width: calc(
+    min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) * 0.125
+  );
 }
 @keyframes timeFlash {
   0% {
@@ -585,7 +615,8 @@ button.navBtn span.md-small {
       red calc(var(--centipawn) - 1px),
       red calc(var(--centipawn) + 1px),
       var(--player-color) calc(var(--centipawn) + 1px),
-      var(--player-color) 100%);
+      var(--player-color) 100%
+    );
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
 }
@@ -602,7 +633,8 @@ button.navBtn span.md-small {
       red calc(var(--remainingTime) - 1px),
       red calc(var(--remainingTime) + 1px),
       var(--player-color) calc(var(--remainingTime) + 1px),
-      var(--player-color) 100%);
+      var(--player-color) 100%
+    );
   background-clip: padding-box, border-box;
   background-origin: padding-box, border-box;
 }
@@ -728,8 +760,16 @@ button.navBtn span.md-small {
   background-image: url("./_bK.svg");
 }
 cg-container {
-  width: min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) !important;
-  height: min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) !important;
+  width: min(
+    max(98vh - 12px, 300px),
+    max(98vw - 12px, 200px),
+    600px
+  ) !important;
+  height: min(
+    max(98vh - 12px, 300px),
+    max(98vw - 12px, 200px),
+    600px
+  ) !important;
 }
 cg-board {
   background-color: #f0d9b5;
@@ -756,35 +796,35 @@ cg-board square {
   pointer-events: none;
 }
 cg-board square.move-dest {
-  background:
-    radial-gradient(
-      rgba(20, 85, 30, 0.5) 22%,
-      #208530 0,
-      rgba(0, 0, 0, 0.3) 0,
-      rgba(0, 0, 0, 0) 0);
+  background: radial-gradient(
+    rgba(20, 85, 30, 0.5) 22%,
+    #208530 0,
+    rgba(0, 0, 0, 0.3) 0,
+    rgba(0, 0, 0, 0) 0
+  );
   pointer-events: auto;
 }
 cg-board square.premove-dest {
-  background:
-    radial-gradient(
-      rgba(20, 30, 85, 0.5) 22%,
-      #203085 0,
-      rgba(0, 0, 0, 0.3) 0,
-      rgba(0, 0, 0, 0) 0);
+  background: radial-gradient(
+    rgba(20, 30, 85, 0.5) 22%,
+    #203085 0,
+    rgba(0, 0, 0, 0.3) 0,
+    rgba(0, 0, 0, 0) 0
+  );
 }
 cg-board square.oc.move-dest {
-  background:
-    radial-gradient(
-      transparent 0%,
-      transparent 80%,
-      rgba(20, 85, 0, 0.3) 80%);
+  background: radial-gradient(
+    transparent 0%,
+    transparent 80%,
+    rgba(20, 85, 0, 0.3) 80%
+  );
 }
 cg-board square.oc.premove-dest {
-  background:
-    radial-gradient(
-      transparent 0%,
-      transparent 80%,
-      rgba(20, 30, 85, 0.2) 80%);
+  background: radial-gradient(
+    transparent 0%,
+    transparent 80%,
+    rgba(20, 30, 85, 0.2) 80%
+  );
 }
 cg-board square.move-dest:hover {
   background: rgba(20, 85, 30, 0.3);
@@ -800,13 +840,13 @@ cg-board square.selected {
   background-color: rgba(20, 85, 30, 0.5);
 }
 cg-board square.check {
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgb(255, 0, 0) 0%,
-      rgb(231, 0, 0) 25%,
-      rgba(169, 0, 0, 0) 89%,
-      rgba(158, 0, 0, 0) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255, 0, 0) 0%,
+    rgb(231, 0, 0) 25%,
+    rgba(169, 0, 0, 0) 89%,
+    rgba(158, 0, 0, 0) 100%
+  );
 }
 cg-board square.current-premove {
   background-color: rgba(20, 30, 85, 0.5);

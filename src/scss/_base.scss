@@ -1,61 +1,61 @@
-@use 'variables' as *;
-@use 'mixins' as *;
+@use "variables" as *;
+@use "mixins" as *;
 
 :root {
-    --background-color: #{$color-bg-primary};
+  --background-color: #{$color-bg-primary};
 
-    /* Board Variables */
-    --coord-white: rgba(255, 255, 255, 0.8);
-    --coord-black: rgba(72, 72, 72, 0.8);
-    --opponent-color: black;
-    --player-color: white;
-    --border-color: #808080;
-    --correct-color: #{$color-correct};
-    --perfect-color: #{$color-perfect};
-    --incorrect-color: #{$color-incorrect};
-    --timer-color: #{$color-incorrect};
-    --timer-flash-color: grey;
-    --centipawn: 50%;
-    --remainingTime: 0%;
+  /* Board Variables */
+  --coord-white: rgba(255, 255, 255, 0.8);
+  --coord-black: rgba(72, 72, 72, 0.8);
+  --opponent-color: black;
+  --player-color: white;
+  --border-color: #808080;
+  --correct-color: #{$color-correct};
+  --perfect-color: #{$color-perfect};
+  --incorrect-color: #{$color-incorrect};
+  --timer-color: #{$color-incorrect};
+  --timer-flash-color: grey;
+  --centipawn: 50%;
+  --remainingTime: 0%;
 }
 
 ::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 * {
-    /*disable the tap/touch highlight that sametimes appears over the board when using a touch screen */
-    -webkit-tap-highlight-color: transparent;
+  /*disable the tap/touch highlight that sametimes appears over the board when using a touch screen */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
-html, img {
-    margin: 0;
-    color: white;
+html,
+img {
+  margin: 0;
+  color: white;
 }
 
 body {
-    @include flex-center;
-    background: var(--background-color);
-    margin: 0;
-    height: 100vh;
-    width: 100%;
-    flex-direction: column;
+  @include flex-center;
+  background: var(--background-color);
+  margin: 0;
+  height: 100vh;
+  width: 100%;
+  flex-direction: column;
 }
 
 .hidden {
-    display: none !important;
+  display: none !important;
 }
 
-
 #overlay {
-    height: 100vh;
-    width: 100vw;
-    position: absolute;
-    z-index: 99;
-    background: rgba(0, 0, 0, 0.5);
+  height: 100vh;
+  width: 100vw;
+  position: absolute;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.5);
 }

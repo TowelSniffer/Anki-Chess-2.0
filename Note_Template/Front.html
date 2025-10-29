@@ -1,119 +1,119 @@
 <script>
-    // User Variables
-    var userConfig = {
-        fontSize: 18, // The font size for the puzzle text.
-        frontText: false, // Show userText on front side.
-        muteAudio: false,
-        puzzleSettings: {
-            _title: "Puzzle Settings",
-            _collapsed: false,
-            flip: false, // Sets whether Puzzle begins from First or second move of PGN.
-            handicap: 1, // Number of wrong attempts before puzzle advances automatically.
-            strictScoring: false, // Puzzle is marked wrong with any mistake.
-            acceptVariations: true, // Allows for multiple lines for both sides.
-        },
-        boardSettings: {
-            _title: "Board Settings",
-            _collapsed: true,
-            disableArrows: false, // Disables arrows on front side.
-            showDests: true, // Indicate legal moves for clicked piece.
-        },
-        mirrorSettings: {
-            _title: "Mirror Settings",
-            _collapsed: true,
-            mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
-            randomOrientation: false, // Sets a grey border and random board rotation.
-        },
-        timerSettings: {
-            _title: "Timer Settings",
-            _collapsed: true,
-            timer: 0, // Max solve time in seconds. Set to 0 to diable.
-            increment: 0, // Increase Max time with each move.
-            timerScore: true, // Mark puzzle incorrect when out of time.
-        },
-        autoAdvanceSettings: {
-            _title: "autoAdvance Settings",
-            _collapsed: true, // This section will be closed by default
-            autoAdvance: false, // Automatically show answer when player reaches end of line. Anki mobile not supported.
-            handicapAdvance: false, // Also show answer when handicap is reached.
-            timerAdvance: true, // Also show answer when timer runs out.
-        },
-    }
+  // User Variables
+  var userConfig = {
+    fontSize: 18, // The font size for the puzzle text.
+    frontText: false, // Show userText on front side.
+    muteAudio: false,
+    puzzleSettings: {
+      _title: "Puzzle Settings",
+      _collapsed: false,
+      flip: false, // Sets whether Puzzle begins from First or second move of PGN.
+      handicap: 1, // Number of wrong attempts before puzzle advances automatically.
+      strictScoring: false, // Puzzle is marked wrong with any mistake.
+      acceptVariations: true, // Allows for multiple lines for both sides.
+    },
+    boardSettings: {
+      _title: "Board Settings",
+      _collapsed: true,
+      disableArrows: false, // Disables arrows on front side.
+      showDests: true, // Indicate legal moves for clicked piece.
+    },
+    mirrorSettings: {
+      _title: "Mirror Settings",
+      _collapsed: true,
+      mirror: false, // Card will randomly show up in a mirrored and/or inverted orientation if neither player holds castle rights.
+      randomOrientation: false, // Sets a grey border and random board rotation.
+    },
+    timerSettings: {
+      _title: "Timer Settings",
+      _collapsed: true,
+      timer: 0, // Max solve time in seconds. Set to 0 to diable.
+      increment: 0, // Increase Max time with each move.
+      timerScore: true, // Mark puzzle incorrect when out of time.
+    },
+    autoAdvanceSettings: {
+      _title: "autoAdvance Settings",
+      _collapsed: true, // This section will be closed by default
+      autoAdvance: false, // Automatically show answer when player reaches end of line. Anki mobile not supported.
+      handicapAdvance: false, // Also show answer when handicap is reached.
+      timerAdvance: true, // Also show answer when timer runs out.
+    },
+  };
 </script>
 <script src="_persistence.js"></script>
 <iframe id="Board" style="visibility: hidden"></iframe>
 <script>
-    (function initIframe() {
-        {{#textField}}
-        const userText = `{{textField}}`;
-        {{/textField}}
-        const background = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
-        const PGN = `{{text:PGN}}`;
+  (function initIframe() {
+      {{#textField}}
+      const userText = `{{textField}}`;
+      {{/textField}}
+      const background = window.getComputedStyle(document.body, null).getPropertyValue('background-color');
+      const PGN = `{{text:PGN}}`;
 
-        const flattenConfig = (config) => {
-            const params = {};
-            for (const key in config) {
-                const value = config[key];
+      const flattenConfig = (config) => {
+          const params = {};
+          for (const key in config) {
+              const value = config[key];
 
-                if (typeof value === 'object' && value !== null && !key.startsWith('_')) {
-                    const nestedParams = {};
-                    for (const nestedKey in value) {
-                        if (!nestedKey.startsWith('_')) {
-                            nestedParams[nestedKey] = value[nestedKey];
-                        }
-                    }
-                    Object.assign(params, nestedParams);
-                }
-                else if (typeof value !== 'object' && !key.startsWith('_')) {
-                    params[key] = value;
-                }
-            }
-            return params;
-        };
+              if (typeof value === 'object' && value !== null && !key.startsWith('_')) {
+                  const nestedParams = {};
+                  for (const nestedKey in value) {
+                      if (!nestedKey.startsWith('_')) {
+                          nestedParams[nestedKey] = value[nestedKey];
+                      }
+                  }
+                  Object.assign(params, nestedParams);
+              }
+              else if (typeof value !== 'object' && !key.startsWith('_')) {
+                  params[key] = value;
+              }
+          }
+          return params;
+      };
 
-        const params = flattenConfig(userConfig);
-        params.PGN = PGN;
-        params.background = background;
-        params.boardMode = 'Puzzle';
+      const params = flattenConfig(userConfig);
+      params.PGN = PGN;
+      params.background = background;
+      params.boardMode = 'Puzzle';
 
-        {{#textField}}
-        params.userText = userText;
-        {{/textField}}
+      {{#textField}}
+      params.userText = userText;
+      {{/textField}}
 
-        const query = new URLSearchParams(params).toString();
-        const iframe = document.getElementById("Board");
-        iframe.onload = function() { iframe.style.visibility = "visible"; };
-        iframe.src = `_chess3.0.html?${query}`;
+      const query = new URLSearchParams(params).toString();
+      const iframe = document.getElementById("Board");
+      iframe.onload = function() { iframe.style.visibility = "visible"; };
+      iframe.src = `_chess3.0.html?${query}`;
 
-        // handle anki persistence
-        let errorTrack;
-        let mirrorState;
-        let pgnPath = null;
-        let errorCount = null;
-        let puzzleComplete = null;
-        if (Persistence.isAvailable()) {
-            Persistence.clear();
-            // checking window.hasChessListener prevents the event listener from being added multiple times
-            if (typeof window.addEventListener != 'undefined' && !window.hasChessListener) {
-                window.hasChessListener = true;
-                window.addEventListener('message', function(e) {
-                    errorTrack = e.data.errorTrack;
-                    mirrorState = e.data.mirrorState;
-                    errorCount = e.data.errorCount;
-                    puzzleComplete = e.data.puzzleComplete;
-                    pgnPath = e.data.pgnPath;
-                    Persistence.setItem("errorTrack", errorTrack);
-                    Persistence.setItem("mirrorState", mirrorState);
-                    Persistence.setItem("pgnPath", pgnPath);
-                    if (userConfig.autoAdvanceSettings?.autoAdvance && puzzleComplete === true) {
-                        if (typeof showAnswer === 'function') {
-                            showAnswer();
-                        } else if (typeof pycmd === 'function') {
-                            pycmd("ans");
-                        }
-                    }
-                }, false);
-            }
-        }
-    })();
+      // handle anki persistence
+      let errorTrack;
+      let mirrorState;
+      let pgnPath = null;
+      let errorCount = null;
+      let puzzleComplete = null;
+      if (Persistence.isAvailable()) {
+          Persistence.clear();
+          // checking window.hasChessListener prevents the event listener from being added multiple times
+          if (typeof window.addEventListener != 'undefined' && !window.hasChessListener) {
+              window.hasChessListener = true;
+              window.addEventListener('message', function(e) {
+                  errorTrack = e.data.errorTrack;
+                  mirrorState = e.data.mirrorState;
+                  errorCount = e.data.errorCount;
+                  puzzleComplete = e.data.puzzleComplete;
+                  pgnPath = e.data.pgnPath;
+                  Persistence.setItem("errorTrack", errorTrack);
+                  Persistence.setItem("mirrorState", mirrorState);
+                  Persistence.setItem("pgnPath", pgnPath);
+                  if (userConfig.autoAdvanceSettings?.autoAdvance && puzzleComplete === true) {
+                      if (typeof showAnswer === 'function') {
+                          showAnswer();
+                      } else if (typeof pycmd === 'function') {
+                          pycmd("ans");
+                      }
+                  }
+              }, false);
+          }
+      }
+  })();
 </script>

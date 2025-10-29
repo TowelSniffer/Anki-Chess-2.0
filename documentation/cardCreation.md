@@ -9,13 +9,14 @@ This template supports Standar PGN format. For the puzzle to work, you will need
 
 ```
 
-If you run into problems loading cards, please check that formatting is correct. Exporting from anaylis software is the best way to ensure good formatting. 
+If you run into problems loading cards, please check that formatting is correct. Exporting from anaylis software is the best way to ensure good formatting.
 
 # nags
 
-Numeric Annotation Glyphs or NAGs are used to annotate chess games when using a computer, typically providing an assessment of a chess move or a chess position. Blunders can be marked with ??, ? or ?!, or their equivilent numeric annotation $4, $2 or $6. Good (! or $1) and Excellent (!! or $3) moves will also show an icon when played on front side. 
+Numeric Annotation Glyphs or NAGs are used to annotate chess games when using a computer, typically providing an assessment of a chess move or a chess position. Blunders can be marked with ??, ? or ?!, or their equivilent numeric annotation $4, $2 or $6. Good (! or $1) and Excellent (!! or $3) moves will also show an icon when played on front side.
 
 eg: `3... Bc5 $4`, blunder and `4. Nf3!` good move:
+
 ```
 [FEN "rnbqkbnr/pppp1ppp/8/8/3pPP2/8/PPP3PP/RNBQKBNR b KQkq - 0 3"]
 
@@ -24,6 +25,7 @@ eg: `3... Bc5 $4`, blunder and `4. Nf3!` good move:
 ```
 
 ## Supported Nags
+
 ```
     "$1": ["Good move", "!", "_good.webp"],
     "$2": ["Poor move", "?", "_mistake.webp"],
