@@ -1,34 +1,35 @@
-if (typeof(window.Persistence) === 'undefined') {
-  var _persistenceKey = 'github.com/SimonLammer/anki-persistence/';
-  var _defaultKey = '_default';
-  window.Persistence_sessionStorage = function() { // used in android, iOS, web
+if (typeof window.Persistence === "undefined") {
+  var _persistenceKey = "github.com/SimonLammer/anki-persistence/";
+  var _defaultKey = "_default";
+  window.Persistence_sessionStorage = function () {
+    // used in android, iOS, web
     var isAvailable = false;
     try {
-      if (typeof(window.sessionStorage) === 'object') {
+      if (typeof window.sessionStorage === "object") {
         isAvailable = true;
-        this.clear = function() {
+        this.clear = function () {
           for (var i = 0; i < sessionStorage.length; i++) {
             var k = sessionStorage.key(i);
             if (k.indexOf(_persistenceKey) == 0) {
               sessionStorage.removeItem(k);
               i--;
             }
-          };
+          }
         };
-        this.setItem = function(key, value) {
+        this.setItem = function (key, value) {
           if (value == undefined) {
             value = key;
             key = _defaultKey;
           }
           sessionStorage.setItem(_persistenceKey + key, JSON.stringify(value));
         };
-        this.getItem = function(key) {
+        this.getItem = function (key) {
           if (key == undefined) {
             key = _defaultKey;
           }
           return JSON.parse(sessionStorage.getItem(_persistenceKey + key));
         };
-        this.removeItem = function(key) {
+        this.removeItem = function (key) {
           if (key == undefined) {
             key = _defaultKey;
           }
@@ -42,37 +43,40 @@ if (typeof(window.Persistence) === 'undefined') {
             if (k.indexOf(_persistenceKey) == 0) {
               keys.push(k.substring(_persistenceKey.length, k.length));
             }
-          };
-          return keys.sort()
-        }
+          }
+          return keys.sort();
+        };
       }
-    } catch(err) {}
-    this.isAvailable = function() {
+    } catch (err) {}
+    this.isAvailable = function () {
       return isAvailable;
     };
   };
-  window.Persistence_windowKey = function(persistentKey) { // used in windows, linux, mac
+  window.Persistence_windowKey = function (persistentKey) {
+    // used in windows, linux, mac
     var obj = window[persistentKey];
     var isAvailable = false;
-    if (typeof(obj) === 'object') {
+    if (typeof obj === "object") {
       isAvailable = true;
-      this.clear = function() {
+      this.clear = function () {
         obj[_persistenceKey] = {};
       };
-      this.setItem = function(key, value) {
+      this.setItem = function (key, value) {
         if (value == undefined) {
           value = key;
           key = _defaultKey;
         }
         obj[_persistenceKey][key] = value;
       };
-      this.getItem = function(key) {
+      this.getItem = function (key) {
         if (key == undefined) {
           key = _defaultKey;
         }
-        return obj[_persistenceKey][key] == undefined ? null : obj[_persistenceKey][key];
+        return obj[_persistenceKey][key] == undefined
+          ? null
+          : obj[_persistenceKey][key];
       };
-      this.removeItem = function(key) {
+      this.removeItem = function (key) {
         if (key == undefined) {
           key = _defaultKey;
         }
@@ -80,13 +84,13 @@ if (typeof(window.Persistence) === 'undefined') {
       };
       this.getAllKeys = function () {
         return Object.keys(obj[_persistenceKey]);
-      }
+      };
 
       if (obj[_persistenceKey] == undefined) {
         this.clear();
       }
     }
-    this.isAvailable = function() {
+    this.isAvailable = function () {
       return isAvailable;
     };
   };
@@ -107,9 +111,15 @@ if (typeof(window.Persistence) === 'undefined') {
     window.Persistence = new Persistence_windowKey("py"); // windows, mac (2.0)
   }
   if (!Persistence.isAvailable()) {
-    var titleStartIndex = window.location.toString().indexOf('title'); // if titleStartIndex > 0, window.location is useful
-    var titleContentIndex = window.location.toString().indexOf('main', titleStartIndex);
-    if (titleStartIndex > 0 && titleContentIndex > 0 && (titleContentIndex - titleStartIndex) < 10) {
+    var titleStartIndex = window.location.toString().indexOf("title"); // if titleStartIndex > 0, window.location is useful
+    var titleContentIndex = window.location
+      .toString()
+      .indexOf("main", titleStartIndex);
+    if (
+      titleStartIndex > 0 &&
+      titleContentIndex > 0 &&
+      titleContentIndex - titleStartIndex < 10
+    ) {
       window.Persistence = new Persistence_windowKey("qt"); // linux, mac (2.1)
     }
   }

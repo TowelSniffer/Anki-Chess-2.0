@@ -1,8 +1,8 @@
-I always verify compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable/ and if you run into issues I will trye to fix them. 
+I always verify compatability with Windows/Linux and Ankidroid, however cannot verify for IOS and MAC. This is a note template however, and does not rely on addons, so it should be compatable/ and if you run into issues I will trye to fix them.
 
-## Unexpected behaviour on different devices after updating. 
+## Unexpected behaviour on different devices after updating.
 
-If, after updating, you may run into an issue where your other devices aren't being updated or have bugs, look at the [issues on other devices after updating](https://github.com/TowelSniffer/Anki-Chess-2.0/blob/main/documentation%2Finstallation.md#issues-on-other-devices-after-updating) section in the installation documentation. 
+If, after updating, you may run into an issue where your other devices aren't being updated or have bugs, look at the [issues on other devices after updating](https://github.com/TowelSniffer/Anki-Chess-2.0/blob/main/documentation%2Finstallation.md#issues-on-other-devices-after-updating) section in the installation documentation.
 
 ## PGN tips:
 

@@ -1,8 +1,9 @@
 # Managing templates
 
-Depending on use case it will make sense to clone this template to handle different configurations. For example, ankiChess and ankiChessFlip. The [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) will handle creating and managing multiple note templates pretty seemlesly, but you can also configure them manually by editing the `userConfig` json at the beggining of the front and back side in anki's note editor. 
+Depending on use case it will make sense to clone this template to handle different configurations. For example, ankiChess and ankiChessFlip. The [companion addon](https://ankiweb.net/shared/info/1300975327?cb=1755601119118) will handle creating and managing multiple note templates pretty seemlesly, but you can also configure them manually by editing the `userConfig` json at the beggining of the front and back side in anki's note editor.
 
-These are the options currently but I will add more in future. refer to the comment for functionality. Be careful not to break formatting when editing. 
+These are the options currently but I will add more in future. refer to the comment for functionality. Be careful not to break formatting when editing.
+
 ```
 <script>
     // User Variables
@@ -50,7 +51,4 @@ These are the options currently but I will add more in future. refer to the comm
 
 ## Text Field
 
-Content in the textField field will be shown above the PGN. Should keep existing formatting. If user want this to also display on the front side, toggle `frontText` with companion addon, or manually edit `userConfig` json in anki template editor. 
-
-
-
+Content in the textField field will be shown above the PGN. Should keep existing formatting. If user want this to also display on the front side, toggle `frontText` with companion addon, or manually edit `userConfig` json in anki template editor.

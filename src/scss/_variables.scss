@@ -4,8 +4,8 @@ $max-width: min(100vw, 1000px);
 
 /* Dark Theme Palette */
 $color-bg-primary: #242424;
-$color-bg-secondary: #2C2C2C;
-$color-text-primary: #D7DEE9;
+$color-bg-secondary: #2c2c2c;
+$color-text-primary: #d7dee9;
 $color-text-muted: #797979;
 
 /* Board Variables */
@@ -14,10 +14,14 @@ $color-incorrect: #b31010;
 $color-perfect: #d4af37;
 $board-border-width: 8px;
 /*have to account for 6px border*/
-$board-size: min(max(calc(98vh - 12px), 300px), max(calc(98vw - 12px), 200px), 600px);
+$board-size: min(
+  max(calc(98vh - 12px), 300px),
+  max(calc(98vw - 12px), 200px),
+  600px
+);
 
 /* Interaction Palette */
-$color-interactive-active: #557D38;
+$color-interactive-active: #557d38;
 $color-interactive-toggle: #a5d6a7;
 $color-interactive-hover-bg: #d6d6d6;
 $color-interactive-hover-text: #333;
