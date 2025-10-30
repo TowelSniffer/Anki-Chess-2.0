@@ -1,0 +1,15 @@
+// tsconfig.json
+{
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "target": "es2023",
+    "module": "esnext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noEmit": true // Don't create .js files, only check types.
+  },
+  "include": ["src"] // Or wherever your .ts files are located
+}
