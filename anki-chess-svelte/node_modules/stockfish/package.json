@@ -1,0 +1,29 @@
+{
+  "name": "stockfish",
+  "description": "The Stockfish chess engine in Web Assembly (WASM)",
+  "version": "17.1.0",
+  "author": {
+    "name": "Nathan Rugg",
+    "email": "nmrugg@gmail.com"
+  },
+  "contributors": [
+    {
+      "name": "Chess.com",
+      "url": "https://www.chess.com"
+    }
+  ],
+  "dependencies": {},
+  "keywords": [
+    "chess"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nmrugg/stockfish.js"
+  },
+  "license": "GPL",
+  "main": "src/stockfish.js",
+  "bin": {
+    "stockfishjs": "./stockfishjs"
+  },
+  "readmeFilename": "readme.md"
+}

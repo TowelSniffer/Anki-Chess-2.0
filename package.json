@@ -27,8 +27,11 @@
     "glob": "^11.0.3",
     "globals": "^16.4.0",
     "madge": "^8.0.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-svelte": "^3.4.0",
     "ts-unused-exports": "^11.0.1",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.45.0"
+    "typescript-eslint": "^8.45.0",
+    "typescript-svelte-plugin": "^0.3.50"
   }
 }

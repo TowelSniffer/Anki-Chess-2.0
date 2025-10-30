@@ -1,6 +1,7 @@
 // tsconfig.json
 {
   "compilerOptions": {
+    "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
     "target": "es2023",
     "module": "esnext",
@@ -11,5 +12,11 @@
     "moduleResolution": "node",
     "noEmit": true // Don't create .js files, only check types.
   },
+  "plugins": [{
+    "name": "typescript-svelte-plugin",
+    // the following options can be set additionally; they are optional; their default values are listed here
+    "enabled": true, // enables this plugin
+    "assumeIsSvelteProject": false // if true, skip detection and always assume it's a Svelte project
+    }]
   "include": ["src"] // Or wherever your .ts files are located
 }

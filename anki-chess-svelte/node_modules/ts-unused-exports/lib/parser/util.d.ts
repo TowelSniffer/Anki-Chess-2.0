@@ -1,0 +1,11 @@
+import ts = require('typescript');
+export declare function isUnique<T>(value: T, index: number, self: T[]): boolean;
+export declare const indexCandidates: string[];
+export declare const indexCandidateExtensions: string[];
+export declare function removeFileExtensionToAllowForJsTsJsxTsx(path: string): string;
+export declare function removeTsFileExtension(path: string): string;
+export declare function stripExtensionsFromPath(extensions: string[], path: string): string;
+export declare function removeExportStarPrefix(path: string): string;
+export declare function recurseIntoChildren(next: ts.Node, fun: (node: ts.Node) => boolean): boolean;
+export declare function findAllChildrenOfKind(node: ts.Node, kind: ts.SyntaxKind): ts.Node[];
+export declare function findFirstChildOfKind(node: ts.Node, kind: ts.SyntaxKind): ts.Node | null;

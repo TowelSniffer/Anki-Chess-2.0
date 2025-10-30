@@ -1,0 +1,39 @@
+{
+  "name": "anki-chess",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dependency-test": "npx madge --circular --extensions ts --ts-config=tsconfig.json ./src",
+    "typecheck": "tsc --noEmit && eslint src && npx ts-unused-exports tsconfig.json",
+    "build": "npm run typecheck && npm run dependency-test && node build.js",
+    "dev": "node build.js --dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@mliebelt/pgn-parser": "^1.4.18",
+    "chess.js": "^1.4.0",
+    "chessground": "^9.2.1",
+    "stockfish": "^17.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "esbuild": "^0.25.10",
+    "esbuild-sass-plugin": "^3.3.1",
+    "esbuild-svelte": "^0.9.3",
+    "eslint": "^9.36.0",
+    "glob": "^11.0.3",
+    "globals": "^16.4.0",
+    "madge": "^8.0.0",
+    "sass": "^1.93.2",
+    "svelte": "^5.43.0",
+    "svelte-check": "^4.3.3",
+    "svelte-preprocess": "^6.0.3",
+    "ts-unused-exports": "^11.0.1",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.45.0"
+  }
+}

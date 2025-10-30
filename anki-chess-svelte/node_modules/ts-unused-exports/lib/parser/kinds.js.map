@@ -1,0 +1,1 @@
+{"version":3,"file":"kinds.js","sourceRoot":"","sources":["../../src/parser/kinds.ts"],"names":[],"mappings":";;;AAAA,+BAAiC;AAEpB,QAAA,4BAA4B,GAAG;IAC1C,EAAE,CAAC,UAAU,CAAC,oBAAoB;IAClC,EAAE,CAAC,UAAU,CAAC,oBAAoB;CACnC,CAAC;AACW,QAAA,eAAe,GAAG,CAAC,EAAE,CAAC,UAAU,CAAC,eAAe,CAAC,CAAC"}

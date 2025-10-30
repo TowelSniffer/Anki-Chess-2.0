@@ -1,0 +1,149 @@
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.05"]
+[Round "1"]
+[White "Edvardsen,R"]
+[Black "Carlsen,Magnus"]
+[Result "1/2-1/2"]
+[WhiteElo "2055"]
+[BlackElo "0"]
+[ECO "D12"]
+
+1.d4 Nf6 2.Nf3 d5 3.e3 Bf5 4.c4 c6 5.Nc3 e6 6.Bd3 Bxd3 7.Qxd3 Nbd7 8.b3 Bd6
+9.O-O O-O 10.Bb2 Qe7 11.Rad1 Rad8 12.Rfe1 dxc4 13.bxc4 e5 14.dxe5 Nxe5 15.Nxe5 Bxe5
+16.Qe2 Rxd1 17.Rxd1 Rd8 18.Rxd8+ Qxd8 19.Qd1 Qxd1+ 20.Nxd1 Bxb2 21.Nxb2 b5
+22.f3 Kf8 23.Kf2 Ke7  1/2-1/2
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.06"]
+[Round "2"]
+[White "Carlsen,Magnus"]
+[Black "Brameld,A"]
+[Result "0-1"]
+[WhiteElo "0"]
+[BlackElo "2095"]
+[ECO "B05"]
+
+1.e4 Nf6 2.e5 Nd5 3.d4 d6 4.Nf3 Bg4 5.Bc4 e6 6.O-O Nb6 7.Be2 Be7 8.h3 Bh5
+9.Bf4 Nc6 10.c3 O-O 11.Nbd2 d5 12.b4 a5 13.a3 Qd7 14.Qc2 Bg6 15.Bd3 Rfc8
+16.Rfb1 Bf8 17.h4 Ne7 18.g3 Qa4 19.Ne1 Qxc2 20.Bxc2 Bxc2 21.Nxc2 Na4 22.Rb3 b6
+23.Kf1 c5 24.bxc5 bxc5 25.dxc5 Rxc5 26.Nb1 Rac8 27.Be3 Rc4 28.Bd4 Nc6 29.Rb5 Nxd4
+30.Nxd4 Nxc3 31.Nxc3 Rxd4 32.Ne2 Ra4 33.Ke1 Rxa3 34.Rab1 Bb4+ 35.Kf1 Rd3  0-1
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.07"]
+[Round "3"]
+[White "Carlsen,Magnus"]
+[Black "Fant,G"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo "2062"]
+[ECO "C16"]
+
+1.e4 e6 2.d4 d5 3.Nc3 Bb4 4.e5 Ne7 5.a3 Bxc3+ 6.bxc3 b6 7.Qg4 Nf5 8.Bd3 h5
+9.Qh3 c5 10.Bxf5 exf5 11.Qg3 Kf8 12.h4 Nc6 13.Bg5 f6 14.exf6 gxf6 15.Be3 Qe7
+16.Ne2 Be6 17.O-O Kf7 18.Nf4 Rag8 19.Qf3 Qd7 20.Rad1 c4 21.Rfe1 Rg4 22.g3 Kf8
+23.Nxe6+ Qxe6 24.Bh6+ Kf7 25.Rxe6 Kxe6 26.Bf4 Ne7 27.Re1+ Kd7 28.Qe3  1-0
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.08"]
+[Round "4"]
+[White "Tallaksen,G"]
+[Black "Carlsen,Magnus"]
+[Result "1/2-1/2"]
+[WhiteElo "2258"]
+[BlackElo ""]
+[ECO "D35"]
+
+1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.e3 Be7 5.Nf3 O-O 6.Bd3 Nbd7 7.e4 dxe4 8.Nxe4 Nxe4
+9.Bxe4 Nf6 10.Bc2 Bb4+ 11.Bd2 Bxd2+ 12.Qxd2 b6 13.O-O Bb7 14.Ne5 Nd7 15.Qd3 g6
+16.Nxd7 Qxd7 17.b3 Rad8 18.Rad1 c5 19.dxc5 Qxd3 20.Rxd3 Rxd3 21.Bxd3 bxc5
+22.Rd1 Rd8 23.f3 e5 24.Kf2 e4 25.Be2 Rxd1 26.Bxd1 Kf8 27.fxe4 Bxe4 28.a3 a5
+29.g3 Ke7 30.Ke3  1/2-1/2
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.08"]
+[Round "5"]
+[White "Carlsen,Magnus"]
+[Black "Nilssen,J"]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo "2371"]
+[ECO "B32"]
+
+1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 e5 5.Nb5 d6 6.N1c3 a6 7.Na3 b5 8.Nd5 Nge7
+9.c4 Nd4 10.cxb5 Nxd5 11.exd5 Bd7 12.Be3 axb5 13.Bxd4 exd4 14.Qxd4 Be7 15.Nxb5 O-O
+16.Nc3 Bf6 17.Qd2 Re8+ 18.Be2 Bxc3 19.Qxc3 Bb5 20.O-O Rxe2 21.Rfe1 Rxe1+
+22.Qxe1 Bc4  0-1
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.09"]
+[Round "6"]
+[White "Grubert,C"]
+[Black "Carlsen,Magnus"]
+[Result "1-0"]
+[WhiteElo "2170"]
+[BlackElo ""]
+[ECO "C42"]
+
+1.e4 e5 2.Nf3 Nf6 3.Nxe5 d6 4.Nf3 Nxe4 5.d4 d5 6.Bd3 Bd6 7.O-O O-O 8.c4 c6
+9.Nc3 Nxc3 10.bxc3 Bg4 11.Rb1 b6 12.cxd5 cxd5 13.c4 Nc6 14.cxd5 Nxd4 15.Bxh7+ Kxh7
+16.Qxd4 Bxf3 17.Qd3+ f5 18.Qxf3 Be5 19.Ba3 Bd6 20.Bxd6 Qxd6 21.Rbc1 g6 22.Rc6 Qd7
+23.Rfc1 Rac8 24.Qh3+  1-0
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.10"]
+[Round "7"]
+[White "Carlsen,Magnus"]
+[Black "Johansen,KR"]
+[Result "1-0"]
+[WhiteElo ""]
+[BlackElo "2097"]
+[ECO "B06"]
+
+1.e4 g6 2.d4 Bg7 3.Nc3 d6 4.f4 c5 5.dxc5 Qa5 6.cxd6 Bxc3+ 7.bxc3 Qxc3+ 8.Bd2 Qd4
+9.Bd3 Qxd6 10.Bc3 f6 11.Nf3 Nc6 12.Bd2 Qc5 13.Qe2 Nh6 14.h3 O-O 15.Be3 Qc3+
+16.Kf2 Nf7 17.Rhd1 e5 18.Bc4 Qa5 19.Kg1 Kg7 20.Rab1 Qc7 21.Bc5 Re8 22.Bxf7 Qxf7
+23.fxe5 fxe5 24.Ng5 Qxa2 25.Qf2 Nd8 26.Rf1 Qa6 27.Be7 Be6 28.Qf6+ Kg8 29.Bf8 Qxf1+
+30.Rxf1  1-0
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.11"]
+[Round "8"]
+[White "Sorensen,H"]
+[Black "Carlsen,Magnus"]
+[Result "1-0"]
+[WhiteElo "2245"]
+[BlackElo ""]
+[ECO "D48"]
+
+1.d4 d5 2.c4 c6 3.Nc3 Nf6 4.Nf3 e6 5.e3 Nbd7 6.Bd3 dxc4 7.Bxc4 b5 8.Bd3 a6
+9.a4 Bb7 10.O-O b4 11.Ne4 Nxe4 12.Bxe4 Nf6 13.Nd2 Nxe4 14.Nxe4 Qd5 15.f3 f5
+16.Nf2 Rd8 17.b3 c5 18.Bb2 cxd4 19.Bxd4 e5 20.Bb6 Rd6 21.a5 Qe6 22.Qc2 Be7
+23.Qc4 Qxc4 24.bxc4 Kf7 25.Rfc1 Rc8 26.Rab1 Ke6 27.c5 Rd2 28.Rxb4 Bc6 29.Rb3 Bb5
+30.Rbc3 Rc6 31.e4 f4 32.Rd1 Rxd1+ 33.Nxd1 Ba4 34.Nb2 Bb5 35.Kf2 Bf8 36.g3 Be7
+37.Rc2 g6 38.Ke1 Kd7 39.Kd2 Ke6 40.Nd3 Bg5 41.g4 Be7 42.Nb4 Rc8 43.Nd5 Kd7
+44.Kc1 Ba4 45.Rc4 Bb5 46.Rc2 Ba4 47.Rc3 Bb5 48.Kd2 Bh4 49.Rc1 Bf2 50.c6+  1-0
+
+[Event "Troll Masters"]
+[Site "Gausdal NOR"]
+[Date "2001.01.12"]
+[Round "9"]
+[White "Carlsen,Magnus"]
+[Black "Moen,A"]
+[Result "0-1"]
+[WhiteElo ""]
+[BlackElo "2227"]
+[ECO "C42"]
+
+1.e4 e5 2.Nf3 Nf6 3.Nxe5 d6 4.Nf3 Nxe4 5.d4 d5 6.Bd3 Nc6 7.O-O Be7 8.c3 Bg4
+9.Nbd2 Nxd2 10.Bxd2 O-O 11.Bf4 Bd6 12.Bxd6 cxd6 13.Re1 Qf6 14.Bc2 Na5 15.Bb3 Nc4
+16.Bxc4 dxc4 17.Qe2 b5 18.Qe4 Bxf3 19.Qxf3 Qxf3 20.gxf3 Rfe8 21.Kf1 g5 22.Rxe8+ Rxe8
+23.Re1 Rxe1+ 24.Kxe1 Kg7 25.Kf1 Kf6 26.Ke2 Kf5 27.Ke3 d5 28.f4 g4 29.f3 h5  0-1

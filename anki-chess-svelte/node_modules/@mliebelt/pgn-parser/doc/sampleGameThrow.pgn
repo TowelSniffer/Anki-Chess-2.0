@@ -1,0 +1,2 @@
+; Demonstrates that the pgn parser may throw a syntax error. Sf3 is German and should be Nf3
+1.d4 Nf6 2. Sf3 d5
