@@ -2,6 +2,7 @@ const esbuild = require("esbuild");
 const path = require("path");
 const fs = require("fs");
 const { globSync } = require("glob");
+const { sassPlugin } = require("esbuild-sass-plugin");
 
 const srcDir = __dirname;
 const distDir = path.join(__dirname, "dist");
