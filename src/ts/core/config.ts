@@ -1,12 +1,5 @@
-import type { Config, BoardModes } from "../core/types";
-
-// --- Type Guards ---
-// boardMode
-function isBoardMode(mode: string): mode is BoardModes {
-  const boardModes = ["Viewer", "Puzzle"];
-  const modeCheck = boardModes.includes(mode);
-  return modeCheck;
-}
+import type { Config } from "../types/Main";
+import { isBoardMode } from "../types/Main";
 
 // --- URL Parameter Helper ---
 const urlParams = new URLSearchParams(window.location.search);
@@ -63,6 +56,6 @@ export const config: Config = {
 };
 
 (function setBoardMode() {
-  const mode = getUrlParam("boardMode", "Viewer");
+  const mode = getUrlParam("boardMode", "Puzzle");
   if (mode && isBoardMode(mode)) config.boardMode = mode;
 })();

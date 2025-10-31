@@ -1,27 +1,7 @@
-import type { CustomPgnMove } from "../../core/types";
+import type { CustomPgnMove } from "../../types/Pgn";
+import type { Sounds, MoveEvent, SoundPriorityRule } from "../../types/Sounds";
+
 import { config } from "../../core/config";
-
-type Sounds =
-  | "move"
-  | "checkmate"
-  | "check"
-  | "capture"
-  | "castle"
-  | "promote"
-  | "Error"
-  | "computer-mouse-click";
-type MoveEvent =
-  | "checkmate"
-  | "promote"
-  | "castle"
-  | "capture"
-  | "check"
-  | "move";
-
-interface SoundPriorityRule {
-  event: MoveEvent;
-  condition: (san: string, flags: string) => boolean;
-}
 
 const moveSoundMap: Record<MoveEvent, MoveEvent> = {
   checkmate: "checkmate",

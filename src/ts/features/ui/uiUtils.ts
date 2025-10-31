@@ -7,10 +7,7 @@ import {
 } from "../pgn/pgnViewer";
 import { playSound } from "../audio/audio";
 
-// --- UI tools ---
-
-const htmlElement: HTMLElement = document.documentElement;
-
+// load buttons
 const btn = {
   get reset() {
     return document.querySelector<HTMLButtonElement>("#resetBoard");
@@ -31,6 +28,16 @@ const btn = {
     return document.querySelector<HTMLButtonElement>("#rotateBoard");
   },
 };
+
+// --- UI tools ---
+
+const htmlElement: HTMLElement = document.documentElement;
+
+export function toggleClass(querySelector: string, className: string): void {
+  document
+    .querySelectorAll("." + querySelector)
+    .forEach((el) => el.classList.toggle(className));
+}
 
 export function setButtonsDisabled(
   keys: (keyof typeof btn)[],

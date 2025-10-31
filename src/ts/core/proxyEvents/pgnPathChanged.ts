@@ -1,14 +1,17 @@
-import type { PgnPath, CustomPgnMove } from "../../core/types";
+import type { PgnPath, CustomPgnMove } from "../../types/Pgn";
 
-import { config } from "../../core/config";
-import { state } from "../../core/state";
-import { stateProxy } from "../../core/stateProxy";
-import { isEndOfLine, highlightCurrentMove } from "../pgn/pgnViewer";
-import { setButtonsDisabled } from "../ui/uiUtils";
-import { animateBoard } from "./chessFunctions";
-import { drawArrows } from "./arrows";
-import { moveAudio } from "../audio/audio";
-import { startAnalysis } from "../analysis/handleStockfish";
+import { config } from "../config";
+import { state } from "../state";
+import { stateProxy } from "../stateProxy";
+import {
+  isEndOfLine,
+  highlightCurrentMove,
+} from "../../features/pgn/pgnViewer";
+import { setButtonsDisabled } from "../../features/ui/uiUtils";
+import { animateBoard } from "../../features/board/customAnimations";
+import { drawArrows } from "../../features/board/arrows";
+import { moveAudio } from "../../features/audio/audio";
+import { startAnalysis } from "../../features/analysis/handleStockfish";
 
 export function changeCurrentPgnMove(
   pgnPath: PgnPath,
