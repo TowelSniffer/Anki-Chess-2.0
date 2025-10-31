@@ -10,10 +10,11 @@ import {
   initializeUI,
   positionPromoteOverlay,
 } from "./features/ui/initializeUI";
-import { setupEventListeners } from "./features/ui/eventListeners";
-import { loadChessgroundBoard } from "./features/board/chessFunctions";
-import { changeCurrentPgnMove } from "./features/board/pgnPathChanged";
-import { scorePuzzle } from "./features/board/puzzleScored";
+import { setupEventListeners } from "./features/ui/uiEventListeners";
+import { loadChessgroundBoard } from "./features/board/chessgroundBoard";
+import { initializePuzzleTimer } from "./features/timer/timer";
+import { changeCurrentPgnMove } from "./core/proxyEvents/pgnPathChanged";
+import { scorePuzzle } from "./core/proxyEvents/puzzleScored";
 
 // --- eventEmitters handle updates to board state ---
 
@@ -33,6 +34,7 @@ eventEmitter.on("puzzleScored", (errorTrack) => {
   augmentPgnTree(state.parsedPGN.moves as PgnMove[]);
   initializeUI();
   initPgnViewer();
+  initializePuzzleTimer();
   loadChessgroundBoard();
   positionPromoteOverlay();
   setupEventListeners();

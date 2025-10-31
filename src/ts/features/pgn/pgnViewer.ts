@@ -3,17 +3,9 @@ import type { PgnMove } from "@mliebelt/pgn-types";
 import { Chess } from "chess.js";
 
 import nags from "../../../json/nags.json" assert { type: "json" };
-import type { CustomPgnMove, PgnPath } from "../../core/types";
+import type { CustomPgnMove, PgnPath } from "../../types/Pgn";
+import { isNagKey } from "../../types/Pgn";
 import { state } from "../../core/state";
-
-// --- Types ---
-type NagKey = keyof typeof nags;
-
-// type guard functions
-
-export function isNagKey(key: string): key is NagKey {
-  return key in nags;
-}
 
 // --- PGN Rendering ---
 

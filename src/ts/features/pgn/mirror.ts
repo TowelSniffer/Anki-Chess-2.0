@@ -1,7 +1,5 @@
-import type { CustomPgnMove, MirrorState } from "../../core/types";
-
-// A map for character-to-character substitution.
-type NotationMap = { [key: string]: string };
+import type { MirrorState } from "../../types/Main";
+import type { CustomPgnMove, NotationMap } from "../../types/Pgn";
 
 export function assignMirrorState(): MirrorState {
   const states: MirrorState[] = [

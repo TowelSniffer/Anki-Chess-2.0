@@ -20,8 +20,8 @@ function postBuildTasks() {
   const htmlPath = path.join(distDir, "_chess3.0.html");
   let htmlContent = fs.readFileSync(path.join(srcDir, "index.html"), "utf-8");
   htmlContent = htmlContent.replace(
-    '<link rel="stylesheet" href="dist/bundle.css">',
-    '<link rel="stylesheet" href="_chess3.0.css">',
+    '<link rel="stylesheet" href="dist/bundle.css" />',
+    '<link rel="stylesheet" href="_chess3.0.css" />',
   );
   htmlContent = htmlContent.replace(
     '<script src="dist/bundle.js"></script>',

@@ -1,19 +1,17 @@
 import type { Move } from "chess.js";
 
-import type {
-  PgnPath,
-  CustomPgnMove,
-  CustomShapeBrushes,
-} from "../../core/types";
+import type { CustomShapeBrushes } from "../../types/CustomChessgroundShapes";
+import type { PgnPath, CustomPgnMove } from "../../types/Pgn";
+import { isNagKey } from "../../types/Pgn";
+
 import { config } from "../../core/config";
 import { state } from "../../core/state";
 import nags from "../../../json/nags.json" assert { type: "json" };
-import { navigateNextMove, isNagKey } from "../pgn/pgnViewer";
+import { navigateNextMove } from "../pgn/pgnViewer";
 
 const blunderNags = ["$2", "$4", "$6", "$9"];
 
-// --- enum/array defs for clearer function instructions ---
-// Chesground Shapes
+// enum defs for clearer function instructions
 export enum ShapeFilter {
   All = "All",
   Stockfish = "Stockfish",
@@ -36,6 +34,7 @@ const customShapeBrushes: CustomShapeBrushes[] = [
   "altLine",
   "blunderLine",
 ];
+
 const shapeArray: Record<ShapeFilter, CustomShapeBrushes[]> = {
   [ShapeFilter.All]: customShapeBrushes,
   [ShapeFilter.Stockfish]: ["stockfish", "stockfinished"],

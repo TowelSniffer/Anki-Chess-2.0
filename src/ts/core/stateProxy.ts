@@ -1,23 +1,10 @@
-import type { PgnPath, State, ErrorTrack, CustomPgnMove } from "./types";
+import type { State, ErrorTrack } from "../types/Main";
+import type { PgnPath } from "../types/Pgn";
+import type { EventPayloads, Listener } from "../types/ProxyEvents";
 
 import { state } from "./state";
 
 // --- Event emitter for state proxy ---
-
-interface EventPayloads {
-  pgnPathChanged: [
-    pgnPath: PgnPath,
-    lastMove: CustomPgnMove | null,
-    pathMove: CustomPgnMove | null,
-  ];
-
-  puzzleScored: [ErrorTrack];
-}
-
-// A generic Listener type
-type Listener<K extends keyof EventPayloads> = (
-  ...args: EventPayloads[K]
-) => void;
 
 class EventEmitter {
   // Stores listeners, typed by event name

@@ -2,7 +2,7 @@ import type { Move } from "chess.js";
 
 import { config } from "../../core/config";
 import { state } from "../../core/state";
-import { getLegalMove, getcurrentTurnColor } from "../board/chessFunctions";
+import { getLegalMove, getcurrentTurnColor } from "../chessJs/chessFunctions";
 import { ShapeFilter, filterShapes, pushShapes } from "../board/arrows";
 import { setButtonsDisabled } from "../ui/uiUtils";
 

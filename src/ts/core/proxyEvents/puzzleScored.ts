@@ -1,10 +1,10 @@
-import type { ErrorTrack } from "../../core/types";
+import type { ErrorTrack } from "../../types/Main";
 
-import { config } from "../../core/config";
-import { state } from "../../core/state";
-import { isEndOfLine } from "../pgn/pgnViewer";
-import { borderFlash } from "../ui/uiUtils";
-import { stopPlayerTimer } from "../timer/timer";
+import { config } from "../config";
+import { state } from "../state";
+import { isEndOfLine } from "../../features/pgn/pgnViewer";
+import { borderFlash } from "../../features/ui/uiUtils";
+import { stopPlayerTimer } from "../../features/timer/timer";
 
 export function scorePuzzle(errorTrack: ErrorTrack): void {
   const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;

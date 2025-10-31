@@ -13954,7 +13954,7 @@ ${contextLines.join("\n")}`;
         animationTime: parseInt(getUrlParam("animationTime", "200"), 10)
       };
       (function setBoardMode() {
-        const mode = getUrlParam("boardMode", "Viewer");
+        const mode = getUrlParam("boardMode", "Puzzle");
         if (mode && isBoardMode(mode)) config.boardMode = mode;
       })();
     }
@@ -15779,7 +15779,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/ts/features/board/pgnPathChanged.ts
+  // src/ts/core/proxyEvents/pgnPathChanged.ts
   function changeCurrentPgnMove(pgnPath, lastMove, pathMove) {
     if (!pgnPath.length) {
       setButtonsDisabled(["back", "reset"], true);
@@ -15821,7 +15821,7 @@ ${contextLines.join("\n")}`;
     window.parent.postMessage(stateCopy, "*");
   }
   var init_pgnPathChanged = __esm({
-    "src/ts/features/board/pgnPathChanged.ts"() {
+    "src/ts/core/proxyEvents/pgnPathChanged.ts"() {
       "use strict";
       init_config2();
       init_state2();
@@ -15835,7 +15835,7 @@ ${contextLines.join("\n")}`;
     }
   });
 
-  // src/ts/features/board/puzzleScored.ts
+  // src/ts/core/proxyEvents/puzzleScored.ts
   function scorePuzzle(errorTrack) {
     const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
     const endOfLineCheck = isEndOfLine(state.pgnPath);
@@ -15873,7 +15873,7 @@ ${contextLines.join("\n")}`;
     }
   }
   var init_puzzleScored = __esm({
-    "src/ts/features/board/puzzleScored.ts"() {
+    "src/ts/core/proxyEvents/puzzleScored.ts"() {
       "use strict";
       init_config2();
       init_state2();

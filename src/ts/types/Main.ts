@@ -1,27 +1,14 @@
 import type { Color } from "chessground/types";
-import type { DrawShape } from "chessground/draw";
 import type { Api } from "chessground/api";
-import type { PgnMove, PgnGame, GameComment } from "@mliebelt/pgn-types";
-import type { Chess, Square } from "chess.js";
+import type { Chess } from "chess.js";
 
-// --- types ---
+import type { CustomPgnMove, CustomPgnGame, PgnPath } from "./Pgn";
+import type { CustomShape } from "./CustomChessgroundShapes";
 
-// arrow Shapes
+// config types
+type BoardModes = "Viewer" | "Puzzle";
 
-type CustomShape = Omit<DrawShape, "brush"> & {
-  // Modify chessground DrawShape to include move information
-  san?: string;
-  brush?: CustomShapeBrushes;
-};
-
-// chessground custom brushes
-export type CustomShapeBrushes =
-  | "stockfish"
-  | "stockfinished"
-  | "mainLine"
-  | "altLine"
-  | "blunderLine"
-  | "userDrawn";
+export type ErrorTrack = null | "incorrect" | "correct" | "correctTime";
 
 export type MirrorState =
   | "original"
@@ -29,36 +16,7 @@ export type MirrorState =
   | "invert"
   | "invert_mirror";
 
-export type PgnPath = ("v" | number)[];
-
-// config types
-export type BoardModes = "Viewer" | "Puzzle";
-
-export type ErrorTrack = null | "incorrect" | "correct" | "correctTime";
-
-// custom Pgnviewer types
-export type CustomPgnMove = Omit<
-  PgnMove,
-  `variations` | "moveNumber" | "drawOffer" | "commentDiag"
-> & {
-  before: string;
-  after: string;
-  from: Square;
-  to: Square;
-  flags: string;
-  san: string;
-  drawOffer?: boolean;
-  moveNumber?: number;
-  commentDiag?: GameComment;
-  pgnPath: PgnPath;
-  variations: CustomPgnMove[][];
-};
-
-export type CustomPgnGame = Omit<PgnGame, "moves"> & {
-  moves: CustomPgnMove[];
-};
-
-// --- interface ---
+// --- interfaces ---
 export interface Config {
   pgn: string;
   ankiText: string | null;
@@ -113,4 +71,38 @@ export interface State {
   chess: Chess;
   parsedPGN: CustomPgnGame;
   delayTime: number;
+}
+
+// --- Type Guards ---
+
+// mirrorState
+export function isMirrorState(
+  mirrorState: string | null,
+): mirrorState is MirrorState {
+  if (!mirrorState) return false;
+  const mirrorStates = [
+    "original",
+    "original_mirror",
+    "invert",
+    "invert_mirror",
+  ];
+  const mirrorStateCheck = mirrorStates.includes(mirrorState);
+  return mirrorStateCheck;
+}
+
+// errorTrack
+export function isSolvedMode(
+  solvedState: null | string,
+): solvedState is ErrorTrack {
+  if (!solvedState) return false;
+  const solvedModes = ["correct", "correctTime", "incorrect"];
+  const modeCheck = solvedModes.includes(solvedState);
+  return modeCheck;
+}
+
+// boardMode
+export function isBoardMode(mode: string): mode is BoardModes {
+  const boardModes = ["Viewer", "Puzzle"];
+  const modeCheck = boardModes.includes(mode);
+  return modeCheck;
 }

@@ -2,12 +2,9 @@ import { Chess, DEFAULT_POSITION } from "chess.js";
 import { parse } from "@mliebelt/pgn-parser";
 import { Chessground } from "chessground";
 
-import type {
-  State,
-  ErrorTrack,
-  CustomPgnGame,
-  MirrorState,
-} from "../core/types";
+import type { State } from "../types/Main";
+import { isMirrorState, isSolvedMode } from "../types/Main";
+import type { CustomPgnGame } from "../types/Pgn";
 
 import {
   checkCastleRights,
@@ -16,29 +13,6 @@ import {
   mirrorFen,
 } from "../features/pgn/mirror";
 import { config, getUrlParam } from "./config";
-
-// --- Type Guards ---
-
-// mirrorState
-function isMirrorState(mirrorState: string | null): mirrorState is MirrorState {
-  if (!mirrorState) return false;
-  const mirrorStates = [
-    "original",
-    "original_mirror",
-    "invert",
-    "invert_mirror",
-  ];
-  const mirrorStateCheck = mirrorStates.includes(mirrorState);
-  return mirrorStateCheck;
-}
-
-// errorTrack
-function isSolvedMode(solvedState: null | string): solvedState is ErrorTrack {
-  if (!solvedState) return false;
-  const solvedModes = ["correct", "correctTime", "incorrect"];
-  const modeCheck = solvedModes.includes(solvedState);
-  return modeCheck;
-}
 
 // -- load elemets for state ---
 
