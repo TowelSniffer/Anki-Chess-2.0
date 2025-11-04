@@ -1,7 +1,7 @@
 import type { Move, Square } from "chess.js";
 
-import type { PgnPath } from "../../types/Pgn";
-import type { Promotions } from "../../types/Chess";
+import type { PgnPath, CustomPgnMove } from "../pgn/Pgn";
+import type { Promotions } from "./Chess";
 
 import { config } from "../../core/config";
 import { state } from "../../core/state";
@@ -23,7 +23,7 @@ function promotePopup(orig: Square, dest: Square): void {
   stopPlayerTimer();
   const cancelPopup = function () {
     toggleClass("showHide", "hidden");
-    setBoard(state.chess.fen());
+    setBoard(state.pgnTrack.fen);
     setTimeout(() => {
       startPlayerTimer();
     }, config.animationTime);
@@ -49,7 +49,12 @@ function promotePopup(orig: Square, dest: Square): void {
 
         if (move && config.boardMode === "Puzzle") {
           startPlayerTimer();
-          handleMoveAttempt(state.delayTime, move.from, move.to, move.san);
+          handleMoveAttempt(
+            state.puzzle.delayTime,
+            move.from,
+            move.to,
+            move.san,
+          );
         } else if (move && config.boardMode === "Viewer") {
           handleMoveAttempt(0, move.from, move.to, move.san);
         }
@@ -86,14 +91,14 @@ export function handleMoveAttempt(
 
   let nextMovePath: PgnPath = [];
   let foundVar = false;
-  let currentLinePosition = state.pgnPath.at(-1) as number;
-  if (!state.pgnPath.length) {
+  let currentLinePosition = state.pgnTrack.pgnPath.at(-1) as number;
+  if (!state.pgnTrack.pgnPath.length) {
     nextMovePath = [0];
   } else {
-    nextMovePath = state.pgnPath.with(-1, ++currentLinePosition);
+    nextMovePath = state.pgnTrack.pgnPath.with(-1, ++currentLinePosition);
   }
   const pathKey = nextMovePath.join(",");
-  const pathMove = state.pgnPathMap.get(pathKey);
+  const pathMove = state.pgnTrack.pgnPathMap.get(pathKey);
   if (pathMove && areMovesEqual(moveCheck, pathMove)) {
     foundVar = true;
   } else if (pathMove?.variations && config.acceptVariations) {
@@ -111,35 +116,35 @@ export function handleMoveAttempt(
     if (config.boardMode === "Viewer") {
       // Add move to state.parsedPGN
       nextMovePath = addMoveToPgn(moveCheck);
-      stateProxy.pgnPath = nextMovePath;
+      stateProxy.pgnTrack.pgnPath = nextMovePath;
     } else {
       handleWrongMove(moveCheck);
     }
   } else {
-    stateProxy.pgnPath = nextMovePath;
+    stateProxy.pgnTrack.pgnPath = nextMovePath;
     if (config.boardMode === "Puzzle") {
       if (!isEndOfLine(nextMovePath)) {
         extendPuzzleTime(config.increment);
       }
-      playAiMove(state.delayTime);
+      playAiMove(state.puzzle.delayTime);
     }
   }
 }
 
 export function playAiMove(delay: number): void {
   setTimeout(() => {
-    state.errorCount = 0;
+    state.puzzle.errorCount = 0;
     const nextMovePath: PgnPath[] = [];
-    const nextMovePathCheck = navigateNextMove(state.pgnPath);
-    const nextMove = state.pgnPathMap.get(nextMovePathCheck.join(","));
-    if (nextMove && nextMove.turn === state.opponentColour[0]) {
+    const nextMovePathCheck = navigateNextMove(state.pgnTrack.pgnPath);
+    const nextMove = state.pgnTrack.pgnPathMap.get(nextMovePathCheck.join(","));
+    if (nextMove && nextMove.turn === state.board.opponentColour[0]) {
       nextMovePath.push(nextMovePathCheck);
       if (config.acceptVariations)
-        nextMove.variations.forEach((variation) => {
+        nextMove.variations.forEach((variation: CustomPgnMove[]) => {
           nextMovePath.push(variation[0].pgnPath);
         });
       const randomIndex = Math.floor(Math.random() * nextMovePath.length);
-      stateProxy.pgnPath = nextMovePath[randomIndex];
+      stateProxy.pgnTrack.pgnPath = nextMovePath[randomIndex];
       startPlayerTimer();
     }
   }, delay);
@@ -149,29 +154,30 @@ function playUserCorrectMove(delay: number): void {
   setTimeout(() => {
     state.cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
     // Make the move without the AI's variation-selection logic
-    const nextMovePath = navigateNextMove(state.pgnPath);
-    stateProxy.pgnPath = nextMovePath;
+    const nextMovePath = navigateNextMove(state.pgnTrack.pgnPath);
+    stateProxy.pgnTrack.pgnPath = nextMovePath;
     playAiMove(delay); // then play the AI's response
   }, delay);
 }
 
 export let wrongMoveDebounce: number | null = null;
 function handleWrongMove(move: Move): void {
-  state.errorCount++;
+  state.puzzle.errorCount++;
   state.cg.set({ fen: move.after });
   playSound("Error");
   setBoard(move.before);
   wrongMoveDebounce = setTimeout(() => {
     wrongMoveDebounce = null;
-  }, state.delayTime);
+  }, state.puzzle.delayTime);
 
-  const isFailed = config.strictScoring || state.errorCount > config.handicap;
+  const isFailed =
+    config.strictScoring || state.puzzle.errorCount > config.handicap;
   if (isFailed) {
-    stateProxy.errorTrack = "incorrect";
+    stateProxy.ankiPersist.errorTrack = "incorrect";
   }
   if (isFailed && !config.handicapAdvance) {
     stopPlayerTimer();
     state.cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
-    playUserCorrectMove(state.delayTime); // show the correct user move
+    playUserCorrectMove(state.puzzle.delayTime); // show the correct user move
   }
 }

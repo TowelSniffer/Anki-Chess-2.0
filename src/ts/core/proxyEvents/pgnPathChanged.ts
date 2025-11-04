@@ -1,4 +1,4 @@
-import type { PgnPath, CustomPgnMove } from "../../types/Pgn";
+import type { PgnPath, CustomPgnMove } from "../../features/pgn/Pgn";
 
 import { config } from "../config";
 import { state } from "../state";
@@ -20,15 +20,12 @@ export function changeCurrentPgnMove(
 ): void {
   if (!pgnPath.length) {
     setButtonsDisabled(["back", "reset"], true);
-    state.chess.reset();
-    state.chess.load(state.startFen);
-    state.lastMove = null;
+    state.pgnTrack.lastMove = null;
   } else {
     setButtonsDisabled(["back", "reset"], false);
   }
 
   if (pathMove) {
-    state.chess.load(pathMove.after);
     moveAudio(pathMove);
   }
   setTimeout(() => {
@@ -42,22 +39,19 @@ export function changeCurrentPgnMove(
   const endOfLineCheck = isEndOfLine(pgnPath);
   if (endOfLineCheck) {
     if (config.boardMode === "Puzzle") {
-      state.puzzleComplete = true;
+      state.ankiPersist.puzzleComplete = true;
       const correctState =
-        state.puzzleTime > 0 && !config.timerScore ? "correctTime" : "correct";
-      stateProxy.errorTrack = state.errorTrack ?? correctState;
+        state.puzzle.puzzleTime > 0 && !config.timerScore
+          ? "correctTime"
+          : "correct";
+      stateProxy.ankiPersist.errorTrack =
+        state.ankiPersist.errorTrack ?? correctState;
     } else {
-      state.chessGroundShapes = [];
+      state.board.chessGroundShapes = [];
     }
   }
   setButtonsDisabled(["forward"], endOfLineCheck);
-  const {
-    chess: _chess,
-    cg: _cg,
-    cgwrap: _cgwrap,
-    puzzleComplete: _puzzleComplete,
-    ...stateCopy
-  } = state;
+  const { puzzleComplete: _puzzleComplete, ...stateCopy } = state.ankiPersist;
   stateCopy.pgnPath = pgnPath;
   window.parent.postMessage(stateCopy, "*");
 }

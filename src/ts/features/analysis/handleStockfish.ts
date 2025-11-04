@@ -14,6 +14,9 @@ let analysisCache = {
   moveUci: "",
   move: null as Move | null,
   advantage: "50.0%",
+  isStockfishBusy: false,
+  stockfishRestart: false,
+  analysisToggledOn: false,
 };
 
 function convertCpToWinPercentage(cp: number): string {
@@ -21,7 +24,7 @@ function convertCpToWinPercentage(cp: number): string {
   let percentage = probability * 100;
 
   // If the player is black, the perspective is flipped.
-  if (state.playerColour === getcurrentTurnColor()) {
+  if (state.board.playerColour === getcurrentTurnColor()) {
     percentage = 100 - percentage;
   }
   return `${percentage.toFixed(1)}%`;
@@ -38,7 +41,9 @@ function handleStockfishMessages(event: MessageEvent): void {
   }
   const parts = message.split(" ");
   if (message.startsWith("info")) {
-    if (analysisCache.fen !== state.chess.fen()) return;
+    if (analysisCache.fen !== state.pgnTrack.fen) {
+      return;
+    };
     // const pvDepthIndex = parts.indexOf('depth');
     // const pvDepth = parts[pvDepthIndex + 1];
     const pvIndex = parts.indexOf("pv");
@@ -49,7 +54,7 @@ function handleStockfishMessages(event: MessageEvent): void {
     if (mateIndex > -1) {
       const mate = parseInt(parts[mateIndex + 1], 10);
       let adv = mate < 0 ? 0 : 100;
-      if (state.playerColour === getcurrentTurnColor()) adv = 100 - adv;
+      if (state.board.playerColour === getcurrentTurnColor()) adv = 100 - adv;
       analysisCache.advantage = `${adv.toFixed(1)}%`;
     } else if (cpIndex > -1) {
       const cp = parseInt(parts[cpIndex + 1], 10);
@@ -71,30 +76,31 @@ function handleStockfishMessages(event: MessageEvent): void {
     analysisCache.move = moveObject;
 
     // Now update the drawing
-    if (moveObject && state.analysisToggledOn) {
+    if (moveObject && analysisCache.analysisToggledOn) {
       filterShapes(ShapeFilter.Stockfish);
       pushShapes(moveObject, "stockfish"); // Draw as "in progress"
-      state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+      state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
     }
   } else if (message.startsWith("bestmove")) {
-    state.isStockfishBusy = false;
-    if (state.stockfishRestart) {
-      state.stockfishRestart = false;
+    analysisCache.isStockfishBusy = false;
+    if (analysisCache.stockfishRestart) {
+      analysisCache.stockfishRestart = false;
       startAnalysis(config.analysisTime);
-    }
+    };
+
     const bestMoveUci = message.split(" ")[1];
     const moveObject = getLegalMove(bestMoveUci);
-    if (moveObject && state.analysisToggledOn) {
+    if (moveObject && analysisCache.analysisToggledOn) {
       filterShapes(ShapeFilter.Stockfish);
       pushShapes(moveObject, "stockfinished");
-      state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+      state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
     }
   }
 }
 
 export function handleStockfishCrash(source: string): void {
   console.error(`Stockfish engine crashed. Source: ${source}.`);
-  if (!state.analysisToggledOn) return;
+  if (!analysisCache.analysisToggledOn) return;
 
   console.log("Attempting to restart the engine...");
   setTimeout(() => initializeStockfish(), 250); // Give the browser a moment to recover
@@ -134,30 +140,32 @@ function initializeStockfish(): Promise<void> {
 
 export function startAnalysis(movetime: number): void {
   if (
-    !state.analysisToggledOn ||
-    !stockfish ||
-    state.stockfishRestart ||
-    state.chess.moves().length === 0
+    !analysisCache.analysisToggledOn ||
+    !stockfish
   )
     return;
-  if (state.isStockfishBusy) {
-    state.stockfishRestart = true;
+  if (analysisCache.isStockfishBusy) {
+    analysisCache.isStockfishBusy = true;
     stockfish.postMessage("stop");
+    analysisCache.stockfishRestart = true;
     return;
   }
-  if (analysisCache.fen !== state.chess.fen()) {
+  if (analysisCache.fen !== state.pgnTrack.fen) {
     analysisCache = {
-      fen: state.chess.fen(), // Set the new FEN
+      fen: state.pgnTrack.fen, // Set the new FEN
       moveUci: "",
       move: null,
       advantage: analysisCache.advantage,
+      isStockfishBusy: true,
+      stockfishRestart: false,
+      analysisToggledOn: true,
     };
     filterShapes(ShapeFilter.Stockfish);
-    state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+    state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
   }
 
-  state.isStockfishBusy = true;
-  stockfish.postMessage(`position fen ${state.chess.fen()}`);
+  analysisCache.isStockfishBusy = true;
+  stockfish.postMessage(`position fen ${state.pgnTrack.fen}`);
   stockfish.postMessage(`go movetime ${movetime}`);
 }
 
@@ -177,28 +185,34 @@ export function toggleStockfishAnalysis(): void {
 
     initializeStockfish().then(() => {
       setButtonsDisabled(["stockfish"], false);
-      state.analysisToggledOn = false;
+      analysisCache.analysisToggledOn = false;
       toggleStockfishAnalysis();
     });
     return;
   }
-  state.analysisToggledOn = !state.analysisToggledOn;
+  analysisCache.analysisToggledOn = !analysisCache.analysisToggledOn;
 
-  toggleButton.classList.toggle("active-toggle", state.analysisToggledOn);
+  toggleButton.classList.toggle(
+    "active-toggle",
+    analysisCache.analysisToggledOn,
+  );
 
-  toggleButton.innerHTML = state.analysisToggledOn
+  toggleButton.innerHTML = analysisCache.analysisToggledOn
     ? "<span class='material-icons md-small'>developer_board</span>"
     : "<span class='material-icons md-small'>developer_board_off</span>";
 
-  state.cgwrap.classList.toggle("analysisMode", state.analysisToggledOn);
+  state.cgwrap.classList.toggle(
+    "analysisMode",
+    analysisCache.analysisToggledOn,
+  );
 
-  if (state.analysisToggledOn) {
+  if (analysisCache.analysisToggledOn) {
     startAnalysis(config.analysisTime);
   } else {
-    if (state.isStockfishBusy) {
+    if (analysisCache.isStockfishBusy) {
       stockfish.postMessage("stop");
     }
     filterShapes(ShapeFilter.Stockfish);
-    state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+    state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
   }
 }

@@ -1,10 +1,10 @@
-import { Chess, DEFAULT_POSITION } from "chess.js";
+import { DEFAULT_POSITION } from "chess.js";
 import { parse } from "@mliebelt/pgn-parser";
 import { Chessground } from "chessground";
 
-import type { State } from "../types/Main";
-import { isMirrorState, isSolvedMode } from "../types/Main";
-import type { CustomPgnGame } from "../types/Pgn";
+import type { State } from "./State";
+import type { MirrorState, ErrorTrack } from "./Config";
+import type { CustomPgnGame, PgnPath } from "../features/pgn/Pgn";
 
 import {
   checkCastleRights,
@@ -13,6 +13,29 @@ import {
   mirrorFen,
 } from "../features/pgn/mirror";
 import { config, getUrlParam } from "./config";
+
+// -- Type Guards ---
+
+// mirrorState
+function isMirrorState(mirrorState: string | null): mirrorState is MirrorState {
+  if (!mirrorState) return false;
+  const mirrorStates = [
+    "original",
+    "original_mirror",
+    "invert",
+    "invert_mirror",
+  ];
+  const mirrorStateCheck = mirrorStates.includes(mirrorState);
+  return mirrorStateCheck;
+}
+
+// errorTrack
+function isSolvedMode(solvedState: null | string): solvedState is ErrorTrack {
+  if (!solvedState) return false;
+  const solvedModes = ["correct", "correctTime", "incorrect"];
+  const modeCheck = solvedModes.includes(solvedState);
+  return modeCheck;
+}
 
 // -- load elemets for state ---
 
@@ -37,42 +60,47 @@ if (
 // --- Global State ---
 const cgwrap = document.getElementById("board") as HTMLDivElement;
 export const state: State = {
-  startFen: parsed.tags?.FEN ?? DEFAULT_POSITION,
-  boardRotation: "black",
-  playerColour: "white",
-  opponentColour: "black",
-  solvedColour: null,
-  errorTrack: null,
-  chessGroundShapes: [],
-  errorCount: 0,
-  puzzleTime: config.timer,
-  puzzleComplete: false,
-  navTimeout: null,
-  isStockfishBusy: false,
-  stockfishRestart: false,
-  analysisToggledOn: false,
-  pgnPath: [],
-  pgnPathMap: new Map(),
-  lastMove: null,
-  mirrorState: isMirrorState(mirrorState) ? mirrorState : null,
+  get startFen(): string {
+    return this.parsedPGN.tags?.FEN ?? DEFAULT_POSITION;
+  },
+  parsedPGN: parsed,
+  puzzle: {
+    errorCount: 0,
+    delayTime: config.animationTime + 100,
+    puzzleTime: config.timer,
+  },
+  ankiPersist: {
+    errorTrack: null,
+    mirrorState: isMirrorState(mirrorState) ? mirrorState : null,
+    puzzleComplete: false,
+    get pgnPath(): PgnPath {
+      return state.pgnTrack.pgnPath;
+    },
+  },
+  pgnTrack: {
+    pgnPath: [],
+    pgnPathMap: new Map(),
+    lastMove: null,
+    get fen(): string {
+      return state.pgnTrack.lastMove?.after ?? state.startFen;
+    },
+    get turn(): string {
+      return state.pgnTrack.lastMove?.turn ?? state.parsedPGN.moves[0].turn;
+    },
+  },
+  board: {
+    solvedColour: null,
+    boardRotation: "black",
+    playerColour: "white",
+    opponentColour: "black",
+    chessGroundShapes: [],
+    get inCheck(): boolean {
+      return state.pgnTrack.lastMove?.notation.check ? true : false;
+    },
+  },
   cgwrap: cgwrap,
   cg: Chessground(cgwrap, {
     fen: parsed.tags?.FEN ?? DEFAULT_POSITION,
-    premovable: {
-      enabled: true,
-    },
-    movable: {
-      free: false,
-      showDests: config.showDests,
-    },
-    highlight: {
-      check: true,
-      lastMove: true,
-    },
-    animation: {
-      enabled: false, // will manulally enable later to prevent position load animation
-      duration: config.animationTime,
-    },
     drawable: {
       enabled: true,
       brushes: {
@@ -109,22 +137,21 @@ export const state: State = {
       },
     },
   }),
-  chess: new Chess(),
-  parsedPGN: parsed,
-  delayTime: config.animationTime + 100,
 };
 
-// --- TypeGuards ---
+// --- Set Dynamic variables ---
 
 (function setSolvedMode() {
   const solvedMode = getUrlParam("errorTrack", null);
-  if (solvedMode && isSolvedMode(solvedMode)) state.errorTrack = solvedMode;
+  if (solvedMode && isSolvedMode(solvedMode))
+    state.ankiPersist.errorTrack = solvedMode;
 })();
+
 (function setPgnPath() {
   const pgnPath = getUrlParam("pgnPath", null);
   const result = pgnPath?.split(",").map((item) => {
     const num = Number(item);
     return isNaN(num) ? "v" : num;
   });
-  state.pgnPath = result ? result : [];
+  state.pgnTrack.pgnPath = result ? result : [];
 })();

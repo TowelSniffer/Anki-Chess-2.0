@@ -19,6 +19,7 @@
     box-shadow: $shadow-main;
     background: $color-bg-primary;
     color: $color-text-primary;
+    border: $border-main-thin;
     border-radius: $border-radius-main;
     max-height: calc($board-size + 14px);
     margin-top: 1px;
@@ -55,6 +56,13 @@
       border-bottom: $border-main-thin;
     }
   }
+  @media (orientation: portrait) {
+    #commentBox {
+    width: calc($board-size + 12px);
+    height: calc(100vh - $board-size - 34px);
+    margin-left: 1px;
+    }
+  }
 
   #board-container {
     grid-area: two;
@@ -69,10 +77,5 @@
       "two"
       "one";
     grid-template-columns: auto;
-  }
-  #commentBox {
-    width: calc($board-size + 12px);
-    height: calc(100vh - $board-size - 34px);
-    margin-left: 1px;
   }
 }

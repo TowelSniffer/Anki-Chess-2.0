@@ -56,7 +56,6 @@
   }
 
   .altLine {
-    border: $border-main-thin;
     background: $color-bg-hover;
     color: white;
     font-size: 0.8em;
@@ -83,13 +82,12 @@
       &.move-number {
         font-weight: 700;
         justify-content: flex-start;
-        border-right: 0px solid black;
+        border-right: 0px;
       }
 
       &.comment {
         font-size: 0.9em;
         display: inline-flex;
-        border: 0px solid black;
       }
     }
   }

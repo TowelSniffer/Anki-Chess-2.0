@@ -255,6 +255,7 @@ body {
   box-shadow: 0px 0px 3px 0px black;
   background: #242424;
   color: #d7dee9;
+  border: 1px solid black;
   border-radius: 4px;
   max-height: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) + 14px);
   margin-top: 1px;
@@ -291,6 +292,13 @@ body {
   grid-template-columns: auto 1fr 1fr;
   border-bottom: 1px solid black;
 }
+@media (orientation: portrait) {
+  #container #commentBox {
+    width: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) + 12px);
+    height: calc(100vh - min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) - 34px);
+    margin-left: 1px;
+  }
+}
 #container #board-container {
   grid-area: two;
   max-width: 600px;
@@ -300,11 +308,6 @@ body {
     margin-right: 0px;
     grid-template-areas: "two" "one";
     grid-template-columns: auto;
-  }
-  #commentBox {
-    width: calc(min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) + 12px);
-    height: calc(100vh - min(max(98vh - 12px, 300px), max(98vw - 12px, 200px), 600px) - 34px);
-    margin-left: 1px;
   }
 }
 @font-face {
@@ -447,7 +450,6 @@ button.navBtn span.md-small {
   background: #404040;
 }
 #pgnComment .altLine {
-  border: 1px solid black;
   background: #404040;
   color: white;
   font-size: 0.8em;
@@ -472,12 +474,11 @@ button.navBtn span.md-small {
 #pgnComment .altLine span.move-number {
   font-weight: 700;
   justify-content: flex-start;
-  border-right: 0px solid black;
+  border-right: 0px;
 }
 #pgnComment .altLine span.comment {
   font-size: 0.9em;
   display: inline-flex;
-  border: 0px solid black;
 }
 #pgnComment .altLine,
 #pgnComment .comment {

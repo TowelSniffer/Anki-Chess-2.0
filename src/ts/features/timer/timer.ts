@@ -19,14 +19,14 @@ function timerLoop(timestamp: number): void {
   const deltaTime = timestamp - lastTickTimestamp;
   lastTickTimestamp = timestamp;
 
-  state.puzzleTime = Math.max(0, state.puzzleTime - deltaTime);
-  const percentage = 100 - (state.puzzleTime / totalTime) * 100;
+  state.puzzle.puzzleTime = Math.max(0, state.puzzle.puzzleTime - deltaTime);
+  const percentage = 100 - (state.puzzle.puzzleTime / totalTime) * 100;
   document.documentElement.style.setProperty(
     "--remainingTime",
     `${percentage.toFixed(2)}%`,
   );
 
-  if (state.puzzleTime === 0) {
+  if (state.puzzle.puzzleTime === 0) {
     handleOutOfTime();
   } else {
     animationFrameId = requestAnimationFrame(timerLoop);
@@ -40,20 +40,24 @@ function timerExtendLoop(extendtimestamp: number): void {
 
   const deltaTime = extendtimestamp - lastTickExtendTimestamp;
   lastTickExtendTimestamp = extendtimestamp;
-  const deltaTimeFraction = (deltaTime / state.delayTime) * config.increment;
+  const deltaTimeFraction =
+    (deltaTime / state.puzzle.delayTime) * config.increment;
   totalExtendTime = Math.min(
     config.increment,
     totalExtendTime + deltaTimeFraction,
   );
   const percentageIncrease =
-    (deltaTime / state.delayTime) *
+    (deltaTime / state.puzzle.delayTime) *
     Math.min(extendPercentage, (config.increment * 100) / totalTime);
 
-  state.puzzleTime = Math.min(totalTime, state.puzzleTime + deltaTimeFraction);
+  state.puzzle.puzzleTime = Math.min(
+    totalTime,
+    state.puzzle.puzzleTime + deltaTimeFraction,
+  );
   extendPercentage -= percentageIncrease;
 
   if (extendPercentage < 0) {
-    state.puzzleTime = totalTime;
+    state.puzzle.puzzleTime = totalTime;
     extendPercentage = 0;
   }
   document.documentElement.style.setProperty(
@@ -79,13 +83,12 @@ function handleOutOfTime(): void {
   }
   document.documentElement.style.setProperty("--remainingTime", "100%");
   if (config.timerScore) {
-    stateProxy.errorTrack = "incorrect";
+    stateProxy.ankiPersist.errorTrack = "incorrect";
   } else if (config.timerAdvance) {
-    state.puzzleComplete = true;
-    const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-    window.parent.postMessage(stateCopy, "*");
+    state.ankiPersist.puzzleComplete = true;
+    window.parent.postMessage(state.ankiPersist, "*");
   } else {
-    stateProxy.errorTrack = state.errorTrack;
+    stateProxy.ankiPersist.errorTrack = state.ankiPersist.errorTrack;
   }
 }
 
@@ -98,7 +101,11 @@ export function stopPlayerTimer(): void {
 }
 
 export function startPlayerTimer(): void {
-  if (config.boardMode === "Viewer" || !config.timer || state.puzzleTime <= 0) {
+  if (
+    config.boardMode === "Viewer" ||
+    !config.timer ||
+    state.puzzle.puzzleTime <= 0
+  ) {
     return;
   }
   animationFrameId = requestAnimationFrame(timerLoop);
@@ -110,18 +117,22 @@ export function initializePuzzleTimer(): void {
   totalTime = config.timer;
   const timerColor = config.randomOrientation
     ? "var(--incorrect-color)"
-    : state.opponentColour;
+    : state.board.opponentColour;
   document.documentElement.style.setProperty("--timer-color", timerColor);
   state.cgwrap.classList.add("timerMode");
   document.documentElement.style.setProperty("--remainingTime", `0%`);
 }
 
 export function extendPuzzleTime(additionalTime: number): void {
-  if (config.boardMode === "Viewer" || !config.timer || state.puzzleTime <= 0)
+  if (
+    config.boardMode === "Viewer" ||
+    !config.timer ||
+    state.puzzle.puzzleTime <= 0
+  )
     return;
 
-  extendPercentage = 100 - (state.puzzleTime / totalTime) * 100;
-  totalTime = Math.max(state.puzzleTime + additionalTime, config.timer);
+  extendPercentage = 100 - (state.puzzle.puzzleTime / totalTime) * 100;
+  totalTime = Math.max(state.puzzle.puzzleTime + additionalTime, config.timer);
   if (animationFrameId) stopPlayerTimer();
   extendAnimationFrameId = requestAnimationFrame(timerExtendLoop);
 }
