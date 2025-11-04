@@ -1,5 +1,5 @@
-import type { MirrorState } from "../../types/Main";
-import type { CustomPgnMove, NotationMap } from "../../types/Pgn";
+import type { MirrorState } from "../../core/Config";
+import type { CustomPgnMove, NotationMap } from "./Pgn";
 
 export function assignMirrorState(): MirrorState {
   const states: MirrorState[] = [

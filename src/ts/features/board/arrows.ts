@@ -1,12 +1,11 @@
 import type { Move } from "chess.js";
 
-import type { CustomShapeBrushes } from "../../types/CustomChessgroundShapes";
-import type { PgnPath, CustomPgnMove } from "../../types/Pgn";
-import { isNagKey } from "../../types/Pgn";
+import type { CustomShapeBrushes } from "./CustomChessgroundShapes";
+import type { PgnPath, CustomPgnMove } from "../pgn/Pgn";
+import { nags, isNagKey } from "../pgn/nags";
 
 import { config } from "../../core/config";
 import { state } from "../../core/state";
-import nags from "../../../json/nags.json" assert { type: "json" };
 import { navigateNextMove } from "../pgn/pgnViewer";
 
 const blunderNags = ["$2", "$4", "$6", "$9"];
@@ -47,7 +46,7 @@ export function filterShapes(filterKey: ShapeFilter): void {
   const shouldFilterDrawn = brushesToRemove.includes("userDrawn");
   if (shouldFilterDrawn) brushesToRemove = shapeArray[ShapeFilter.All];
 
-  const filteredShapes = state.chessGroundShapes.filter((shape) => {
+  const filteredShapes = state.board.chessGroundShapes.filter((shape) => {
     const shouldRemove = !shape.brush || brushesToRemove.includes(shape.brush);
     if (shouldFilterDrawn) {
       return shouldRemove;
@@ -57,7 +56,7 @@ export function filterShapes(filterKey: ShapeFilter): void {
   });
 
   // Assign the new, filtered array back to the state.
-  state.chessGroundShapes = filteredShapes;
+  state.board.chessGroundShapes = filteredShapes;
 }
 
 export function pushShapes(
@@ -71,8 +70,7 @@ export function pushShapes(
       targetImage += `<image href="${nags[foundNagKey][2]}" width="50%" height="50%" />`;
     }
   }
-
-  state.chessGroundShapes.push({
+  state.board.chessGroundShapes.push({
     orig: move.from,
     dest: move.to,
     brush: brush,
@@ -84,20 +82,21 @@ export function pushShapes(
 export function drawArrows(pgnPath: PgnPath): void {
   filterShapes(ShapeFilter.Drawn);
   if (config.boardMode === "Puzzle" && config.disableArrows) return;
-  let nextMovePath = navigateNextMove(state.pgnPath);
+  let nextMovePath = navigateNextMove(state.pgnTrack.pgnPath);
   if (config.boardMode === "Viewer") {
     nextMovePath = navigateNextMove(pgnPath);
   } else if (
-    state.playerColour === (state.chess.turn() === "w" ? "white" : "black")
+    state.board.playerColour ===
+    (state.pgnTrack.turn === "w" ? "white" : "black")
   ) {
-    state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+    state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
     return;
   }
   filterShapes(ShapeFilter.All);
-  const mainLine = state.pgnPathMap.get(nextMovePath.join(","));
+  const mainLine = state.pgnTrack.pgnPathMap.get(nextMovePath.join(","));
   if (!mainLine) return;
   if (mainLine.variations.length) {
-    mainLine.variations.forEach((variation) => {
+    mainLine.variations.forEach((variation: CustomPgnMove[]) => {
       const varMove = variation[0];
       const isBlunder = blunderNags.some((blunder) =>
         varMove.nag?.includes(blunder),
@@ -112,12 +111,12 @@ export function drawArrows(pgnPath: PgnPath): void {
 
   if (config.boardMode === "Puzzle") {
     // remove played arrow
-    const parentMove = state.pgnPathMap.get(pgnPath.join(","));
-    const puzzleMoveShapes = state.chessGroundShapes.filter(
+    const parentMove = state.pgnTrack.pgnPathMap.get(pgnPath.join(","));
+    const puzzleMoveShapes = state.board.chessGroundShapes.filter(
       (shape) => shape.san !== parentMove?.san,
     );
 
-    state.chessGroundShapes
+    state.board.chessGroundShapes
       .filter((shape) => shape.san === parentMove?.san)
       .forEach((filteredShape) => {
         if (filteredShape.customSvg)
@@ -127,8 +126,8 @@ export function drawArrows(pgnPath: PgnPath): void {
             customSvg: filteredShape.customSvg,
           });
       });
-    state.chessGroundShapes = puzzleMoveShapes ?? [];
+    state.board.chessGroundShapes = puzzleMoveShapes ?? [];
   }
 
-  state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+  state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
 }

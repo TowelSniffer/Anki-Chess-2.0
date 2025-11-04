@@ -1,17 +1,24 @@
-import type { Color } from "chessground/types";
+import type { Color, Key } from "chessground/types";
 import type { Move, Square } from "chess.js";
 import { Chess, SQUARES } from "chess.js";
 
-import type { CustomPgnMove } from "../../types/Pgn";
-import type { MoveInput } from "../../types/Chess";
-import { isMoveObject } from "../../types/Chess";
+import type { CustomPgnMove } from "../pgn/Pgn";
+import type { MoveInput } from "./Chess";
 
 import { state } from "../../core/state";
+
+// --- type guards ---
+
+// chess.js Square doesn't include a0
+export function isSquare(key: Key): key is Square {
+  return key !== "a0";
+}
 
 // --- Utility ---
 
 export function getcurrentTurnColor(): Color {
-  return state.chess.turn() === "w" ? "white" : "black";
+  const color = state.pgnTrack.lastMove ? "b" : "w";
+  return state.pgnTrack.turn === color ? "white" : "black";
 }
 
 // --- PGN State & Puzzle Logic ---
@@ -29,7 +36,8 @@ export function areMovesEqual(
 }
 
 function isMoveLegal(moveInput: MoveInput): boolean {
-  const legalMoves = state.chess.moves({ verbose: true });
+  const tempChess = new Chess(state.pgnTrack.fen);
+  const legalMoves = tempChess.moves({ verbose: true });
 
   if (typeof moveInput === "string") {
     // lan or san
@@ -52,13 +60,14 @@ export function getLegalMove(moveInput: MoveInput): Move | null {
     return null;
   }
 
-  const tempChess = new Chess(state.chess.fen());
+  const tempChess = new Chess(state.pgnTrack.fen);
   return tempChess.move(moveInput);
 }
 
 export function isPromotion(orig: Square, dest: Square): boolean {
   if (SQUARES.includes(orig)) {
-    const piece = state.chess.get(orig);
+    const tempChess = new Chess(state.pgnTrack.fen);
+    const piece = tempChess.get(orig);
     if (!piece || piece.type !== "p") {
       return false;
     }
@@ -74,10 +83,14 @@ export function isPromotion(orig: Square, dest: Square): boolean {
 }
 
 export function toDests(): Map<Square, Square[]> {
+  function isMoveObject(move: object): move is Move {
+    return typeof move === "object" && move !== null;
+  }
   // Map valid destinations
   const dests = new Map<Square, Square[]>();
+  const tempChess = new Chess(state.pgnTrack.fen);
   SQUARES.forEach((s) => {
-    const ms = state.chess.moves({ square: s, verbose: true });
+    const ms = tempChess.moves({ square: s, verbose: true });
     const moveObjects = ms.filter(isMoveObject);
     if (moveObjects.length)
       dests.set(

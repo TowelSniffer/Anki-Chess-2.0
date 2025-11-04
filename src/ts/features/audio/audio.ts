@@ -1,5 +1,5 @@
-import type { CustomPgnMove } from "../../types/Pgn";
-import type { Sounds, MoveEvent, SoundPriorityRule } from "../../types/Sounds";
+import type { CustomPgnMove } from "../pgn/Pgn";
+import type { Sounds, MoveEvent, SoundPriorityRule } from "./Sounds";
 
 import { config } from "../../core/config";
 

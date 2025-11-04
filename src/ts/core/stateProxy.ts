@@ -1,6 +1,7 @@
-import type { State, ErrorTrack } from "../types/Main";
-import type { PgnPath } from "../types/Pgn";
-import type { EventPayloads, Listener } from "../types/ProxyEvents";
+import type { ErrorTrack } from "./Config";
+import type { State } from "./State";
+import type { PgnPath } from "../features/pgn/Pgn";
+import type { EventPayloads, Listener } from "./proxyEvents/ProxyEvents";
 
 import { state } from "./state";
 
@@ -37,33 +38,53 @@ export const eventEmitter = new EventEmitter();
 
 // --- State proxy ---
 
-const stateHandler = {
+const nestedHandler = {
   set(
-    target: State,
-    property: keyof State,
-    value: PgnPath | ErrorTrack,
-    receiver: State,
+    target: State["pgnTrack"] | State["ankiPersist"],
+    property: keyof (State["pgnTrack"] | State["ankiPersist"]),
+    value: PgnPath | ErrorTrack, // The value being set (e.g., PgnPath or ErrorTrack)
+    receiver: State["pgnTrack"] | State["ankiPersist"],
   ) {
-    if (property === "pgnPath") {
-      // handle changing current move
-
+    if ("pgnPath" in target && property === "pgnPath") {
+      // Logic for pgnTrack.pgnPath
       const pgnPath = value as PgnPath;
       const pathKey = pgnPath.join(",");
-      const pathMove = state.pgnPathMap.get(pathKey) ?? null;
-      const lastMove = state.lastMove;
+      const pathMove = state.pgnTrack.pgnPathMap.get(pathKey) ?? null;
+      const lastMove = state.pgnTrack.lastMove;
 
       if (
         (pathMove || !pgnPath.length) &&
-        !(!state.pgnPath.join(",").length && !pgnPath.length) // why is this needed?
+        !(!state.pgnTrack.pgnPath.join(",").length && !pgnPath.length)
       ) {
         eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
       }
-    } else if (property === "errorTrack") {
-      // Handle scoring puzzle
-
+    } else if ("errorTrack" in target) {
+      // Logic for ankiPersist.errorTrack (puzzleScored)
       const errorTrack = value as ErrorTrack;
       eventEmitter.emit("puzzleScored", errorTrack);
     }
+
+    return Reflect.set(target, property, value, receiver);
+  },
+};
+
+const stateHandler = {
+  get(target: State, property: keyof State, receiver: State) {
+    // Return a proxy for the nested objects we want to track
+    if (property === "pgnTrack") {
+      return new Proxy(target.pgnTrack, nestedHandler);
+    }
+    if (property === "ankiPersist") {
+      return new Proxy(target.ankiPersist, nestedHandler);
+    }
+    return Reflect.get(target, property, receiver);
+  },
+  set(
+    target: State,
+    property: keyof State,
+    value: PgnPath | ErrorTrack, // PgnPath | ErrorTrack, // This type is too restrictive now
+    receiver: State,
+  ) {
     return Reflect.set(target, property, value, receiver);
   },
 };

@@ -2,9 +2,8 @@ import type { Move } from "chess.js";
 import type { PgnMove } from "@mliebelt/pgn-types";
 import { Chess } from "chess.js";
 
-import nags from "../../../json/nags.json" assert { type: "json" };
-import type { CustomPgnMove, PgnPath } from "../../types/Pgn";
-import { isNagKey } from "../../types/Pgn";
+import type { CustomPgnMove, PgnPath } from "./Pgn";
+import { isNagKey, nags } from "./nags";
 import { state } from "../../core/state";
 
 // --- PGN Rendering ---
@@ -39,7 +38,7 @@ function buildPgnHtml(moves: CustomPgnMove[], altLine?: boolean): string {
       }
     }
     nagTitle = nagTitle ? `<span class="nagTooltip">${nagTitle}</span>` : "";
-    const pathKey = move.pgnPath?.join(",");
+    const pathKey = move.pgnPath.join(",");
     if (pathKey && move.pgnPath) {
       html += ` <span class="move" data-path-key="${pathKey}">${nagTitle} ${move.notation.notation} ${nagCheck}</span>`;
     }
@@ -80,7 +79,9 @@ function buildPgnHtml(moves: CustomPgnMove[], altLine?: boolean): string {
 
 export function isEndOfLine(path: PgnPath): boolean {
   const nextMovePath = navigateNextMove(path);
-  const nextMoveCheck = state.pgnPathMap.get(nextMovePath.join(","))?.pgnPath;
+  const nextMoveCheck = state.pgnTrack.pgnPathMap.get(
+    nextMovePath.join(","),
+  )?.pgnPath;
   return nextMoveCheck ? false : true;
 }
 
@@ -124,7 +125,7 @@ export function addMoveToPgn(move: Move): PgnPath {
   const chess = new Chess();
   chess.load(move.before);
   const chessState = chess.moveNumber();
-  const currentPath = state.pgnPath;
+  const currentPath = state.pgnTrack.pgnPath;
   let currentLinePosition = currentPath.at(-1) as number;
   if (currentLinePosition === null) currentLinePosition = 0;
 
@@ -136,7 +137,7 @@ export function addMoveToPgn(move: Move): PgnPath {
     nextMovePath = currentPath.with(-1, ++currentLinePosition);
   }
 
-  const pgnMove = state.pgnPathMap.get(nextMovePath.join(","));
+  const pgnMove = state.pgnTrack.pgnPathMap.get(nextMovePath.join(","));
 
   const isVariation = pgnMove?.turn === move.color;
 
@@ -168,15 +169,15 @@ export function addMoveToPgn(move: Move): PgnPath {
   if (nextMovePath.length === 1) {
     state.parsedPGN.moves.push(newCustomPgnMove);
   } else if (isVariation) {
-    const parentMove = state.pgnPathMap.get(parentPath.join(","));
+    const parentMove = state.pgnTrack.pgnPathMap.get(parentPath.join(","));
     parentMove!.variations.push([newCustomPgnMove]);
   } else {
     const variationLine = parentPath.slice(0, -3);
-    const parentLine = state.pgnPathMap.get(variationLine.join(","));
+    const parentLine = state.pgnTrack.pgnPathMap.get(variationLine.join(","));
     parentLine!.variations[parentPath.at(-2) as number].push(newCustomPgnMove);
   }
 
-  state.pgnPathMap.set(nextMovePath.join(","), newCustomPgnMove);
+  state.pgnTrack.pgnPathMap.set(nextMovePath.join(","), newCustomPgnMove);
 
   renderNewPgnMove(newCustomPgnMove, nextMovePath);
   return nextMovePath;
@@ -351,7 +352,7 @@ function _augmentAndGenerateFen(
     move.san = moveResult.san;
 
     const pathKey = move.pgnPath.join(",");
-    state.pgnPathMap.set(pathKey, move);
+    state.pgnTrack.pgnPathMap.set(pathKey, move);
 
     if (move.variations) {
       move.variations.forEach((variation, varIndex) => {
@@ -393,5 +394,5 @@ export function initPgnViewer(): void {
     pgnContainer.innerHTML += `<span class="comment"> ${state.parsedPGN.gameComment.comment} </span>`;
   }
   pgnContainer.innerHTML += buildPgnHtml(state.parsedPGN.moves);
-  highlightCurrentMove(state.pgnPath);
+  highlightCurrentMove(state.pgnTrack.pgnPath);
 }

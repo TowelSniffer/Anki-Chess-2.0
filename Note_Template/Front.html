@@ -89,7 +89,6 @@
       let errorTrack;
       let mirrorState;
       let pgnPath = null;
-      let errorCount = null;
       let puzzleComplete = null;
       if (Persistence.isAvailable()) {
           Persistence.clear();
@@ -99,7 +98,6 @@
               window.addEventListener('message', function(e) {
                   errorTrack = e.data.errorTrack;
                   mirrorState = e.data.mirrorState;
-                  errorCount = e.data.errorCount;
                   puzzleComplete = e.data.puzzleComplete;
                   pgnPath = e.data.pgnPath;
                   Persistence.setItem("errorTrack", errorTrack);

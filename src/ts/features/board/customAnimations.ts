@@ -1,6 +1,6 @@
 import { Chess } from "chess.js";
 
-import type { CustomPgnMove } from "../../types/Pgn";
+import type { CustomPgnMove } from "../pgn/Pgn";
 
 import { config } from "../../core/config";
 import { state } from "../../core/state";
@@ -16,12 +16,12 @@ export function setBoard(FEN: string): void {
     movable: {
       color:
         config.boardMode === "Puzzle"
-          ? state.playerColour
+          ? state.board.playerColour
           : getcurrentTurnColor(),
       dests: toDests(),
     },
     drawable: {
-      shapes: state.chessGroundShapes,
+      shapes: state.board.chessGroundShapes,
     },
   });
 }
@@ -32,7 +32,7 @@ export function animateBoard(
 ): void {
   if (pathMove) {
     state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
-    state.lastMove = pathMove;
+    state.pgnTrack.lastMove = pathMove;
   }
   // --- Promotion animations ---
   if (
@@ -48,10 +48,10 @@ export function animateBoard(
     setTimeout(() => {
       state.cg.set({ animation: { enabled: false } });
       state.cg.set({
-        fen: state.chess.fen(),
+        fen: state.pgnTrack.fen,
       });
       state.cg.set({ animation: { enabled: true } });
-      state.cg.set({ drawable: { shapes: state.chessGroundShapes } });
+      state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
     }, config.animationTime);
   } else if (
     lastMove?.notation.promotion &&
@@ -68,24 +68,24 @@ export function animateBoard(
     state.cg.set({ animation: { enabled: true } });
 
     state.cg.set({
-      fen: state.chess.fen(),
+      fen: state.pgnTrack.fen,
     });
   } else {
-    state.cg.set({ fen: state.chess.fen() });
+    state.cg.set({ fen: state.pgnTrack.fen });
   }
 
   const currentTurnColor = getcurrentTurnColor();
   const movableColor =
-    config.boardMode === "Puzzle" ? state.playerColour : currentTurnColor;
+    config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
 
   state.cg.set({
-    check: state.chess.inCheck(),
+    check: state.board.inCheck,
     turnColor: currentTurnColor,
     movable: {
       color: movableColor,
       dests: toDests(),
     },
-    drawable: { shapes: state.chessGroundShapes },
+    drawable: { shapes: state.board.chessGroundShapes },
   });
   setTimeout(() => {
     state.cg.playPremove();

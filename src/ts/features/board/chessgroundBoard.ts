@@ -1,11 +1,14 @@
 import type { Color } from "chessground/types";
-import { isSquare } from "../../types/Chess";
 
 import { config } from "../../core/config";
 import { state } from "../../core/state";
 import { customSelectEvent, customAfterEvent } from "./customChessgroundEvents";
 import { startPlayerTimer } from "../timer/timer";
-import { toDests, getcurrentTurnColor } from "../chessJs/chessFunctions";
+import {
+  isSquare,
+  toDests,
+  getcurrentTurnColor,
+} from "../chessJs/chessFunctions";
 import { playAiMove } from "../chessJs/puzzleLogic";
 
 // return ts randomOrientation
@@ -18,14 +21,24 @@ function randomOrientation(): Color {
 export function loadChessgroundBoard(): void {
   const currentTurnColor = getcurrentTurnColor();
   const movableColor =
-    config.boardMode === "Puzzle" ? state.playerColour : currentTurnColor;
+    config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
 
   state.cg.set({
     orientation: config.randomOrientation
       ? randomOrientation()
-      : state.playerColour,
+      : state.board.playerColour,
     turnColor: currentTurnColor,
+    highlight: {
+      check: true,
+      lastMove: true,
+    },
+    animation: {
+      enabled: true, // will manulally enable later to prevent position load animation
+      duration: config.animationTime,
+    },
     movable: {
+      free: false,
+      showDests: config.showDests,
       color: movableColor,
       dests: toDests(),
       events: {
@@ -38,7 +51,7 @@ export function loadChessgroundBoard(): void {
     premovable: {
       enabled: config.boardMode === "Viewer" ? false : true,
     },
-    check: state.chess.inCheck(),
+    check: state.board.inCheck,
     events: {
       select: (key) => {
         if (!isSquare(key)) return;
@@ -46,12 +59,8 @@ export function loadChessgroundBoard(): void {
       },
     },
   });
-  if (
-    !state.chess.isGameOver() &&
-    config.flipBoard &&
-    config.boardMode === "Puzzle"
-  ) {
-    playAiMove(state.delayTime);
+  if (config.flipBoard && config.boardMode === "Puzzle") {
+    playAiMove(state.puzzle.delayTime);
   } else if (config.boardMode === "Puzzle") {
     startPlayerTimer();
   }

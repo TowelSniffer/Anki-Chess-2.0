@@ -30,9 +30,9 @@ export function setupEventListeners(): void {
         return;
       const pathKey = target.dataset.pathKey;
       if (pathKey) {
-        const move = state.pgnPathMap.get(pathKey);
+        const move = state.pgnTrack.pgnPathMap.get(pathKey);
         if (move) {
-          stateProxy.pgnPath = move.pgnPath;
+          stateProxy.pgnTrack.pgnPath = move.pgnPath;
         } else {
           return;
         }
@@ -162,7 +162,6 @@ export function setupEventListeners(): void {
       handleStockfishCrash("window.onerror");
     }
   });
-  // mirrorPgnTree
   let isUpdateScheduled = false;
   const handleReposition = (): void => {
     if (isUpdateScheduled) return;

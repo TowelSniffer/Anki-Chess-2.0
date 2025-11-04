@@ -1,4 +1,4 @@
-import type { ErrorTrack } from "../../types/Main";
+import type { ErrorTrack } from "../Config";
 
 import { config } from "../config";
 import { state } from "../state";
@@ -7,22 +7,21 @@ import { borderFlash } from "../../features/ui/uiUtils";
 import { stopPlayerTimer } from "../../features/timer/timer";
 
 export function scorePuzzle(errorTrack: ErrorTrack): void {
-  const { chess: _chess, cg: _cg, cgwrap: _cgwrap, ...stateCopy } = state;
-
-  const endOfLineCheck = isEndOfLine(state.pgnPath);
+  const endOfLineCheck = isEndOfLine(state.pgnTrack.pgnPath);
+  const stateCopy = state.ankiPersist;
   if (endOfLineCheck) stateCopy.puzzleComplete = true;
 
   if (errorTrack === "correct") {
-    state.solvedColour = "var(--correct-color)";
+    state.board.solvedColour = "var(--correct-color)";
     if (config.autoAdvance) {
       stateCopy.puzzleComplete = true;
     }
   } else if (errorTrack === "correctTime") {
-    state.solvedColour = "var(--perfect-color)";
+    state.board.solvedColour = "var(--perfect-color)";
   } else if (errorTrack === "incorrect") {
-    state.solvedColour = "var(--incorrect-color)";
+    state.board.solvedColour = "var(--incorrect-color)";
     if (
-      (config.timerAdvance && state.puzzleTime === 0) ||
+      (config.timerAdvance && state.puzzle.puzzleTime === 0) ||
       config.handicapAdvance
     ) {
       stateCopy.puzzleComplete = true;
@@ -33,15 +32,14 @@ export function scorePuzzle(errorTrack: ErrorTrack): void {
     state.cgwrap.classList.remove("timerMode");
     document.documentElement.style.setProperty(
       "--border-color",
-      state.solvedColour,
+      state.board.solvedColour,
     );
     state.cg.set({ viewOnly: true });
     setTimeout(() => {
-      stateCopy.pgnPath = state.pgnPath;
       window.parent.postMessage(stateCopy, "*");
-    }, state.delayTime);
+    }, state.puzzle.delayTime);
   }
-  if (state.solvedColour) {
+  if (state.board.solvedColour) {
     borderFlash();
   } else {
     borderFlash("var(--incorrect-color)");

@@ -1,5 +1,5 @@
-import type { ErrorTrack } from "./Main";
-import type { PgnPath, CustomPgnMove } from "./Pgn";
+import type { ErrorTrack } from "../Config";
+import type { PgnPath, CustomPgnMove } from "../../features/pgn/Pgn";
 
 export interface EventPayloads {
   pgnPathChanged: [

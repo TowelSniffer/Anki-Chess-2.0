@@ -56,7 +56,7 @@ export function setButtonsDisabled(
 export function borderFlash(colour: string | null = null): void {
   document.documentElement.style.setProperty(
     "--timer-flash-color",
-    colour ?? state.solvedColour,
+    colour ?? state.board.solvedColour,
   );
   state.cgwrap.classList.add("time-added-flash");
   setTimeout(() => {
@@ -67,29 +67,29 @@ export function borderFlash(colour: string | null = null): void {
 // --- Navigation Tools ---
 
 export function navForward(): void {
-  if (isEndOfLine(state.pgnPath)) return;
-  const navCheck = navigateNextMove(state.pgnPath);
-  stateProxy.pgnPath = navCheck;
+  if (isEndOfLine(state.pgnTrack.pgnPath)) return;
+  const navCheck = navigateNextMove(state.pgnTrack.pgnPath);
+  stateProxy.pgnTrack.pgnPath = navCheck;
 }
 
 export function navBackward(): void {
-  if (!state.pgnPath.length) return;
-  const navCheck = navigatePrevMove(state.pgnPath);
+  if (!state.pgnTrack.pgnPath.length) return;
+  const navCheck = navigatePrevMove(state.pgnTrack.pgnPath);
   if (!navCheck.length) {
     resetBoard();
   } else {
-    stateProxy.pgnPath = navCheck;
+    stateProxy.pgnTrack.pgnPath = navCheck;
   }
 }
 
 export function resetBoard(): void {
-  stateProxy.pgnPath = [];
+  stateProxy.pgnTrack.pgnPath = [];
 }
 
 // Button tools --
 
 export function rotateBoard(): void {
-  state.boardRotation = state.boardRotation === "white" ? "black" : "white";
+  state.board.boardRotation = state.board.boardRotation === "white" ? "black" : "white";
 
   const coordWhite = getComputedStyle(htmlElement)
     .getPropertyValue("--coord-white")
@@ -100,7 +100,7 @@ export function rotateBoard(): void {
   htmlElement.style.setProperty("--coord-white", coordBlack);
   htmlElement.style.setProperty("--coord-black", coordWhite);
 
-  state.cg.set({ orientation: state.boardRotation });
+  state.cg.set({ orientation: state.board.boardRotation });
 
   const flipButton = document.querySelector<HTMLElement>(".flipBoardIcon");
   if (flipButton && flipButton.style.transform.includes("90deg")) {
@@ -112,7 +112,7 @@ export function rotateBoard(): void {
 
 export function copyFen(): boolean {
   const textarea = document.createElement("textarea");
-  textarea.value = state.chess.fen();
+  textarea.value = state.pgnTrack.fen;
   // Make the textarea invisible and off-screen
   textarea.style.position = "absolute";
   textarea.style.left = "-9999px";

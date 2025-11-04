@@ -20,22 +20,19 @@ function getElement<T extends HTMLElement>(
 const htmlElement: HTMLElement = document.documentElement;
 
 function initializePgnData(): void {
-  const pathKey = state.pgnPath.join(",");
-  const moveTrack = state.pgnPathMap.get(pathKey);
-  state.chess.load(moveTrack?.after ?? state.startFen);
+  const pathKey = state.pgnTrack.pgnPath.join(",");
+  const moveTrack = state.pgnTrack.pgnPathMap.get(pathKey);
   if (config.boardMode === "Viewer") {
-    state.cg.set({ animation: { enabled: false } });
     state.cg.set({ fen: moveTrack?.after ?? state.startFen });
     if (moveTrack) state.cg.set({ lastMove: [moveTrack.from, moveTrack.to] });
-    if (state.pgnPath.length && moveTrack) {
+    if (state.pgnTrack.pgnPath.length && moveTrack) {
       setButtonsDisabled(["back", "reset"], false);
-      state.lastMove = moveTrack;
+      state.pgnTrack.lastMove = moveTrack;
     }
-    const endOfLineCheck = isEndOfLine(state.pgnPath);
+    const endOfLineCheck = isEndOfLine(state.pgnTrack.pgnPath);
     setButtonsDisabled(["forward"], endOfLineCheck);
-    drawArrows(state.pgnPath);
+    drawArrows(state.pgnTrack.pgnPath);
   }
-  state.cg.set({ animation: { enabled: true } });
 }
 
 export function initializeUI(): void {
@@ -45,7 +42,7 @@ export function initializeUI(): void {
   const promoteBtnMap = ["Q", "B", "N", "R"];
   promoteBtnMap.forEach((piece) => {
     const imgElement = getElement(`#promote${piece}`, HTMLImageElement);
-    imgElement.src = `_${state.playerColour[0]}${piece}.svg`;
+    imgElement.src = `_${state.board.playerColour[0]}${piece}.svg`;
   });
 
   if (config.background)
@@ -84,14 +81,15 @@ export function initializeUI(): void {
   if (config.flipBoard) {
     boardRotation = boardRotation === "white" ? "black" : "white";
   }
-  state.boardRotation = boardRotation;
+  state.board.boardRotation = boardRotation;
 
   // Set player and opponent colors
-  state.playerColour = state.boardRotation;
-  state.opponentColour = state.boardRotation === "white" ? "black" : "white";
+  state.board.playerColour = state.board.boardRotation;
+  state.board.opponentColour =
+    state.board.boardRotation === "white" ? "black" : "white";
 
   // Update CSS variables for theming
-  if (state.boardRotation === "white") {
+  if (state.board.boardRotation === "white") {
     const coordWhite = getComputedStyle(htmlElement)
       .getPropertyValue("--coord-white")
       .trim();
@@ -102,18 +100,20 @@ export function initializeUI(): void {
     htmlElement.style.setProperty("--coord-black", coordWhite);
   }
 
-  const borderColor = config.randomOrientation ? "grey" : state.playerColour;
+  const borderColor = config.randomOrientation
+    ? "grey"
+    : state.board.playerColour;
   htmlElement.style.setProperty("--border-color", borderColor);
-  htmlElement.style.setProperty("--player-color", state.playerColour);
-  htmlElement.style.setProperty("--opponent-color", state.opponentColour);
+  htmlElement.style.setProperty("--player-color", state.board.playerColour);
+  htmlElement.style.setProperty("--opponent-color", state.board.opponentColour);
 
   // Update border color based on error tracking in Viewer mode
   if (config.boardMode === "Viewer") {
-    if (state.errorTrack === "incorrect") {
+    if (state.ankiPersist.errorTrack === "incorrect") {
       htmlElement.style.setProperty("--border-color", "var(--incorrect-color)");
-    } else if (state.errorTrack === "correctTime") {
+    } else if (state.ankiPersist.errorTrack === "correctTime") {
       htmlElement.style.setProperty("--border-color", "var(--perfect-color)");
-    } else if (state.errorTrack === "correct") {
+    } else if (state.ankiPersist.errorTrack === "correct") {
       htmlElement.style.setProperty("--border-color", "var(--correct-color)");
     }
   }
