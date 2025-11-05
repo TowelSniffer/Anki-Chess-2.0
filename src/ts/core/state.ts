@@ -85,7 +85,8 @@ export const state: State = {
       return state.pgnTrack.lastMove?.after ?? state.startFen;
     },
     get turn(): string {
-      return state.pgnTrack.lastMove?.turn ?? state.parsedPGN.moves[0].turn;
+      const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
+      return moveToCheck?.turn ?? null
     },
   },
   board: {
@@ -95,7 +96,8 @@ export const state: State = {
     opponentColour: "black",
     chessGroundShapes: [],
     get inCheck(): boolean {
-      return state.pgnTrack.lastMove?.notation.check ? true : false;
+      const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
+      return moveToCheck?.notation?.check ? true : false;
     },
   },
   cgwrap: cgwrap,

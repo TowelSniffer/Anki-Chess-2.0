@@ -153,7 +153,7 @@ export function addMoveToPgn(move: Move): PgnPath {
       strike: move.san.includes("x") ? "x" : null,
       col: move.to[0],
       row: move.to[1],
-      promotion: move.promotion ? move.promotion : null,
+      promotion: move.promotion ? move.san.slice(-2) : null,
     },
     turn: move.color,
     before: move.before,
