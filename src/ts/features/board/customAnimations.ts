@@ -31,6 +31,7 @@ export function animateBoard(
   pathMove: CustomPgnMove | null,
 ): void {
   if (pathMove) {
+    console.log(pathMove)
     state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
     state.pgnTrack.lastMove = pathMove;
   }
@@ -79,7 +80,7 @@ export function animateBoard(
     config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
 
   state.cg.set({
-    check: state.board.inCheck,
+    check: pathMove?.notation.check ? true : false,
     turnColor: currentTurnColor,
     movable: {
       color: movableColor,

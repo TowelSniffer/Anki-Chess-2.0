@@ -147,6 +147,7 @@ export function addMoveToPgn(move: Move): PgnPath {
   const newCustomPgnMove: CustomPgnMove = {
     moveNumber: chessState,
     notation: {
+      check: move.san.includes("+") ? "+" : undefined,
       notation: move.san,
       fig: move.piece,
       strike: move.san.includes("x") ? "x" : null,

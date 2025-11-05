@@ -86,6 +86,7 @@ function handleStockfishMessages(event: MessageEvent): void {
     if (analysisCache.stockfishRestart) {
       analysisCache.stockfishRestart = false;
       startAnalysis(config.analysisTime);
+      return;
     };
 
     const bestMoveUci = message.split(" ")[1];
@@ -145,9 +146,8 @@ export function startAnalysis(movetime: number): void {
   )
     return;
   if (analysisCache.isStockfishBusy) {
-    analysisCache.isStockfishBusy = true;
-    stockfish.postMessage("stop");
     analysisCache.stockfishRestart = true;
+    stockfish.postMessage("stop");
     return;
   }
   if (analysisCache.fen !== state.pgnTrack.fen) {
@@ -160,9 +160,9 @@ export function startAnalysis(movetime: number): void {
       stockfishRestart: false,
       analysisToggledOn: true,
     };
-    filterShapes(ShapeFilter.Stockfish);
-    state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
   }
+  filterShapes(ShapeFilter.Stockfish);
+  state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
 
   analysisCache.isStockfishBusy = true;
   stockfish.postMessage(`position fen ${state.pgnTrack.fen}`);
