@@ -14019,7 +14019,7 @@ ${contextLines.join("\n")}`;
           },
           get turn() {
             const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
-            return moveToCheck?.turn ?? null;
+            return moveToCheck?.turn ?? "w";
           }
         },
         board: {
@@ -15533,16 +15533,14 @@ ${contextLines.join("\n")}`;
   }
   function animateBoard(lastMove, pathMove) {
     const FEN = pathMove?.after ?? state.startFen;
-    const moveCheck = lastMove?.after === pathMove?.before || state.startFen === pathMove?.before && !lastMove;
+    const moveCheck = pathMove && (lastMove?.after === pathMove.before || state.startFen === pathMove.before && !lastMove);
     const isForwardPromotion = moveCheck && pathMove?.notation.promotion;
     const backwardsMoveCheck = pathMove?.after === lastMove?.before || state.startFen === lastMove?.before && !pathMove;
-    const isBackwardsPromotion = backwardsMoveCheck && lastMove.notation.promotion;
+    const isBackwardsPromotion = backwardsMoveCheck && lastMove?.notation.promotion;
     if (pathMove) {
       state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
     }
     if (isForwardPromotion) {
-      const orig = pathMove.from;
-      const dest = pathMove.to;
       const promotion = promotionAbbreviationMap[pathMove.san.slice(-1)];
       const color = colorAbbreviationMap[pathMove.turn];
       state.cg.move(pathMove.from, pathMove.to);
@@ -15568,8 +15566,7 @@ ${contextLines.join("\n")}`;
     } else {
       state.cg.set({ fen: FEN });
     }
-    const fenParts = FEN.split(" ");
-    const currentTurnColor = fenParts[1] === "w" ? "white" : "black";
+    const currentTurnColor = colorAbbreviationMap[state.pgnTrack.turn];
     const movableColor = config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
     state.cg.set({
       check: pathMove?.notation.check ? true : false,
@@ -15586,7 +15583,6 @@ ${contextLines.join("\n")}`;
   var init_customAnimations = __esm({
     "src/ts/features/board/customAnimations.ts"() {
       "use strict";
-      init_chess();
       init_config2();
       init_state2();
       init_chessFunctions();
