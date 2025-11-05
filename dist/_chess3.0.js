@@ -14417,6 +14417,7 @@ ${contextLines.join("\n")}`;
     const newCustomPgnMove = {
       moveNumber: chessState,
       notation: {
+        check: move3.san.includes("+") ? "+" : void 0,
         notation: move3.san,
         fig: move3.piece,
         strike: move3.san.includes("x") ? "x" : null,
@@ -15134,6 +15135,7 @@ ${contextLines.join("\n")}`;
       if (analysisCache.stockfishRestart) {
         analysisCache.stockfishRestart = false;
         startAnalysis(config.analysisTime);
+        return;
       }
       ;
       const bestMoveUci = message.split(" ")[1];
@@ -15180,9 +15182,8 @@ ${contextLines.join("\n")}`;
     if (!analysisCache.analysisToggledOn || !stockfish)
       return;
     if (analysisCache.isStockfishBusy) {
-      analysisCache.isStockfishBusy = true;
-      stockfish.postMessage("stop");
       analysisCache.stockfishRestart = true;
+      stockfish.postMessage("stop");
       return;
     }
     if (analysisCache.fen !== state.pgnTrack.fen) {
@@ -15196,9 +15197,9 @@ ${contextLines.join("\n")}`;
         stockfishRestart: false,
         analysisToggledOn: true
       };
-      filterShapes("Stockfish" /* Stockfish */);
-      state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
     }
+    filterShapes("Stockfish" /* Stockfish */);
+    state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
     analysisCache.isStockfishBusy = true;
     stockfish.postMessage(`position fen ${state.pgnTrack.fen}`);
     stockfish.postMessage(`go movetime ${movetime}`);
@@ -15533,6 +15534,7 @@ ${contextLines.join("\n")}`;
   }
   function animateBoard(lastMove, pathMove) {
     if (pathMove) {
+      console.log(pathMove);
       state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
       state.pgnTrack.lastMove = pathMove;
     }
@@ -15565,7 +15567,7 @@ ${contextLines.join("\n")}`;
     const currentTurnColor = getcurrentTurnColor();
     const movableColor = config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
     state.cg.set({
-      check: state.board.inCheck,
+      check: pathMove?.notation.check ? true : false,
       turnColor: currentTurnColor,
       movable: {
         color: movableColor,
@@ -15896,12 +15898,10 @@ ${contextLines.join("\n")}`;
     if (pathMove) {
       moveAudio(pathMove);
     }
-    setTimeout(() => {
-      animateBoard(lastMove, pathMove);
-    }, 2);
-    startAnalysis(config.analysisTime);
     drawArrows(pgnPath);
+    animateBoard(lastMove, pathMove);
     highlightCurrentMove(pgnPath);
+    startAnalysis(config.analysisTime);
     const endOfLineCheck = isEndOfLine(pgnPath);
     if (endOfLineCheck) {
       if (config.boardMode === "Puzzle") {

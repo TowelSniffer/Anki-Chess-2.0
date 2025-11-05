@@ -28,13 +28,10 @@ export function changeCurrentPgnMove(
   if (pathMove) {
     moveAudio(pathMove);
   }
-  setTimeout(() => {
-    // timeout is needed here for some animations. dont know why
-    animateBoard(lastMove, pathMove);
-  }, 2);
-  startAnalysis(config.analysisTime);
   drawArrows(pgnPath);
+  animateBoard(lastMove, pathMove);
   highlightCurrentMove(pgnPath);
+  startAnalysis(config.analysisTime);
 
   const endOfLineCheck = isEndOfLine(pgnPath);
   if (endOfLineCheck) {
