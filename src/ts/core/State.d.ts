@@ -1,4 +1,5 @@
 import type { Color } from "chessground/types";
+import type { Color as ChessJsColor } from "chess.js";
 import type { Api } from "chessground/api";
 
 import type { MirrorState, ErrorTrack } from "./Config";
@@ -27,7 +28,7 @@ interface PgnTrack {
   pgnPathMap: Map<string, CustomPgnMove>;
   lastMove: CustomPgnMove | null;
   readonly fen: string;
-  readonly turn: string;
+  readonly turn: ChessJsColor;
 }
 
 type SolvedColour =

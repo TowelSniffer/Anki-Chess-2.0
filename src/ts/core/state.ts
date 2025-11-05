@@ -1,3 +1,5 @@
+import type { Color } from "chess.js";
+
 import { DEFAULT_POSITION } from "chess.js";
 import { parse } from "@mliebelt/pgn-parser";
 import { Chessground } from "chessground";
@@ -84,9 +86,9 @@ export const state: State = {
     get fen(): string {
       return state.pgnTrack.lastMove?.after ?? state.startFen;
     },
-    get turn(): string {
+    get turn(): Color {
       const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
-      return moveToCheck?.turn ?? null
+      return moveToCheck?.turn ?? "w";
     },
   },
   board: {
