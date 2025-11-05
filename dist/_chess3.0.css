@@ -477,6 +477,7 @@ button.navBtn span.md-small {
   border-right: 0px;
 }
 #pgnComment .altLine span.comment {
+  border: 0px;
   font-size: 0.9em;
   display: inline-flex;
 }

@@ -14018,8 +14018,10 @@ ${contextLines.join("\n")}`;
             return state.pgnTrack.lastMove?.after ?? state.startFen;
           },
           get turn() {
-            const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
-            return moveToCheck?.turn ?? "w";
+            if (!state.pgnTrack.lastMove) {
+              return state.parsedPGN.moves[0].turn ?? "w";
+            }
+            return state.pgnTrack.lastMove.turn === "w" ? "b" : "w";
           }
         },
         board: {
@@ -15006,8 +15008,7 @@ ${contextLines.join("\n")}`;
     return key !== "a0";
   }
   function getcurrentTurnColor() {
-    const color = state.pgnTrack.lastMove ? "b" : "w";
-    return state.pgnTrack.turn === color ? "white" : "black";
+    return state.pgnTrack.turn === "w" ? "white" : "black";
   }
   function areMovesEqual(move1, move22) {
     if (!move1 || !move22) {
@@ -15532,8 +15533,20 @@ ${contextLines.join("\n")}`;
     });
   }
   function animateBoard(lastMove, pathMove) {
+    const currentTurnColor = colorAbbreviationMap[state.pgnTrack.turn];
+    console.log(currentTurnColor);
+    const movableColor = config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
+    const cgConfig = {
+      drawable: { shapes: state.board.chessGroundShapes },
+      check: pathMove?.notation.check ? true : false,
+      turnColor: currentTurnColor,
+      movable: {
+        color: movableColor,
+        dests: toDests()
+      }
+    };
     const FEN = pathMove?.after ?? state.startFen;
-    const moveCheck = pathMove && (lastMove?.after === pathMove.before || state.startFen === pathMove.before && !lastMove);
+    const moveCheck = pathMove && !pathMove.flags.includes("e") && (lastMove?.after === pathMove.before || state.startFen === pathMove.before && !lastMove);
     const isForwardPromotion = moveCheck && pathMove?.notation.promotion;
     const backwardsMoveCheck = pathMove?.after === lastMove?.before || state.startFen === lastMove?.before && !pathMove;
     const isBackwardsPromotion = backwardsMoveCheck && lastMove?.notation.promotion;
@@ -15543,7 +15556,10 @@ ${contextLines.join("\n")}`;
     if (isForwardPromotion) {
       const promotion = promotionAbbreviationMap[pathMove.san.slice(-1)];
       const color = colorAbbreviationMap[pathMove.turn];
-      state.cg.move(pathMove.from, pathMove.to);
+      setTimeout(() => {
+        state.cg.move(pathMove.from, pathMove.to);
+        state.cg.set(cgConfig);
+      }, 2);
       const promoteDiff = /* @__PURE__ */ new Map([
         [pathMove.to, { role: promotion, color, promoted: true }]
       ]);
@@ -15551,6 +15567,7 @@ ${contextLines.join("\n")}`;
         state.cg.set({ animation: { enabled: false } });
         state.cg.setPieces(promoteDiff);
         state.cg.set({ animation: { enabled: true } });
+        state.cg.set(cgConfig);
       }, config.animationTime);
     } else if (isBackwardsPromotion) {
       const color = colorAbbreviationMap[lastMove.turn];
@@ -15560,24 +15577,24 @@ ${contextLines.join("\n")}`;
       state.cg.set({ animation: { enabled: false } });
       state.cg.setPieces(promoteDiff);
       state.cg.set({ animation: { enabled: true } });
-      state.cg.move(lastMove.to, lastMove.from);
+      setTimeout(() => {
+        state.cg.move(lastMove.to, lastMove.from);
+        state.cg.set(cgConfig);
+      }, 2);
     } else if (moveCheck) {
-      state.cg.move(pathMove.from, pathMove.to);
+      setTimeout(() => {
+        state.cg.move(pathMove.from, pathMove.to);
+        state.cg.set(cgConfig);
+      }, 2);
     } else {
-      state.cg.set({ fen: FEN });
+      setTimeout(() => {
+        state.cg.set({ fen: FEN });
+        state.cg.set(cgConfig);
+      }, 2);
     }
-    const currentTurnColor = colorAbbreviationMap[state.pgnTrack.turn];
-    const movableColor = config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
-    state.cg.set({
-      check: pathMove?.notation.check ? true : false,
-      turnColor: currentTurnColor,
-      movable: {
-        color: movableColor,
-        dests: toDests()
-      },
-      drawable: { shapes: state.board.chessGroundShapes }
-    });
-    state.cg.playPremove();
+    setTimeout(() => {
+      state.cg.playPremove();
+    }, 4);
   }
   var promotionAbbreviationMap, colorAbbreviationMap;
   var init_customAnimations = __esm({
