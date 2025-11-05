@@ -87,8 +87,10 @@ export const state: State = {
       return state.pgnTrack.lastMove?.after ?? state.startFen;
     },
     get turn(): Color {
-      const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
-      return moveToCheck?.turn ?? "w";
+      if (!state.pgnTrack.lastMove) {
+        return state.parsedPGN.moves[0].turn ?? "w";
+      }
+      return state.pgnTrack.lastMove.turn === "w" ? "b" : "w";
     },
   },
   board: {

@@ -17,8 +17,7 @@ export function isSquare(key: Key): key is Square {
 // --- Utility ---
 
 export function getcurrentTurnColor(): Color {
-  const color = state.pgnTrack.lastMove ? "b" : "w";
-  return state.pgnTrack.turn === color ? "white" : "black";
+  return state.pgnTrack.turn === "w" ? "white" : "black";
 }
 
 // --- PGN State & Puzzle Logic ---
