@@ -20,14 +20,14 @@ export function changeCurrentPgnMove(
 ): void {
   if (!pgnPath.length) {
     setButtonsDisabled(["back", "reset"], true);
-    state.pgnTrack.lastMove = null;
   } else {
     setButtonsDisabled(["back", "reset"], false);
   }
-
+  state.pgnTrack.lastMove = pathMove ?? null;
   if (pathMove) {
     moveAudio(pathMove);
   }
+
   drawArrows(pgnPath);
   animateBoard(lastMove, pathMove);
   highlightCurrentMove(pgnPath);

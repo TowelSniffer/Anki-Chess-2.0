@@ -13914,20 +13914,16 @@ ${contextLines.join("\n")}`;
         pgn: getUrlParam(
           "PGN",
           `[Event "?"]
-    [Site "?"]
-    [Date "2023.02.13"]
-    [Round "?"]
-    [White "White"]
-    [Black "Black"]
-    [Result "*"]
-    [FEN "q4rk1/p4ppp/b7/8/Pp6/1n1P2P1/1N2QP1P/R3R1K1 w - - 1 21"]
-    [SetUp "1"]
+[Site "?"]
+[Date "2025.11.06"]
+[Round "?"]
+[White "White"]
+[Black "Black"]
+[Result "*"]
+[FEN "q4rk1/p2P1ppp/b7/8/Pp6/6P1/1N2QP1P/Rn2R1K1 w - - 1 25"]
+[SetUp "1"]
 
-    21. Rad1 Nd4! {EV: 92.7%, N: 99.32% of 78.6k} 22. Qe4 {EV: 8.0%, N: 93.34% of
-        125k} Nf3+?? {EV: 92.2%, N: 99.46% of 230k} 23. Kf1 {EV: 8.2%, N: 96.48% of 422k}
-        Nxh2+ {EV: 92.5%, N: 96.74% of 510k} 24. Kg1 {EV: 8.1%, N: 91.63% of 520k} Nf3+
-        {EV: 92.1%, N: 99.09% of 496k} 25. Kf1 {EV: 8.1%, N: 97.24% of 511k} Nxe1 {EV:
-            92.4%, N: 97.58% of 602k} *
+25. d8=N Bd3 26. Qxd3 *
             `
         ),
         ankiText: getUrlParam("userText", null),
@@ -14022,7 +14018,8 @@ ${contextLines.join("\n")}`;
             return state.pgnTrack.lastMove?.after ?? state.startFen;
           },
           get turn() {
-            return state.pgnTrack.lastMove?.turn ?? state.parsedPGN.moves[0].turn;
+            const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
+            return moveToCheck?.turn ?? null;
           }
         },
         board: {
@@ -14032,7 +14029,8 @@ ${contextLines.join("\n")}`;
           opponentColour: "black",
           chessGroundShapes: [],
           get inCheck() {
-            return state.pgnTrack.lastMove?.notation.check ? true : false;
+            const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
+            return moveToCheck?.notation?.check ? true : false;
           }
         },
         cgwrap,
@@ -14423,7 +14421,7 @@ ${contextLines.join("\n")}`;
         strike: move3.san.includes("x") ? "x" : null,
         col: move3.to[0],
         row: move3.to[1],
-        promotion: move3.promotion ? move3.promotion : null
+        promotion: move3.promotion ? move3.san.slice(-2) : null
       },
       turn: move3.color,
       before: move3.before,
@@ -15521,6 +15519,7 @@ ${contextLines.join("\n")}`;
   // src/ts/features/board/customAnimations.ts
   function setBoard(FEN) {
     state.cg.set({
+      check: state.board.inCheck,
       fen: FEN,
       turnColor: getcurrentTurnColor(),
       movable: {
@@ -15533,38 +15532,44 @@ ${contextLines.join("\n")}`;
     });
   }
   function animateBoard(lastMove, pathMove) {
+    const FEN = pathMove?.after ?? state.startFen;
+    const moveCheck = lastMove?.after === pathMove?.before || state.startFen === pathMove?.before && !lastMove;
+    const isForwardPromotion = moveCheck && pathMove?.notation.promotion;
+    const backwardsMoveCheck = pathMove?.after === lastMove?.before || state.startFen === lastMove?.before && !pathMove;
+    const isBackwardsPromotion = backwardsMoveCheck && lastMove.notation.promotion;
     if (pathMove) {
-      console.log(pathMove);
       state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
-      state.pgnTrack.lastMove = pathMove;
     }
-    if (pathMove?.notation.promotion && (lastMove?.after === pathMove?.before || state.startFen === pathMove?.before && !lastMove)) {
-      const tempChess = new Chess(pathMove.before);
-      tempChess.remove(pathMove.to);
-      state.cg.set({ fen: tempChess.fen() });
+    if (isForwardPromotion) {
+      const orig = pathMove.from;
+      const dest = pathMove.to;
+      const promotion = promotionAbbreviationMap[pathMove.san.slice(-1)];
+      const color = colorAbbreviationMap[pathMove.turn];
       state.cg.move(pathMove.from, pathMove.to);
+      const promoteDiff = /* @__PURE__ */ new Map([
+        [pathMove.to, { role: promotion, color, promoted: true }]
+      ]);
       setTimeout(() => {
         state.cg.set({ animation: { enabled: false } });
-        state.cg.set({
-          fen: state.pgnTrack.fen
-        });
+        state.cg.setPieces(promoteDiff);
         state.cg.set({ animation: { enabled: true } });
-        state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
       }, config.animationTime);
-    } else if (lastMove?.notation.promotion && (lastMove?.before === pathMove?.after || state.startFen === lastMove?.before && !pathMove)) {
-      const tempChess = new Chess(lastMove.after);
-      tempChess.remove(lastMove.to);
-      tempChess.put({ type: "p", color: lastMove.turn }, lastMove.to);
+    } else if (isBackwardsPromotion) {
+      const color = colorAbbreviationMap[lastMove.turn];
+      const promoteDiff = /* @__PURE__ */ new Map([
+        [lastMove.to, { role: "pawn", color, promoted: true }]
+      ]);
       state.cg.set({ animation: { enabled: false } });
-      state.cg.set({ fen: tempChess.fen() });
+      state.cg.setPieces(promoteDiff);
       state.cg.set({ animation: { enabled: true } });
-      state.cg.set({
-        fen: state.pgnTrack.fen
-      });
+      state.cg.move(lastMove.to, lastMove.from);
+    } else if (moveCheck) {
+      state.cg.move(pathMove.from, pathMove.to);
     } else {
-      state.cg.set({ fen: state.pgnTrack.fen });
+      state.cg.set({ fen: FEN });
     }
-    const currentTurnColor = getcurrentTurnColor();
+    const fenParts = FEN.split(" ");
+    const currentTurnColor = fenParts[1] === "w" ? "white" : "black";
     const movableColor = config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
     state.cg.set({
       check: pathMove?.notation.check ? true : false,
@@ -15575,10 +15580,9 @@ ${contextLines.join("\n")}`;
       },
       drawable: { shapes: state.board.chessGroundShapes }
     });
-    setTimeout(() => {
-      state.cg.playPremove();
-    }, 2);
+    state.cg.playPremove();
   }
+  var promotionAbbreviationMap, colorAbbreviationMap;
   var init_customAnimations = __esm({
     "src/ts/features/board/customAnimations.ts"() {
       "use strict";
@@ -15586,6 +15590,18 @@ ${contextLines.join("\n")}`;
       init_config2();
       init_state2();
       init_chessFunctions();
+      promotionAbbreviationMap = {
+        // compare mlieberts promotion to chessground
+        Q: "queen",
+        R: "rook",
+        B: "bishop",
+        N: "knight"
+      };
+      colorAbbreviationMap = {
+        // compare mlieberts turn to chessground
+        w: "white",
+        b: "black"
+      };
     }
   });
 
@@ -15891,10 +15907,10 @@ ${contextLines.join("\n")}`;
   function changeCurrentPgnMove(pgnPath, lastMove, pathMove) {
     if (!pgnPath.length) {
       setButtonsDisabled(["back", "reset"], true);
-      state.pgnTrack.lastMove = null;
     } else {
       setButtonsDisabled(["back", "reset"], false);
     }
+    state.pgnTrack.lastMove = pathMove ?? null;
     if (pathMove) {
       moveAudio(pathMove);
     }

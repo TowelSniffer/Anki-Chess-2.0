@@ -9,8 +9,23 @@ import { toDests, getcurrentTurnColor } from "../chessJs/chessFunctions";
 
 // --- animate board ---
 
+const promotionAbbreviationMap = {
+  // compare mlieberts promotion to chessground
+  Q: "queen",
+  R: "rook",
+  B: "bishop",
+  N: "knight",
+};
+
+const colorAbbreviationMap = {
+  // compare mlieberts turn to chessground
+  w: "white",
+  b: "black",
+};
+
 export function setBoard(FEN: string): void {
   state.cg.set({
+    check: state.board.inCheck,
     fen: FEN,
     turnColor: getcurrentTurnColor(),
     movable: {
@@ -30,52 +45,54 @@ export function animateBoard(
   lastMove: CustomPgnMove | null,
   pathMove: CustomPgnMove | null,
 ): void {
+  const FEN = pathMove?.after ?? state.startFen;
+  const moveCheck =
+    lastMove?.after === pathMove?.before ||
+    (state.startFen === pathMove?.before && !lastMove);
+  const isForwardPromotion = moveCheck && pathMove?.notation.promotion;
+  const backwardsMoveCheck =
+    pathMove?.after === lastMove?.before ||
+    (state.startFen === lastMove?.before && !pathMove);
+  const isBackwardsPromotion =
+    backwardsMoveCheck && lastMove.notation.promotion;
   if (pathMove) {
-    console.log(pathMove)
     state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
-    state.pgnTrack.lastMove = pathMove;
   }
   // --- Promotion animations ---
-  if (
-    pathMove?.notation.promotion &&
-    (lastMove?.after === pathMove?.before ||
-      (state.startFen === pathMove?.before && !lastMove))
-  ) {
+  if (isForwardPromotion) {
     // nav forward promote
-    const tempChess = new Chess(pathMove.before);
-    tempChess.remove(pathMove.to);
-    state.cg.set({ fen: tempChess.fen() });
+    const orig = pathMove.from;
+    const dest = pathMove.to;
+    const promotion = promotionAbbreviationMap[pathMove.san.slice(-1)];
+    const color = colorAbbreviationMap[pathMove.turn];
     state.cg.move(pathMove.from, pathMove.to);
+    const promoteDiff = new Map([
+      [pathMove.to, { role: promotion, color: color, promoted: true }],
+    ]);
     setTimeout(() => {
       state.cg.set({ animation: { enabled: false } });
-      state.cg.set({
-        fen: state.pgnTrack.fen,
-      });
+      state.cg.setPieces(promoteDiff);
       state.cg.set({ animation: { enabled: true } });
-      state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
     }, config.animationTime);
-  } else if (
-    lastMove?.notation.promotion &&
-    (lastMove?.before === pathMove?.after ||
-      (state.startFen === lastMove?.before && !pathMove))
-  ) {
+  } else if (isBackwardsPromotion) {
     // nav backwards promote
-    const tempChess = new Chess(lastMove.after);
-    tempChess.remove(lastMove.to);
-    tempChess.put({ type: "p", color: lastMove.turn }, lastMove.to);
+    const color = colorAbbreviationMap[lastMove.turn];
+    const promoteDiff = new Map([
+      [lastMove.to, { role: "pawn", color: color, promoted: true }],
+    ]);
 
     state.cg.set({ animation: { enabled: false } });
-    state.cg.set({ fen: tempChess.fen() });
+    state.cg.setPieces(promoteDiff);
     state.cg.set({ animation: { enabled: true } });
-
-    state.cg.set({
-      fen: state.pgnTrack.fen,
-    });
+    state.cg.move(lastMove.to, lastMove.from);
+  } else if (moveCheck) {
+    state.cg.move(pathMove.from, pathMove.to);
   } else {
-    state.cg.set({ fen: state.pgnTrack.fen });
+    // nav back cant be move as you need to re add captured pieces
+    state.cg.set({ fen: FEN });
   }
-
-  const currentTurnColor = getcurrentTurnColor();
+  const fenParts = FEN.split(" ");
+  const currentTurnColor = fenParts[1] === "w" ? "white" : "black";
   const movableColor =
     config.boardMode === "Puzzle" ? state.board.playerColour : currentTurnColor;
 
@@ -88,7 +105,5 @@ export function animateBoard(
     },
     drawable: { shapes: state.board.chessGroundShapes },
   });
-  setTimeout(() => {
-    state.cg.playPremove();
-  }, 2);
+  state.cg.playPremove();
 }
