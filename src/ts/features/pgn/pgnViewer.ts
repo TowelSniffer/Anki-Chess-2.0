@@ -192,7 +192,6 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
   );
   if (newMovePath.length === 1) {
     const pgnContainer = document.getElementById("pgnComment");
-    console.log(previousMoveEl?.nextElementSibling);
     if (
       newMove.turn === "w" &&
       previousMoveEl?.nextElementSibling?.classList.contains("move")
@@ -302,7 +301,6 @@ export function navigatePrevMove(path: PgnPath): PgnPath {
       prevMovePath = [];
     } else {
       currentLinePosition = movePath.at(-4);
-      console.log(currentLinePosition);
       // ie 2 in: 4, "v", 0, 2, "v", 1, 0
       if (currentLinePosition === 0) {
         // must be first move

@@ -55,34 +55,6 @@ if (fs.existsSync(distDir)) {
 }
 fs.mkdirSync(distDir);
 
-// --- Programmatic Patch for chessground/board.js ---
-console.log("Applying patch to chessground/board.js...");
-try {
-  const boardJsPath = require.resolve("chessground/board");
-
-  let content = fs.readFileSync(boardJsPath, "utf8");
-
-  const originalCode = "setTimeout(() => f(...args), 1)";
-  const patchedCode = "f(...args)"; // The synchronous version
-
-  if (content.includes(originalCode)) {
-    content = content.replace(originalCode, patchedCode);
-
-    fs.writeFileSync(boardJsPath, content, "utf8");
-    console.log(
-      "✅ Successfully patched chessground/board.js to be synchronous.",
-    );
-  } else {
-    console.log(
-      "ℹ️ chessground/board.js already patched or does not require patching.",
-    );
-  }
-} catch (error) {
-  console.error("❌ Failed to patch chessground/board.js:", error);
-  process.exit(1); // Stop the build if the patch fails.
-}
-// --- End of patch ---
-
 (async () => {
   const buildOptions = {
     entryPoints: [path.join(srcDir, "src/ts/main.ts")],

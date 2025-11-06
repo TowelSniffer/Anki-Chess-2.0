@@ -49,7 +49,7 @@ function isMoveLegal(moveInput: MoveInput): boolean {
       (move) =>
         move.from === moveInput.from &&
         move.to === moveInput.to &&
-        (move.promotion || "q") === (moveInput.promotion || "q"), // Default to queen for comparison
+        (!moveInput.promotion || move.promotion === moveInput.promotion),
     );
   }
 }
@@ -76,7 +76,7 @@ export function isPromotion(orig: Square, dest: Square): boolean {
     if (piece.color === "w" && rank === "8") return true;
     if (piece.color === "b" && rank === "1") return true;
   } else {
-    console.error("Invalid square passed:", orig);
+    console.error("Invalid square passed:", orig, dest);
   }
   return false;
 }
