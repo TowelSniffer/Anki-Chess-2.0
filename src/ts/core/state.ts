@@ -68,7 +68,7 @@ export const state: State = {
   parsedPGN: parsed,
   puzzle: {
     errorCount: 0,
-    delayTime: config.animationTime + 100,
+    delayTime: config.boardMode === "Viewer" ? 0 : config.animationTime + 100,
     puzzleTime: config.timer,
   },
   ankiPersist: {

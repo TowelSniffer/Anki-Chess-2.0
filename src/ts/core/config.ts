@@ -42,7 +42,7 @@ export const config: Config = {
   strictScoring: getUrlParam("strictScoring", "false") === "true",
   acceptVariations: getUrlParam("acceptVariations", "true") === "true",
   disableArrows: getUrlParam("disableArrows", "false") === "true",
-  flipBoard: getUrlParam("flip", "true") === "true",
+  flipBoard: getUrlParam("flip", "false") === "true",
   boardMode: "Puzzle",
   background: getUrlParam("background", null),
   mirror: getUrlParam("mirror", "true") === "true",
@@ -58,6 +58,6 @@ export const config: Config = {
 };
 
 (function setBoardMode() {
-  const mode = getUrlParam("boardMode", "Viewer");
+  const mode = getUrlParam("boardMode", "Puzzle");
   if (mode && isBoardMode(mode)) config.boardMode = mode;
 })();

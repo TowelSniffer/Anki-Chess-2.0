@@ -30,6 +30,7 @@ export function changeCurrentPgnMove(
 
   drawArrows(pgnPath);
   animateBoard(lastMove, pathMove);
+  state.cg.playPremove();
   highlightCurrentMove(pgnPath);
   startAnalysis(config.analysisTime);
 

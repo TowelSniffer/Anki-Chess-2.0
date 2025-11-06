@@ -17,13 +17,19 @@ import { positionPromoteOverlay } from "../ui/initializeUI";
 import { setBoard } from "../board/customAnimations";
 import { addMoveToPgn, navigateNextMove, isEndOfLine } from "../pgn/pgnViewer";
 import { areMovesEqual, getLegalMove, isPromotion } from "./chessFunctions";
+
+// debounce handler for handliing after event race conditions and wrong move
+
+export let wrongMoveDebounce: number | null = null;
+
 // --- Board Interaction & Move Handling ---
 
 function promotePopup(orig: Square, dest: Square): void {
   stopPlayerTimer();
   const cancelPopup = function () {
     toggleClass("showHide", "hidden");
-    setBoard(state.pgnTrack.fen);
+    state.cg.move(dest, orig);
+    setBoard();
     setTimeout(() => {
       startPlayerTimer();
     }, config.animationTime);
@@ -47,16 +53,14 @@ function promotePopup(orig: Square, dest: Square): void {
           promotion: promoteChoice,
         });
 
-        if (move && config.boardMode === "Puzzle") {
+        if (move) {
           startPlayerTimer();
-          handleMoveAttempt(
-            state.puzzle.delayTime,
-            move.from,
-            move.to,
-            move.san,
-          );
-        } else if (move && config.boardMode === "Viewer") {
-          handleMoveAttempt(0, move.from, move.to, move.san);
+          handleMoveAttempt({
+            delay: state.puzzle.delayTime,
+            orig: move.from,
+            dest: move.to,
+            moveSan: move.san, // Optional
+          });
         }
       }
     };
@@ -71,20 +75,25 @@ function promotePopup(orig: Square, dest: Square): void {
   positionPromoteOverlay();
 }
 
-export function handleMoveAttempt(
-  delay: number,
-  orig: Square,
-  dest: Square,
-  moveSan: string | null = null,
-): void {
+export function handleMoveAttempt({
+  delay,
+  orig,
+  dest,
+  moveSan = null, // optional value for handling promotions
+}: {
+  delay: number;
+  orig: Square;
+  dest: Square;
+  moveSan?: string | null; // optional value for after: chessground event
+}): void {
+  if (!moveSan && isPromotion(orig, dest)) {
+    promotePopup(orig, dest);
+    return;
+  }
   let moveCheck;
   if (moveSan) {
     moveCheck = getLegalMove(moveSan);
   } else {
-    if (isPromotion(orig, dest)) {
-      promotePopup(orig, dest);
-      return;
-    }
     moveCheck = getLegalMove({ from: orig, to: dest });
   }
   if (!moveCheck) return;
@@ -126,7 +135,7 @@ export function handleMoveAttempt(
       if (!isEndOfLine(nextMovePath)) {
         extendPuzzleTime(config.increment);
       }
-      playAiMove(state.puzzle.delayTime);
+      playAiMove(delay);
     }
   }
 }
@@ -160,15 +169,19 @@ function playUserCorrectMove(delay: number): void {
   }, delay);
 }
 
-export let wrongMoveDebounce: number | null = null;
 function handleWrongMove(move: Move): void {
   state.puzzle.errorCount++;
-  state.cg.set({ fen: move.after });
+  console.log(move);
+  if (move.flags.includes("e") || move.flags.includes("c")) {
+    state.cg.set({ fen: move.before });
+  } else {
+    state.cg.move(move.to, move.from);
+  }
   playSound("Error");
-  setBoard(move.before);
+  setBoard();
   wrongMoveDebounce = setTimeout(() => {
     wrongMoveDebounce = null;
-  }, state.puzzle.delayTime);
+  }, 300);
 
   const isFailed =
     config.strictScoring || state.puzzle.errorCount > config.handicap;
