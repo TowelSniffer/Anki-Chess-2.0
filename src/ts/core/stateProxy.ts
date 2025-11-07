@@ -45,19 +45,16 @@ const nestedHandler = {
     value: PgnPath | ErrorTrack, // The value being set (e.g., PgnPath or ErrorTrack)
     receiver: State["pgnTrack"] | State["ankiPersist"],
   ) {
+    if (property === "pgnPath" && target[property] === value) {
+      return true; // Return true to indicate the set operation succeeded, but do nothing.
+    }
     if ("pgnPath" in target && property === "pgnPath") {
       // Logic for pgnTrack.pgnPath
       const pgnPath = value as PgnPath;
       const pathKey = pgnPath.join(",");
       const pathMove = state.pgnTrack.pgnPathMap.get(pathKey) ?? null;
       const lastMove = state.pgnTrack.lastMove;
-
-      if (
-        (pathMove || !pgnPath.length) &&
-        !(!state.pgnTrack.pgnPath.join(",").length && !pgnPath.length)
-      ) {
-        eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
-      }
+      eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
     } else if ("errorTrack" in target) {
       // Logic for ankiPersist.errorTrack (puzzleScored)
       const errorTrack = value as ErrorTrack;

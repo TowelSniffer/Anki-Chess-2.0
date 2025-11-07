@@ -1,6 +1,8 @@
 import type { Square } from "chess.js";
 import type { PgnMove, PgnGame, GameComment } from "@mliebelt/pgn-types";
 
+import type { SanPromotions } from "../chessJs/Chess";
+
 // custom Pgnviewer types. We augment additional move data
 
 export type CustomPgnMove = Omit<
@@ -13,6 +15,7 @@ export type CustomPgnMove = Omit<
   to: Square;
   flags: string;
   san: string;
+  promotion: SanPromotions | undefined;
   drawOffer?: boolean;
   moveNumber?: number;
   commentDiag?: GameComment;

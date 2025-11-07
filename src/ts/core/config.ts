@@ -22,15 +22,15 @@ export const config: Config = {
     "PGN",
     `[Event "?"]
 [Site "?"]
-[Date "2025.11.06"]
+[Date "2025.11.07"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "q4rk1/p2P1ppp/b7/8/Pp6/6P1/1N2QP1P/Rn2R1K1 w - - 1 25"]
+[FEN "2q2rk1/p2P1ppp/b7/7P/Pp6/6P1/1N2QP2/Rn2R1K1 b - - 0 26"]
 [SetUp "1"]
 
-25. d8=N Bd3 26. Qxd3 *
+26... g5 27. hxg6 (27. dxc8=N Rxc8) (27. d8=Q) hxg6 *
             `,
   ),
   ankiText: getUrlParam("userText", null),
@@ -42,7 +42,7 @@ export const config: Config = {
   strictScoring: getUrlParam("strictScoring", "false") === "true",
   acceptVariations: getUrlParam("acceptVariations", "true") === "true",
   disableArrows: getUrlParam("disableArrows", "false") === "true",
-  flipBoard: getUrlParam("flip", "false") === "true",
+  flipBoard: getUrlParam("flip", "true") === "true",
   boardMode: "Puzzle",
   background: getUrlParam("background", null),
   mirror: getUrlParam("mirror", "true") === "true",

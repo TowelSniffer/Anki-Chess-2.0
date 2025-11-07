@@ -5,7 +5,7 @@ export interface EventPayloads {
   pgnPathChanged: [
     pgnPath: PgnPath,
     lastMove: CustomPgnMove | null,
-    pathMove: CustomPgnMove | null,
+    pathMove: CustomPgnMove,
   ];
 
   puzzleScored: [ErrorTrack];

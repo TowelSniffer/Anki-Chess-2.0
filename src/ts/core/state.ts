@@ -107,6 +107,9 @@ export const state: State = {
   cgwrap: cgwrap,
   cg: Chessground(cgwrap, {
     fen: parsed.tags?.FEN ?? DEFAULT_POSITION,
+    animation: {
+      enabled: true, // will manulally enable later to prevent position load animation
+    },
     drawable: {
       enabled: true,
       brushes: {

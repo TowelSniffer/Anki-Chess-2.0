@@ -13915,15 +13915,15 @@ ${contextLines.join("\n")}`;
           "PGN",
           `[Event "?"]
 [Site "?"]
-[Date "2025.11.06"]
+[Date "2025.11.07"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "q4rk1/p2P1ppp/b7/8/Pp6/6P1/1N2QP1P/Rn2R1K1 w - - 1 25"]
+[FEN "2q2rk1/p2P1ppp/b7/7P/Pp6/6P1/1N2QP2/Rn2R1K1 b - - 0 26"]
 [SetUp "1"]
 
-25. d8=N Bd3 26. Qxd3 *
+26... g5 27. hxg6 (27. dxc8=N Rxc8) (27. d8=Q) hxg6 *
             `
         ),
         ankiText: getUrlParam("userText", null),
@@ -13935,7 +13935,7 @@ ${contextLines.join("\n")}`;
         strictScoring: getUrlParam("strictScoring", "false") === "true",
         acceptVariations: getUrlParam("acceptVariations", "true") === "true",
         disableArrows: getUrlParam("disableArrows", "false") === "true",
-        flipBoard: getUrlParam("flip", "false") === "true",
+        flipBoard: getUrlParam("flip", "true") === "true",
         boardMode: "Puzzle",
         background: getUrlParam("background", null),
         mirror: getUrlParam("mirror", "true") === "true",
@@ -14038,6 +14038,10 @@ ${contextLines.join("\n")}`;
         cgwrap,
         cg: Chessground(cgwrap, {
           fen: parsed.tags?.FEN ?? DEFAULT_POSITION,
+          animation: {
+            enabled: true
+            // will manulally enable later to prevent position load animation
+          },
           drawable: {
             enabled: true,
             brushes: {
@@ -14118,14 +14122,15 @@ ${contextLines.join("\n")}`;
       eventEmitter = new EventEmitter();
       nestedHandler = {
         set(target, property, value, receiver) {
+          if (property === "pgnPath" && target[property] === value) {
+            return true;
+          }
           if ("pgnPath" in target && property === "pgnPath") {
             const pgnPath = value;
             const pathKey = pgnPath.join(",");
             const pathMove = state.pgnTrack.pgnPathMap.get(pathKey) ?? null;
             const lastMove = state.pgnTrack.lastMove;
-            if ((pathMove || !pgnPath.length) && !(!state.pgnTrack.pgnPath.join(",").length && !pgnPath.length)) {
-              eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
-            }
+            eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
           } else if ("errorTrack" in target) {
             const errorTrack = value;
             eventEmitter.emit("puzzleScored", errorTrack);
@@ -14414,6 +14419,7 @@ ${contextLines.join("\n")}`;
     const pgnMove = state.pgnTrack.pgnPathMap.get(nextMovePath.join(","));
     const isVariation = pgnMove?.turn === move3.color;
     nextMovePath = isVariation ? [...nextMovePath, "v", pgnMove.variations.length, 0] : nextMovePath;
+    const promotionCheck = move3.san.match(/=([QRBN])/);
     const newCustomPgnMove = {
       moveNumber: chessState,
       notation: {
@@ -14423,7 +14429,7 @@ ${contextLines.join("\n")}`;
         strike: move3.san.includes("x") ? "x" : null,
         col: move3.to[0],
         row: move3.to[1],
-        promotion: move3.promotion ? move3.san.slice(-2) : null
+        promotion: promotionCheck ? promotionCheck[0] : null
       },
       turn: move3.color,
       before: move3.before,
@@ -14432,6 +14438,7 @@ ${contextLines.join("\n")}`;
       to: move3.to,
       flags: move3.flags,
       san: move3.san,
+      promotion: move3.promotion?.toUpperCase() ?? void 0,
       variations: [],
       nag: [],
       pgnPath: nextMovePath
@@ -14542,14 +14549,12 @@ ${contextLines.join("\n")}`;
         currentLinePosition = movePath.at(-4);
         if (currentLinePosition === 0) {
           prevMovePath = [];
-        } else if (typeof currentLinePosition === "number") {
+        } else {
           prevMovePath = [...movePath.slice(0, -4), --currentLinePosition];
         }
       }
-    } else if (typeof currentLinePosition === "number") {
-      prevMovePath = movePath.with(-1, --currentLinePosition);
     } else {
-      prevMovePath = [];
+      prevMovePath = movePath.with(-1, --currentLinePosition);
     }
     return prevMovePath;
   }
@@ -14576,6 +14581,7 @@ ${contextLines.join("\n")}`;
       move3.to = moveResult.to;
       move3.flags = moveResult.flags;
       move3.san = moveResult.san;
+      move3.promotion = moveResult.promotion?.toUpperCase() ?? void 0;
       const pathKey = move3.pgnPath.join(",");
       state.pgnTrack.pgnPathMap.set(pathKey, move3);
       if (move3.variations) {
@@ -14720,11 +14726,7 @@ ${contextLines.join("\n")}`;
   function navBackward() {
     if (!state.pgnTrack.pgnPath.length) return;
     const navCheck = navigatePrevMove(state.pgnTrack.pgnPath);
-    if (!navCheck.length) {
-      resetBoard();
-    } else {
-      stateProxy.pgnTrack.pgnPath = navCheck;
-    }
+    stateProxy.pgnTrack.pgnPath = navCheck;
   }
   function resetBoard() {
     stateProxy.pgnTrack.pgnPath = [];
@@ -15022,6 +15024,9 @@ ${contextLines.join("\n")}`;
         (move3) => move3.san === moveInput || move3.lan === moveInput
       );
     } else {
+      if (!moveInput.promotion && isPromotion(moveInput.from, moveInput.to)) {
+        return false;
+      }
       return legalMoves.some(
         (move3) => move3.from === moveInput.from && move3.to === moveInput.to && (!moveInput.promotion || move3.promotion === moveInput.promotion)
       );
@@ -15528,42 +15533,62 @@ ${contextLines.join("\n")}`;
       }
     });
   }
-  function animateBoard(lastMove, pathMove) {
-    const FEN = pathMove?.after ?? state.startFen;
-    const moveCheck = pathMove && !pathMove.flags.includes("e") && (lastMove?.after === pathMove.before || state.startFen === pathMove.before && !lastMove);
-    const isForwardPromotion = moveCheck && pathMove?.notation.promotion;
-    const backwardsMoveCheck = pathMove?.after === lastMove?.before || state.startFen === lastMove?.before && !pathMove;
-    const isBackwardsPromotion = backwardsMoveCheck && lastMove?.notation.promotion;
-    if (pathMove) {
-      state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
+  function specialMoveCheck(move3) {
+    return move3.flags.includes("e") || move3.flags.includes("c") || move3.flags.includes("q") || move3.flags.includes("k");
+  }
+  function animateForwardPromotion(pathMove, promotion) {
+    const promotionRole = promotionAbbreviationMap[promotion];
+    const color = colorAbbreviationMap[pathMove.turn];
+    let delay = config.animationTime;
+    if (state.cg.state.turnColor[0] === state.pgnTrack.turn) {
+      delay = 0;
     }
-    if (isForwardPromotion) {
-      const promotion = promotionAbbreviationMap[pathMove.san.slice(-1)];
-      const color = colorAbbreviationMap[pathMove.turn];
-      state.cg.move(pathMove.from, pathMove.to);
-      const promoteDiff = /* @__PURE__ */ new Map([
-        [pathMove.to, { role: promotion, color, promoted: true }]
-      ]);
-      setTimeout(() => {
-        state.cg.set({ animation: { enabled: false } });
-        state.cg.setPieces(promoteDiff);
-        state.cg.set({ animation: { enabled: true } });
-      }, config.animationTime);
-    } else if (isBackwardsPromotion) {
-      const color = colorAbbreviationMap[lastMove.turn];
-      const promoteDiff = /* @__PURE__ */ new Map([
-        [lastMove.to, { role: "pawn", color, promoted: true }]
-      ]);
+    state.cg.move(pathMove.from, pathMove.to);
+    const promoteDiff = /* @__PURE__ */ new Map([
+      [pathMove.to, { role: promotionRole, color, promoted: true }]
+    ]);
+    setTimeout(() => {
       state.cg.set({ animation: { enabled: false } });
       state.cg.setPieces(promoteDiff);
       state.cg.set({ animation: { enabled: true } });
-      state.cg.move(lastMove.to, lastMove.from);
-    } else if (moveCheck) {
-      state.cg.move(pathMove.from, pathMove.to);
-    } else if (backwardsMoveCheck && lastMove && !(lastMove.flags.includes("e") || lastMove.flags.includes("c") || lastMove.flags.includes("p"))) {
-      state.cg.move(lastMove.to, lastMove.from);
+    }, delay);
+  }
+  function animateBackwardsPromotion(lastMove) {
+    const color = colorAbbreviationMap[lastMove.turn];
+    const promoteDiff = /* @__PURE__ */ new Map([
+      [lastMove.to, { role: "pawn", color, promoted: true }]
+    ]);
+    state.cg.set({ animation: { enabled: false } });
+    state.cg.setPieces(promoteDiff);
+    state.cg.set({ animation: { enabled: true } });
+    if (lastMove.flags.includes("c")) {
+      state.cg.set({ fen: lastMove.before });
     } else {
-      state.cg.set({ fen: FEN });
+      state.cg.move(lastMove.to, lastMove.from);
+    }
+  }
+  function animateBoard(lastMove, pathMove) {
+    const forwardMoveCheck = pathMove && (lastMove?.after === pathMove.before || state.startFen === pathMove.before && !lastMove);
+    const backwardsMoveCheck = pathMove?.after === lastMove?.before || state.startFen === lastMove?.before && !pathMove;
+    if (pathMove) {
+      state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
+    }
+    if (forwardMoveCheck) {
+      if (forwardMoveCheck && pathMove.promotion) {
+        animateForwardPromotion(pathMove, pathMove.promotion);
+      } else if (specialMoveCheck(pathMove)) {
+        state.cg.set({ fen: pathMove.after });
+      } else {
+        state.cg.move(pathMove.from, pathMove.to);
+      }
+    } else if (backwardsMoveCheck) {
+      if (lastMove?.promotion) {
+        animateBackwardsPromotion(lastMove);
+      } else if (!lastMove || lastMove && specialMoveCheck(lastMove)) {
+        state.cg.set({ fen: lastMove?.before ?? state.startFen });
+      } else if (lastMove) {
+        state.cg.move(lastMove.to, lastMove.from);
+      }
     }
     setBoard();
   }
@@ -15594,7 +15619,7 @@ ${contextLines.join("\n")}`;
     stopPlayerTimer();
     const cancelPopup = function() {
       toggleClass("showHide", "hidden");
-      state.cg.move(dest, orig);
+      state.cg.set({ fen: state.pgnTrack.fen });
       setBoard();
       setTimeout(() => {
         startPlayerTimer();
@@ -15723,12 +15748,8 @@ ${contextLines.join("\n")}`;
   }
   function handleWrongMove(move3) {
     state.puzzle.errorCount++;
-    console.log(move3);
-    if (move3.flags.includes("e") || move3.flags.includes("c")) {
-      state.cg.set({ fen: move3.before });
-    } else {
-      state.cg.move(move3.to, move3.from);
-    }
+    state.cg.move(move3.from, move3.to);
+    state.cg.set({ fen: move3.before });
     playSound("Error");
     setBoard();
     wrongMoveDebounce = setTimeout(() => {
@@ -15789,39 +15810,49 @@ ${contextLines.join("\n")}`;
       }
     }
     if (moveCheck) {
-      selectHandlerCheck = true;
-      state.cg.move(moveCheck.from, moveCheck.to);
-      handleMoveAttempt({
-        delay: state.puzzle.delayTime,
-        orig: moveCheck.from,
-        dest: moveCheck.to,
-        moveSan: moveCheck.san
-      });
-    } else {
-      selectHandlerCheck = false;
+      selectMove = moveCheck;
+      callUserFunction(
+        state.cg.state.movable.events.after,
+        moveCheck.from,
+        moveCheck.to,
+        { premove: false }
+      );
     }
   }
-  function customAfterEvent(orig, dest) {
-    if (selectHandlerCheck) return;
+  function customAfterEvent(orig, dest, metadata) {
+    if (selectMove && metadata.holdTime) {
+      selectMove = null;
+      return;
+    }
+    if (!state.cg.state.stats.dragged) {
+      const moveCheck = getLegalMove({ from: orig, to: dest });
+      if (moveCheck?.flags.includes("e")) {
+        state.cg.set({ animation: { enabled: false } });
+        state.cg.set({ fen: moveCheck.before });
+        state.cg.set({ animation: { enabled: true } });
+      }
+    }
     handleMoveAttempt({
       delay: state.puzzle.delayTime,
       orig,
       dest,
-      moveSan: null
+      moveSan: selectMove?.san ?? null
       // Optional
     });
+    selectMove = null;
   }
-  var selectHandlerCheck;
+  var selectMove;
   var init_customChessgroundEvents = __esm({
     "src/ts/features/board/customChessgroundEvents.ts"() {
       "use strict";
       init_chess();
+      init_board();
       init_config2();
       init_state2();
       init_puzzleLogic();
       init_chessFunctions();
       init_arrows();
-      selectHandlerCheck = false;
+      selectMove = null;
     }
   });
 
@@ -15842,7 +15873,6 @@ ${contextLines.join("\n")}`;
       },
       animation: {
         enabled: true,
-        // will manulally enable later to prevent position load animation
         duration: config.animationTime
       },
       movable: {
@@ -15851,9 +15881,9 @@ ${contextLines.join("\n")}`;
         color: movableColor,
         dests: toDests(),
         events: {
-          after: (orig, dest) => {
+          after: (orig, dest, metadata) => {
             if (!isSquare(orig) || !isSquare(dest)) return;
-            customAfterEvent(orig, dest);
+            customAfterEvent(orig, dest, metadata);
           }
         }
       },

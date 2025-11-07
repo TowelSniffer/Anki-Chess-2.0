@@ -2,6 +2,7 @@ import type { Move } from "chess.js";
 import type { PgnMove } from "@mliebelt/pgn-types";
 import { Chess } from "chess.js";
 
+import type { SanPromotions } from "../chessJs/Chess";
 import type { CustomPgnMove, PgnPath } from "./Pgn";
 import { isNagKey, nags } from "./nags";
 import { state } from "../../core/state";
@@ -144,6 +145,8 @@ export function addMoveToPgn(move: Move): PgnPath {
   nextMovePath = isVariation
     ? [...nextMovePath, "v", pgnMove.variations.length, 0]
     : nextMovePath;
+
+  const promotionCheck = move.san.match(/=([QRBN])/);
   const newCustomPgnMove: CustomPgnMove = {
     moveNumber: chessState,
     notation: {
@@ -153,7 +156,7 @@ export function addMoveToPgn(move: Move): PgnPath {
       strike: move.san.includes("x") ? "x" : null,
       col: move.to[0],
       row: move.to[1],
-      promotion: move.promotion ? move.san.slice(-2) : null,
+      promotion: promotionCheck ? promotionCheck[0] : null,
     },
     turn: move.color,
     before: move.before,
@@ -162,6 +165,7 @@ export function addMoveToPgn(move: Move): PgnPath {
     to: move.to,
     flags: move.flags,
     san: move.san,
+    promotion: (move.promotion?.toUpperCase() as SanPromotions) ?? undefined,
     variations: [],
     nag: [],
     pgnPath: nextMovePath,
@@ -295,24 +299,22 @@ export function navigatePrevMove(path: PgnPath): PgnPath {
   const movePath = path;
   let prevMovePath = movePath;
   if (!movePath.length) return movePath;
-  let currentLinePosition = movePath.at(-1);
+  let currentLinePosition = movePath.at(-1) as number;
   if (currentLinePosition === 0) {
     if (movePath.length === 1) {
       prevMovePath = [];
     } else {
-      currentLinePosition = movePath.at(-4);
+      currentLinePosition = movePath.at(-4) as number;
       // ie 2 in: 4, "v", 0, 2, "v", 1, 0
       if (currentLinePosition === 0) {
         // must be first move
         prevMovePath = [];
-      } else if (typeof currentLinePosition === "number") {
+      } else {
         prevMovePath = [...movePath.slice(0, -4), --currentLinePosition];
       }
     }
-  } else if (typeof currentLinePosition === "number") {
-    prevMovePath = movePath.with(-1, --currentLinePosition);
   } else {
-    prevMovePath = [];
+    prevMovePath = movePath.with(-1, --currentLinePosition);
   }
   return prevMovePath;
 }
@@ -349,6 +351,8 @@ function _augmentAndGenerateFen(
     move.to = moveResult.to;
     move.flags = moveResult.flags;
     move.san = moveResult.san;
+    move.promotion =
+      (moveResult.promotion?.toUpperCase() as SanPromotions) ?? undefined;
 
     const pathKey = move.pgnPath.join(",");
     state.pgnTrack.pgnPathMap.set(pathKey, move);
