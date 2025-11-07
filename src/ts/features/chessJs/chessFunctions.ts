@@ -44,6 +44,9 @@ function isMoveLegal(moveInput: MoveInput): boolean {
       (move) => move.san === moveInput || move.lan === moveInput,
     );
   } else {
+    if (!moveInput.promotion && isPromotion(moveInput.from, moveInput.to)) {
+      return false;
+    }
     // chess.js move object
     return legalMoves.some(
       (move) =>

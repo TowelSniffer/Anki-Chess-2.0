@@ -1,18 +1,21 @@
-import type { Square } from "chess.js";
+import type { MoveMetadata } from "chessground/types";
+import type { Square, Move } from "chess.js";
 
 import { Chess } from "chess.js";
+import { callUserFunction } from "chessground/board";
 
 import { config } from "../../core/config";
 import { state } from "../../core/state";
 import { handleMoveAttempt, wrongMoveDebounce } from "../chessJs/puzzleLogic";
-import { getcurrentTurnColor } from "../chessJs/chessFunctions";
+import { getcurrentTurnColor, getLegalMove } from "../chessJs/chessFunctions";
 import { filterShapes, shapePriority, ShapeFilter } from "./arrows";
 
 // Custom events for handlinf single click movement;
 
-let selectHandlerCheck = false;
+let selectMove: Move | null = null;
 
 export function customSelectEvent(selectedSquare: Square): void {
+  // single click movement and arrow moves
   filterShapes(ShapeFilter.Drawn);
   state.cg.set({ drawable: { shapes: state.board.chessGroundShapes } });
 
@@ -51,25 +54,41 @@ export function customSelectEvent(selectedSquare: Square): void {
     }
   }
   if (moveCheck) {
-    selectHandlerCheck = true;
-    state.cg.move(moveCheck.from, moveCheck.to);
-    handleMoveAttempt({
-      delay: state.puzzle.delayTime,
-      orig: moveCheck.from,
-      dest: moveCheck.to,
-      moveSan: moveCheck.san,
-    });
-  } else {
-    selectHandlerCheck = false;
+    selectMove = moveCheck;
+    callUserFunction(
+      state.cg.state.movable.events.after,
+      moveCheck.from,
+      moveCheck.to,
+      { premove: false },
+    );
   }
 }
 
-export function customAfterEvent(orig: Square, dest: Square): void {
-  if (selectHandlerCheck) return;
+export function customAfterEvent(
+  orig: Square,
+  dest: Square,
+  metadata: MoveMetadata,
+): void {
+  // drag an drop/select and move
+
+  if (selectMove && metadata.holdTime) {
+    // Let click to move handle move
+    selectMove = null;
+    return;
+  }
+  if (!state.cg.state.stats.dragged) {
+    const moveCheck = getLegalMove({ from: orig, to: dest });
+    if (moveCheck?.flags.includes("e")) {
+      state.cg.set({ animation: { enabled: false } });
+      state.cg.set({ fen: moveCheck.before });
+      state.cg.set({ animation: { enabled: true } });
+    }
+  }
   handleMoveAttempt({
     delay: state.puzzle.delayTime,
     orig: orig,
     dest: dest,
-    moveSan: null, // Optional
+    moveSan: selectMove?.san ?? null, // Optional
   });
+  selectMove = null;
 }

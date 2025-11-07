@@ -33,7 +33,7 @@ export function loadChessgroundBoard(): void {
       lastMove: true,
     },
     animation: {
-      enabled: true, // will manulally enable later to prevent position load animation
+      enabled: true,
       duration: config.animationTime,
     },
     movable: {
@@ -42,9 +42,9 @@ export function loadChessgroundBoard(): void {
       color: movableColor,
       dests: toDests(),
       events: {
-        after: (orig, dest) => {
+        after: (orig, dest, metadata) => {
           if (!isSquare(orig) || !isSquare(dest)) return;
-          customAfterEvent(orig, dest);
+          customAfterEvent(orig, dest, metadata);
         },
       },
     },

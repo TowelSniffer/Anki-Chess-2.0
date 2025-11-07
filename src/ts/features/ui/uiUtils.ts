@@ -75,11 +75,7 @@ export function navForward(): void {
 export function navBackward(): void {
   if (!state.pgnTrack.pgnPath.length) return;
   const navCheck = navigatePrevMove(state.pgnTrack.pgnPath);
-  if (!navCheck.length) {
-    resetBoard();
-  } else {
-    stateProxy.pgnTrack.pgnPath = navCheck;
-  }
+  stateProxy.pgnTrack.pgnPath = navCheck;
 }
 
 export function resetBoard(): void {
@@ -89,7 +85,8 @@ export function resetBoard(): void {
 // Button tools --
 
 export function rotateBoard(): void {
-  state.board.boardRotation = state.board.boardRotation === "white" ? "black" : "white";
+  state.board.boardRotation =
+    state.board.boardRotation === "white" ? "black" : "white";
 
   const coordWhite = getComputedStyle(htmlElement)
     .getPropertyValue("--coord-white")

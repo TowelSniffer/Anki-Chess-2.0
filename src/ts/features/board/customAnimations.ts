@@ -42,68 +42,87 @@ export function setBoard(): void {
   });
 }
 
+function specialMoveCheck(move: CustomPgnMove): boolean {
+  // check for moves that require set fen
+  return (
+    move.flags.includes("e") ||
+    move.flags.includes("c") ||
+    move.flags.includes("q") ||
+    move.flags.includes("k")
+  );
+}
+
+function animateForwardPromotion(
+  pathMove: CustomPgnMove,
+  promotion: SanPromotions,
+): void {
+  const promotionRole = promotionAbbreviationMap[promotion];
+  const color = colorAbbreviationMap[pathMove.turn];
+  let delay = config.animationTime;
+  if (state.cg.state.turnColor[0] === state.pgnTrack.turn) {
+    delay = 0;
+  }
+
+  state.cg.move(pathMove.from, pathMove.to);
+
+  const promoteDiff = new Map([
+    [pathMove.to, { role: promotionRole, color: color, promoted: true }],
+  ]);
+  setTimeout(() => {
+    state.cg.set({ animation: { enabled: false } });
+    state.cg.setPieces(promoteDiff);
+    state.cg.set({ animation: { enabled: true } });
+  }, delay);
+}
+
+function animateBackwardsPromotion(lastMove: CustomPgnMove): void {
+  const color = colorAbbreviationMap[lastMove.turn];
+  const promoteDiff = new Map([
+    [lastMove.to, { role: "pawn" as Role, color: color, promoted: true }],
+  ]);
+
+  state.cg.set({ animation: { enabled: false } });
+  state.cg.setPieces(promoteDiff);
+  state.cg.set({ animation: { enabled: true } });
+  if (lastMove.flags.includes("c")) {
+    state.cg.set({ fen: lastMove.before });
+  } else {
+    state.cg.move(lastMove.to, lastMove.from);
+  }
+}
+
 export function animateBoard(
   lastMove: CustomPgnMove | null,
   pathMove: CustomPgnMove | null,
 ): void {
-  const FEN = pathMove?.after ?? state.startFen;
-  const moveCheck =
+  const forwardMoveCheck =
     pathMove &&
-    !pathMove.flags.includes("e") &&
     (lastMove?.after === pathMove.before ||
       (state.startFen === pathMove.before && !lastMove));
-  const isForwardPromotion = moveCheck && pathMove?.notation.promotion;
   const backwardsMoveCheck =
     pathMove?.after === lastMove?.before ||
     (state.startFen === lastMove?.before && !pathMove);
-  const isBackwardsPromotion =
-    backwardsMoveCheck && lastMove?.notation.promotion;
+
   if (pathMove) {
     state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
   }
   // --- Promotion animations ---
-  if (isForwardPromotion) {
-    // nav forward promote
-    const promotion =
-      promotionAbbreviationMap[pathMove.san.slice(-1) as SanPromotions];
-    const color = colorAbbreviationMap[pathMove.turn];
-
-    state.cg.move(pathMove.from, pathMove.to);
-
-    const promoteDiff = new Map([
-      [pathMove.to, { role: promotion, color: color, promoted: true }],
-    ]);
-    setTimeout(() => {
-      state.cg.set({ animation: { enabled: false } });
-      state.cg.setPieces(promoteDiff);
-      state.cg.set({ animation: { enabled: true } });
-    }, config.animationTime);
-  } else if (isBackwardsPromotion) {
-    // nav backwards promote
-    const color = colorAbbreviationMap[lastMove.turn];
-    const promoteDiff = new Map([
-      [lastMove.to, { role: "pawn" as Role, color: color, promoted: true }],
-    ]);
-
-    state.cg.set({ animation: { enabled: false } });
-    state.cg.setPieces(promoteDiff);
-    state.cg.set({ animation: { enabled: true } });
-
-    state.cg.move(lastMove.to, lastMove.from);
-  } else if (moveCheck) {
-    state.cg.move(pathMove.from, pathMove.to);
-  } else if (
-    backwardsMoveCheck &&
-    lastMove &&
-    !(
-      lastMove.flags.includes("e") ||
-      lastMove.flags.includes("c") ||
-      lastMove.flags.includes("p")
-    )
-  ) {
-    state.cg.move(lastMove.to, lastMove.from);
-  } else {
-    state.cg.set({ fen: FEN });
+  if (forwardMoveCheck) {
+    if (forwardMoveCheck && pathMove.promotion) {
+      animateForwardPromotion(pathMove, pathMove.promotion);
+    } else if (specialMoveCheck(pathMove)) {
+      state.cg.set({ fen: pathMove.after });
+    } else {
+      state.cg.move(pathMove.from, pathMove.to);
+    }
+  } else if (backwardsMoveCheck) {
+    if (lastMove?.promotion) {
+      animateBackwardsPromotion(lastMove);
+    } else if (!lastMove || (lastMove && specialMoveCheck(lastMove))) {
+      state.cg.set({ fen: lastMove?.before ?? state.startFen });
+    } else if (lastMove) {
+      state.cg.move(lastMove.to, lastMove.from);
+    }
   }
   setBoard();
 }

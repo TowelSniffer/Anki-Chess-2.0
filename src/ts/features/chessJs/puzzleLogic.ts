@@ -28,7 +28,7 @@ function promotePopup(orig: Square, dest: Square): void {
   stopPlayerTimer();
   const cancelPopup = function () {
     toggleClass("showHide", "hidden");
-    state.cg.move(dest, orig);
+    state.cg.set({ fen: state.pgnTrack.fen });
     setBoard();
     setTimeout(() => {
       startPlayerTimer();
@@ -171,12 +171,8 @@ function playUserCorrectMove(delay: number): void {
 
 function handleWrongMove(move: Move): void {
   state.puzzle.errorCount++;
-  console.log(move);
-  if (move.flags.includes("e") || move.flags.includes("c")) {
-    state.cg.set({ fen: move.before });
-  } else {
-    state.cg.move(move.to, move.from);
-  }
+  state.cg.move(move.from, move.to);
+  state.cg.set({ fen: move.before });
   playSound("Error");
   setBoard();
   wrongMoveDebounce = setTimeout(() => {
