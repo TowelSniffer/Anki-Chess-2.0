@@ -14915,6 +14915,7 @@ ${contextLines.join("\n")}`;
     const moveTrack = state.pgnTrack.pgnPathMap.get(pathKey);
     if (config.boardMode === "Viewer") {
       state.cg.set({ fen: moveTrack?.after ?? state.startFen });
+      state.cg.set({ animation: { enabled: true } });
       if (moveTrack) state.cg.set({ lastMove: [moveTrack.from, moveTrack.to] });
       if (state.pgnTrack.pgnPath.length && moveTrack) {
         setButtonsDisabled(["back", "reset"], false);
@@ -15872,7 +15873,6 @@ ${contextLines.join("\n")}`;
         lastMove: true
       },
       animation: {
-        enabled: true,
         duration: config.animationTime
       },
       movable: {
