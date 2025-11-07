@@ -33,7 +33,6 @@ export function loadChessgroundBoard(): void {
       lastMove: true,
     },
     animation: {
-      enabled: true,
       duration: config.animationTime,
     },
     movable: {
