@@ -56,16 +56,17 @@ function buildPgnHtml(moves: CustomPgnMove[], altLine?: boolean): string {
       )
         html += `<span class="move-number">${move.moveNumber}.</span><span class="nullMove">|...|</span>`;
     }
-
     if (move.variations && move.variations.length > 0) {
       if (!altLine) {
         if (move.turn === "w" && !altLine && !move.commentAfter)
           html += `<span class="nullMove">|...|</span>`;
         html += `<div class="altLine">`;
       }
-      move.variations.forEach((variation) => {
+      for (let i = 0; i < move.variations.length; i++) {
+        if (i > 0) html += `<br>`;
+        const variation = move.variations[i];
         html += `<span class="altLineBracket">(</span>${buildPgnHtml(variation, true)}<span class="altLineBracket">)</span>`;
-      });
+      }
       if (!altLine) {
         html += `</div>`;
         if (move.turn === "w" && i < moves.length - 1)
@@ -222,7 +223,10 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
   if (pathIndex && pathIndex > 0) {
     // adding move to existing variation
     if (previousMoveEl) {
-      const htmlPosition = previousMoveEl.nextElementSibling?.classList.contains("comment") ? previousMoveEl.nextElementSibling : previousMoveEl
+      const htmlPosition =
+        previousMoveEl.nextElementSibling?.classList.contains("comment")
+          ? previousMoveEl.nextElementSibling
+          : previousMoveEl;
       htmlPosition.insertAdjacentHTML("afterend", `${moveHtml}`);
     }
 
@@ -248,7 +252,7 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
       nextAltLineEl = nextAltLineEl.nextElementSibling;
     }
     if (nextAltLineEl?.classList.contains("altLine")) {
-      nextAltLineEl.insertAdjacentHTML("beforeend", newVarHtml);
+      nextAltLineEl.insertAdjacentHTML("beforeend", `<br>` + newVarHtml);
     } else if (
       parentPath.length === 1 &&
       (!nextAltLineEl || nextAltLineEl.classList.contains("move"))
@@ -280,7 +284,7 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
       }
     } else {
       // insert new variation within existing variation div
-      variationMoveEl.insertAdjacentHTML("afterend", newVarHtml);
+      variationMoveEl.insertAdjacentHTML("afterend", `<br>` + newVarHtml);
     }
   }
 }
