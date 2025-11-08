@@ -221,8 +221,11 @@ function renderNewPgnMove(newMove: CustomPgnMove, newMovePath: PgnPath): void {
   // Continuing an existing line or variation
   if (pathIndex && pathIndex > 0) {
     // adding move to existing variation
-    if (previousMoveEl)
-      previousMoveEl.insertAdjacentHTML("afterend", `${moveHtml}`);
+    if (previousMoveEl) {
+      const htmlPosition = previousMoveEl.nextElementSibling?.classList.contains("comment") ? previousMoveEl.nextElementSibling : previousMoveEl
+      htmlPosition.insertAdjacentHTML("afterend", `${moveHtml}`);
+    }
+
     return;
   } else if (pathIndex === 0) {
     const newVarHtml = `<span class="altLineBracket">(</span>${moveHtml}<span class="altLineBracket">)</span>`;
