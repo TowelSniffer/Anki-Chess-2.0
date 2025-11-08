@@ -95,34 +95,24 @@ export function animateBoard(
   lastMove: CustomPgnMove | null,
   pathMove: CustomPgnMove | null,
 ): void {
-  const forwardMoveCheck =
-    pathMove &&
+  const forwardPrmotion =
+    pathMove?.promotion &&
     (lastMove?.after === pathMove.before ||
       (state.startFen === pathMove.before && !lastMove));
-  const backwardsMoveCheck =
-    pathMove?.after === lastMove?.before ||
+  const backwardsPrmotion =
+    (lastMove?.promotion && pathMove?.after === lastMove?.before) ||
     (state.startFen === lastMove?.before && !pathMove);
 
   if (pathMove) {
     state.cg.set({ lastMove: [pathMove.from, pathMove.to] });
   }
   // --- Promotion animations ---
-  if (forwardMoveCheck) {
-    if (forwardMoveCheck && pathMove.promotion) {
-      animateForwardPromotion(pathMove, pathMove.promotion);
-    } else if (specialMoveCheck(pathMove)) {
-      state.cg.set({ fen: pathMove.after });
-    } else {
-      state.cg.move(pathMove.from, pathMove.to);
-    }
-  } else if (backwardsMoveCheck) {
-    if (lastMove?.promotion) {
-      animateBackwardsPromotion(lastMove);
-    } else if (!lastMove || (lastMove && specialMoveCheck(lastMove))) {
-      state.cg.set({ fen: lastMove?.before ?? state.startFen });
-    } else if (lastMove) {
-      state.cg.move(lastMove.to, lastMove.from);
-    }
+  if (forwardPrmotion) {
+    animateForwardPromotion(pathMove, pathMove.promotion);
+  } else if (backwardsPrmotion) {
+    animateBackwardsPromotion(lastMove);
+  } else {
+    state.cg.set({ fen: pathMove?.after ?? state.startFen });
   }
   setBoard();
 }
