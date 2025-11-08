@@ -30,7 +30,7 @@ export const config: Config = {
 [FEN "2q2rk1/p2P1ppp/b7/7P/Pp6/6P1/1N2QP2/Rn2R1K1 b - - 0 26"]
 [SetUp "1"]
 
-26... g5 27. hxg6 (27. dxc8=N Rxc8) (27. d8=Q) hxg6 *
+26... g5 27. hxg6 (27. dxc8=N Rxc8 {hello}) (27. d8=Q) hxg6 *
             `,
   ),
   ankiText: getUrlParam("userText", null),
@@ -58,6 +58,6 @@ export const config: Config = {
 };
 
 (function setBoardMode() {
-  const mode = getUrlParam("boardMode", "Puzzle");
+  const mode = getUrlParam("boardMode", "Viewer");
   if (mode && isBoardMode(mode)) config.boardMode = mode;
 })();
