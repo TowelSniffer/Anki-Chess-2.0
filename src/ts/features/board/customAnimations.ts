@@ -42,16 +42,6 @@ export function setBoard(): void {
   });
 }
 
-function specialMoveCheck(move: CustomPgnMove): boolean {
-  // check for moves that require set fen
-  return (
-    move.flags.includes("e") ||
-    move.flags.includes("c") ||
-    move.flags.includes("q") ||
-    move.flags.includes("k")
-  );
-}
-
 function animateForwardPromotion(
   pathMove: CustomPgnMove,
   promotion: SanPromotions,
@@ -84,11 +74,7 @@ function animateBackwardsPromotion(lastMove: CustomPgnMove): void {
   state.cg.set({ animation: { enabled: false } });
   state.cg.setPieces(promoteDiff);
   state.cg.set({ animation: { enabled: true } });
-  if (lastMove.flags.includes("c")) {
-    state.cg.set({ fen: lastMove.before });
-  } else {
-    state.cg.move(lastMove.to, lastMove.from);
-  }
+  state.cg.set({ fen: lastMove.before });
 }
 
 export function animateBoard(
