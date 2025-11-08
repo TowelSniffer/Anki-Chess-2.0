@@ -13923,7 +13923,7 @@ ${contextLines.join("\n")}`;
 [FEN "2q2rk1/p2P1ppp/b7/7P/Pp6/6P1/1N2QP2/Rn2R1K1 b - - 0 26"]
 [SetUp "1"]
 
-26... g5 27. hxg6 (27. dxc8=N Rxc8) (27. d8=Q) hxg6 *
+26... g5 27. hxg6 (27. dxc8=N Rxc8 {hello}) (27. d8=Q) hxg6 *
             `
         ),
         ankiText: getUrlParam("userText", null),
@@ -13950,7 +13950,7 @@ ${contextLines.join("\n")}`;
         animationTime: parseInt(getUrlParam("animationTime", "200"), 10)
       };
       (function setBoardMode() {
-        const mode = getUrlParam("boardMode", "Puzzle");
+        const mode = getUrlParam("boardMode", "Viewer");
         if (mode && isBoardMode(mode)) config.boardMode = mode;
       })();
     }
@@ -14482,8 +14482,10 @@ ${contextLines.join("\n")}`;
     }
     const parentPath = newMovePath.slice(0, -3);
     if (pathIndex && pathIndex > 0) {
-      if (previousMoveEl)
-        previousMoveEl.insertAdjacentHTML("afterend", `${moveHtml}`);
+      if (previousMoveEl) {
+        const htmlPosition = previousMoveEl.nextElementSibling?.classList.contains("comment") ? previousMoveEl.nextElementSibling : previousMoveEl;
+        htmlPosition.insertAdjacentHTML("afterend", `${moveHtml}`);
+      }
       return;
     } else if (pathIndex === 0) {
       const newVarHtml = `<span class="altLineBracket">(</span>${moveHtml}<span class="altLineBracket">)</span>`;

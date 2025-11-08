@@ -1,6 +1,5 @@
 lib/*
 .idea/*
 node_modules/*
-.aider*
 venv/
-dist/*
+dist/
