@@ -2,6 +2,7 @@ import type { Move } from "chess.js";
 
 import { config } from "../../core/config";
 import { state } from "../../core/state";
+import { stateProxy } from "../../core/stateProxy";
 import { getLegalMove, getcurrentTurnColor } from "../chessJs/chessFunctions";
 import { ShapeFilter, filterShapes, pushShapes } from "../board/arrows";
 import { setButtonsDisabled } from "../ui/uiUtils";
@@ -13,13 +14,13 @@ let analysisCache = {
   fen: "",
   moveUci: "",
   move: null as Move | null,
-  advantage: "50.0%",
+  advantage: 50,
   isStockfishBusy: false,
   stockfishRestart: false,
   analysisToggledOn: false,
 };
 
-function convertCpToWinPercentage(cp: number): string {
+function convertCpToWinPercentage(cp: number): number {
   const probability = 1 / (1 + Math.pow(10, -cp / 400));
   let percentage = probability * 100;
 
@@ -27,7 +28,7 @@ function convertCpToWinPercentage(cp: number): string {
   if (state.board.playerColour === getcurrentTurnColor()) {
     percentage = 100 - percentage;
   }
-  return `${percentage.toFixed(1)}%`;
+  return percentage;
 }
 
 function handleStockfishMessages(event: MessageEvent): void {
@@ -43,7 +44,7 @@ function handleStockfishMessages(event: MessageEvent): void {
   if (message.startsWith("info")) {
     if (analysisCache.fen !== state.pgnTrack.fen) {
       return;
-    };
+    }
     // const pvDepthIndex = parts.indexOf('depth');
     // const pvDepth = parts[pvDepthIndex + 1];
     const pvIndex = parts.indexOf("pv");
@@ -55,15 +56,12 @@ function handleStockfishMessages(event: MessageEvent): void {
       const mate = parseInt(parts[mateIndex + 1], 10);
       let adv = mate < 0 ? 0 : 100;
       if (state.board.playerColour === getcurrentTurnColor()) adv = 100 - adv;
-      analysisCache.advantage = `${adv.toFixed(1)}%`;
+      analysisCache.advantage = adv;
     } else if (cpIndex > -1) {
       const cp = parseInt(parts[cpIndex + 1], 10);
       analysisCache.advantage = convertCpToWinPercentage(cp);
     }
-    document.documentElement.style.setProperty(
-      "--centipawn",
-      analysisCache.advantage,
-    );
+    stateProxy.board.borderPercent = analysisCache.advantage;
 
     if (firstMove === analysisCache.moveUci) {
       return;
@@ -87,7 +85,7 @@ function handleStockfishMessages(event: MessageEvent): void {
       analysisCache.stockfishRestart = false;
       startAnalysis(config.analysisTime);
       return;
-    };
+    }
 
     const bestMoveUci = message.split(" ")[1];
     const moveObject = getLegalMove(bestMoveUci);
@@ -140,11 +138,7 @@ function initializeStockfish(): Promise<void> {
 }
 
 export function startAnalysis(movetime: number): void {
-  if (
-    !analysisCache.analysisToggledOn ||
-    !stockfish
-  )
-    return;
+  if (!analysisCache.analysisToggledOn || !stockfish) return;
   if (analysisCache.isStockfishBusy) {
     analysisCache.stockfishRestart = true;
     stockfish.postMessage("stop");

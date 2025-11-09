@@ -9,6 +9,7 @@ export interface EventPayloads {
   ];
 
   puzzleScored: [ErrorTrack];
+  boardBorderUpdated: [number];
 }
 
 // A generic Listener type

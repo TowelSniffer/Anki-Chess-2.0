@@ -94,7 +94,7 @@ export function animateBoard(
   }
   // --- Promotion animations ---
   if (forwardPrmotion) {
-    animateForwardPromotion(pathMove, pathMove.promotion);
+    animateForwardPromotion(pathMove, pathMove.promotion!);
   } else if (backwardsPrmotion) {
     animateBackwardsPromotion(lastMove);
   } else {
