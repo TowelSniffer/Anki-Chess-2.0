@@ -13,7 +13,7 @@ import type { CustomShape } from "../features/board/CustomChessgroundShapes";
 interface Puzzle {
   errorCount: number;
   readonly delayTime: number;
-  puzzleTime: number;
+  remainingTime: number;
 }
 
 interface AnkiPersist {
@@ -43,6 +43,7 @@ interface Board {
   opponentColour: Color;
   chessGroundShapes: CustomShape[];
   readonly inCheck: boolean;
+  borderPercent: number;
 }
 
 export interface State {

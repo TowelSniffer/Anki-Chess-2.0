@@ -40,10 +40,10 @@ export const eventEmitter = new EventEmitter();
 
 const nestedHandler = {
   set(
-    target: State["pgnTrack"] | State["ankiPersist"],
-    property: keyof (State["pgnTrack"] | State["ankiPersist"]),
-    value: PgnPath | ErrorTrack, // The value being set (e.g., PgnPath or ErrorTrack)
-    receiver: State["pgnTrack"] | State["ankiPersist"],
+    target: State["pgnTrack"] | State["ankiPersist"] | State["board"],
+    property: keyof (State["pgnTrack"] | State["ankiPersist"] | State["board"]),
+    value: number | PgnPath | ErrorTrack,
+    receiver: State["pgnTrack"] | State["ankiPersist"] | State["board"],
   ) {
     if (property === "pgnPath" && target[property] === value) {
       return true; // Return true to indicate the set operation succeeded, but do nothing.
@@ -55,10 +55,12 @@ const nestedHandler = {
       const pathMove = state.pgnTrack.pgnPathMap.get(pathKey) ?? null;
       const lastMove = state.pgnTrack.lastMove;
       eventEmitter.emit("pgnPathChanged", pgnPath, lastMove, pathMove);
-    } else if ("errorTrack" in target) {
-      // Logic for ankiPersist.errorTrack (puzzleScored)
+    } else if ("errorTrack" in target && property === "errorTrack") {
       const errorTrack = value as ErrorTrack;
       eventEmitter.emit("puzzleScored", errorTrack);
+    } else if ("borderPercent" in target && property === "borderPercent") {
+      const percent = value as number;
+      eventEmitter.emit("boardBorderUpdated", percent);
     }
 
     return Reflect.set(target, property, value, receiver);
@@ -74,12 +76,15 @@ const stateHandler = {
     if (property === "ankiPersist") {
       return new Proxy(target.ankiPersist, nestedHandler);
     }
+    if (property === "board") {
+      return new Proxy(target.board, nestedHandler);
+    }
     return Reflect.get(target, property, receiver);
   },
   set(
     target: State,
     property: keyof State,
-    value: PgnPath | ErrorTrack, // PgnPath | ErrorTrack, // This type is too restrictive now
+    value: number | PgnPath | ErrorTrack,
     receiver: State,
   ) {
     return Reflect.set(target, property, value, receiver);

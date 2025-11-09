@@ -69,7 +69,7 @@ export const state: State = {
   puzzle: {
     errorCount: 0,
     delayTime: config.boardMode === "Viewer" ? 0 : config.animationTime + 100,
-    puzzleTime: config.timer,
+    remainingTime: config.timer,
   },
   ankiPersist: {
     errorTrack: null,
@@ -103,6 +103,7 @@ export const state: State = {
       const moveToCheck = state.pgnTrack.lastMove || state.parsedPGN.moves[0];
       return moveToCheck?.notation?.check ? true : false;
     },
+    borderPercent: 100,
   },
   cgwrap: cgwrap,
   cg: Chessground(cgwrap, {

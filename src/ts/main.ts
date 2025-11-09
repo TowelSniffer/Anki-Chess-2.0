@@ -15,6 +15,7 @@ import { loadChessgroundBoard } from "./features/board/chessgroundBoard";
 import { initializePuzzleTimer } from "./features/timer/timer";
 import { changeCurrentPgnMove } from "./core/proxyEvents/pgnPathChanged";
 import { scorePuzzle } from "./core/proxyEvents/puzzleScored";
+import { updateBoardBorder } from "./core/proxyEvents/updateBoardBorder";
 
 // --- eventEmitters handle updates to board state ---
 
@@ -26,6 +27,11 @@ eventEmitter.on("pgnPathChanged", (pgnPath, lastMove, pathMove) => {
 // handle marking puzzle
 eventEmitter.on("puzzleScored", (errorTrack) => {
   scorePuzzle(errorTrack);
+});
+
+// handle timer ui
+eventEmitter.on("boardBorderUpdated", (percent) => {
+  updateBoardBorder(percent);
 });
 
 // --- Run Inital Setup ---

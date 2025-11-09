@@ -21,7 +21,7 @@ export function scorePuzzle(errorTrack: ErrorTrack): void {
   } else if (errorTrack === "incorrect") {
     state.board.solvedColour = "var(--incorrect-color)";
     if (
-      (config.timerAdvance && state.puzzle.puzzleTime === 0) ||
+      (config.timerAdvance && state.puzzle.remainingTime === 0) ||
       config.handicapAdvance
     ) {
       stateCopy.puzzleComplete = true;

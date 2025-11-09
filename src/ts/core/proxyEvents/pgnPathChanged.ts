@@ -39,7 +39,7 @@ export function changeCurrentPgnMove(
     if (config.boardMode === "Puzzle") {
       state.ankiPersist.puzzleComplete = true;
       const correctState =
-        state.puzzle.puzzleTime > 0 && !config.timerScore
+        state.puzzle.remainingTime > 0 && !config.timerScore
           ? "correctTime"
           : "correct";
       stateProxy.ankiPersist.errorTrack =
