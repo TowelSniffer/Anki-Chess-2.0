@@ -11,6 +11,11 @@ import json
 MODEL_ID = 1842685934
 DECK_ID = 1452794823
 
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '../')
+with open(os.path.join(PROJECT_ROOT, 'package.json'), 'r') as f:
+    pkg_data = json.load(f)
+    version = pkg_data['version']
+
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), '../src/anki_templates')
 
 with open(os.path.join(TEMPLATE_DIR, 'front.html'), 'r', encoding='utf-8') as f:
@@ -25,8 +30,8 @@ config_js_string = f"window.USER_CONFIG = {json.dumps(config_data, indent=2)};"
 
 final_front = RAW_FRONT.replace('// __USER_CONFIG__', config_js_string)
 
-final_front = final_front.replace('__VERSION__', '')
-final_css = RAW_CSS.replace('__VERSION__', '')
+final_front = final_front.replace('__VERSION__', version)
+final_css = RAW_CSS.replace('__VERSION__', version)
 
 final_back = final_front.replace('data-boardMode="Puzzle"', 'data-boardMode="Viewer"')
 

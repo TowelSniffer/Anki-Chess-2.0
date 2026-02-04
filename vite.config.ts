@@ -19,6 +19,7 @@ export default defineConfig({
       $assets: path.resolve('./src/assets'),
       $utils: path.resolve('./src/utils'),
       $features: path.resolve('./src/utils/features'),
+      $anki: path.resolve('./src/anki_templates'),
     },
     extensions: ['.mjs', '.js', '.ts', '.svelte.ts', '.svelte', '.json'],
   },
