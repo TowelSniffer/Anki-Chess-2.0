@@ -19,5 +19,11 @@ Then run:
 npm run build:anki
 ```
 
+Build media only (no uv requirement)
+```bash
+npm run build:anki-media
+```
+
+
 files generated in 'dist-anki'
 
