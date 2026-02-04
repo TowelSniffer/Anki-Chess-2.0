@@ -1,35 +1,41 @@
 {
-  "name": "anki-chess",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "ankichess",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dependency-test": "npx madge --circular --extensions ts --ts-config=tsconfig.json ./src",
-    "typecheck": "tsc --noEmit && eslint src && npx ts-unused-exports tsconfig.json",
-    "build": "npm run typecheck && npm run dependency-test && node build.js",
-    "dev": "node build.js --dev"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "@mliebelt/pgn-parser": "^1.4.18",
-    "chess.js": "^1.4.0",
-    "chessground": "^9.2.1",
-    "stockfish": "^17.1.0"
+    "dev": "vite",
+    "build": "vite build",
+    "build:anki": "vite build --config vite.config.anki.ts && uv run scripts/build_apkg.py",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "check:error": "svelte-check --threshold error --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "check:deps": "depcruise --exclude 'node_modules' --output-type err src"
   },
   "devDependencies": {
-    "@eslint/js": "^9.36.0",
-    "esbuild": "^0.25.10",
-    "esbuild-sass-plugin": "^3.3.1",
-    "eslint": "^9.36.0",
-    "glob": "^11.0.3",
-    "globals": "^16.4.0",
-    "madge": "^8.0.0",
-    "ts-unused-exports": "^11.0.1",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.45.0",
-    "typescript-svelte-plugin": "^0.3.50"
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@tsconfig/svelte": "^5.0.5",
+    "@types/node": "^24.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "dependency-cruiser": "^17.2.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-svelte": "^3.13.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-svelte": "^3.4.0",
+    "sass": "^1.93.3",
+    "svelte": "^5.39.6",
+    "svelte-check": "^4.3.2",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.7",
+    "vite-plugin-eslint2": "^5.0.4"
+  },
+  "dependencies": {
+    "@lichess-org/chessground": "^9.8.5",
+    "@mliebelt/pgn-parser": "^1.4.19",
+    "chess.js": "^1.4.0",
+    "material-symbols": "^0.40.2",
+    "stockfish": "^17.1.0"
   }
 }

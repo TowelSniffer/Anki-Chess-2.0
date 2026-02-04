@@ -1,0 +1,27 @@
+<script>
+  window.CARD_CONFIG = {
+    "modelName": "{{Type}}",
+    "cardName": "{{Card}}",
+  };
+  // __USER_CONFIG__
+</script>
+<script type="module" crossorigin src="./_chess3.0__VERSION__.js"></script>
+<div id="anki-chess-root" data-boardMode="Puzzle"></div>
+
+<div id="anki-pgn" style="display: none;">{{PGN}}</div>
+{{#textField}}
+<div id="anki-textField" style="display: none;">{{textField}}</div>
+{{/textField}}
+
+<script>
+  (async () => {
+    const attemptMount = () => {
+      if (window.mountChess) {
+        window.mountChess();
+      } else {
+        setTimeout(attemptMount, 20);
+      }
+    };
+    attemptMount();
+  })();
+</script>

@@ -1,0 +1,15 @@
+{
+  "name": "chessRs",
+  "files": [
+    {
+      "git": 1
+    }
+  ],
+  "formatting": {
+    "formatterForJson": "prettier",
+    "formatterForJson": "prettier",
+    "prettier": {
+      "command": ["node"]
+    }
+  }
+}

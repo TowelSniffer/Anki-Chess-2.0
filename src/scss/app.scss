@@ -1,0 +1,57 @@
+@use "globals" as *;
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  /*disable the tap/touch highlight that sametimes appears over the board when using a touch screen */
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+img {
+  margin: 0;
+  color: white;
+}
+
+body {
+  background: var(--background-color);
+  margin: 0;
+
+  #anki-chess-root, #chessRs-root {
+    height: 100dvh;
+    width: 100dvw;
+
+    flex-direction: column;
+    @include flex-center;
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+.box-shadow-top {
+  box-shadow: inset 0px 1px 1px rgba(0,0,0,0.6);
+
+}
+.box-shadow-bottom {
+
+
+}
+hr {
+  border: 0; /* Removes default browser borders */
+  height: 4px; /* Defines the thickness of the rectangle */
+  margin:0;
+  width: 100%;
+  background-color: transparent;
+
+  /* Apply inner shadows for divet look */
+  box-shadow:
+  /* Top Inner Shadow: Creates the 'indented' dark depth */
+  inset 0px 1px 1px rgba(0,0,0,0.6),
+
+  /* Bottom Outer Highlight: Catches the light on the bottom lip */
+  0px 1px 0px rgba(255,255,255,0.8);
+}

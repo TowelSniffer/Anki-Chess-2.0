@@ -1,0 +1,22 @@
+{
+  "flipBoard": true,
+  "mirror": false,
+  "showDests": true,
+  "disableArrows": false,
+  "singleClickMove": true,
+  "animationTime": 200,
+  "handicap": 2,
+  "autoAdvance": false,
+  "handicapAdvance": false,
+  "timerAdvance": false,
+  "strictScoring": false,
+  "acceptVariations": true,
+  "timer": 10000,
+  "increment": 1000,
+  "randomOrientation": false,
+  "analysisTime": 10,
+  "analysisLines": 1,
+  "muteAudio": false,
+  "background": null,
+  "frontText": true
+}
