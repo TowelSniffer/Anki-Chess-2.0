@@ -7,8 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.venv
 node_modules
 dist
+dist-anki
 dist-ssr
 *.local
 
