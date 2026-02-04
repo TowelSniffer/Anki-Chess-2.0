@@ -6,7 +6,10 @@
     "target": "ES2023",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "types": ["svelte", "vite/client"],
+    "types": [
+      "svelte",
+      "vite/client"
+    ],
     "noEmit": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
@@ -14,14 +17,34 @@
     "checkJs": true,
     "baseUrl": ".",
     "paths": {
-      "$components/*": ["src/components/*"],
-      "$stores/*": ["src/stores/*"],
-      "$scss/*": ["src/scss/*"],
-      "$assets/*": ["src/assets/*"],
-      "$utils/*": ["src/utils/*"],
-      "$features/*": ["src/utils/features/*"]
+      "$components/*": [
+        "src/components/*"
+      ],
+      "$stores/*": [
+        "src/stores/*"
+      ],
+      "$scss/*": [
+        "src/scss/*"
+      ],
+      "$assets/*": [
+        "src/assets/*"
+      ],
+      "$utils/*": [
+        "src/utils/*"
+      ],
+      "$features/*": [
+        "src/utils/features/*"
+      ],
+      "$anki": [
+        "src/anki_templates/*"
+      ],
     },
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "src/**/*.svelte.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.svelte",
+    "src/**/*.svelte.ts"
+  ]
 }

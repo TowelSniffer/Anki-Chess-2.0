@@ -23,6 +23,9 @@ const cleanupDistPlugin = () => {
   };
 };
 
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+const versionedName = `_ankiChess${pkg.version}`;
+
 export default defineConfig({
   plugins: [svelte(), cleanupDistPlugin()],
   // anki requires relative paths (./) because files are served locally
@@ -56,14 +59,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Force the main JS file name
-        entryFileNames: '_chess3.0.js',
+        entryFileNames: `${versionedName}.js`,
         // Force chunk names (if code splitting happens) to start with _
-        chunkFileNames: '_chess3.0-[name].js',
+        chunkFileNames: `${versionedName}-[name].js`,
         // Force asset names (images, css, wasm, etc.) to start with _
         assetFileNames: (assetInfo) => {
           // If it's the main CSS file generated from the entry, name it specifically
           if (assetInfo.names.some((n) => n.endsWith('.css'))) {
-            return '_chess3.0.css';
+            return `${versionedName}.css`;
           }
           if (assetInfo.names.some((n) => n.endsWith('.woff2'))) {
             return '_[name][extname]';

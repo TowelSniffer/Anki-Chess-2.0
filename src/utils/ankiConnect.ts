@@ -1,15 +1,15 @@
 import frontTemplate from '$anki/front.html?raw';
 import cssTemplate from '$anki/style.css?raw';
 import defaultConfig from '$anki/default_config.json';
+import pkg from '../../package.json';
 
 export async function updateAnkiChessTemplate(
   modelName: string,
   cardName: string,
-  userConfig: object,
-  version: string | number | null = null
+  userConfig: object
 ) {
   const url = 'http://127.0.0.1:8765';
-  const cacheVer = version ? `.${version}` : '';
+  const currentVersion = pkg.version;
 
   // merge userConfig with defaults to ensure no keys are missing
   const finalConfig = { ...defaultConfig, ...userConfig };
@@ -20,11 +20,11 @@ export async function updateAnkiChessTemplate(
   // Note: We use JSON.stringify to safely embed the config object
   let newFront = frontTemplate
     .replace('// __USER_CONFIG__', configString)
-    .replaceAll('__VERSION__', cacheVer);
+    .replaceAll('__VERSION__', currentVersion);
   const newBack = newFront.replace('data-boardMode="Puzzle"', 'data-boardMode="Viewer"');
 
   // 2. Construct the new CSS with Cache-busted Import
-  const newCss = cssTemplate.replaceAll('__VERSION__', cacheVer);
+  const newCss = cssTemplate.replaceAll('__VERSION__', currentVersion);
 
   try {
     // Step A: Fetch current model to preserve the Back template
