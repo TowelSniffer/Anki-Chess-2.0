@@ -7,7 +7,7 @@ npm run build
 
 ## build ankiChess note template (apkg file/media files)
 
-[uv]([URL](https://docs.astral.sh/uv/getting-started/installation/)) is required for building the apkg file
+(uv)https://docs.astral.sh/uv/getting-started/installation/] is required for building the apkg file
 
 ```bash
 uv venv
