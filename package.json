@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:anki": "vite build --config vite.config.anki.ts && uv run scripts/build_apkg.py",
+    "build:anki-media": "vite build --config vite.config.anki.ts",
+    "build:anki": "npm run build:anki-media && uv run scripts/build_apkg.py",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
     "check:error": "svelte-check --threshold error --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
