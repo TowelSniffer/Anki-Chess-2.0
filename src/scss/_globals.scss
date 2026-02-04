@@ -1,0 +1,82 @@
+/* PRIMITIVES */
+
+/* raw palette */
+$palette-gray-900: #242424;
+$palette-gray-800: #2c2c2c;
+$palette-gray-84: #d6d6d6;
+$palette-gray-25: #404040;
+
+
+$palette-green-500: #557d38;
+$palette-moss-green: #a5d6a7;
+$palette-limegreen: #32cd32;
+
+$palette-red-500: #b31010;
+
+
+/* sizing */
+$board-border-width: 8px;
+$board-border: $board-border-width solid grey;
+$board-size-calc: min(
+  max(calc(100dvh - calc($board-border-width * 2)), 300px),
+                      max(calc(100dvw - calc($board-border-width * 2)), 200px),
+                      600px
+);
+
+/* shadows */
+$shadow-main: 0px 0px 3px 0px black;
+$shadow-strong: 0px 0px 3px 1px black;
+$shadow-grey: 0px 0px 3px 0px grey;
+
+/* borders */
+$border-thin: 1px solid black;
+$border-radius-global: 4px;
+
+/* SEMANTIC VARIABLES */
+:root {
+  /* shadows */
+  --shadow-main: #{$shadow-main};
+  --shadow-strong: #{$shadow-strong};
+  --shadow-grey: #{$shadow-grey};
+
+  /* shadows */
+  --border-thin: #{$border-thin};
+  --border-radius-global: #{$border-radius-global};
+
+  /* Surfaces */
+  --surface-primary: #{$palette-gray-900};
+  --surface-secondary: #{$palette-gray-800};
+  --surface-interactive-hover: #{$palette-gray-84};
+  --surface-hover: #{$palette-gray-25};
+
+  /* Text */
+  --text-primary: #d7dee9;
+  --text-muted: #797979;
+
+  /* Interaction  Game State */
+  --interactive-button-active: #{$palette-moss-green};
+  --interactive-button-hover: #{$palette-green-500};
+  --status-error: #{$palette-red-500};
+  --status-correct: #{$palette-limegreen};
+  --status-perfect: gold;
+
+  /* Board Specifics */
+  --board-border: #{$board-border};
+  --board-size: #{$board-size-calc};
+}
+
+/* THEMES */
+body.light-theme {
+
+}
+
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin board-square-size {
+  height: calc($board-size-calc * 0.125);
+  width: calc($board-size-calc * 0.125);
+}

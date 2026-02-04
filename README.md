@@ -1,70 +1,47 @@
-# Anki-Chess-2.0
+# Svelte + TS + Vite
 
-An interactive chess template for anki.
+This template should help get you started developing with Svelte and TypeScript in Vite.
 
-## practice tactics
+## Recommended IDE Setup
 
-![chess GIF](examples/puzzleDemo.webp)
+[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
 
-## Study Games
+## Need an official Svelte framework?
 
-![chess GIF](examples/viewerDemo.webp)
+Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
 
-## Features
+## Technical considerations
 
-- Works with PGN format
-- All the amenities, such as promotions, sound effects etc.
-- Stockfish engine (This is a weaker version running as pure js).
-- Board auto orientates dpending on first move of given puzzle.
-- Works offline and on Ankidroid (Ankidroid verified, IOS).
-- No addons required (The companion addon is just to make the installation process easy).
-- Analysis board on the backside.
-- Border indicates mistakes, puzzle completion, and player colour.
-- support for multiple lines. this means you can choose multiple moves to be the correct answer, and the cards will respond with a random move (if multiple lines exist).
+**Why use this over SvelteKit?**
 
-👉 To stay informed of new releases, make sure to [watch this repository's releases](https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository). Also [Discord server](https://discord.gg/YPj4Pz2Qzw). [Support <3](https://ko-fi.com/towelsniffer1437)
+- It brings its own routing solution which might not be preferable for some users.
+- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
 
-## Getting started
+This template contains as little as possible to get started with Vite + TypeScript + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
 
-### [How to install/update](documentation/installation.md)
+Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
 
-### [Card Creation](documentation/cardCreation.md)
+**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
 
-### [Customization](documentation/userConfig.md)
+Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
 
-### [Compatability Issues](documentation/compatability.md)
+**Why include `.vscode/extensions.json`?**
 
-[walktrough Video](https://youtu.be/UpNYGrnCmEE?si=QHdeiV7oE8pgA6pC)
+Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
 
-## Shared decks
+**Why enable `allowJs` in the TS template?**
 
-[Joins the community on discord](https://discord.gg/hEhzRH7pMG)
+While `allowJs: false` would indeed prevent the use of `.js` files in the project, it does not prevent the use of JavaScript syntax in `.svelte` files. In addition, it would force `checkJs: false`, bringing the worst of both worlds: not being able to guarantee the entire codebase is TypeScript, and also having worse typechecking for the existing JavaScript. In addition, there are valid use cases in which a mixed codebase may be relevant.
 
-## Apps that use this:
+**Why is HMR not preserving my local component state?**
 
-- [AnkifyPGN](https://github.com/ThoughtfulSenpai/AnkifyPGN): A GUI to batch create flashcards. Now also an anki addon: [
-  addon](https://ankiweb.net/shared/info/569467423)
-- [Chessli2](https://github.com/pwenker/chessli2/tree/main): A tool that can import tactics and msitakes from your Lichess games
-- Share your own?
+HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/rixo/svelte-hmr#svelte-hmr).
 
-## With thanks to...
+If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
 
-#### Chessground <3
-
-https://github.com/ornicar/chessground
-
-#### chess.js
-
-https://github.com/jhlywa/chess.js/blob/master/README.md
-
-#### pgn-parser
-
-https://github.com/mliebelt/pgn-parser
-
-#### ~~ChessBoard js~~
-
-~~https://chessboardjs.com/index.html~~
-
-#### ~~PGN viewer~~
-
-~~https://github.com/mliebelt/PgnViewerJS~~
+```ts
+// store.ts
+// An extremely simple external store
+import { writable } from 'svelte/store'
+export default writable(0)
+```

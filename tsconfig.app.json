@@ -1,0 +1,27 @@
+{
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "tsBuildInfoFile": null,
+    "target": "ES2023",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "types": ["svelte", "vite/client"],
+    "noEmit": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "$components/*": ["src/components/*"],
+      "$stores/*": ["src/stores/*"],
+      "$scss/*": ["src/scss/*"],
+      "$assets/*": ["src/assets/*"],
+      "$utils/*": ["src/utils/*"],
+      "$features/*": ["src/utils/features/*"]
+    },
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "src/**/*.svelte.ts"]
+}
