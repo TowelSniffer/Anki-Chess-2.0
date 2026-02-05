@@ -51,115 +51,115 @@
 {/if}
 
 {#if withBrackets}<span class="altLineBracket">(</span>{/if}
-
-{#each moves as move, i (move.pgnPath.join(','))}
-  {#if i === 0 && move.turn === 'b'}
-    {#if isVariation}
-      {@render moveNum(move)}
-    {:else}
-      {@render moveNum(move)}
-      {@render nullItem()}
+{#if moves}
+  {#each moves as move, i (move.pgnPath.join(','))}
+    {#if i === 0 && move.turn === 'b'}
+      {#if isVariation}
+        {@render moveNum(move)}
+      {:else}
+        {@render moveNum(move)}
+        {@render nullItem()}
+      {/if}
     {/if}
-  {/if}
 
-  {#if move.turn === 'w'}
-    {@render moveNum(move)}
-  {/if}
-
-  {@const pathKey = move.pgnPath.join(',')}
-  {@const nag = getNagDetails(move)}
-
-  <span
-    class="move"
-    class:current={pathKey === currentPgnPathKey}
-    data-path-key={pathKey}
-    onclick={() => onMoveClick(move.pgnPath)}
-    onkeydown={(e) => onKeyDown(e, move.pgnPath)}
-    role="button"
-    tabindex="0"
-  >
-    {#if nag?.title}<span class="nagTooltip">{nag.title}</span>{/if}
-    {move.notation.notation}
-    {nag.symbol ?? ''}
-  </span>
-
-  {#if move.commentAfter}
-    {#if move.turn === 'w' && !isVariation}
-      {@render nullItem()}
+    {#if move.turn === 'w'}
+      {@render moveNum(move)}
     {/if}
+
+    {@const pathKey = move.pgnPath.join(',')}
+    {@const nag = getNagDetails(move)}
+
     <span
-      class="comment"
-      class:has-variation={move.variations?.length > 0}
-      class:lastContainer={i === moves.length - 1}
+      class="move"
+      class:current={pathKey === currentPgnPathKey}
+      data-path-key={pathKey}
+      onclick={() => onMoveClick(move.pgnPath)}
+      onkeydown={(e) => onKeyDown(e, move.pgnPath)}
+      role="button"
+      tabindex="0"
     >
-      {move.commentAfter}
+      {#if nag?.title}<span class="nagTooltip">{nag.title}</span>{/if}
+      {move.notation.notation}
+      {nag.symbol ?? ''}
     </span>
 
-    {#if move.turn === 'w' && i < moves.length - 1 && !isVariation && !move.variations?.length}
-      {@render moveNum(move)}
-      {@render nullItem()}
-    {/if}
-  {/if}
+    {#if move.commentAfter}
+      {#if move.turn === 'w' && !isVariation}
+        {@render nullItem()}
+      {/if}
+      <span
+        class="comment"
+        class:has-variation={move.variations?.length > 0}
+        class:lastContainer={i === moves.length - 1}
+      >
+        {move.commentAfter}
+      </span>
 
-  {#if move.variations && move.variations.length > 0}
-    {#if move.turn === 'w' && !move.commentAfter && !isVariation}
-      {@render nullItem()}
+      {#if move.turn === 'w' && i < moves.length - 1 && !isVariation && !move.variations?.length}
+        {@render moveNum(move)}
+        {@render nullItem()}
+      {/if}
     {/if}
 
-    {#snippet variationLoop()}
-      {#each move.variations as variationLine, v_idx (v_idx)}
-        {#if !isVariation}
-          <div
-            class:variation-row={!isVariation}
-            class:separator={!isVariation && v_idx > 0}
-          >
+    {#if move.variations && move.variations.length > 0}
+      {#if move.turn === 'w' && !move.commentAfter && !isVariation}
+        {@render nullItem()}
+      {/if}
+
+      {#snippet variationLoop()}
+        {#each move.variations as variationLine, v_idx (v_idx)}
+          {#if !isVariation}
+            <div
+              class:variation-row={!isVariation}
+              class:separator={!isVariation && v_idx > 0}
+            >
+              <PgnViewer
+                moves={variationLine}
+                isVariation={true}
+                withBrackets={isVariation}
+              />
+              {#if isVariation && v_idx < move.variations.length - 1}
+                <span class="sub-var-spacing"> </span>
+              {/if}
+            </div>
+          {:else}
             <PgnViewer
               moves={variationLine}
               isVariation={true}
               withBrackets={isVariation}
             />
-            {#if isVariation && v_idx < move.variations.length - 1}
-              <span class="sub-var-spacing"> </span>
-            {/if}
-          </div>
-        {:else}
-          <PgnViewer
-            moves={variationLine}
-            isVariation={true}
-            withBrackets={isVariation}
-          />
-        {/if}
-      {/each}
-    {/snippet}
+          {/if}
+        {/each}
+      {/snippet}
 
-    {#if !isVariation}
-      <div
-        class="altLine top-level-container"
-        class:lastContainer={i === moves.length - 1}
-      >
+      {#if !isVariation}
+        <div
+          class="altLine top-level-container"
+          class:lastContainer={i === moves.length - 1}
+        >
+          {@render variationLoop()}
+        </div>
+      {:else}
         {@render variationLoop()}
-      </div>
-    {:else}
-      {@render variationLoop()}
 
-      {#if i < moves.length - 1}
-        {#if move.turn === 'w'}
-          {@render moveNum(move)}
+        {#if i < moves.length - 1}
+          {#if move.turn === 'w'}
+            {@render moveNum(move)}
+          {/if}
         {/if}
+      {/if}
+
+      {#if move.turn === 'w' && i < moves.length - 1 && !isVariation}
+        {@render moveNum(move)}
+        {@render nullItem()}
       {/if}
     {/if}
 
-    {#if move.turn === 'w' && i < moves.length - 1 && !isVariation}
-      {@render moveNum(move)}
+    {#if i === moves.length - 1 && move.turn === 'w' && !isVariation && !move.commentAfter && (!move.variations || move.variations.length === 0)}
       {@render nullItem()}
     {/if}
-  {/if}
-
-  {#if i === moves.length - 1 && move.turn === 'w' && !isVariation && !move.commentAfter && (!move.variations || move.variations.length === 0)}
-    {@render nullItem()}
-  {/if}
-{/each}
-
+  {/each}
+{/if}
 {#if withBrackets}<span class="altLineBracket">)</span>{/if}
 
 <style lang="scss">

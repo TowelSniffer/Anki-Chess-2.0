@@ -1,5 +1,6 @@
 @import url("./_ankiChess__VERSION__.css");
 
 #content {
-margin:0 !important;
+  margin: 0 !important;
+  overflow: hidden;
 }

@@ -122,22 +122,17 @@ export class PgnGameStore {
     if (storedScore) sessionStorage.removeItem('chess_puzzle_score');
     this.rawPgn = pgn;
     this.boardMode = boardMode;
+
     const parsed = this.parsePGN(pgn, boardMode);
 
-    if (parsed?.tags?.FEN) this.startFen = parsed.tags.FEN;
-
-    this.rootGame = parsed;
-
     augmentPgnTree(
-      this.rootGame.moves,
+      parsed.moves,
       [],
       this.newChess(this.startFen),
       this._moveMap,
     );
 
-    if (this.rootGame?.moves) {
-      //this._remapReactiveMoves(this.rootGame.moves, this._moveMap);
-    }
+    this.rootGame = parsed;
 
     $effect(() => {
       const redrawCachedShapes = this.boardMode === 'Puzzle' &&
@@ -308,6 +303,8 @@ export class PgnGameStore {
       pgnBaseFen = mirrorFen(pgnBaseFen, this._mirrorState)
       mirrorPgnTree(parsed.moves, this._mirrorState);
     }
+
+    this.startFen = pgnBaseFen;
 
     this.orientation =
       parsed?.moves[0]?.turn === 'w'

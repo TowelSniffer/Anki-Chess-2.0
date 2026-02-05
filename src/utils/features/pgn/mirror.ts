@@ -173,6 +173,10 @@ function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
   move.notation.row = move.notation.row ?? transform(move.notation.row);
   move.notation.notation =
     transform(move.notation.notation) ?? move.notation.notation;
+
+  if (move.notation.notation) {
+    move.san = move.notation.notation;
+  }
 }
 
 export function mirrorPgnTree(
