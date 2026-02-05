@@ -4,12 +4,13 @@ import { getContext } from 'svelte';
 class TimerStore {
   // --- State ---
   isRunning = $state(false);
-  isOutOfTime = $state(false);
   remainingTime = $state(0); // in ms
   totalTime = $state(0); // in ms (initial duration)
 
   // Controls if the board shows the timer gradient
   visible = $state(false);
+
+  isOutOfTime = $derived(this.remainingTime === 0);
 
   // --- Internal ---
   private animationFrameId: number | null = null;
@@ -142,7 +143,6 @@ class TimerStore {
   }
 
   private handleOutOfTime() {
-    this.isOutOfTime = true;
     this.stop();
   }
 }

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'path';
 import path from 'path';
+import Icons from 'unplugin-icons/vite';
 import fs from 'fs';
 
 // A simple plugin to delete files not required for anki
@@ -9,7 +10,7 @@ const cleanupDistPlugin = () => {
   return {
     name: 'cleanup-dist',
     closeBundle: () => {
-      const distPath = resolve(__dirname, 'dist-anki');
+      const distPath = resolve(__dirname, 'dist-anki/collection.media');
       const filesToDelete = ['index.html', 'favicon.ico'];
 
       filesToDelete.forEach((file) => {
@@ -27,7 +28,14 @@ const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
 const versionedName = `_ankiChess${pkg.version}`;
 
 export default defineConfig({
-  plugins: [svelte(), cleanupDistPlugin()],
+  plugins: [
+    svelte(),
+    cleanupDistPlugin(),
+    Icons({
+      compiler: 'svelte',
+      autoInstall: true,
+    }),
+  ],
   // anki requires relative paths (./) because files are served locally
   base: './',
   minify: true,
@@ -54,6 +62,7 @@ export default defineConfig({
     // specific output folder for this build
     outDir: 'dist-anki/collection.media',
     emptyOutDir: true,
+    assetsInlineLimit: 20480,
     // Flatten the assets (do not put them in an /assets folder)
     assetsDir: '',
     rollupOptions: {

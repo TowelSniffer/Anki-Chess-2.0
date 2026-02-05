@@ -1,8 +1,7 @@
 <script>
-  import 'material-symbols/sharp.css';
   import { onMount, onDestroy } from 'svelte';
 
-  let { value, onChange, options, label, materialSymbol } = $props();
+  let { value, onChange, options, label, icon } = $props();
 
   // State for the dropdown visibility
   let isOpen = $state(false);
@@ -47,8 +46,9 @@
       type="button"
     >
       <span class="current-value">{value}</span>
-      {#if materialSymbol}
-        <span class="material-symbols-sharp value-icon">{materialSymbol}</span>
+      {#if icon}
+        {@const Icon = icon}
+        <Icon />
       {/if}
       <span class="arrow" class:open={isOpen}>▼</span>
     </button>

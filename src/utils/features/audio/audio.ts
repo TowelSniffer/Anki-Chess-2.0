@@ -1,6 +1,15 @@
 import type { CustomPgnMove } from '$stores/gameStore.svelte.ts';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 
+// Explicitly import the audio files.
+import moveSound from '$assets/audio/_move.mp3';
+import checkmateSound from '$assets/audio/_checkmate.mp3';
+import checkSound from '$assets/audio/_check.mp3';
+import captureSound from '$assets/audio/_capture.mp3';
+import castleSound from '$assets/audio/_castle.mp3';
+import promoteSound from '$assets/audio/_promote.mp3';
+import errorSound from '$assets/audio/_error.mp3';
+
 type Sounds =
   | 'move'
   | 'checkmate'
@@ -52,41 +61,32 @@ const moveSoundPriority: SoundPriorityRule[] = [
   },
 ];
 
-// load assets using Vite's glob import (ensures correct hashed URL for production)
-const audioModules = import.meta.glob('$assets/audio/_*.mp3', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>;
+const soundAssets: Record<Sounds, string> = {
+  'move': moveSound,
+  'checkmate': checkmateSound,
+  'check': checkSound,
+  'capture': captureSound,
+  'castle': castleSound,
+  'promote': promoteSound,
+  'error': errorSound,
+};
 
 function initAudio(): Map<Sounds, HTMLAudioElement> {
-  // prload audio to avoid firefox error
-  const sounds: Sounds[] = [
-    'move',
-    'checkmate',
-    'check',
-    'capture',
-    'castle',
-    'promote',
-    'error',
-    'computer-mouse-click',
-  ];
   const audioMap: Map<Sounds, HTMLAudioElement> = new Map();
 
-  sounds.forEach((sound) => {
-    const matchedPath = Object.keys(audioModules).find((path) =>
-      path.endsWith(`_${sound}.mp3`),
-    );
-
-    if (matchedPath) {
-      const url = audioModules[matchedPath];
-      const audio = new Audio(url);
+  // 3. Iterate over the explicit object instead of glob keys
+  (Object.keys(soundAssets) as Sounds[]).forEach((key) => {
+    const src = soundAssets[key];
+    if (src) {
+      // src is now a "data:audio/mp3;base64..." string
+      const audio = new Audio(src);
+      // Preload isn't strictly necessary with Data URIs (it's already in memory),
+      // but keeping 'auto' is fine.
       audio.preload = 'auto';
-      audioMap.set(sound, audio);
-    } else {
-      console.warn(`Audio file for "${sound}" not found.`);
+      audioMap.set(key, audio);
     }
   });
+
   return audioMap;
 }
 
@@ -94,6 +94,11 @@ const audioMap: Map<Sounds, HTMLAudioElement> = initAudio();
 
 export function playSound(soundName: Sounds): void {
   if (userConfig.muteAudio) return;
+
+  if (soundName === 'computer-mouse-click') {
+    playSyntheticClick();
+    return;
+  }
 
   const audio = audioMap.get(soundName);
   if (audio) {
@@ -122,4 +127,55 @@ export function moveAudio(move: CustomPgnMove): void {
     : moveSoundMap.move;
 
   playSound(soundToPlay);
+}
+
+
+// Reuse the context to avoid creating too many (browser limit is usually 6)
+let audioCtx: AudioContext | null = null;
+
+// Generate a reusable noise buffer (0.05s is plenty for a click)
+let clickBuffer: AudioBuffer | null = null;
+
+function playSyntheticClick() {
+  // Initialize Context lazily (browsers block audio ctx until user interaction)
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+
+  // Generate the noise buffer once
+  if (!clickBuffer) {
+    const bufferSize = audioCtx.sampleRate * 0.05; // 50ms duration
+    clickBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = clickBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      // White noise: random values between -1 and 1
+      data[i] = Math.random() * 2 - 1;
+    }
+  }
+
+  // Create the sound graph
+  const source = audioCtx.createBufferSource();
+  source.buffer = clickBuffer;
+
+  // Filter: Bandpass around 1200Hz gives a "plastic" mechanical feel
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1200;
+  filter.Q.value = 1; // Width of the band
+
+  // Envelope: Short fade out to avoid "popping"
+  const gainNode = audioCtx.createGain();
+  gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+
+  // Connect: Source -> Filter -> Gain -> Out
+  source.connect(filter);
+  filter.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  // Play!
+  source.start();
 }

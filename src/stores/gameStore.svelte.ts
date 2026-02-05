@@ -109,7 +109,8 @@ export class PgnGameStore {
 
   // The "Raw" Calculation (Always calculates the freshest shapes)
   private _rawShapes = $derived([
-    ...(engineStore.bestMove?.fen === this.fen ? engineStore.shapes : []),
+    // Only spread engine shapes if the engine's eval matches our visual FEN
+    ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
     ...getSystemShapes(this.pgnPath, this._moveMap, this.boardMode),
   ]);
 

@@ -1,23 +1,30 @@
 <script lang="ts">
-  import {engineStore} from '$stores/engineStore.svelte';
+  import { engineStore } from '$stores/engineStore.svelte';
   import CustomSelector from './uiUtility/CustomSelector.svelte';
-  import {getContext} from 'svelte';
-  import type {PgnGameStore} from '$stores/Providers/GameProvider.svelte';
+  import { getContext } from 'svelte';
+  import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+  import IconArrowSplit from '~icons/material-symbols/arrow-split';
+  import IconSearchGear from '~icons/material-symbols/search-gear';
 
-  const gameStore = getContext < PgnGameStore > ('GAME_STORE');
+  const gameStore = getContext<PgnGameStore>('GAME_STORE');
 
   const lineOutput = $derived.by(() => {
     if (gameStore.isCheckmate) {
-      return gameStore.turn === 'b' ? 'White Checkmates...' : 'Black Checkmates...';
+      return gameStore.turn === 'b'
+        ? 'White Checkmates...'
+        : 'Black Checkmates...';
     }
     if (gameStore.isDraw) {
-      return 'Draw...'
+      return 'Draw...';
     }
 
-    return 'Thinking...'
+    return 'Thinking...';
   });
 
-  const whiteAdv = $derived(engineStore.analysisLines[0]?.winChance > 50 || gameStore.isCheckmate && gameStore.turn === 'b')
+  const whiteAdv = $derived(
+    engineStore.analysisLines[0]?.winChance > 50 ||
+      (gameStore.isCheckmate && gameStore.turn === 'b'),
+  );
 
   // Helper to format score (+0.5, -1.2, M3)
   function formatScore(line: any) {
@@ -41,41 +48,48 @@
 
 <div class="engine-container">
   <div class="controls">
-    <CustomSelector label="Lines:" value={engineStore.multipv} options={engineStore.multipvOptions}
-      materialSymbol="arrow_split" onChange={(val)=> engineStore.setMultiPv(val)}
-      />
+    <CustomSelector
+      label="Lines:"
+      value={engineStore.multipv}
+      options={engineStore.multipvOptions}
+      icon={IconArrowSplit}
+      onChange={(val) => engineStore.setMultiPv(val)}
+    />
 
-      <CustomSelector label="Thinking Time (s):" value={engineStore.analysisThinkingTime}
-        options={engineStore.thinkingTimeOptions} materialSymbol="search_gear" onChange={(val)=>
-        engineStore.setThinkingTime(val)}
-        />
+    <CustomSelector
+      label="Thinking Time (s):"
+      value={engineStore.analysisThinkingTime}
+      options={engineStore.thinkingTimeOptions}
+      icon={IconSearchGear}
+      onChange={(val) => engineStore.setThinkingTime(val)}
+    />
   </div>
   {#if engineStore.loading}
-  <span>Starting...</span>
+    <span>Starting...</span>
   {/if}
   {#if engineStore.analysisLines.length > 0 || engineStore.enabled}
-  <div class="lines">
-    {#each Array(engineStore.multipv) as _, i}
-    {@const line = engineStore.analysisLines[i]}
+    <div class="lines">
+      {#each Array(engineStore.multipv) as _, i}
+        {@const line = engineStore.analysisLines[i]}
 
-    <div class="line" class:dummy-line={!line}>
-      {#if line}
-      <div class="eval" class:white-adv={whiteAdv}>
-        {formatScore(line)}
-      </div>
-      <div class="moves">
-        {line.pvSan}
-      </div>
-      {:else}
-      <!-- Placeholder State -->
-      <div class="eval" class:white-adv={whiteAdv}>{i + 1}.</div>
-      <div class="moves">
-        {engineStore.analysisLines.length === 0 ? lineOutput : '...'}
-      </div>
-      {/if}
+        <div class="line" class:dummy-line={!line}>
+          {#if line}
+            <div class="eval" class:white-adv={whiteAdv}>
+              {formatScore(line)}
+            </div>
+            <div class="moves">
+              {line.pvSan}
+            </div>
+          {:else}
+            <!-- Placeholder State -->
+            <div class="eval" class:white-adv={whiteAdv}>{i + 1}.</div>
+            <div class="moves">
+              {engineStore.analysisLines.length === 0 ? lineOutput : '...'}
+            </div>
+          {/if}
+        </div>
+      {/each}
     </div>
-    {/each}
-  </div>
   {/if}
 </div>
 

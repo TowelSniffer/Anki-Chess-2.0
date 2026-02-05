@@ -1,12 +1,15 @@
 <script lang="ts">
-  import 'material-symbols/sharp.css';
   import { clickOutside } from '$utils/toolkit/clickOutside';
   import { onMount, onDestroy } from 'svelte';
+  import type { Component } from 'svelte';
+  import IconHelp from '~icons/material-symbols/help';
+  import IconArrowRight from '~icons/material-symbols/keyboard-arrow-right';
 
   export type MenuItem = {
     type?: 'action' | 'separator' | 'toggle' | 'number' | 'select';
     label?: string;
-    icon?: string;
+    icon?: Component | string;
+    tooltip?: string;
     disabled?: boolean;
     danger?: boolean;
     highlight?: boolean;
@@ -33,7 +36,7 @@
 
   type Props = {
     label?: string;
-    icon?: string;
+    icon?: Component | string;
     items: MenuItem[];
     position?: 'bottom-left' | 'bottom-right';
   };
@@ -47,9 +50,24 @@
 
   let isOpen = $state(false);
   let activeSelectorIndex = $state<number | null>(null); // Tracks which inner selector is open
+  // we use set instead of an array here as it automatically handles Svelte 5 proxy unwrapping
+  let activeTooltips = $state(new Set<MenuItem>());
 
   let triggerRef: HTMLButtonElement | undefined = $state();
   let menuRef: HTMLDivElement | undefined = $state();
+
+  function toggleTooltip(e: Event, item: MenuItem) {
+    e.stopPropagation();
+
+    // Create a new Set to ensure reactivity triggers
+    const next = new Set(activeTooltips);
+    if (next.has(item)) {
+      next.delete(item);
+    } else {
+      next.add(item);
+    }
+    activeTooltips = next;
+  }
 
   function portal(node: HTMLElement) {
     document.body.appendChild(node);
@@ -58,6 +76,40 @@
         if (node.parentNode) node.parentNode.removeChild(node);
       },
     };
+  }
+
+  function adjustSubmenuPosition(e: MouseEvent) {
+    const li = e.currentTarget as HTMLElement;
+    const submenu = li.querySelector('.submenu') as HTMLElement;
+    if (!submenu) return;
+
+    // reset transform to measure the natural position first
+    submenu.style.transform = 'none';
+
+    // we use requestAnimationFrame her to ensure we measure after the CSS :hover has made it visible
+    requestAnimationFrame(() => {
+      const rect = submenu.getBoundingClientRect();
+      const padding = 10;
+      let shiftX = 0;
+      let shiftY = 0;
+
+      // Horizontal Shift (Right Edge)
+      if (rect.right > window.innerWidth) {
+        // Negative value moves it left
+        shiftX = window.innerWidth - rect.right - padding;
+      }
+
+      // Vertical Shift (Bottom Edge)
+      if (rect.bottom > window.innerHeight) {
+        // Negative value moves it up
+        shiftY = window.innerHeight - rect.bottom - padding;
+      }
+
+      // Apply the shift if necessary
+      if (shiftX !== 0 || shiftY !== 0) {
+        submenu.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+      }
+    });
   }
 
   $effect(() => {
@@ -70,12 +122,23 @@
         left = rect.right - menuRef.offsetWidth;
       }
 
+      // Initial placement
       menuRef.style.top = `${top}px`;
       menuRef.style.left = `${left}px`;
 
       const menuRect = menuRef.getBoundingClientRect();
+
+      // set the max-width to whatever the menu naturally is right now.
+      menuRef.style.maxWidth = `${menuRect.width}px`;
+
+      // check Right edge
       if (menuRect.right > window.innerWidth) {
         menuRef.style.left = `${window.innerWidth - menuRect.width - 10}px`;
+      }
+
+      // check bottom edge
+      if (menuRect.bottom > window.innerHeight) {
+        menuRef.style.top = `${window.innerHeight - menuRect.height - 10}px`;
       }
     }
   });
@@ -123,8 +186,16 @@
     aria-expanded={isOpen}
     bind:this={triggerRef}
   >
-    {#if icon}<span class="material-symbols-sharp trigger-icon">{icon}</span
-      >{/if}
+    {#if icon}
+      {#if typeof icon === 'string'}
+        <span class="material-symbols-sharp trigger-icon">{icon}</span>
+      {:else}
+        {@const Icon = icon}
+        <span class="trigger-icon">
+          <Icon />
+        </span>
+      {/if}
+    {/if}
     {#if label}<span class="trigger-label">{label}</span>{/if}
   </button>
 
@@ -142,6 +213,60 @@
   {/if}
 </div>
 
+{#snippet itemLabel(item: MenuItem)}
+  <div class="label-container">
+    {#if !item.type || item.type === 'action'}
+      <div class="label-content">
+        {#if typeof item.icon === 'string'}
+          <span class="material-symbols-sharp icon">{item.icon}</span>
+        {:else}
+          <span class="icon">
+            <item.icon />
+          </span>
+        {/if}
+        <span class="text">{item.label}</span>
+
+        {#if item.tooltip}
+          <span
+            class="info-hint"
+            class:has-tooltip={!!item.tooltip}
+            onclick={(e) => item.tooltip && toggleTooltip(e, item)}
+            role="button"
+            tabindex="0"
+            onkeydown={(e) =>
+              e.key === 'Enter' && item.tooltip && toggleTooltip(e, item)}
+          >
+            <IconHelp />
+          </span>
+        {/if}
+      </div>
+    {:else}
+      <div
+        class="label-content"
+        class:has-tooltip={!!item.tooltip}
+        onclick={(e) => item.tooltip && toggleTooltip(e, item)}
+        role="button"
+        tabindex="0"
+        onkeydown={(e) =>
+          e.key === 'Enter' && item.tooltip && toggleTooltip(e, item)}
+      >
+        {#if item.icon}
+          <span class="material-symbols-sharp icon">{item.icon}</span>
+        {/if}
+        <span class="text">{item.label}</span>
+        {#if item.tooltip}
+          <span class="info-hint material-symbols-sharp"><IconHelp /></span>
+        {/if}
+      </div>
+    {/if}
+    {#if activeTooltips.has(item)}
+      <div class="tooltip-text" onclick={stopProp}>
+        {item.tooltip}
+      </div>
+    {/if}
+  </div>
+{/snippet}
+
 {#snippet menuList(listItems: MenuItem[])}
   <ul class="menu-list">
     {#each listItems as item, idx}
@@ -149,12 +274,7 @@
         <li class="separator"></li>
       {:else if item.type === 'toggle'}
         <li class="control-item" onclick={stopProp}>
-          <div class="control-label">
-            {#if item.icon}<span class="material-symbols-sharp icon"
-                >{item.icon}</span
-              >{/if}
-            <span>{item.label}</span>
-          </div>
+          {@render itemLabel(item)}
           <label class="switch">
             <input
               type="checkbox"
@@ -166,12 +286,7 @@
         </li>
       {:else if item.type === 'number'}
         <li class="control-item" onclick={stopProp}>
-          <div class="control-label">
-            {#if item.icon}<span class="material-symbols-sharp icon"
-                >{item.icon}</span
-              >{/if}
-            <span>{item.label}</span>
-          </div>
+          {@render itemLabel(item)}
           <div class="number-stepper">
             <button
               class="step-btn"
@@ -227,22 +342,24 @@
           </div>
         </li>
       {:else}
-        <li class="menu-item-wrapper">
-          <button
+        <li class="menu-item-wrapper" onmouseenter={adjustSubmenuPosition}>
+          <div
             class="menu-item"
+            role="menuitem"
+            tabindex={item.disabled ? -1 : 0}
             class:danger={item.danger}
             class:highlight={item.highlight}
-            disabled={item.disabled}
+            class:disabled={item.disabled}
             onclick={() => handleAction(item)}
+            onkeydown={(e) => e.key === 'Enter' && handleAction(item)}
           >
-            {#if item.icon}<span class="material-symbols-sharp icon"
-                >{item.icon}</span
-              >{/if}
-            <span class="label">{item.label}</span>
-            {#if item.children}<span class="material-symbols-sharp chevron"
-                >chevron_right</span
-              >{/if}
-          </button>
+            {@render itemLabel(item)}
+
+            {#if item.children}
+              <IconArrowRight />
+            {/if}
+          </div>
+
           {#if item.children}
             <div class="submenu">{@render menuList(item.children)}</div>
           {/if}
@@ -266,17 +383,16 @@
   /* --- Trigger --- */
   .trigger {
     all: unset;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     z-index: 20;
     border-radius: var(--border-radius-global, 4px);
     border: var(--border-thin, 1px solid #ccc);
     background-color: var(--surface-primary, #fff);
     color: var(--text-primary, #333);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    height: 45px;
-    width: 45px;
+    height: calc(var(--board-size) * 0.12);
+    width: calc(var(--board-size) * 0.12);
+    max-width: 45px;
+    max-height: 45px;
     margin: 3px;
     cursor: pointer;
     box-sizing: border-box;
@@ -284,11 +400,13 @@
 
     &:hover:not(:disabled, :active) {
       background-color: var(--interactive-button-hover, #f0f0f0);
+      color: var(--surface-primary);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 1);
     }
     &.isActive,
     &:active {
       background-color: var(--interactive-button-hover, #e0e0e0);
+      color: var(--surface-primary);
     }
     &:active {
       box-shadow: inset 0 1px 3px rgba(0, 0, 0, 1);
@@ -299,12 +417,14 @@
     }
     .trigger-icon {
       font-size: 1.5rem;
+      @include flex-center;
     }
   }
 
   /* --- Menu --- */
   .menu {
     all: unset;
+    box-sizing: border-box;
     position: fixed;
     z-index: 9999;
     min-width: 200px;
@@ -315,6 +435,25 @@
     border-radius: 6px;
     padding: 0.3rem 0;
     animation: fade-in 0.1s ease-out;
+  }
+
+  /* --- Submenu --- */
+  .submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: -0.3rem;
+    min-width: 180px;
+    background: var(--surface-primary, #fff);
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.3rem 0;
+
+    z-index: 10001;
+  }
+  .menu-item-wrapper:hover > .submenu {
+    display: block;
   }
 
   .menu-list {
@@ -339,12 +478,26 @@
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
     cursor: pointer;
-    &:hover:not(:disabled) {
+    &:hover:not(.disabled) {
+      color: var(--surface-primary, #fff);
       background-color: var(--surface-interactive-hover, #f5f5f5);
     }
-    &:disabled {
-      opacity: 0.5;
+    &.disabled {
       cursor: not-allowed;
+      .text {
+        opacity: 0.5;
+      }
+      .icon,
+      .text,
+      .chevron {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+      .info-hint {
+        opacity: 1;
+        cursor: help;
+        pointer-events: auto;
+      }
     }
     &.danger {
       color: #d32f2f;
@@ -359,6 +512,9 @@
       margin-left: auto;
       font-size: 1.1rem;
       opacity: 0.6;
+    }
+    .text {
+      cursor: default;
     }
   }
 
@@ -375,15 +531,52 @@
     }
   }
 
-  .control-label {
+  /* --- Label & Tooltip --- */
+  .label-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1; /* Ensure it takes available space */
+  }
+
+  .label-content {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.85rem;
-    .icon {
-      font-size: 1.1rem;
-      opacity: 0.8;
+
+    &.has-tooltip {
+      cursor: help; /* The cursor you requested */
+
+      &:hover .text {
+        text-decoration: underline dotted; /* Optional visual hint */
+      }
     }
+  }
+
+  .tooltip-text {
+    font-size: 0.75rem;
+    color: var(--surface-secondary, #666);
+    background: var(--text-primary, #333);
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    border-left: 2px solid #2196f3;
+    width: 100%;
+    box-sizing: border-box;
+    white-space: normal;
+    word-break: break-word;
+    cursor: default;
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none; /* Prevents clicking the disabled row */
+    }
+  }
+
+  .info-hint {
+    font-size: 0.9rem;
+    opacity: 0.5;
   }
 
   /* --- Toggle Switch --- */
@@ -536,26 +729,9 @@
     }
   }
 
-  /* --- Submenu --- */
-  .submenu {
-    display: none;
-    position: absolute;
-    left: 100%;
-    top: -0.3rem;
-    min-width: 180px;
-    background: var(--surface-primary, #fff);
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 0.3rem 0;
-  }
-  .menu-item-wrapper:hover > .submenu {
-    display: block;
-  }
-
   .separator {
     height: 1px;
-    background: #eee;
+    background: var(--text-primary, #eee);
     margin: 0.3rem 0;
   }
 

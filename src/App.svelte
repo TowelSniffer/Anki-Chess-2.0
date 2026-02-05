@@ -7,40 +7,49 @@
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
   import { userConfig } from '$stores/userConfig.svelte.ts';
   import { engineStore } from '$stores/engineStore.svelte';
+  import { timerStore } from '$stores/timerStore.svelte';
+  import { onDestroy } from 'svelte';
+
+  onDestroy(() => {
+    engineStore.stopAndClear();
+    timerStore.stop();
+  });
 
   let { pgn, boardMode, userText } = $props();
 </script>
 
-<GameProvider {pgn} {boardMode}>
-  <div id="container">
-    {#if boardMode === 'Viewer' || (userConfig.frontText && userText)}
-      <div id="commentBox">
-        {#if userText}
-          <div id="userTextContainer">
-            <div id="textField">{@html userText}</div>
-          </div>
-        {/if}
-        {#if boardMode === 'Viewer'}
-          <div id="buttons-container">
-            <ButtonsContainer />
-          </div>
-          {#if engineStore.enabled}
-            <EngineAnalysis />
+{#key pgn}
+  <GameProvider {pgn} {boardMode}>
+    <div id="container">
+      {#if boardMode === 'Viewer' || (userConfig.frontText && userText)}
+        <div id="commentBox">
+          {#if userText}
+            <div id="userTextContainer">
+              <div id="textField">{@html userText}</div>
+            </div>
           {/if}
-          <div id="pgnViewer">
-            <PgnViewer />
-          </div>
-        {/if}
+          {#if boardMode === 'Viewer'}
+            <div id="buttons-container">
+              <ButtonsContainer />
+            </div>
+            {#if engineStore.enabled}
+              <EngineAnalysis />
+            {/if}
+            <div id="pgnViewer">
+              <PgnViewer />
+            </div>
+          {/if}
+        </div>
+      {/if}
+      <div id="board-container">
+        {#key userConfig.boardKey}
+          <ChessgroundBoard />
+        {/key}
       </div>
-    {/if}
-    <div id="board-container">
-      {#key userConfig.boardKey}
-        <ChessgroundBoard />
-      {/key}
     </div>
-  </div>
-  <PromotePopup />
-</GameProvider>
+    <PromotePopup />
+  </GameProvider>
+{/key}
 
 <style lang="scss">
   $max-width: min(100vw, 1000px);
