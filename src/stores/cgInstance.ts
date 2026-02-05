@@ -82,14 +82,14 @@ function handleMove(orig: Key, dest: Key) {
   const from = orig as Square;
   const to = dest as Square;
 
-  // 1. Check Promotion
+  // Check Promotion
   if (isPromotion(from, to, gameStore.fen)) {
     gameStore.cg.move(from, to);
     gameStore.setPendingPromotion(from, to);
     return;
   }
 
-  // 2. Standard Move
+  // Standard Move
   handleUserMove(gameStore, from, to);
 }
 

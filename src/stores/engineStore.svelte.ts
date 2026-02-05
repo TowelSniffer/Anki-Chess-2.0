@@ -36,7 +36,7 @@ class EngineStore {
 
   private _worker: Worker | null = null;
   private _currentFen = ''; // The FEN currently being processed by the engine
-  private _pendingFen: string | null = null; // A queued FEN waiting for the engine to stop
+  private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
 
   constructor() {
     // get stored settings
@@ -187,9 +187,16 @@ class EngineStore {
   }
 
   stop() {
-    this._pendingFen = null;
+    this._pendingFen = '';
     this._worker?.postMessage('stop');
     this.isThinking = false;
+  }
+
+  stopAndClear() {
+    this.stop();
+    this.enabled = false;
+    this.analysisLines = [];
+    this._currentFen = '';
   }
 
   // --- Private Engine Logic ---
@@ -214,7 +221,7 @@ class EngineStore {
     if (!this._pendingFen || !this._worker) return;
 
     const fen = this._pendingFen;
-    this._pendingFen = null; // Clear queue
+    this._pendingFen = ''; // Clear queue
 
     this._currentFen = fen;
     this.evalFen = fen;
@@ -245,9 +252,11 @@ class EngineStore {
 
   private _handleEngineMessage(e: MessageEvent) {
     const msg = e.data;
-    if (typeof msg !== 'string') return;
+    if (typeof msg !== 'string' || !this.enabled) return;
 
     if (msg.startsWith('info') && msg.includes('pv')) {
+      // Only block 'info' if we are explicitly waiting for a 'bestmove'
+      if (this._pendingFen) return;
       this._parseInfo(msg);
     } else if (msg.startsWith('bestmove')) {
       this._parseBestMove(msg);
@@ -255,21 +264,21 @@ class EngineStore {
   }
 
   private _parseInfo(msg: string) {
-    // GUARD: If we have a pending new position, ignore 'info' from the old position.
-    // This prevents the "Index out of bounds" / "Illegal Move" crash.
-    if (this._pendingFen) return;
+    // Final safety check: Does this message belong to the FEN
+    // the UI is actually displaying right now?
+    if (this._currentFen !== this.evalFen) return;
 
     try {
       const parts = msg.split(' ');
 
-      // 1. Identify MultiPV Line
+      // Identify MultiPV Line
       let multipvIndex = 1;
       const mpvIdx = parts.indexOf('multipv');
       if (mpvIdx > -1 && parts[mpvIdx + 1]) {
         multipvIndex = parseInt(parts[mpvIdx + 1], 10);
       }
 
-      // 2. Parse Score
+      // Parse Score
       let scoreRaw = 0;
       let isMate = false;
       let winChance = 50;
@@ -292,7 +301,7 @@ class EngineStore {
       }
       const scoreNormalized = turn === 'w' ? scoreRaw : -scoreRaw;
 
-      // 3. Parse PV (Moves)
+      // Parse PV (Moves)
       const pvIdx = parts.indexOf('pv');
       let pvRaw = '';
       let pvSan = '';
@@ -329,7 +338,7 @@ class EngineStore {
         pvSan = sanMoves.join(' ');
       }
 
-      // 4. Update Analysis Line
+      // Update Analysis Line
       const newLine: AnalysisLine = {
         id: multipvIndex,
         scoreRaw,
@@ -345,6 +354,8 @@ class EngineStore {
       const others = existing.filter((l) => l.id !== multipvIndex);
       const updated = [...others, newLine].sort((a, b) => a.id - b.id);
 
+      // GUARD: mid-parse race conditions
+      if (this._currentFen !== this.evalFen) return;
       this.analysisLines = updated;
     } catch (err) {
       // Silence parsing errors (e.g. from race conditions)

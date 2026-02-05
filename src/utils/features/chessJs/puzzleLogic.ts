@@ -136,7 +136,7 @@ function playUserCorrectMove(gameStore: PgnGameStore, delay: number): void {
 
 function handleWrongMove(gameStore: PgnGameStore, move: Move): void {
   gameStore.errorCount++;
-  gameStore.cg.move(move.from, move.to);
+  gameStore.cg.set({ fen: move.after });
   gameStore.cg.set({ fen: move.before });
   playSound('error');
   wrongMoveDebounce = setTimeout(() => {

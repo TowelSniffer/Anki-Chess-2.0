@@ -13,18 +13,49 @@
   import { timerStore } from '$stores/timerStore.svelte';
   import { updateBoard } from '$features/board/boardAnimation';
   import { playAiMove } from '$features/chessJs/puzzleLogic';
-  import { getContext } from 'svelte';
+  import { getContext, untrack } from 'svelte';
   import { spring } from 'svelte/motion';
   import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+
+  import wP_raw from '$assets/pieces/_wP.svg?raw';
+  import wN_raw from '$assets/pieces/_wN.svg?raw';
+  import wB_raw from '$assets/pieces/_wB.svg?raw';
+  import wR_raw from '$assets/pieces/_wR.svg?raw';
+  import wQ_raw from '$assets/pieces/_wQ.svg?raw';
+  import wK_raw from '$assets/pieces/_wK.svg?raw';
+  import bP_raw from '$assets/pieces/_bP.svg?raw';
+  import bN_raw from '$assets/pieces/_bN.svg?raw';
+  import bB_raw from '$assets/pieces/_bB.svg?raw';
+  import bR_raw from '$assets/pieces/_bR.svg?raw';
+  import bQ_raw from '$assets/pieces/_bQ.svg?raw';
+  import bK_raw from '$assets/pieces/_bK.svg?raw';
+
+  // helper to convert raw SVG to Base64 Data URI
+  const toDataUri = (svg: string) => `data:image/svg+xml;base64,${btoa(svg)}`;
+
+  const pieceImages = {
+    wP: toDataUri(wP_raw),
+    wN: toDataUri(wN_raw),
+    wB: toDataUri(wB_raw),
+    wR: toDataUri(wR_raw),
+    wQ: toDataUri(wQ_raw),
+    wK: toDataUri(wK_raw),
+    bP: toDataUri(bP_raw),
+    bN: toDataUri(bN_raw),
+    bB: toDataUri(bB_raw),
+    bR: toDataUri(bR_raw),
+    bQ: toDataUri(bQ_raw),
+    bK: toDataUri(bK_raw),
+  };
 
   const gameStore = getContext<PgnGameStore>('GAME_STORE');
   let previousPath: PgnPath | null = null;
 
+  $inspect(gameStore.currentMove);
+
   let boardContainer: HTMLDivElement;
   onMount(() => {
     if (boardContainer) {
-      timerStore.isRunning = false;
-      timerStore.isOutOfTime = false;
       if (gameStore.boardMode === 'Viewer') {
         if (userConfig.flipBoard) {
           gameStore.next();
@@ -33,15 +64,12 @@
         engineStore.enabled = false;
       }
       gameStore.cg = loadBoard(boardContainer, gameStore);
-
-      boardContainer.focus();
-      if (gameStore.boardMode === 'Puzzle') {
-        if (userConfig.timer) timerStore.start();
-        if (userConfig.flipBoard) playAiMove(gameStore);
-      } else {
-        timerStore.stop();
-      }
     }
+    return () => {
+      if (gameStore.cg) {
+        gameStore.cg.destroy(); // Explicitly kill the cg instance
+      }
+    };
   });
 
   const SCORE_COLORS = {
@@ -100,39 +128,72 @@
   });
 
   let cachedEval = 50;
+  const commentDiag = $derived(
+    (gameStore.currentMove?.commentDiag?.eval ??
+      gameStore.currentMove?.commentDiag?.EV)
+      ? gameStore.currentMove?.commentDiag
+      : false,
+  );
   const visualDivider = $derived.by(() => {
     if (timerStore.visible) {
       return timerStore.percent;
-    } else if (!engineStore.enabled) {
-      return null;
-    }
+    } else if (!engineStore.enabled && commentDiag) {
+      // Assumes gameStore exposes the current move object.
+      // If your store uses a different name (e.g., gameStore.currentNode), adjust here.
 
-    // Find the best analysis line (id: 1)
-    const bestLine = engineStore.analysisLines.find((l) => l.id === 1);
+      const evMatch = commentDiag?.EV;
+      const cpMatch = commentDiag?.eval;
 
-    // default to draw (ie stalemate)
-    let gameScore = cachedEval;
-
-    // check if either no valid lines or race condition with fen change
-    if (!bestLine) {
-      if (gameStore.isDraw) {
-        gameScore = 50;
-      } else if (gameStore.isCheckmate) {
-        gameScore = gameStore.turn === 'w' ? 0 : 100;
+      if (evMatch) {
+        // Custom: "EV: 27.6%"
+        const winPercent = parseFloat(evMatch);
+        const normalizedWinPercent =
+          gameStore.currentMove.turn === 'w' ? 100 - winPercent : winPercent;
+        return barBottomColor === 'white'
+          ? 100 - normalizedWinPercent
+          : normalizedWinPercent;
+      } else if (cpMatch) {
+        if (cpMatch[0] === '#') {
+          // Mate: #+ is White win (100%), #- is Black win (0%)
+          const winPercent = cpMatch.includes('-') ? 0 : 100;
+          return barBottomColor === 'white' ? 100 - winPercent : winPercent;
+        }
+        // Standard: "[%eval 0.35]"
+        // Centipawns: Convert to ~Win % using logistic curve
+        const cp = parseFloat(cpMatch) * 100;
+        const winPercent = 50 + 50 * Math.tanh(cp / 290);
+        return barBottomColor === 'white' ? 100 - winPercent : winPercent;
       }
-    }
+    } else if (engineStore.enabled) {
+      let evalPercent = cachedEval;
+      const bestLine = engineStore.analysisLines.find((l) => l.id === 1);
+      if (bestLine) {
+        evalPercent = bestLine.winChance;
+      }
 
-    // Extract win chance (0-100 for White).
-    // If the engine is thinking, default to last score.
-    cachedEval = bestLine ? bestLine.winChance : gameScore;
+      // check if either no valid lines or race condition with fen change
+      if (!bestLine) {
+        if (gameStore.isDraw) {
+          evalPercent = 50;
+        } else if (gameStore.isCheckmate) {
+          evalPercent = gameStore.turn === 'w' ? 0 : 100;
+        }
+      }
 
-    // Calculate based on board orientation
-    // If Top is White: Return White %.
-    // If Top is Black: Return Black % (100 - White %).
-    if (barTopColor === 'white') {
-      return cachedEval;
+      // Extract win chance (0-100 for White).
+      // If the engine is thinking, default to last score.
+      cachedEval = bestLine ? bestLine.winChance : evalPercent;
+
+      // Calculate based on board orientation
+      // If Top is White: Return White %.
+      // If Top is Black: Return Black % (100 - White %).
+      if (barTopColor === 'white') {
+        return cachedEval;
+      } else {
+        return 100 - cachedEval;
+      }
     } else {
-      return 100 - cachedEval;
+      return 50;
     }
   });
 
@@ -144,12 +205,29 @@
     dividerSpring.set(visualDivider);
   });
 
-  // INITIAL CG CONFIG
+  // INITIAL LOAD
   $effect(() => {
     // Only run if board exists
-    if (!gameStore.cg) return;
+    if (!gameStore.cg || !boardContainer) return;
+    untrack(() => {
+      boardContainer.focus();
+      if (gameStore.boardMode === 'Puzzle') {
+        // These should only trigger ONCE per component mount/reset
+        if (userConfig.timer && !timerStore.isRunning) {
+          timerStore.start();
+        }
+        if (userConfig.flipBoard && gameStore.pgnPath.length === 0) {
+          playAiMove(gameStore, 300);
+        }
+      }
+    });
+  });
 
-    // Apply the entire config in one efficient call
+  // APPLY CG CONFIG
+  $effect(() => {
+    // Only run if board exists
+    if (!gameStore.cg || !boardContainer) return;
+    // Apply the entire config
     gameStore.cg.set(boardConfig);
   });
 
@@ -238,16 +316,23 @@
 </script>
 
 <div
-  id="board"
-  bind:this={boardContainer}
-  onpointerdown={handlePointerDown}
-  onwheel={gameStore.boardMode === 'Viewer' ? handleWheel : null}
-  onanimationend={() => (flashState = null)}
-  class:analysisMode={engineStore.enabled && visualDivider !== null}
-  class:timerMode={timerStore.visible}
-  class:border-flash={gameStore.boardMode === 'Puzzle' && flashState}
-  class:view-only={gameStore.isPuzzleComplete}
-  style="
+  style="display: contents; {Object.entries(pieceImages)
+    .map(([k, v]) => `--${k}: url('${v}')`)
+    .join('; ')}"
+>
+  <div
+    id="board"
+    bind:this={boardContainer}
+    onpointerdown={handlePointerDown}
+    onwheel={gameStore.boardMode === 'Viewer' ? handleWheel : null}
+    onanimationend={() => (flashState = null)}
+    class:analysisMode={visualDivider &&
+      (engineStore.enabled || commentDiag) &&
+      gameStore.boardMode !== 'Puzzle'}
+    class:timerMode={timerStore.visible}
+    class:border-flash={gameStore.boardMode === 'Puzzle' && flashState}
+    class:view-only={gameStore.isPuzzleComplete}
+    style="
     --player-color: {gameStore.playerColor};
     --opponent-color: {gameStore.opponentColor};
     --border-color: {boardBorderColor};
@@ -257,9 +342,9 @@
     --bar-top-color: {barTopColor};
     --bar-bottom-color: {barBottomColor};
     --divider: {$dividerSpring}%;
-
   "
-></div>
+  ></div>
+</div>
 
 <style lang="scss">
   @keyframes borderFlash {

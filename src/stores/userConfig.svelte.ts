@@ -1,5 +1,5 @@
 import type { Color } from '@lichess-org/chessground/types';
-import { updateAnkiChessTemplate } from '$utils/ankiConnect';
+import { updateAnkiChessTemplate, checkAnkiConnection } from '$utils/ankiConnect';
 
 type BoardModes = 'Viewer' | 'Puzzle';
 
@@ -51,10 +51,10 @@ class UserConfig {
     });
   }
 
-  save() {
+  async save() {
     if (typeof window === 'undefined') return;
 
-    // 1. Prepare the new config object based on current class state
+    // Prepare the new config object based on current class state
     // We use the keys from the last saved state to know what to save
     const newConfig: Record<string, any> = {};
     Object.keys(this.lastSavedState).forEach(key => {
@@ -62,21 +62,27 @@ class UserConfig {
       if (this[key] !== undefined) newConfig[key] = this[key];
     });
 
-    // 2. Update window.USER_CONFIG (for consistency with external scripts)
+    // Update window.USER_CONFIG (for consistency with external scripts)
     window.USER_CONFIG = newConfig;
 
-    // 3. Update the internal baseline
+    // Update the internal baseline
     // CRITICAL: This mutation triggers 'saveDue' to re-run and return false
     this.lastSavedState = { ...newConfig };
 
-    // 4. Persist to Anki
+    // Persist to Anki
     // Ensure window.CARD_CONFIG exists or fallback gracefully
     if (window.CARD_CONFIG) {
-      updateAnkiChessTemplate(
-        window.CARD_CONFIG['modelName'],
-        window.CARD_CONFIG['cardName'],
-        newConfig
-      );
+      // Check connection before firing
+      const isConnected = await checkAnkiConnection();
+      if (isConnected) {
+        updateAnkiChessTemplate(
+          window.CARD_CONFIG['modelName'],
+          window.CARD_CONFIG['cardName'],
+          newConfig
+        );
+      } else {
+        console.warn("AnkiConnect is offline. Settings saved to session only.");
+      }
     } else {
       console.warn("Cannot save: window.CARD_CONFIG is missing (not inside Anki?)");
     }

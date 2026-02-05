@@ -3,15 +3,15 @@
   import { type ChessJsPromotions } from '$stores/gameStore.svelte.ts';
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
 
-  import wQ from '$assets/pieces/_wQ.svg?url';
-  import wR from '$assets/pieces/_wR.svg?url';
-  import wB from '$assets/pieces/_wB.svg?url';
-  import wN from '$assets/pieces/_wN.svg?url';
+  import wQRaw from '$assets/pieces/_wQ.svg?raw';
+  import wRRaw from '$assets/pieces/_wR.svg?raw';
+  import wBRaw from '$assets/pieces/_wB.svg?raw';
+  import wNRaw from '$assets/pieces/_wN.svg?raw';
 
-  import bQ from '$assets/pieces/_bQ.svg?url';
-  import bR from '$assets/pieces/_bR.svg?url';
-  import bB from '$assets/pieces/_bB.svg?url';
-  import bN from '$assets/pieces/_bN.svg?url';
+  import bQRaw from '$assets/pieces/_bQ.svg?raw';
+  import bRRaw from '$assets/pieces/_bR.svg?raw';
+  import bBRaw from '$assets/pieces/_bB.svg?raw';
+  import bNRaw from '$assets/pieces/_bN.svg?raw';
 
   import { getContext } from 'svelte';
   import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
@@ -21,11 +21,12 @@
 
   let turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
 
+  const toDataUri = (svg: string) => `data:image/svg+xml;base64,${btoa(svg)}`;
   let pieceAssets = $derived({
-    q: turnColor === 'w' ? wQ : bQ,
-    b: turnColor === 'w' ? wB : bB,
-    n: turnColor === 'w' ? wN : bN,
-    r: turnColor === 'w' ? wR : bR,
+    q: turnColor === 'w' ? toDataUri(wQRaw) : toDataUri(bQRaw),
+    b: turnColor === 'w' ? toDataUri(wBRaw) : toDataUri(bBRaw),
+    n: turnColor === 'w' ? toDataUri(wNRaw) : toDataUri(bNRaw),
+    r: turnColor === 'w' ? toDataUri(wRRaw) : toDataUri(bRRaw),
   });
 
   function select(role: ChessJsPromotions) {

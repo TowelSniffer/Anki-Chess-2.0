@@ -1,244 +1,247 @@
 @use "$scss/globals" as *;
 
 
-  cg-container {
-    width: 100% !important;
-    height: 100% !important;
-    .cg-shapes,
-    .cg-custom-svgs {
-      overflow: hidden;
-      position: absolute;
-      top: 0px;
-      left: 0px;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
+cg-container {
+  width: 100% !important;
+  height: 100% !important;
+
+  .cg-shapes,
+  .cg-custom-svgs {
+    overflow: hidden;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .cg-shapes {
+    opacity: 1 !important;
+    filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  .cg-custom-svgs {
+    /* over piece.anim = 8, but under piece.dragging = 10 */
+    z-index: 9;
+  }
+
+  coords {
+    position: absolute;
+    left: 0 !important;
+    top: 0 !important;
+    pointer-events: none;
+
+    coord {
+      font-size: calc($board-size-calc * 0.025);
+      font-weight: bold;
+      flex: 1 1 auto;
     }
 
-    .cg-shapes {
-      opacity: 1 !important;
-      filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.8));
+    &.files {
+      position: relative;
+      left: calc($board-size-calc * 0.045) !important;
+      top: calc($board-size-calc * -0.035) !important;
     }
 
-    .cg-custom-svgs {
-      /* over piece.anim = 8, but under piece.dragging = 10 */
-      z-index: 9;
+    &.ranks {
+      position: relative;
+      left: calc($board-size-calc * 0.01) !important;
+      top: calc($board-size-calc * -0.045) !important;
     }
 
-    coords {
-      position: absolute;
-      left: 0!important;
-      top: 0!important;
-      pointer-events: none;
+  }
 
-      coord {
-        font-size: calc($board-size-calc * 0.025);
-        font-weight: bold;
-        flex: 1 1 auto;
-      }
+  cg-board {
+    background-color: #f0d9b5;
+    background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4PSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIgogICAgIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+CjxnIGlkPSJhIj4KICA8ZyBpZD0iYiI+CiAgICA8ZyBpZD0iYyI+CiAgICAgIDxnIGlkPSJkIj4KICAgICAgICA8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjZjBkOWI1IiBpZD0iZSIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iMSIgaHJlZj0iI2UiIHg6aHJlZj0iI2UiLz4KICAgICAgICA8cmVjdCB5PSIxIiB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjYjU4ODYzIiBpZD0iZiIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iLTEiIGhyZWY9IiNmIiB4OmhyZWY9IiNmIi8+CiAgICAgIDwvZz4KICAgICAgPHVzZSB4PSIyIiBocmVmPSIjZCIgeDpocmVmPSIjZCIvPgogICAgPC9nPgogICAgPHVzZSB4PSI0IiBocmVmPSIjYyIgeDpocmVmPSIjYyIvPgogIDwvZz4KICA8dXNlIHk9IjIiIGhyZWY9IiNiIiB4OmhyZWY9IiNiIi8+CjwvZz4KPHVzZSB5PSI0IiBocmVmPSIjYSIgeDpocmVmPSIjYSIvPgo8L3N2Zz4K");
+    border: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    line-height: 0;
+    background-size: cover;
+    cursor: inherit !important;
 
-      &.files {
-        position: relative;
-        left: calc($board-size-calc * 0.045)!important;
-        top: calc($board-size-calc * -0.035)!important;
-      }
-
-      &.ranks {
-        position: relative;
-        left: calc($board-size-calc * 0.01)!important;
-        top: calc($board-size-calc * -0.045)!important;
-      }
-
-    }
-    cg-board {
-      background-color: #f0d9b5;
-      background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4PSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIgogICAgIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+CjxnIGlkPSJhIj4KICA8ZyBpZD0iYiI+CiAgICA8ZyBpZD0iYyI+CiAgICAgIDxnIGlkPSJkIj4KICAgICAgICA8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjZjBkOWI1IiBpZD0iZSIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iMSIgaHJlZj0iI2UiIHg6aHJlZj0iI2UiLz4KICAgICAgICA8cmVjdCB5PSIxIiB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjYjU4ODYzIiBpZD0iZiIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iLTEiIGhyZWY9IiNmIiB4OmhyZWY9IiNmIi8+CiAgICAgIDwvZz4KICAgICAgPHVzZSB4PSIyIiBocmVmPSIjZCIgeDpocmVmPSIjZCIvPgogICAgPC9nPgogICAgPHVzZSB4PSI0IiBocmVmPSIjYyIgeDpocmVmPSIjYyIvPgogIDwvZz4KICA8dXNlIHk9IjIiIGhyZWY9IiNiIiB4OmhyZWY9IiNiIi8+CjwvZz4KPHVzZSB5PSI0IiBocmVmPSIjYSIgeDpocmVmPSIjYSIvPgo8L3N2Zz4K");
-      border: 0;
+    square {
       position: absolute;
       top: 0;
       left: 0;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      line-height: 0;
-      background-size: cover;
-      cursor: inherit !important;
+      width: 12.5%;
+      height: 12.5%;
+      pointer-events: none;
 
-      square {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 12.5%;
-        height: 12.5%;
-        pointer-events: none;
-
-        &.move-dest {
-          background: radial-gradient(
-            rgba(20, 85, 30, 0.5) 22%,
-                                      #208530 0,
-                                      rgba(0, 0, 0, 0.3) 0,
-                                      rgba(0, 0, 0, 0) 0
-          );
-          pointer-events: auto;
-        }
-
-        &.premove-dest {
-          background: radial-gradient(
-            rgba(20, 30, 85, 0.5) 22%,
-                                      #203085 0,
-                                      rgba(0, 0, 0, 0.3) 0,
-                                      rgba(0, 0, 0, 0) 0
-          );
-        }
-
-        &.oc.move-dest {
-          background: radial-gradient(
-            transparent 0%,
-            transparent 80%,
-            rgba(20, 85, 0, 0.3) 80%
-          );
-        }
-
-        &.oc.premove-dest {
-          background: radial-gradient(
-            transparent 0%,
-            transparent 80%,
-            rgba(20, 30, 85, 0.2) 80%
-          );
-        }
-
-        &.move-dest:hover {
-          background: rgba(20, 85, 30, 0.3);
-        }
-
-        &.premove-dest:hover {
-          background: rgba(20, 30, 85, 0.2);
-        }
-
-        &.last-move {
-          will-change: transform;
-          background-color: rgba(155, 199, 0, 0.41);
-        }
-
-        &.selected {
-          background-color: rgba(20, 85, 30, 0.5);
-        }
-
-        &.check {
-          background: radial-gradient(
-            ellipse at center,
-            rgba(255, 0, 0, 1) 0%,
-                                      rgba(231, 0, 0, 1) 25%,
-                                      rgba(169, 0, 0, 0) 89%,
-                                      rgba(158, 0, 0, 0) 100%
-          );
-        }
-
-        &.current-premove {
-          background-color: rgba(20, 30, 85, 0.5);
-        }
+      &.move-dest {
+        background: radial-gradient(rgba(20, 85, 30, 0.5) 22%,
+            #208530 0,
+            rgba(0, 0, 0, 0.3) 0,
+            rgba(0, 0, 0, 0) 0);
+        pointer-events: auto;
       }
 
-      &:has(.dragging) {
-        cursor: grabbing !important;
+      &.premove-dest {
+        background: radial-gradient(rgba(20, 30, 85, 0.5) 22%,
+            #203085 0,
+            rgba(0, 0, 0, 0.3) 0,
+            rgba(0, 0, 0, 0) 0);
       }
 
-      piece {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 12.5%;
-        height: 12.5%;
-        background-size: cover;
-        z-index: 2;
+      &.oc.move-dest {
+        background: radial-gradient(transparent 0%,
+            transparent 80%,
+            rgba(20, 85, 0, 0.3) 80%);
+      }
+
+      &.oc.premove-dest {
+        background: radial-gradient(transparent 0%,
+            transparent 80%,
+            rgba(20, 30, 85, 0.2) 80%);
+      }
+
+      &.move-dest:hover {
+        background: rgba(20, 85, 30, 0.3);
+      }
+
+      &.premove-dest:hover {
+        background: rgba(20, 30, 85, 0.2);
+      }
+
+      &.last-move {
         will-change: transform;
-        pointer-events: auto !important;
-        cursor: grab;
+        background-color: rgba(155, 199, 0, 0.41);
+      }
 
-        &.dragging {
-          // Crucial: When dragging, we must disable pointer events on the piece.
-          // If we don't, the piece blocks the mouse from seeing the square underneath,
-          // breaking the "move-dest" highlighting.
-          pointer-events: none !important;
-          z-index: 10;
-        }
+      &.selected {
+        background-color: rgba(20, 85, 30, 0.5);
+      }
 
-        &.anim {
-          z-index: 8;
-        }
+      &.check {
+        background: radial-gradient(ellipse at center,
+            rgba(255, 0, 0, 1) 0%,
+            rgba(231, 0, 0, 1) 25%,
+            rgba(169, 0, 0, 0) 89%,
+            rgba(158, 0, 0, 0) 100%);
+      }
 
-        &.fading {
-          z-index: 1;
-          opacity: 0.5;
-        }
-
-        &.white {
-          &.pawn {
-            background-image: url("$assets/pieces/_wP.svg");
-          }
-          &.bishop {
-            background-image: url("$assets/pieces/_wB.svg");
-          }
-          &.knight {
-            background-image: url("$assets/pieces/_wN.svg");
-          }
-          &.rook {
-            background-image: url("$assets/pieces/_wR.svg");
-          }
-          &.queen {
-            background-image: url("$assets/pieces/_wQ.svg");
-          }
-          &.king {
-            background-image: url("$assets/pieces/_wK.svg");
-          }
-        }
-
-        &.black {
-          &.pawn {
-            background-image: url("$assets/pieces/_bP.svg");
-          }
-          &.bishop {
-            background-image: url("$assets/pieces/_bB.svg");
-          }
-          &.knight {
-            background-image: url("$assets/pieces/_bN.svg");
-          }
-          &.rook {
-            background-image: url("$assets/pieces/_bR.svg");
-          }
-          &.queen {
-            background-image: url("$assets/pieces/_bQ.svg");
-          }
-          &.king {
-            background-image: url("$assets/pieces/_bK.svg");
-          }
-        }
+      &.current-premove {
+        background-color: rgba(20, 30, 85, 0.5);
       }
     }
+
+    &:has(.dragging) {
+      cursor: grabbing !important;
+    }
+
     piece {
-      &.ghost {
-        opacity: 0.3;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 12.5%;
+      height: 12.5%;
+      background-size: cover;
+      z-index: 2;
+      will-change: transform;
+      pointer-events: auto !important;
+      cursor: grab;
+
+      &.dragging {
+        // Crucial: When dragging, we must disable pointer events on the piece.
+        // If we don't, the piece blocks the mouse from seeing the square underneath,
+        // breaking the "move-dest" highlighting.
+        pointer-events: none !important;
+        z-index: 10;
+      }
+
+      &.anim {
+        z-index: 8;
+      }
+
+      &.fading {
+        z-index: 1;
+        opacity: 0.5;
+      }
+
+      &.white {
+        &.pawn {
+          background-image: var(--wP);
+        }
+
+        &.bishop {
+          background-image: var(--wB);
+        }
+
+        &.knight {
+          background-image: var(--wN);
+        }
+
+        &.rook {
+          background-image: var(--wR);
+        }
+
+        &.queen {
+          background-image: var(--wQ);
+        }
+
+        &.king {
+          background-image: var(--wK);
+        }
+      }
+
+      &.black {
+        &.pawn {
+          background-image: var(--bP);
+        }
+
+        &.bishop {
+          background-image: var(--bB);
+        }
+
+        &.knight {
+          background-image: var(--bN);
+        }
+
+        &.rook {
+          background-image: var(--bR);
+        }
+
+        &.queen {
+          background-image: var(--bQ);
+        }
+
+        &.king {
+          background-image: var(--bK);
+        }
       }
     }
   }
 
-
-  /** Alternating colors in rank/file/square labels */
-  .orientation-white .ranks :nth-child(even),
-  .orientation-white .files :nth-child(even),
-  .orientation-black .ranks :nth-child(odd),
-  .orientation-black .files :nth-child(odd),
-  coords.squares:nth-of-type(odd) :nth-child(even),
-  coords.squares:nth-of-type(even) :nth-child(odd) {
-    color: rgba(72, 72, 72, 0.8);
+  piece {
+    &.ghost {
+      opacity: 0.3;
+    }
   }
+}
 
-  .orientation-white .ranks :nth-child(odd),
-  .orientation-white .files :nth-child(odd),
-  .orientation-black .ranks :nth-child(even),
-  .orientation-black .files :nth-child(even),
-  coords.squares:nth-of-type(odd) :nth-child(odd),
-  coords.squares:nth-of-type(even) :nth-child(even) {
-    color: rgba(255, 255, 255, 0.8);
-  }
+
+/** Alternating colors in rank/file/square labels */
+.orientation-white .ranks :nth-child(even),
+.orientation-white .files :nth-child(even),
+.orientation-black .ranks :nth-child(odd),
+.orientation-black .files :nth-child(odd),
+coords.squares:nth-of-type(odd) :nth-child(even),
+coords.squares:nth-of-type(even) :nth-child(odd) {
+  color: rgba(72, 72, 72, 0.8);
+}
+
+.orientation-white .ranks :nth-child(odd),
+.orientation-white .files :nth-child(odd),
+.orientation-black .ranks :nth-child(even),
+.orientation-black .files :nth-child(even),
+coords.squares:nth-of-type(odd) :nth-child(odd),
+coords.squares:nth-of-type(even) :nth-child(even) {
+  color: rgba(255, 255, 255, 0.8);
+}

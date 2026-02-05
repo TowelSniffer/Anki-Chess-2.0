@@ -29,6 +29,11 @@
       onMoveClick(path);
     }
   }
+
+  function getNagDetails(move) {
+    const key = move.nag?.find(isNagKey);
+    return key ? { title: nags[key]?.[0], symbol: nags[key]?.[1] } : {};
+  }
 </script>
 
 {#snippet nullItem()}
@@ -37,7 +42,7 @@
 
 {#snippet moveNum(move)}
   <span class="move-number">
-    {move.moveNumber}{move.turn === 'b' ? '...' : '.'}
+    {move.moveNumber}{move.turn === 'b' && isVariation ? '...' : '.'}
   </span>
 {/snippet}
 
@@ -62,9 +67,7 @@
   {/if}
 
   {@const pathKey = move.pgnPath.join(',')}
-  {@const nagKey = move.nag?.find(isNagKey)}
-  {@const nagCheck = nagKey ? (nags[nagKey]?.[1] ?? '') : ''}
-  {@const nagTitle = nagKey ? (nags[nagKey]?.[0] ?? '') : ''}
+  {@const nag = getNagDetails(move)}
 
   <span
     class="move"
@@ -75,9 +78,9 @@
     role="button"
     tabindex="0"
   >
-    {#if nagTitle}<span class="nagTooltip">{nagTitle}</span>{/if}
+    {#if nag?.title}<span class="nagTooltip">{nag.title}</span>{/if}
     {move.notation.notation}
-    {nagCheck}
+    {nag.symbol ?? ''}
   </span>
 
   {#if move.commentAfter}
@@ -106,22 +109,25 @@
     {#snippet variationLoop()}
       {#each move.variations as variationLine, v_idx (v_idx)}
         {#if !isVariation}
-          <div class="variation-row {v_idx > 0 ? 'separator' : ''}">
+          <div
+            class:variation-row={!isVariation}
+            class:separator={!isVariation && v_idx > 0}
+          >
             <PgnViewer
               moves={variationLine}
               isVariation={true}
-              withBrackets={false}
+              withBrackets={isVariation}
             />
+            {#if isVariation && v_idx < move.variations.length - 1}
+              <span class="sub-var-spacing"> </span>
+            {/if}
           </div>
         {:else}
           <PgnViewer
             moves={variationLine}
             isVariation={true}
-            withBrackets={true}
+            withBrackets={isVariation}
           />
-          {#if v_idx < move.variations.length - 1}
-            <span class="sub-var-spacing"> </span>
-          {/if}
         {/if}
       {/each}
     {/snippet}
@@ -211,10 +217,10 @@
     padding: 0.5em;
     background: var(--surface-hover);
     position: relative; /* Essential for positioning the border line */
-    &.has-variation {
+    &.has-variation:not(.altLine) {
       border-bottom: 0;
     }
-    &.has-variation::after {
+    &.has-variation:not(.altLine)::after {
       content: '';
       display: block; /* Makes the pseudo-element behave like a block element */
       position: absolute; /* Positions the separator relative to its parent */
@@ -226,11 +232,6 @@
 
       box-shadow: 0px 1px 1px rgba(0, 0, 0, 1);
     }
-  }
-
-  /* remove the top border of the variation container if it follows a comment */
-  .comment.has-variation + .altLine {
-    border-top: 0;
   }
 
   .altLine {
