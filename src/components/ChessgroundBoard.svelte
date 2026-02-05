@@ -64,6 +64,9 @@
         engineStore.enabled = false;
       }
       gameStore.cg = loadBoard(boardContainer, gameStore);
+      requestAnimationFrame(() => {
+        gameStore.cg?.redrawAll();
+      });
     }
     return () => {
       if (gameStore.cg) {
