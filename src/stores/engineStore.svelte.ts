@@ -291,8 +291,11 @@ class EngineStore {
         isMate = true;
         scoreRaw = parseInt(parts[mateIdx + 1], 10);
         const sideToMoveWins = scoreRaw > 0;
-        if (turn === 'w') winChance = sideToMoveWins ? 100 : 0;
-        else winChance = sideToMoveWins ? 0 : 100;
+        if (turn === 'w') {
+          winChance = sideToMoveWins ? 100 : 0;
+        } else {
+          winChance = sideToMoveWins ? 0 : 100;
+        }
       } else if (cpIdx > -1 && parts[cpIdx + 1]) {
         scoreRaw = parseInt(parts[cpIdx + 1], 10);
         const rawWin = convertCpToWinPercentage(scoreRaw);

@@ -147,11 +147,9 @@
       if (evMatch) {
         // Custom: "EV: 27.6%"
         const winPercent = parseFloat(evMatch);
-        const normalizedWinPercent =
-          gameStore.currentMove.turn === 'w' ? 100 - winPercent : winPercent;
-        return barBottomColor === 'white'
-          ? 100 - normalizedWinPercent
-          : normalizedWinPercent;
+        return barBottomColor[0] === gameStore.currentMove.turn
+          ? 100 - winPercent
+          : winPercent;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
           // Mate: #+ is White win (100%), #- is Black win (0%)
@@ -169,10 +167,7 @@
       const bestLine = engineStore.analysisLines.find((l) => l.id === 1);
       if (bestLine) {
         evalPercent = bestLine.winChance;
-      }
-
-      // check if either no valid lines or race condition with fen change
-      if (!bestLine) {
+      } else {
         if (gameStore.isDraw) {
           evalPercent = 50;
         } else if (gameStore.isCheckmate) {
@@ -184,6 +179,7 @@
       // If the engine is thinking, default to last score.
       cachedEval = bestLine ? bestLine.winChance : evalPercent;
 
+      console.log(cachedEval);
       // Calculate based on board orientation
       // If Top is White: Return White %.
       // If Top is Black: Return Black % (100 - White %).
@@ -326,7 +322,7 @@
     onpointerdown={handlePointerDown}
     onwheel={gameStore.boardMode === 'Viewer' ? handleWheel : null}
     onanimationend={() => (flashState = null)}
-    class:analysisMode={visualDivider &&
+    class:analysisMode={visualDivider !== null &&
       (engineStore.enabled || commentDiag) &&
       gameStore.boardMode !== 'Puzzle'}
     class:timerMode={timerStore.visible}
