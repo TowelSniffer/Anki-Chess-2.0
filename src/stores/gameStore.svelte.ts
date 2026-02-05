@@ -86,15 +86,14 @@ export class PgnGameStore {
   readonly aiDelayTime = userConfig.animationTime + 100;
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   pgnPath = $state<PgnPath>([]);
-  orientation = $state<CgColor>('white');
+  orientation = $state<CgColor>('');
   errorCount = $state<number>(0);
   selectedPiece = $state<Square | undefined>(undefined);
 
-  startFen = DEFAULT_POSITION;
-  chess = this.newChess(this.startFen);
+  startFen = '';
 
-  playerColor: CgColor = 'white';
-  opponentColor: CgColor = 'black';
+  playerColor: CgColor = '';
+  opponentColor: CgColor = '';
 
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
 
