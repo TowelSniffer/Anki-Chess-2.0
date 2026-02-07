@@ -10,7 +10,7 @@ import { getInitialCgConfig, handleSelect, handleMove } from '$features/board/cg
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
-import { getSystemShapes, blunderNags } from '$features/board/arrows';
+import { getSystemShapes, blunderNags, parseArrows } from '$features/board/arrows';
 import { playSound } from '$features/audio/audio';
 import {
   checkCastleRights,
@@ -142,6 +142,7 @@ export class PgnGameStore {
     // Only spread engine shapes if the engine's eval matches our visual FEN
     ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
     ...getSystemShapes(this.pgnPath, this._moveMap, this.boardMode),
+    ...parseArrows(this.currentMove?.commentDiag?.colorArrows)
   ]);
 
   constructor(pgn: string, boardMode: BoardModes) {

@@ -39,7 +39,8 @@ const mountApp = () => {
 [FEN "8/p6p/6k1/1pp2r2/7R/KP4P1/P7/8 w - - 2 31"]
 [SetUp "1"]
 
-31. Re4! (31. Rf4?) a5? {[%eval 3.02]} 32. Re8 {[%eval #-3]} Rf2 {[%eval 1.02] [%EV 23.7]} (32... Rg5? {EV:
+{[%cal Ge2c3,Ge6e7,Gc3e4,Ge7e8,Ge4f6]}
+31. Re4 {ddd [%cal Gf3e5]} (31. Rf4? {[%cal Ge2c3,Be6e7,Gc3e4,Ye7e8,Ye4f6]}) a5? {[%eval 3.02]} 32. Re8 {[%eval #-3]} Rf2 {[%eval 1.02] [%EV 23.7]} (32... Rg5? {EV:
 71.5%}) *`;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;

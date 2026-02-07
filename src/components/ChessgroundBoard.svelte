@@ -44,7 +44,7 @@
   };
 
   const gameStore = getContext<PgnGameStore>('GAME_STORE');
-  // $inspect(gameStore.pgnPath);
+  $inspect(gameStore.rootGame);
 
   let boardContainer: HTMLDivElement;
   onMount(() => {
