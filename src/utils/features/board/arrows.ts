@@ -27,6 +27,16 @@ export const shapePriority: CustomShapeBrushes[] = [
   'blunderLine', // Draw this last (Top Layer)
 ];
 
+export const parseSquares = (sqArray) => {
+  if (!sqArray) return [];
+  const colorMap = { G: 'green', R: 'red', Y: 'yellow', B: 'blue' };
+
+  return sqArray.map(str => ({
+    orig: str.slice(1, 3),
+    brush: colorMap[str[0]] || 'green'
+  }));
+};
+
 export const parseArrows = (arrowArray) => {
   if (!arrowArray) return [];
   const colorMap = { G: 'green', R: 'red', Y: 'yellow', B: 'blue' };

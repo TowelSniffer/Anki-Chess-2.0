@@ -40,7 +40,7 @@ const mountApp = () => {
 [SetUp "1"]
 
 {[%cal Ge2c3,Ge6e7,Gc3e4,Ge7e8,Ge4f6]}
-31. Re4 {ddd [%cal Gf3e5]} (31. Rf4? {[%cal Ge2c3,Be6e7,Gc3e4,Ye7e8,Ye4f6]}) a5? {[%eval 3.02]} 32. Re8 {[%eval #-3]} Rf2 {[%eval 1.02] [%EV 23.7]} (32... Rg5? {EV:
+31. Re4 {ddd [%csl Ge4,Rd5,Yf6]} (31. Rf4? {[%cal Ge2c3,Be6e7,Gc3e4,Ye7e8,Ye4f6]}) a5? {[%eval 3.02]} 32. Re8 {[%eval #-3]} Rf2 {[%eval 1.02] [%EV 23.7]} (32... Rg5? {EV:
 71.5%}) *`;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
