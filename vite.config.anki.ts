@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
+import { sharedViteConfig } from './shared-vite-config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'path';
-import path from 'path';
 import Icons from 'unplugin-icons/vite';
 import fs from 'fs';
 
@@ -27,7 +27,7 @@ const cleanupDistPlugin = () => {
 const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
 const versionedName = `_ankiChess${pkg.version}`;
 
-export default defineConfig({
+export default defineConfig(sharedViteConfig({
   plugins: [
     svelte(),
     cleanupDistPlugin(),
@@ -39,25 +39,6 @@ export default defineConfig({
   // anki requires relative paths (./) because files are served locally
   base: './',
   minify: true,
-  resolve: {
-    alias: {
-      $components: path.resolve('./src/components'),
-      $stores: path.resolve('./src/stores'),
-      $scss: path.resolve('./src/scss'),
-      $assets: path.resolve('./src/assets'),
-      $utils: path.resolve('./src/utils'),
-      $features: path.resolve('./src/utils/features'),
-      $anki: path.resolve('./src/anki_templates'),
-    },
-    extensions: ['.mjs', '.js', '.ts', '.svelte.ts', '.svelte', '.json'],
-  },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: `@use "$scss/_globals.scss" as *;`,
-      },
-    },
-  },
   build: {
     // specific output folder for this build
     outDir: 'dist-anki/collection.media',
@@ -89,4 +70,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
