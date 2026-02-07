@@ -1,11 +1,12 @@
 import type { Color as CgColor } from '@lichess-org/chessground/types';
+import type { Api } from '@lichess-org/chessground/api';
 import type { DrawShape } from '@lichess-org/chessground/draw';
 import type { Color, Square, Move } from 'chess.js';
 import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
 import { parse } from '@mliebelt/pgn-parser';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
-import { getInitialCgConfig, handleSelect, handleMove } from '$stores/cgInstance';
+import { getInitialCgConfig, handleSelect, handleMove } from '$features/board/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
@@ -24,7 +25,7 @@ import { userConfig } from '$stores/userConfig.svelte.ts';
 
 // --- Types ---
 
-type PuzzleScored = 'perfect' | 'correct' | 'incorrect' | null;
+export type PuzzleScored = 'perfect' | 'correct' | 'incorrect' | null;
 
 /**
  * Mlieberts promotion is uppercase. Gotten from san (ie dxc8=N)
@@ -32,22 +33,26 @@ type PuzzleScored = 'perfect' | 'correct' | 'incorrect' | null;
  */
 export type SanPromotions = 'Q' | 'N' | 'R' | 'B';
 export type ChessJsPromotions = 'q' | 'n' | 'r' | 'b';
-
+export type BoardModes = 'Viewer' | 'Puzzle';
 export type PgnPath = (number | 'v')[];
 
 export type CustomShapeBrushes =
   | 'stockfish'
   | 'stockfishAlt'
   | 'mainLine'
+  | 'goodLine'
   | 'altLine'
   | 'blunderLine'
-  | 'userDrawn';
+  | 'nagOnly'
 
 export type CustomShape = Omit<DrawShape, 'brush' | 'orig' | 'dest'> & {
   orig: Square;
   dest: Square;
   san?: string;
   brush?: CustomShapeBrushes;
+};
+type CustomGameComment = GameComment & {
+  EV: string;
 };
 
 export type CustomPgnMove = Omit<
@@ -63,7 +68,7 @@ export type CustomPgnMove = Omit<
   promotion: SanPromotions | undefined;
   drawOffer?: boolean;
   moveNumber?: number;
-  commentDiag?: GameComment;
+  commentDiag?: CustomGameComment;
   pgnPath: PgnPath;
   variations: CustomPgnMove[][];
 
@@ -84,20 +89,20 @@ export class PgnGameStore {
   // --- Game State ---
   cg: Api | null = null;
   rawPgn = $state('');
-  boardMode = $state('');
+  boardMode: BoardModes = 'Viewer';
   readonly aiDelayTime = userConfig.animationTime + 100;
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   pgnPath = $state<PgnPath>([]);
-  orientation = $state<CgColor>('');
+  orientation = $state<CgColor>('white');
   errorCount = $state<number>(0);
   selectedPiece = $state<Square | undefined>(undefined);
 
-  startFen = '';
+  startFen = DEFAULT_POSITION;
 
-  playerColor: CgColor = '';
-  opponentColor: CgColor = '';
+  playerColor: CgColor = 'white';
+  opponentColor: CgColor = 'black';
 
-  wrongMoveDebounce = null
+  wrongMoveDebounce: ReturnType<typeof setTimeout> | null = null;
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
 
   // --- Internal State ---
@@ -105,6 +110,29 @@ export class PgnGameStore {
   private _puzzleScore: PuzzleScored = null;
   private _hasMadeMistake: boolean = false;
   private _moveMap = new Map<string, CustomPgnMove>();
+
+  // --- DERIVED STATE ---
+
+  isPuzzleComplete = $derived(this.boardMode === 'Puzzle' && !this.hasNext);
+
+  // caches the string key (prevents repeated .join() calls)
+  currentPathKey = $derived(this.pgnPath.join(','));
+
+  // caches the Map lookup
+  currentMove = $derived(this._moveMap.get(this.currentPathKey) || null);
+
+  // depends on cached currentMove
+  fen = $derived(this.currentMove?.after ?? this.startFen);
+
+  // depends on cached currentMove
+  turn = $derived.by(() => {
+    if (!this.currentMove) {
+      // Ensure rootGame is loaded before accessing tags
+      if (!this.rootGame) return 'w';
+      return getTurnFromFen(this.startFen);
+    }
+    return this.currentMove.turn === 'w' ? 'b' : 'w';
+  });
 
   // The last cached "Output" (What the board sees)
   _displayedShapes = $state<CustomShape[]>([]);
@@ -116,10 +144,10 @@ export class PgnGameStore {
     ...getSystemShapes(this.pgnPath, this._moveMap, this.boardMode),
   ]);
 
-  constructor(pgn: string, boardMode: string) {
+  constructor(pgn: string, boardMode: BoardModes) {
     const storedScore = sessionStorage.getItem('chess_puzzle_score');
     if (boardMode !== 'Puzzle') {
-      this._puzzleScore = storedScore ?? null;
+      this._puzzleScore = (storedScore as PuzzleScored) ?? null;
     }
     if (storedScore) sessionStorage.removeItem('chess_puzzle_score');
     this.rawPgn = pgn;
@@ -158,34 +186,11 @@ export class PgnGameStore {
     });
   }
 
-  // --- DERIVED STATE ---
-
-  isPuzzleComplete = $derived(this.boardMode === 'Puzzle' && !this.hasNext);
-
-  // caches the string key (prevents repeated .join() calls)
-  currentPathKey = $derived(this.pgnPath.join(','));
-
-  // caches the Map lookup
-  currentMove = $derived(this._moveMap.get(this.currentPathKey) || null);
-
-  // depends on cached currentMove
-  fen = $derived(this.currentMove?.after ?? this.startFen);
-
-  // depends on cached currentMove
-  turn = $derived.by(() => {
-    if (!this.currentMove) {
-      // Ensure rootGame is loaded before accessing tags
-      if (!this.rootGame) return 'w';
-      return getTurnFromFen(this.startFen);
-    }
-    return this.currentMove.turn === 'w' ? 'b' : 'w';
-  });
-
   boardConfig = $derived({
     check: this.inCheck,
     orientation: this.orientation,
     viewOnly: this.isPuzzleComplete,
-    turnColor: this.turn === 'w' ? 'white' : 'black',
+    turnColor: (this.turn === 'w' ? 'white' : 'black') as CgColor,
     movable: {
       color:
         this.boardMode === 'Puzzle'
@@ -306,7 +311,7 @@ export class PgnGameStore {
 
   // --- Methods ---
 
-  loadCgInstance(boardContainer) {
+  loadCgInstance(boardContainer: HTMLDivElement) {
     this.cg = Chessground(boardContainer, getInitialCgConfig(this));
     this.cg.set(this.boardConfig); // sync
   }
@@ -331,7 +336,7 @@ export class PgnGameStore {
       const savedMirrorState =
         sessionStorage.getItem('chess__mirrorState') ?? null;
       if (savedMirrorState) {
-        this._mirrorState = savedMirrorState;
+        this._mirrorState = (savedMirrorState as MirrorState);
         sessionStorage.removeItem('chess__mirrorState');
       }
     }

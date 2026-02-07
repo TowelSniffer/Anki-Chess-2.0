@@ -1,24 +1,33 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import type { Component } from 'svelte';
 
-  let { value, onChange, options, label, icon } = $props();
+  type Props = {
+    value: any;
+    options: any[];
+    onChange: (val: any) => void;
+    label?: string;
+    icon?: Component | string;
+  };
+
+  let { value, onChange, options, label, icon }: Props = $props();
 
   // State for the dropdown visibility
   let isOpen = $state(false);
-  let valueTriggerRef; // Reference to the right-side container
+  let valueTriggerRef: HTMLDivElement; // Reference to the right-side container
 
   function toggle() {
     isOpen = !isOpen;
   }
 
-  function select(val) {
+  function select(val: any) {
     onChange(val);
     isOpen = false;
   }
 
-  function handleClickOutside(event) {
+  function handleClickOutside(event: MouseEvent) {
     // Only close if clicking outside the specific trigger area
-    if (valueTriggerRef && !valueTriggerRef.contains(event.target)) {
+    if (valueTriggerRef && !valueTriggerRef.contains(event.target as Node)) {
       isOpen = false;
     }
   }
@@ -47,8 +56,12 @@
     >
       <span class="current-value">{value}</span>
       {#if icon}
-        {@const Icon = icon}
-        <Icon />
+        {#if typeof icon === 'string'}
+          <span>{icon}</span>
+        {:else}
+          {@const Icon = icon}
+          <Icon />
+        {/if}
       {/if}
       <span class="arrow" class:open={isOpen}>▼</span>
     </button>

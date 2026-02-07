@@ -4,7 +4,7 @@ import type { PgnMove } from '@mliebelt/pgn-types';
 import type { CustomPgnMove, PgnPath } from '$stores/gameStore.svelte.ts';
 import { isNagKey, nags } from './nags';
 import { getContext } from 'svelte';
-import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+import type { PgnGameStore } from '$stores/gameStore.svelte';
 
 // --- PGN Navigation ---
 

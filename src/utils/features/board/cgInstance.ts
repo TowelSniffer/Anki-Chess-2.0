@@ -1,4 +1,3 @@
-import type { Api } from '@lichess-org/chessground/api';
 import type { Key } from '@lichess-org/chessground/types';
 import { Chess, type Square } from 'chess.js';
 import { type CustomShape } from '$stores/gameStore.svelte.ts';
@@ -6,7 +5,7 @@ import { userConfig } from '$stores/userConfig.svelte.ts';
 import { isMoveLegal, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
 import { handleUserMove } from '$features/chessJs/puzzleLogic';
-import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+import type { PgnGameStore } from '$stores/gameStore.svelte';
 
 // --- Logic Handlers ---
 
@@ -17,7 +16,7 @@ import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
  * 2. Manual Click-to-Move handling (if needed)
  */
 export function handleSelect(key: Key, store: PgnGameStore) {
-  if (store.wrongMoveDebounce) return;
+  if (store.wrongMoveDebounce || !store.cg) return;
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
@@ -77,6 +76,7 @@ export function handleSelect(key: Key, store: PgnGameStore) {
  * Handles the 'after' event (Drag and Drop completion).
  */
 export function handleMove( orig: Key, dest: Key, store: PgnGameStore) {
+  if (!store.cg) return;
   const from = orig as Square;
   const to = dest as Square;
 

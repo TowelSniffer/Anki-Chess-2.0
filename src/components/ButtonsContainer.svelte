@@ -12,14 +12,13 @@
   import IconDevBoardOff from '~icons/material-symbols/developer-board-off-sharp';
   import IconFlip from '~icons/material-symbols/flip-sharp';
 
-  import Dropdown from './uiUtility/Dropdown.svelte';
-  import type { MenuItem } from './uiUtility/Dropdown.svelte';
+  import Dropdown, { type MenuItem } from './uiUtility/Dropdown.svelte';
 
   import { engineStore } from '$stores/engineStore.svelte';
-  import { userConfig } from '$stores/userConfig.svelte';
+  import { userConfig, type UserConfig } from '$stores/userConfig.svelte';
   import { playSound } from '$features/audio/audio';
   import { untrack, getContext } from 'svelte';
-  import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+  import type { PgnGameStore } from '$stores/gameStore.svelte';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<PgnGameStore>('GAME_STORE');
@@ -27,6 +26,10 @@
   let isFlipped = $derived(gameStore.orientation === 'black');
   let canGoBack = $derived(gameStore.pgnPath.length > 0);
   let canGoForward = $derived(gameStore.hasNext);
+
+  type BooleanKeys<T> = {
+    [K in keyof T]: T[K] extends boolean ? K : never;
+  }[keyof T];
 
   async function copyFen() {
     try {
@@ -52,11 +55,11 @@
     }
   }
 
-  function setConfigBoolean(key) {
+  function setConfigBoolean(key: BooleanKeys<UserConfig>) {
     userConfig[key] = !userConfig[key];
   }
 
-  const menuData = $derived([
+  const menuData: MenuItem[] = $derived([
     {
       label: 'Stockfish',
       icon: IconDevBoard,
@@ -67,7 +70,7 @@
           min: 1,
           max: 300,
           value: userConfig.analysisTime,
-          onChange: (val) => engineStore.setThinkingTime(val),
+          onChange: (val: number) => engineStore.setThinkingTime(val),
         },
         {
           type: 'number',
@@ -75,7 +78,7 @@
           min: 1,
           max: 5,
           value: userConfig.analysisLines,
-          onChange: (val) => engineStore.setMultiPv(val),
+          onChange: (val: number) => engineStore.setMultiPv(val),
         },
       ],
     },
@@ -90,7 +93,7 @@
           min: 1,
           max: 10,
           value: userConfig.handicap,
-          onChange: (val) => (userConfig.handicap = val),
+          onChange: (val: number) => (userConfig.handicap = val),
         },
         {
           type: 'separator',
@@ -102,7 +105,7 @@
           min: 1,
           max: 60,
           value: userConfig.timer / 1000,
-          onChange: (val) => (userConfig.timer = val * 1000),
+          onChange: (val: number) => (userConfig.timer = val * 1000),
         },
         {
           type: 'number',
@@ -111,7 +114,7 @@
           min: 1,
           max: 60,
           value: userConfig.increment / 1000,
-          onChange: (val) => (userConfig.increment = val * 1000),
+          onChange: (val: number) => (userConfig.increment = val * 1000),
         },
         {
           type: 'separator',
@@ -125,7 +128,6 @@
         },
         {
           type: 'toggle',
-          tooltip: 'flipBoardsads',
           label: 'flipBoard',
           tooltip:
             'Dictates where puzzle is solves from first or second move of the PGN',

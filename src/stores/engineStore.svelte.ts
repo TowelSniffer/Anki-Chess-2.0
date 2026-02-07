@@ -1,6 +1,6 @@
 import { untrack } from 'svelte';
 import { Chess, type Square } from 'chess.js';
-import { userConfig } from './userConfig';
+import { userConfig } from './userConfig.svelte';
 import { type CustomShape } from './gameStore.svelte';
 
 function convertCpToWinPercentage(cp: number): number {
@@ -125,7 +125,7 @@ class EngineStore {
     this.multipv = count;
     userConfig.analysisLines = count;
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('chess_multipv', count);
+      sessionStorage.setItem('chess_multipv', `${count}`);
     }
     this._restart();
   }
@@ -136,7 +136,7 @@ class EngineStore {
     userConfig.analysisTime = time;
     this.analysisThinkingTime = time;
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('chess_analysisTime', time);
+      sessionStorage.setItem('chess_analysisTime', `${time}`);
     }
     this._restart();
   }

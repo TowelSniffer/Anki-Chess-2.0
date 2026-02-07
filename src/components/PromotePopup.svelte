@@ -14,7 +14,7 @@
   import bNRaw from '$assets/pieces/_bN.svg?raw';
 
   import { getContext } from 'svelte';
-  import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+  import type { PgnGameStore } from '$stores/gameStore.svelte';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<PgnGameStore>('GAME_STORE');

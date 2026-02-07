@@ -1,21 +1,16 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
-    "incremental": false,
-    "tsBuildInfoFile": null,
-    "target": "ES2023",
-    "useDefineForClassFields": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "target": "ESNext",
     "module": "ESNext",
-    "types": [
-      "svelte",
-      "vite/client"
-    ],
-    "noEmit": true,
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
+    "lib": ["es2023", "dom"],
     "allowJs": true,
     "checkJs": true,
-    "baseUrl": ".",
+    "types": [
+      "unplugin-icons/types/svelte"
+    ],
     "paths": {
       "$components/*": [
         "src/components/*"
@@ -35,8 +30,11 @@
       "$features/*": [
         "src/utils/features/*"
       ],
-      "$anki": [
+      "$anki/*": [
         "src/anki_templates/*"
+      ],
+      "$Types/*": [
+        "src/Types/*"
       ],
     },
     "allowImportingTsExtensions": true
@@ -45,6 +43,7 @@
     "src/**/*.ts",
     "src/**/*.js",
     "src/**/*.svelte",
-    "src/**/*.svelte.ts"
+    "src/**/*.svelte.ts",
+    "src/**/*.json"
   ]
 }
