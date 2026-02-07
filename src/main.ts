@@ -42,7 +42,7 @@ const mountApp = () => {
 71.5%}) *`;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki = target.getAttribute('data-boardMode') || 'Puzzle';
+  const boardModeFromAnki = target.getAttribute('data-boardMode') || 'Viewer';
 
   // If an app already exists, unmount it to prevent memory leaks
   if (appInstance) {
