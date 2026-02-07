@@ -10,7 +10,7 @@
 
   let {
     moves: passedMoves = undefined,
-    gameComment = gameStore.rootGame?.gameComment,
+    gameComment = gameStore.rootGame?.gameComment?.comment,
     isVariation = false,
     withBrackets = false,
   } = $props();

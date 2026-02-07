@@ -27,6 +27,17 @@ export const shapePriority: CustomShapeBrushes[] = [
   'blunderLine', // Draw this last (Top Layer)
 ];
 
+export const parseArrows = (arrowArray) => {
+  if (!arrowArray) return [];
+  const colorMap = { G: 'green', R: 'red', Y: 'yellow', B: 'blue' };
+
+  return arrowArray.map(str => ({
+    orig: str.slice(1, 3),
+    dest: str.slice(3, 5),
+    brush: colorMap[str[0]] || 'green' // Default to green if unknown
+  }));
+};
+
 // helper to create a single shape object
 function createShape(
   move: CustomPgnMove,
