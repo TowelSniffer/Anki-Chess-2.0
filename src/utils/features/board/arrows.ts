@@ -3,10 +3,11 @@ import type {
   CustomShape,
   CustomPgnMove,
   PgnPath,
+  BoardModes
 } from '$stores/gameStore.svelte';
-import { isNagKey, nags } from '$features/pgn/nags';
+import { isNagKey, nags, type NagKey} from '$features/pgn/nags';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
-
+import { areMovesEqual } from '$features/chessJs/chessFunctions'
 export const blunderNags = ['$2', '$4', '$6', '$9'];
 const goodNags = ['$3', '$1'];
 
@@ -24,14 +25,6 @@ export const shapePriority: CustomShapeBrushes[] = [
   'mainLine', // Draw this second
   'altLine',
   'blunderLine', // Draw this last (Top Layer)
-];
-
-const customShapeBrushes: CustomShapeBrushes[] = [
-  'stockfish',
-  'stockfishAlt',
-  'mainLine',
-  'altLine',
-  'blunderLine',
 ];
 
 // helper to create a single shape object
@@ -60,7 +53,7 @@ function createShape(
   };
 }
 
-function getNagType(nags) {
+function getNagType(nags: string[]): CustomShapeBrushes | null {
   const isBlunder = nags.some((n) => blunderNags.includes(n));
   const isGood = nags.some((n) => goodNags.includes(n));
 
@@ -73,15 +66,9 @@ function getNagType(nags) {
   return brush;
 }
 
-function getParentMove(path) {
+function getParentMove(path: PgnPath): PgnPath {
   const prevPath = navigatePrevMove(path);
   return navigateNextMove(prevPath);
-}
-
-function areMovesEqual(move1, move2) {
-  return move1?.turn === move2?.turn
-    && move1?.moveNumber === move2?.moveNumber
-    && move1?.notation.notation === move2?.notation.notation;
 }
 
 /**
@@ -90,7 +77,7 @@ function areMovesEqual(move1, move2) {
 export function getSystemShapes(
   currentPath: PgnPath,
   moveMap: Map<string, CustomPgnMove>,
-  boardMode: 'Viewer' | 'Puzzle' | 'Play',
+  boardMode: BoardModes,
 ): CustomShape[] {
   const shapes: CustomShape[] = [];
 
@@ -98,16 +85,15 @@ export function getSystemShapes(
 
   const nextMoveKey = boardMode !== 'Puzzle' ? nextPath.join(',') : getParentMove(nextPath).join(',');
   const mainMove = moveMap.get(nextMoveKey);
-
   if (!mainMove) return shapes;
-
+  const currentMove = moveMap.get(currentPath.join(',')) ?? null
   // Variations (Alt Lines)
   if (mainMove.variations && mainMove.variations.length > 0) {
     mainMove.variations.forEach((variationLine) => {
       const varMove = variationLine[0];
       const nags = varMove.nag || [];
 
-      const shouldPushAlt = !(boardMode === 'Puzzle' && areMovesEqual(varMove, moveMap.get(currentPath.join(','))))
+      const shouldPushAlt = !(boardMode === 'Puzzle' && areMovesEqual(varMove, currentMove))
       const brush = shouldPushAlt ? getNagType(nags) : 'nagOnly';
 
       shapes.push(createShape(varMove, brush ?? 'altLine'));
@@ -117,7 +103,7 @@ export function getSystemShapes(
   // Main Line
   const nags = mainMove.nag || [];
 
-  const shouldPushMain = !(boardMode === 'Puzzle' && areMovesEqual(mainMove, moveMap.get(currentPath.join(','))))
+  const shouldPushMain = !(boardMode === 'Puzzle' && areMovesEqual(mainMove, currentMove))
   const brush = shouldPushMain ? getNagType(nags) : 'nagOnly';
 
   shapes.push(

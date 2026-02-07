@@ -1,6 +1,7 @@
 import { mount, unmount } from 'svelte';
 import App from './App.svelte';
 import '$scss/app.scss';
+import type { BoardModes } from '$stores/gameStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { engineStore } from '$stores/engineStore.svelte';
 
@@ -42,7 +43,7 @@ const mountApp = () => {
 71.5%}) *`;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki = target.getAttribute('data-boardMode') || 'Viewer';
+  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Viewer';
 
   // If an app already exists, unmount it to prevent memory leaks
   if (appInstance) {
@@ -62,7 +63,6 @@ const mountApp = () => {
 };
 
 // Expose the function globally so Anki can call it
-// @ts-ignore
 window.mountChess = mountApp;
 
 // Anki will handle mounting after reading user config

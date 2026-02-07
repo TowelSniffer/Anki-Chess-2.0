@@ -3,13 +3,13 @@
   import { type PgnPath } from '$stores/gameStore.svelte.ts';
   import PgnViewer from './PgnViewer.svelte';
   import { getContext } from 'svelte';
-  import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+  import type { PgnGameStore, CustomPgnMove } from '$stores/gameStore.svelte';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<PgnGameStore>('GAME_STORE');
 
   let {
-    moves: passedMoves,
+    moves: passedMoves = undefined,
     gameComment = gameStore.rootGame?.gameComment,
     isVariation = false,
     withBrackets = false,
@@ -23,14 +23,14 @@
     gameStore.pgnPath = path;
   }
 
-  function onKeyDown(event: KeyboardEvent, path: PgnPath) {
+  function onKeyDown(event: KeyboardEvent, path: PgnPath): void {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault(); // Prevent scrolling for Space
       onMoveClick(path);
     }
   }
 
-  function getNagDetails(move) {
+  function getNagDetails(move: CustomPgnMove) {
     const key = move.nag?.find(isNagKey);
     return key ? { title: nags[key]?.[0], symbol: nags[key]?.[1] } : {};
   }
@@ -40,7 +40,7 @@
   <span class="nullMove">|...|</span>
 {/snippet}
 
-{#snippet moveNum(move)}
+{#snippet moveNum(move: CustomPgnMove)}
   <span class="move-number">
     {move.moveNumber}{move.turn === 'b' && isVariation ? '...' : '.'}
   </span>

@@ -1,10 +1,4 @@
-<script lang="ts">
-  import { clickOutside } from '$utils/toolkit/clickOutside';
-  import { onMount, onDestroy } from 'svelte';
-  import type { Component } from 'svelte';
-  import IconHelp from '~icons/material-symbols/help';
-  import IconArrowRight from '~icons/material-symbols/keyboard-arrow-right';
-
+<script context="module" lang="ts">
   export type MenuItem = {
     type?: 'action' | 'separator' | 'toggle' | 'number' | 'select';
     label?: string;
@@ -13,26 +7,29 @@
     disabled?: boolean;
     danger?: boolean;
     highlight?: boolean;
-
     // Action & Submenu
     action?: () => void;
     children?: MenuItem[];
-
     // Toggle (Checkbox)
     checked?: boolean;
     onToggle?: (val: boolean) => void;
-
     // Number Input
     value?: number | string;
     min?: number;
     max?: number;
     step?: number;
     onChange?: (val: any) => void;
-
     // Select (CustomSelector)
     options?: string[];
-    // uses 'value' and 'onChange' from above
   };
+</script>
+
+<script lang="ts">
+  import { clickOutside } from '$utils/toolkit/clickOutside';
+  import { onMount, onDestroy } from 'svelte';
+  import type { Component } from 'svelte';
+  import IconHelp from '~icons/material-symbols/help';
+  import IconArrowRight from '~icons/material-symbols/keyboard-arrow-right';
 
   type Props = {
     label?: string;
@@ -42,8 +39,8 @@
   };
 
   let {
-    label = null,
-    icon = null,
+    label = '',
+    icon = '',
     items,
     position = 'bottom-left',
   }: Props = $props();

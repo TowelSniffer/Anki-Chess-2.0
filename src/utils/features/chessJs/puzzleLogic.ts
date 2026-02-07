@@ -7,7 +7,7 @@ import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
 import { getContext } from 'svelte';
-import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+import type { PgnGameStore } from '$stores/gameStore.svelte';
 
 
 // --- Helper Functions ---
@@ -120,6 +120,7 @@ export function playAiMove(gameStore: PgnGameStore, delay: number): void {
 
 function playUserCorrectMove(gameStore: PgnGameStore, delay: number): void {
   setTimeout(() => {
+    if (!gameStore.cg) return;
     gameStore.cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
     timerStore.resume();
     // Make the move without the AI's variation-selection logic
@@ -130,12 +131,14 @@ function playUserCorrectMove(gameStore: PgnGameStore, delay: number): void {
 }
 
 function handleWrongMove(gameStore: PgnGameStore, move: Move): void {
+  if (!gameStore.cg) return;
   gameStore.errorCount++;
   gameStore.cg.move(move.from, move.to);
   playSound('error');
   gameStore.wrongMoveDebounce = setTimeout(() => {
+    if (!gameStore.cg) return;
     gameStore.wrongMoveDebounce = null;
-    gameStore.cg.set({...gameStore.boardConfig, fen: move.before});
+    gameStore.cg.set({ ...gameStore.boardConfig, fen: move.before });
   }, userConfig.animationTime);
 
   const isFailed = gameStore.errorCount > userConfig.handicap;

@@ -3,7 +3,7 @@
   import '@lichess-org/chessground/assets/chessground.base.css';
   import type { Key } from '@lichess-org/chessground/types';
   import '$scss/_components/_chessground.scss';
-  import { type PgnPath, type CustomPgnMove } from '$stores/gameStore.svelte.ts';
+  import type { PgnGameStore, PgnPath, CustomPgnMove, PuzzleScored } from '$stores/gameStore.svelte.ts';
   import { userConfig } from '$stores/userConfig.svelte.ts';
   import { engineStore } from '$stores/engineStore.svelte';
   import { timerStore } from '$stores/timerStore.svelte';
@@ -11,7 +11,6 @@
   import { playAiMove } from '$features/chessJs/puzzleLogic';
   import { getContext, untrack } from 'svelte';
   import { spring } from 'svelte/motion';
-  import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
 
   import wP_raw from '$assets/pieces/_wP.svg?raw';
   import wN_raw from '$assets/pieces/_wN.svg?raw';
@@ -124,7 +123,7 @@
       if (evMatch) {
         // Custom: "EV: 27.6%"
         const winPercent = parseFloat(evMatch);
-        return barBottomColor[0] === gameStore.currentMove.turn ? 100 - winPercent : winPercent;
+        return barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
           // Mate: #+ is White win (100%), #- is Black win (0%)
@@ -172,7 +171,7 @@
 
   // Sync the Spring to derived visualDivider
   $effect(() => {
-    if (visualDivider === null) return;
+    if (typeof visualDivider !== 'number') return;
     dividerSpring.set(visualDivider);
   });
 
@@ -218,7 +217,7 @@
   });
 
   // BORDER FLASH FIXME type for flash colours
-  let flashState = $state<null | string>(null);
+  let flashState = $state<PuzzleScored>(null);
   let lastErrorCount = 0; // To track changes, not just values
 
   // A) : Handle Mistakes (Flash Red)
@@ -253,7 +252,7 @@
    */
 
   // trigger CSS animation replay
-  function triggerFlash(type: string) {
+  function triggerFlash(type: PuzzleScored) {
     flashState = null; // reset to force reflow if needed
     requestAnimationFrame(() => {
       flashState = type;
@@ -300,7 +299,7 @@
     --player-color: {gameStore.playerColor};
     --opponent-color: {gameStore.opponentColor};
     --border-color: {boardBorderColor};
-    --border-flash-color: {SCORE_COLORS[flashState] ?? 'transparent'};
+    --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
 
     /* Interative Border Colors (Engine Analysis/Timer) */
     --bar-top-color: {barTopColor};

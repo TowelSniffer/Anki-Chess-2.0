@@ -18,7 +18,6 @@ type Sounds =
   | 'castle'
   | 'promote'
   | 'error'
-  | 'computer-mouse-click';
 
 type MoveEvent =
   | 'checkmate'
@@ -92,7 +91,7 @@ function initAudio(): Map<Sounds, HTMLAudioElement> {
 
 const audioMap: Map<Sounds, HTMLAudioElement> = initAudio();
 
-export function playSound(soundName: Sounds): void {
+export function playSound(soundName: Sounds | 'computer-mouse-click'): void {
   if (userConfig.muteAudio) return;
 
   if (soundName === 'computer-mouse-click') {

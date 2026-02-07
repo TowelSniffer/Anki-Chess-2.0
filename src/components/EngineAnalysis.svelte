@@ -2,7 +2,7 @@
   import { engineStore } from '$stores/engineStore.svelte';
   import CustomSelector from './uiUtility/CustomSelector.svelte';
   import { getContext } from 'svelte';
-  import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+  import type { PgnGameStore } from '$stores/gameStore.svelte';
   import IconArrowSplit from '~icons/material-symbols/arrow-split';
   import IconSearchGear from '~icons/material-symbols/search-gear';
 
@@ -53,7 +53,7 @@
       value={engineStore.multipv}
       options={engineStore.multipvOptions}
       icon={IconArrowSplit}
-      onChange={(val) => engineStore.setMultiPv(val)}
+      onChange={(val: number) => engineStore.setMultiPv(val)}
     />
 
     <CustomSelector
@@ -61,7 +61,7 @@
       value={engineStore.analysisThinkingTime}
       options={engineStore.thinkingTimeOptions}
       icon={IconSearchGear}
-      onChange={(val) => engineStore.setThinkingTime(val)}
+      onChange={(val: number) => engineStore.setThinkingTime(val)}
     />
   </div>
   {#if engineStore.loading}

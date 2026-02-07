@@ -38,7 +38,6 @@ export default defineConfig(sharedViteConfig({
   ],
   // anki requires relative paths (./) because files are served locally
   base: './',
-  minify: true,
   build: {
     // specific output folder for this build
     outDir: 'dist-anki/collection.media',

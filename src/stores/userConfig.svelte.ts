@@ -1,9 +1,7 @@
 import type { Color } from '@lichess-org/chessground/types';
 import { updateAnkiChessTemplate, checkAnkiConnection } from '$utils/ankiConnect';
 
-type BoardModes = 'Viewer' | 'Puzzle';
-
-class UserConfig {
+export class UserConfig {
   flipBoard = $state(false);
   mirror = $state(false);
   showDests = $state(true);
@@ -29,9 +27,10 @@ class UserConfig {
   lastSavedState = $state<Record<string, any>>({});
 
   // --- Derived State ---
-  saveDue = $derived.by(() => {
+  saveDue: boolean = $derived.by((): boolean => {
     return Object.keys(this.lastSavedState).some((key) => {
-      return this[key] !== undefined && this[key] !== this.lastSavedState[key];
+      const k = key as keyof UserConfig; // Cast key to valid class property
+      return this[k] !== undefined && this[k] !== this.lastSavedState[key];
     });
   });
 
@@ -43,10 +42,12 @@ class UserConfig {
     }
   }
 
-  applyConfig(config: any) {
+  applyConfig(config: Partial<UserConfig>) {
     Object.keys(config).forEach((key) => {
-      if (this[key] !== undefined) {
-        this[key] = config[key];
+      const k = key as keyof UserConfig;
+      if (this[k] !== undefined) {
+        // @ts-ignore
+        this[k] = config[key];
       }
     });
   }
@@ -58,8 +59,8 @@ class UserConfig {
     // We use the keys from the last saved state to know what to save
     const newConfig: Record<string, any> = {};
     Object.keys(this.lastSavedState).forEach(key => {
-      // @ts-ignore
-      if (this[key] !== undefined) newConfig[key] = this[key];
+      const k = key as keyof UserConfig;
+      if (this[k] !== undefined) newConfig[key] = this[k];
     });
 
     // Update window.USER_CONFIG (for consistency with external scripts)

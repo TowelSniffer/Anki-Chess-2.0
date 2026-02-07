@@ -11,7 +11,7 @@ import type {
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { moveAudio, playSound } from '$features/audio/audio';
-import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
+import type { PgnGameStore } from '$stores/gameStore.svelte';
 
 const promotionToRole: Record<SanPromotions, Role> = {
   Q: 'queen',
@@ -127,8 +127,6 @@ export function updateBoard(
     // nav back audio
     playSound('move');
 
-    // We assume access to the map. If _moveMap is private, ensure you have a getter or use public access.
-    // @ts-ignore - Assuming internal access or public getter availability
     const unplayedMove = gameStore.getMoveByPath(previousPath);
 
     if (unplayedMove?.promotion) {
