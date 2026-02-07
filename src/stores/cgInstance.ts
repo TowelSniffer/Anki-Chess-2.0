@@ -143,7 +143,9 @@ const customBrushes = {
   yellow: { key: 'yellow', color: 'yellow', opacity: 1, lineWidth: 7 },
 };
 
-export const defaultCgConfig = {
+export function getInitialCgConfig(store: PgnGameStore) {
+ return {
+  fen: store.startFen,
   premovable: {
     enabled: true,
   },
@@ -158,9 +160,20 @@ export const defaultCgConfig = {
     enabled: true,
     brushes: customBrushes,
   },
+  events: {
+    select: (key: Key) => {
+      handleSelect(key, store);
+    },
+  },
   movable: {
     free: false,
     showDests: userConfig.showDests,
+    events: {
+      after: (orig: Key, dest: Key) => {
+        handleMove(orig, dest, store);
+      }
+    }
   }
+}
 };
 

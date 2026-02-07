@@ -5,7 +5,7 @@ import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
 import { parse } from '@mliebelt/pgn-parser';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
-import { defaultCgConfig, handleSelect, handleMove } from '$stores/cgInstance';
+import { getInitialCgConfig, handleSelect, handleMove } from '$stores/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
@@ -307,25 +307,8 @@ export class PgnGameStore {
   // --- Methods ---
 
   loadCgInstance(boardContainer) {
-    const initialBoardConfig = {
-      ...defaultCgConfig,
-      fen: this.startFen, // Initial FEN
-      events: {
-        select: (key: Key) => {
-          handleSelect(key, this);
-        },
-      },
-      movable: {
-        events: {
-          after: (orig: Key, dest: Key) => {
-            // "this" correctly refers to PgnGameStore
-            handleMove(orig, dest, this);
-          }
-        }
-      }
-    };
-    this.cg = Chessground(boardContainer, initialBoardConfig);
-    this.cg.set(this.boardConfig)
+    this.cg = Chessground(boardContainer, getInitialCgConfig(this));
+    this.cg.set(this.boardConfig); // sync
   }
 
   parsePGN(rawPgn = this.rawPgn, boardMode = this.boardMode) {
