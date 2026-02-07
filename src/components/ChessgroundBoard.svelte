@@ -3,11 +3,7 @@
   import '@lichess-org/chessground/assets/chessground.base.css';
   import type { Key } from '@lichess-org/chessground/types';
   import '$scss/_components/_chessground.scss';
-  import { loadBoard } from '$stores/cgInstance';
-  import {
-    type PgnPath,
-    type CustomPgnMove,
-  } from '$stores/gameStore.svelte.ts';
+  import { type PgnPath, type CustomPgnMove } from '$stores/gameStore.svelte.ts';
   import { userConfig } from '$stores/userConfig.svelte.ts';
   import { engineStore } from '$stores/engineStore.svelte';
   import { timerStore } from '$stores/timerStore.svelte';
@@ -49,9 +45,7 @@
   };
 
   const gameStore = getContext<PgnGameStore>('GAME_STORE');
-  let previousPath: PgnPath | null = null;
-
-  $inspect(gameStore.currentMove);
+  // $inspect(gameStore.pgnPath);
 
   let boardContainer: HTMLDivElement;
   onMount(() => {
@@ -63,7 +57,7 @@
       } else {
         engineStore.enabled = false;
       }
-      gameStore.cg = loadBoard(boardContainer, gameStore);
+      gameStore.loadCgInstance(boardContainer);
       requestAnimationFrame(() => {
         gameStore.cg?.redrawAll();
       });
@@ -83,22 +77,7 @@
 
   // --- DERIVATIONS ---
 
-  // --- Chessground Config ---
-
-  const boardConfig = $derived({
-    orientation: gameStore.orientation,
-    viewOnly: gameStore.isPuzzleComplete,
-    movable: {
-      showDests: userConfig.showDests,
-    },
-    drawable: {
-      // If hiding shapes (player thinking), send empty array.
-      // Otherwise, show system shapes (engine lines, etc).
-      autoShapes: gameStore.systemShapes,
-    },
-  });
-
-  // --- Border Color ---
+  // Border Color
   const boardBorderColor = $derived.by(() => {
     // If we are in Puzzle mode and it's NOT done, keep it neutral/player color
     if (gameStore.boardMode === 'Puzzle' && !gameStore.isPuzzleComplete) {
@@ -117,13 +96,9 @@
   // --- Interactive Border ---
 
   // A) Analysis Centipawn:
-  const barTopColor = $derived(
-    gameStore.orientation === 'white' ? 'black' : 'white',
-  );
+  const barTopColor = $derived(gameStore.orientation === 'white' ? 'black' : 'white');
 
-  const barBottomColor = $derived(
-    gameStore.orientation === 'white' ? 'white' : 'black',
-  );
+  const barBottomColor = $derived(gameStore.orientation === 'white' ? 'white' : 'black');
 
   const dividerSpring = spring(gameStore.boardMode === 'Puzzle' ? 0 : 50, {
     stiffness: 0.1,
@@ -132,8 +107,7 @@
 
   let cachedEval = 50;
   const commentDiag = $derived(
-    (gameStore.currentMove?.commentDiag?.eval ??
-      gameStore.currentMove?.commentDiag?.EV)
+    (gameStore.currentMove?.commentDiag?.eval ?? gameStore.currentMove?.commentDiag?.EV)
       ? gameStore.currentMove?.commentDiag
       : false,
   );
@@ -150,9 +124,7 @@
       if (evMatch) {
         // Custom: "EV: 27.6%"
         const winPercent = parseFloat(evMatch);
-        return barBottomColor[0] === gameStore.currentMove.turn
-          ? 100 - winPercent
-          : winPercent;
+        return barBottomColor[0] === gameStore.currentMove.turn ? 100 - winPercent : winPercent;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
           // Mate: #+ is White win (100%), #- is Black win (0%)
@@ -222,14 +194,6 @@
     });
   });
 
-  // APPLY CG CONFIG
-  $effect(() => {
-    // Only run if board exists
-    if (!gameStore.cg || !boardContainer) return;
-    // Apply the entire config
-    gameStore.cg.set(boardConfig);
-  });
-
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
   $effect(() => {
     if (gameStore.isPuzzleComplete) {
@@ -239,6 +203,7 @@
   });
 
   // Move & Board Animations (Requires updateBoard logic)
+  let previousPath: PgnPath | null = null;
   $effect(() => {
     if (!gameStore?.cg) return;
     updateBoard(gameStore, gameStore.cg, previousPath);
@@ -341,7 +306,7 @@
     --bar-top-color: {barTopColor};
     --bar-bottom-color: {barBottomColor};
     --divider: {$dividerSpring}%;
-  "
+    "
   ></div>
 </div>
 
@@ -350,6 +315,7 @@
     0% {
       box-shadow: 0 0 12px 6px var(--border-flash-color);
     }
+
     100% {
       box-shadow: var(--shadow-grey);
     }

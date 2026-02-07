@@ -4,6 +4,8 @@ import type { Color, Square, Move } from 'chess.js';
 import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
 import { parse } from '@mliebelt/pgn-parser';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
+import { Chessground } from '@lichess-org/chessground';
+import { defaultCgConfig, handleSelect, handleMove } from '$stores/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
@@ -95,6 +97,7 @@ export class PgnGameStore {
   playerColor: CgColor = '';
   opponentColor: CgColor = '';
 
+  wrongMoveDebounce = null
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
 
   // --- Internal State ---
@@ -145,6 +148,14 @@ export class PgnGameStore {
       // NORMAL: Sync the shapes
       this._displayedShapes = this._rawShapes;
     });
+
+    $effect(() => {
+      const config = this.boardConfig;
+      // Only run if board exists
+      if (!this.cg) return;
+      // Apply the entire config
+      this.cg.set(config);
+    });
   }
 
   // --- DERIVED STATE ---
@@ -168,6 +179,28 @@ export class PgnGameStore {
       return getTurnFromFen(this.startFen);
     }
     return this.currentMove.turn === 'w' ? 'b' : 'w';
+  });
+
+  boardConfig = $derived({
+    check: this.inCheck,
+    orientation: this.orientation,
+    viewOnly: this.isPuzzleComplete,
+    turnColor: this.turn === 'w' ? 'white' : 'black',
+    movable: {
+      color:
+        this.boardMode === 'Puzzle'
+          ? this.playerColor
+          : this.turn === 'w'
+            ? 'white'
+            : 'black',
+      dests: this.dests,
+    },
+    lastMove: this.currentMove ? [this.currentMove.from, this.currentMove.to] : [],
+    drawable: {
+      // If hiding shapes (player thinking), send empty array.
+      // Otherwise, show system shapes (engine lines, etc).
+      autoShapes: this.systemShapes,
+    },
   });
 
   // --- Navigation Helpers ---
@@ -272,6 +305,28 @@ export class PgnGameStore {
 
 
   // --- Methods ---
+
+  loadCgInstance(boardContainer) {
+    const initialBoardConfig = {
+      ...defaultCgConfig,
+      fen: this.startFen, // Initial FEN
+      events: {
+        select: (key: Key) => {
+          handleSelect(key, this);
+        },
+      },
+      movable: {
+        events: {
+          after: (orig: Key, dest: Key) => {
+            // "this" correctly refers to PgnGameStore
+            handleMove(orig, dest, this);
+          }
+        }
+      }
+    };
+    this.cg = Chessground(boardContainer, initialBoardConfig);
+    this.cg.set(this.boardConfig)
+  }
 
   parsePGN(rawPgn = this.rawPgn, boardMode = this.boardMode) {
     userConfig.boardKey++;

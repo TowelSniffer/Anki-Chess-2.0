@@ -22,6 +22,7 @@
     "@typescript-eslint/parser": "^8.46.3",
     "dependency-cruiser": "^17.2.0",
     "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-svelte": "^3.13.0",
     "prettier": "^3.6.2",
@@ -30,6 +31,7 @@
     "svelte": "^5.39.6",
     "svelte-check": "^4.3.2",
     "typescript": "~5.9.3",
+    "typescript-svelte-plugin": "^0.3.50",
     "unplugin-icons": "^23.0.1",
     "vite": "^7.1.7",
     "vite-plugin-eslint2": "^5.0.4"

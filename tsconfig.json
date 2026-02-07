@@ -1,5 +1,10 @@
 {
   "files": [],
+  "plugins": [
+    {
+      "name": "typescript-svelte-plugin"
+    }
+  ],
   "references": [
     {
       "path": "./tsconfig.app.json"

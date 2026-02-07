@@ -1,15 +1,12 @@
 import type { Api } from '@lichess-org/chessground/api';
 import type { Key } from '@lichess-org/chessground/types';
 import { Chess, type Square } from 'chess.js';
-import { Chessground } from '@lichess-org/chessground';
 import { type CustomShape } from '$stores/gameStore.svelte.ts';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { isMoveLegal, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
 import { handleUserMove } from '$features/chessJs/puzzleLogic';
 import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
-
-let gameStore;
 
 // --- Logic Handlers ---
 
@@ -19,16 +16,17 @@ let gameStore;
  * 1. Smart Moves (Clicking an arrow destination)
  * 2. Manual Click-to-Move handling (if needed)
  */
-function handleSelect(key: Key) {
+export function handleSelect(key: Key, store: PgnGameStore) {
+  if (store.wrongMoveDebounce) return;
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   if (
-    gameStore.selectedPiece &&
+    store.selectedPiece &&
     dest &&
     isMoveLegal(
-      { from: gameStore.selectedPiece as Square, to: dest },
-      gameStore.fen,
+      { from: store.selectedPiece as Square, to: dest },
+      store.fen,
     )
   ) {
     /**
@@ -36,26 +34,26 @@ function handleSelect(key: Key) {
      * NOTE: we defer to default click to move here as after: event will be called after select event
      * Setting Fen here without animation solves inconsistent animations for certain moves (en passant, promotion)
      */
-    gameStore.cg.set({ animation: { enabled: false } });
-    gameStore.cg.set({ fen: gameStore.fen });
-    gameStore.cg.set({ animation: { enabled: true } });
+    store.cg.set({ animation: { enabled: false } });
+    store.cg.set({ fen: store.fen });
+    store.cg.set({ animation: { enabled: true } });
     return;
   }
 
   // B. Smart Arrow / PGN Moves (Viewer Mode)
   // Check if we clicked a destination square that has a high-priority arrow pointing to it
   let moveCheck = null;
-  const tempChess = gameStore.newChess(gameStore.fen);
+  const tempChess = store.newChess(store.fen);
   let matchingArrow: CustomShape | undefined;
 
   for (const brushType of shapePriority) {
-    matchingArrow = gameStore.systemShapes.find(
+    matchingArrow = store.systemShapes.find(
       (s) => s.dest === dest && s.brush === brushType,
     );
     if (matchingArrow) break;
   }
 
-  if (matchingArrow && gameStore.boardMode === 'Viewer') {
+  if (matchingArrow && store.boardMode === 'Viewer') {
     // Case 1: Clicked an Arrow -> Play that move
     if (matchingArrow.san) {
       moveCheck = tempChess.move(matchingArrow.san);
@@ -71,26 +69,26 @@ function handleSelect(key: Key) {
   }
 
   if (moveCheck) {
-    handleUserMove(gameStore, moveCheck.from, moveCheck.to, moveCheck.san);
+    handleUserMove(store, moveCheck.from, moveCheck.to, moveCheck.san);
   }
 }
 
 /**
  * Handles the 'after' event (Drag and Drop completion).
  */
-function handleMove(orig: Key, dest: Key) {
+export function handleMove( orig: Key, dest: Key, store: PgnGameStore) {
   const from = orig as Square;
   const to = dest as Square;
 
   // Check Promotion
-  if (isPromotion(from, to, gameStore.fen)) {
-    gameStore.cg.move(from, to);
-    gameStore.setPendingPromotion(from, to);
+  if (isPromotion(from, to, store.fen)) {
+    store.cg.move(from, to);
+    store.setPendingPromotion(from, to);
     return;
   }
 
   // Standard Move
-  handleUserMove(gameStore, from, to);
+  handleUserMove(store, from, to);
 }
 
 // --- Configuration ---
@@ -145,7 +143,7 @@ const customBrushes = {
   yellow: { key: 'yellow', color: 'yellow', opacity: 1, lineWidth: 7 },
 };
 
-const cgConfig = {
+export const defaultCgConfig = {
   premovable: {
     enabled: true,
   },
@@ -160,27 +158,9 @@ const cgConfig = {
     enabled: true,
     brushes: customBrushes,
   },
-  events: {
-    select: handleSelect,
-  },
   movable: {
     free: false,
     showDests: userConfig.showDests,
-    events: {
-      after: handleMove,
-    },
-  },
+  }
 };
 
-export function loadBoard(
-  boardContainer: HTMLDivElement,
-  gameStoreVar: PgnGameStore,
-): Api {
-  gameStore = gameStoreVar;
-  const initialBoardConfig = {
-    ...cgConfig,
-    fen: gameStore.startFen, // Initial FEN
-    orientation: gameStore.orientation, // Initial Orientation
-  };
-  return Chessground(boardContainer, initialBoardConfig);
-}
