@@ -25,27 +25,6 @@ const chessColorToCg: Record<ChessJsColor, Color> = {
   b: 'black',
 };
 
-/**
- * Syncs the board visuals (shapes, movable, check)
- * Called at the end of every animation frame.
- */
-export function syncBoardVisuals(gameStore: PgnGameStore, cg: Api, currentMove: PgnPath) {
-  cg.set({
-    check: gameStore.inCheck,
-    turnColor: gameStore.turn === 'w' ? 'white' : 'black',
-    movable: {
-      color:
-        gameStore.boardMode === 'Puzzle'
-          ? gameStore.playerColor
-          : gameStore.turn === 'w'
-            ? 'white'
-            : 'black',
-      dests: gameStore.dests,
-    },
-    lastMove: currentMove ? [currentMove.from, currentMove.to] : [],
-  });
-}
-
 function animateForwardPromotion(
   cg: Api,
   move: CustomPgnMove,
@@ -126,7 +105,6 @@ export function updateBoard(
     cg.set({ animation: { enabled: false } });
     cg.set({ fen: gameStore.fen });
     cg.set({ animation: { enabled: true } });
-    syncBoardVisuals(gameStore, cg, currentMove);
     return
   }
 
@@ -169,7 +147,6 @@ export function updateBoard(
         playSound('move');
       }
       cg.set({ fen: currentFen });
-      syncBoardVisuals(gameStore, cg, currentMove);
       return;
     }
 
@@ -203,6 +180,5 @@ export function updateBoard(
   }
 
   // Always sync arrows and markers at the end and premove
-  syncBoardVisuals(gameStore, cg, currentMove);
   cg.playPremove();
 }

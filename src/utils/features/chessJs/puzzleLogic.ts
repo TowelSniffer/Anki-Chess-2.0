@@ -7,12 +7,8 @@ import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
 import { getContext } from 'svelte';
-import { syncBoardVisuals } from '$features/board/boardAnimation';
 import type { PgnGameStore } from '$stores/Providers/GameProvider.svelte';
 
-// debounce handler for handliing after event race conditions and wrong move
-
-export let wrongMoveDebounce: number | null = null;
 
 // --- Helper Functions ---
 
@@ -93,7 +89,6 @@ export function handleUserMove(
       gameStore.addMove(move); // Add to PGN
     } else {
       // Wrong move in Puzzle mode
-      syncBoardVisuals(gameStore, gameStore.cg);
       handleWrongMove(gameStore, move);
     }
   }
@@ -136,12 +131,12 @@ function playUserCorrectMove(gameStore: PgnGameStore, delay: number): void {
 
 function handleWrongMove(gameStore: PgnGameStore, move: Move): void {
   gameStore.errorCount++;
-  gameStore.cg.set({ fen: move.after });
-  gameStore.cg.set({ fen: move.before });
+  gameStore.cg.move(move.from, move.to);
   playSound('error');
-  wrongMoveDebounce = setTimeout(() => {
-    wrongMoveDebounce = null;
-  }, gameStore.aiDelayTime);
+  gameStore.wrongMoveDebounce = setTimeout(() => {
+    gameStore.wrongMoveDebounce = null;
+    gameStore.cg.set({...gameStore.boardConfig, fen: move.before});
+  }, userConfig.animationTime);
 
   const isFailed = gameStore.errorCount > userConfig.handicap;
 
