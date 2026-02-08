@@ -43,7 +43,12 @@ export class UserConfig {
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
       this.applyConfig(window.USER_CONFIG);
       this.lastSavedState = { ...window.USER_CONFIG };
+      this._ankiConnectStatus();
     }
+  }
+
+  async _ankiConnectStatus() {
+    this.isAnkiConnect = await checkAnkiConnection();
   }
 
   applyConfig(config: Partial<UserConfig>) {
@@ -78,7 +83,6 @@ export class UserConfig {
     // Ensure window.CARD_CONFIG exists or fallback gracefully
     if (window.CARD_CONFIG) {
       // Check connection before firing
-      this.isAnkiConnect = await checkAnkiConnection();
       if (this.isAnkiConnect) {
         updateAnkiChessTemplate(
           window.CARD_CONFIG['modelName'],
