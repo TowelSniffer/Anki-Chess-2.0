@@ -1,6 +1,7 @@
 import IconDevBoard from '~icons/material-symbols/developer-board-sharp';
 import IconKidStar from '~icons/material-symbols/kid-star-sharp';
 import IconSave from '~icons/material-symbols/save-sharp';
+import IconCopy from '~icons/material-symbols/content-copy-sharp';
 import IconChessKnight from '~icons/material-symbols/chess-knight';
 import IconBackgroundGridSmall from '~icons/material-symbols/background-grid-small';
 
@@ -132,17 +133,40 @@ export function getMenuData(): MenuItem[] {
         },
       ],
     },
-    {
-      type: 'separator',
-    },
-    {
-      disabled: !userConfig.saveDue,
-      tooltip:
-        'Updates note template for current settings (requires anki connect addon)',
-      label: 'Save Config',
-      icon: IconSave,
-      danger: userConfig.saveDue,
-      action: () => userConfig.save(),
-    },
+    ...getSaveMenuItemData()
   ];
+}
+
+function getSaveMenuItemData(): MenuItem[] {
+  if (userConfig.isAnkiConnect) {
+    return [
+      {
+        type: 'separator',
+      },
+      {
+        type: 'action',
+        disabled: !userConfig.saveDue,
+        tooltip:
+          'Updates note template for current settings (requires anki connect addon)',
+        label: 'Save Config',
+        icon: IconSave,
+        danger: userConfig.saveDue,
+        action: () => userConfig.save(),
+      }]
+  } else if (window.CARD_CONFIG) { // anki without connect
+    return [
+      {
+        type: 'separator',
+      },
+      {
+        type: 'action',
+        tooltip:
+          'Copy config to clipboard for current settings. NOTE: if anki connect addon is installed, this will update template automatically. Replace "window.USER_CONFIG = {...}", for front and backside of template.',
+        label: 'Copy Config',
+        icon: IconCopy,
+        danger: userConfig.saveDue,
+        action: () => userConfig.save(),
+      }]
+  }
+  return []
 }

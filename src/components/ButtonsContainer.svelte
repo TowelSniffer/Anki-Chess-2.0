@@ -80,7 +80,7 @@
   class="navBtn tooltip-btn"
   title="Copy FEN to clipboard"
   use:clickToCopy={{ text: gameStore.fen, message: 'FEN Copied!' }}
-  onclick={() => playSound('computer-mouse-click')}
+  onclick={() => playSound('click')}
 >
   <span class="md-small"><IconCopy /></span>
 </button>

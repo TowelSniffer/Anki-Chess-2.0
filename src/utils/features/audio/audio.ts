@@ -91,10 +91,10 @@ function initAudio(): Map<Sounds, HTMLAudioElement> {
 
 const audioMap: Map<Sounds, HTMLAudioElement> = initAudio();
 
-export function playSound(soundName: Sounds | 'computer-mouse-click'): void {
+export function playSound(soundName: Sounds | 'click'): void {
   if (userConfig.muteAudio) return;
 
-  if (soundName === 'computer-mouse-click') {
+  if (soundName === 'click') {
     playSyntheticClick();
     return;
   }

@@ -109,14 +109,14 @@
     // A: If this item has its OWN submenu (it's a parent), update that submenu
     const myWrapper = target.closest('.menu-item-wrapper') as HTMLElement;
     if (myWrapper) {
-        repositionSubmenu(myWrapper);
+      repositionSubmenu(myWrapper);
     }
 
     // B: If this item is INSIDE a submenu, update the container submenu
     // (Because the container just grew/shrank)
     const containerSubmenu = target.closest('.submenu');
     if (containerSubmenu && containerSubmenu.parentElement) {
-        repositionSubmenu(containerSubmenu.parentElement as HTMLElement);
+      repositionSubmenu(containerSubmenu.parentElement as HTMLElement);
     }
   }
 
@@ -519,6 +519,11 @@
       color: var(--surface-primary, #fff);
       background-color: var(--surface-interactive-hover, #f5f5f5);
     }
+    .info-hint {
+      opacity: 1;
+      cursor: help;
+      pointer-events: auto;
+    }
     &.disabled {
       cursor: not-allowed;
       .text {
@@ -529,11 +534,6 @@
       .chevron {
         cursor: not-allowed;
         opacity: 0.5;
-      }
-      .info-hint {
-        opacity: 1;
-        cursor: help;
-        pointer-events: auto;
       }
     }
     &.danger {
@@ -549,9 +549,6 @@
       margin-left: auto;
       font-size: 1.1rem;
       opacity: 0.6;
-    }
-    .text {
-      cursor: default;
     }
   }
 
