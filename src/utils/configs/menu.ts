@@ -189,7 +189,7 @@ function getSaveMenuItemData(): MenuItem[] {
       {
         type: 'action',
         tooltip:
-          'Copy config to clipboard for current settings. NOTE: if anki connect addon is installed, this will update template automatically. Replace "window.USER_CONFIG = {...}", for front and backside of template.',
+          'Copy config to clipboard for current settings. Replace "window.USER_CONFIG = {...}", for front and backside of template. NOTE: if anki connect addon is installed, this will update template automatically.',
         label: 'Copy Config',
         icon: IconCopy,
         danger: userConfig.saveDue,
