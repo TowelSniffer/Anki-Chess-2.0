@@ -329,10 +329,10 @@ export class PgnGameStore {
         this._mirrorState = assignMirrorState();
         sessionStorage.setItem('chess__mirrorState', this._mirrorState);
       } else if (boardMode !== 'Puzzle' && savedMirrorState) {
-
+        this._mirrorState = savedMirrorState;
+        sessionStorage.removeItem('chess__mirrorState');
       }
     }
-    if (savedMirrorState) sessionStorage.removeItem('chess__mirrorState');
 
     if (this._mirrorState && this._mirrorState !== 'original') {
       pgnBaseFen = mirrorFen(pgnBaseFen, this._mirrorState)
