@@ -18,6 +18,8 @@
     const attemptMount = () => {
       if (window.mountChess) {
         window.mountChess();
+        // focus to allow autoplaying media
+        document.getElementById('anki-chess-root').focus();
       } else {
         setTimeout(attemptMount, 20);
       }
