@@ -5,25 +5,25 @@ import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
 import { playSound } from '$features/audio/audio';
 
 export class UserConfig {
-  flipBoard = $state(false);
-  mirror = $state(false);
-  showDests = $state(true);
+  flipBoard = $state(window.USER_CONFIG?.['flipBoard'] ?? false);
+  mirror = $state(window.USER_CONFIG?.['mirror'] ?? false);
+  showDests = $state(window.USER_CONFIG?.['showDests'] ?? true);
   disableArrows = false;
-  singleClickMove = $state(true);
+  singleClickMove = $state(window.USER_CONFIG?.['singleClickMove'] ?? true);
   animationTime = 200;
-  handicap = $state(1);
-  autoAdvance = $state(false);
+  handicap = $state(window.USER_CONFIG?.['handicap'] ?? 1);
+  autoAdvance = $state(window.USER_CONFIG?.['autoAdvance'] ?? false);
   handicapAdvance = false;
   timerAdvance = false;
-  strictScoring = $state(false);
+  strictScoring = $state(window.USER_CONFIG?.['strictScoring'] ?? false);
   acceptVariations = true;
-  timer = $state(5000); // 5 * 1000
-  increment = $state(1000); // 1 * 1000
-  randomOrientation = $state(false);
-  analysisTime = $state(4);
-  analysisLines = $state(1);
-  muteAudio = $state(false);
-  frontText = $state(true);
+  timer = $state(window.USER_CONFIG?.timer ?? 5000); // 5 * 1000
+  increment = $state(window.USER_CONFIG?.['increment'] ?? 1000); // 1 * 1000
+  randomOrientation = $state(window.USER_CONFIG?.['randomOrientation'] ?? false);
+  analysisTime = $state(window.USER_CONFIG?.['analysisTime'] ?? 4);
+  analysisLines = $state(window.USER_CONFIG?.['analysisLines'] ?? 1);
+  muteAudio = $state(window.USER_CONFIG?.['muteAudio'] ?? false);
+  frontText = $state(window.USER_CONFIG?.['frontText'] ?? true);
   boardKey = $state<number>(0);
   isAnkiConnect = $state(false);
 
@@ -41,7 +41,6 @@ export class UserConfig {
     if (!window.USER_CONFIG) window.USER_CONFIG = defaultConfig;
     // Read directly from window (It's already there!)
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
-      this.applyConfig(window.USER_CONFIG);
       this.lastSavedState = { ...window.USER_CONFIG };
       this._ankiConnectStatus();
     }
