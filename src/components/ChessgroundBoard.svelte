@@ -201,13 +201,27 @@
     }
   });
 
-  // Move & Board Animations (Requires updateBoard logic)
+  // Move & Animation an Handler
   let previousPath: PgnPath | null = null;
+  let lastSyncedFen = $state(gameStore.startFen);
   $effect(() => {
     if (!gameStore?.cg) return;
-    updateBoard(gameStore, gameStore.cg, previousPath);
-    previousPath = [...gameStore.pgnPath];
+    const isMove = gameStore.fen !== lastSyncedFen || gameStore.pgnPath.length !== previousPath?.length;
+    if(isMove) {
+        updateBoard(gameStore, gameStore.cg, previousPath);
+        previousPath = [...gameStore.pgnPath];
+        lastSyncedFen = gameStore.fen;
+    } else { // no animation just set config
+      const config = gameStore.boardConfig;
+      // Only apply config separately if the FEN hasn't changed.
+      // If FEN changed, the effect above handles it via updateBoard.
+      if (gameStore.fen === lastSyncedFen) {
+          gameStore.cg.set(config);
+      }
+    }
   });
+
+
 
   // Engine Analysis Trigger
   $effect(() => {
