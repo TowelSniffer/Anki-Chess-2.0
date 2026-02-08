@@ -2,6 +2,7 @@ import type { Color } from '@lichess-org/chessground/types';
 import defaultConfig from '$anki/default_config.json';
 import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect';
 import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
+import { playSound } from '$features/audio/audio';
 
 export class UserConfig {
   flipBoard = $state(false);
@@ -91,6 +92,7 @@ export class UserConfig {
         const clipboardString = `window.USER_CONFIG = ${JSON.stringify(finalConfig, null, 2)};`;
         copyToClipboard(clipboardString);
       }
+      playSound('click')
     } else {
       console.warn("Cannot save: window.CARD_CONFIG is missing");
     }
