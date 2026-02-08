@@ -247,8 +247,7 @@ export class PgnGameStore {
   }
 
   get puzzleScore() {
-    if (this._puzzleScore) return this._puzzleScore;
-    if (this.boardMode !== 'Puzzle') return this._puzzleScore;
+    if (this._puzzleScore || this.boardMode !== 'Puzzle') return this._puzzleScore;
     if (
       !this._hasMadeMistake &&
       (this.errorCount > 0 || timerStore.isOutOfTime)
@@ -261,7 +260,9 @@ export class PgnGameStore {
       this._puzzleScore = 'incorrect';
     } else if (this.errorCount > userConfig.handicap) {
       this._puzzleScore = 'incorrect';
-    } else if (this.isPuzzleComplete) {
+    }
+    // seperate if statement to force read when puzzle is finished.
+    if (this.isPuzzleComplete) {
       this._puzzleScore = this._hasMadeMistake
         ? 'correct'
         : userConfig.strictScoring

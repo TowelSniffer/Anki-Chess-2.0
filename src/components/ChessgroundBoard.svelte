@@ -81,15 +81,11 @@
     // If we are in Puzzle mode and it's NOT done, keep it neutral/player color
     if (gameStore.boardMode === 'Puzzle' && !gameStore.isPuzzleComplete) {
       return gameStore.playerColor;
-    }
-
-    // If done, show the score color
-    if (gameStore.puzzleScore) {
+    } else if (gameStore.puzzleScore) {
       return SCORE_COLORS[gameStore.puzzleScore];
+    } else {
+      return gameStore.playerColor;
     }
-
-    // Default fallback
-    return gameStore.playerColor;
   });
 
   // --- Interactive Border ---
@@ -252,13 +248,8 @@
   $effect(() => {
     if (gameStore.isPuzzleComplete && gameStore.puzzleScore) {
       triggerFlash(gameStore.puzzleScore);
-    }
-  });
-
-  // SESSION STORAGE
-  $effect(() => {
-    if (gameStore.boardMode === 'Puzzle' && gameStore.puzzleScore)
       sessionStorage.setItem('chess_puzzle_score', gameStore.puzzleScore);
+    }
   });
 
   /*

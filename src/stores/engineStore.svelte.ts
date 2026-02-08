@@ -102,7 +102,6 @@ class EngineStore {
         }
 
         const width = 4 + activeWinChance / 10;
-
         return {
           orig: line.firstMove.from,
           dest: line.firstMove.to,
