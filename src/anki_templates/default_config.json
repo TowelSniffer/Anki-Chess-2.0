@@ -17,6 +17,5 @@
   "analysisTime": 10,
   "analysisLines": 1,
   "muteAudio": false,
-  "background": null,
-  "frontText": true
+  "frontText": false
 }

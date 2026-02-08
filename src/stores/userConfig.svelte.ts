@@ -1,5 +1,7 @@
 import type { Color } from '@lichess-org/chessground/types';
-import { updateAnkiChessTemplate, checkAnkiConnection } from '$utils/ankiConnect';
+import defaultConfig from '$anki/default_config.json';
+import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect';
+import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
 
 export class UserConfig {
   flipBoard = $state(false);
@@ -22,6 +24,7 @@ export class UserConfig {
   muteAudio = $state(false);
   frontText = $state(true);
   boardKey = $state<number>(0);
+  isAnkiConnect = $state(false);
 
   lastSavedState = $state<Record<string, any>>({});
 
@@ -34,6 +37,7 @@ export class UserConfig {
   });
 
   constructor() {
+    if (!window.USER_CONFIG) window.USER_CONFIG = defaultConfig;
     // Read directly from window (It's already there!)
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
       this.applyConfig(window.USER_CONFIG);
@@ -73,18 +77,22 @@ export class UserConfig {
     // Ensure window.CARD_CONFIG exists or fallback gracefully
     if (window.CARD_CONFIG) {
       // Check connection before firing
-      const isConnected = await checkAnkiConnection();
-      if (isConnected) {
+      this.isAnkiConnect = await checkAnkiConnection();
+      if (this.isAnkiConnect) {
         updateAnkiChessTemplate(
           window.CARD_CONFIG['modelName'],
           window.CARD_CONFIG['cardName'],
           newConfig
         );
       } else {
-        console.warn("AnkiConnect is offline. Settings saved to session only.");
+        console.warn("AnkiConnect is offline. Settings saved to clipboard only.");
+        // merge userConfig with defaults to ensure no keys are missing
+        const finalConfig = { ...defaultConfig, ...newConfig };
+        const clipboardString = `window.USER_CONFIG = ${JSON.stringify(finalConfig, null, 2)};`;
+        copyToClipboard(clipboardString);
       }
     } else {
-      console.warn("Cannot save: window.CARD_CONFIG is missing (not inside Anki?)");
+      console.warn("Cannot save: window.CARD_CONFIG is missing");
     }
   }
 }
