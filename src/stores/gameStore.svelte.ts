@@ -180,6 +180,9 @@ export class PgnGameStore {
       // NORMAL: Sync the shapes
       this._displayedShapes = this._rawShapes;
     });
+    $effect(() => {
+      if (this.errorCount > 0 || timerStore.isOutOfTime) this._hasMadeMistake = true;
+    });
   }
 
   boardConfig = $derived({
@@ -248,21 +251,15 @@ export class PgnGameStore {
 
   get puzzleScore() {
     if (this._puzzleScore || this.boardMode !== 'Puzzle') return this._puzzleScore;
-    if (
-      !this._hasMadeMistake &&
-      (this.errorCount > 0 || timerStore.isOutOfTime)
-    ) {
-      this._hasMadeMistake = true;
-      if (userConfig.strictScoring) {
-        this._puzzleScore = 'incorrect';
-      }
+    if (this._hasMadeMistake && userConfig.strictScoring) {
+      this._puzzleScore = 'incorrect';
     } else if (this.currentMove?.nag?.some((n) => blunderNags.includes(n)) && this.currentMove?.turn === this.playerColor[0]) {
       this._puzzleScore = 'incorrect';
     } else if (this.errorCount > userConfig.handicap) {
       this._puzzleScore = 'incorrect';
     }
     // seperate if statement to force read when puzzle is finished.
-    if (this.isPuzzleComplete) {
+    if (!this._puzzleScore && this.isPuzzleComplete) {
       this._puzzleScore = this._hasMadeMistake
         ? 'correct'
         : userConfig.strictScoring
@@ -321,24 +318,23 @@ export class PgnGameStore {
     }) as unknown as CustomPgnGame;
 
     let pgnBaseFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
-
+    const savedMirrorState =
+      sessionStorage.getItem('chess__mirrorState') ?? null;
     if (
-      boardMode === 'Puzzle' &&
       userConfig.mirror &&
       !checkCastleRights(pgnBaseFen)
     ) {
-      this._mirrorState = assignMirrorState();
-      sessionStorage.setItem('chess__mirrorState', this._mirrorState);
-    } else if (boardMode !== 'Puzzle') {
-      const savedMirrorState =
-        sessionStorage.getItem('chess__mirrorState') ?? null;
-      if (savedMirrorState) {
-        this._mirrorState = (savedMirrorState as MirrorState);
-        sessionStorage.removeItem('chess__mirrorState');
+
+      if (boardMode === 'Puzzle') {
+        this._mirrorState = assignMirrorState();
+        sessionStorage.setItem('chess__mirrorState', this._mirrorState);
+      } else if (boardMode !== 'Puzzle' && savedMirrorState) {
+
       }
     }
+    if (savedMirrorState) sessionStorage.removeItem('chess__mirrorState');
 
-    if (this._mirrorState !== 'original') {
+    if (this._mirrorState && this._mirrorState !== 'original') {
       pgnBaseFen = mirrorFen(pgnBaseFen, this._mirrorState)
       mirrorPgnTree(parsed.moves, this._mirrorState);
     }
