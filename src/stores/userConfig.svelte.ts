@@ -20,7 +20,6 @@ export class UserConfig {
   analysisTime = $state(4);
   analysisLines = $state(1);
   muteAudio = $state(false);
-  background = null;
   frontText = $state(true);
   boardKey = $state<number>(0);
 

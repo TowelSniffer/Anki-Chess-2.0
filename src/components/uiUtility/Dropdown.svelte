@@ -38,12 +38,7 @@
     position?: 'bottom-left' | 'bottom-right';
   };
 
-  let {
-    label = '',
-    icon = '',
-    items,
-    position = 'bottom-left',
-  }: Props = $props();
+  let { label = '', icon = '', items, position = 'bottom-left' }: Props = $props();
 
   let isOpen = $state(false);
   let activeSelectorIndex = $state<number | null>(null); // Tracks which inner selector is open
@@ -230,8 +225,7 @@
             onclick={(e) => item.tooltip && toggleTooltip(e, item)}
             role="button"
             tabindex="0"
-            onkeydown={(e) =>
-              e.key === 'Enter' && item.tooltip && toggleTooltip(e, item)}
+            onkeydown={(e) => e.key === 'Enter' && item.tooltip && toggleTooltip(e, item)}
           >
             <IconHelp />
           </span>
@@ -244,8 +238,7 @@
         onclick={(e) => item.tooltip && toggleTooltip(e, item)}
         role="button"
         tabindex="0"
-        onkeydown={(e) =>
-          e.key === 'Enter' && item.tooltip && toggleTooltip(e, item)}
+        onkeydown={(e) => e.key === 'Enter' && item.tooltip && toggleTooltip(e, item)}
       >
         {#if item.icon}
           <span class="material-symbols-sharp icon">{item.icon}</span>
@@ -287,16 +280,12 @@
           <div class="number-stepper">
             <button
               class="step-btn"
-              onclick={() =>
-                item.onChange?.(Number(item.value) - (item.step || 1))}
-              >-</button
+              onclick={() => item.onChange?.(Number(item.value) - (item.step || 1))}>-</button
             >
             <span class="step-val">{item.value}</span>
             <button
               class="step-btn"
-              onclick={() =>
-                item.onChange?.(Number(item.value) + (item.step || 1))}
-              >+</button
+              onclick={() => item.onChange?.(Number(item.value) + (item.step || 1))}>+</button
             >
           </div>
         </li>
@@ -309,14 +298,10 @@
               <button
                 class="sel-trigger"
                 class:isActive={activeSelectorIndex === idx}
-                onclick={() =>
-                  (activeSelectorIndex =
-                    activeSelectorIndex === idx ? null : idx)}
+                onclick={() => (activeSelectorIndex = activeSelectorIndex === idx ? null : idx)}
               >
                 <span class="curr-val">{item.value}</span>
-                <span class="arrow" class:open={activeSelectorIndex === idx}
-                  >▼</span
-                >
+                <span class="arrow" class:open={activeSelectorIndex === idx}>▼</span>
               </button>
 
               {#if activeSelectorIndex === idx}
