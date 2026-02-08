@@ -13,6 +13,7 @@ export const sharedViteConfig = (options: UserConfig = {}): UserConfig => {
         $utils: path.resolve(__dirname, './src/utils'),
         $features: path.resolve(__dirname, './src/utils/features'),
         $anki: path.resolve(__dirname, './src/anki_templates'),
+        $configs: path.resolve(__dirname, './src/utils/configs'),
         $Types: path.resolve(__dirname, './src/Types'),
       },
       extensions: ['.mjs', '.js', '.ts', '.svelte.ts', '.svelte', '.json'],
