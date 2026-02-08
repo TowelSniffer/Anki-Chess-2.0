@@ -1,21 +1,12 @@
-// helper to check for modern copy API support
 export async function copyToClipboard(text: string): Promise<boolean> {
-  // Try Modern API
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch (err) {
-    console.warn("Clipboard API failed, trying fallback...", err);
-  }
-
-  // Fallback (for Anki Desktop / Qt WebEngine etc...)
+  // Priority: Try Synchronous "execCommand" first.
+  // This is REQUIRED for Anki / Qt because they rely on the active 'click' event.
+  // If we 'await' the modern API first, the click event expires, and using this as fallback will fail.
   try {
     const textArea = document.createElement("textarea");
     textArea.value = text;
 
-    // Ensure it's not visible but part of the DOM
+    // minimal CSS to hide it but keep it functional
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
     textArea.style.top = "0";
@@ -24,13 +15,28 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     textArea.focus();
     textArea.select();
 
+    // This runs instantly. If it works, we return true immediately.
     const successful = document.execCommand('copy');
     document.body.removeChild(textArea);
-    return successful;
+
+    if (successful) {
+      return true;
+    }
   } catch (err) {
-    console.error("Fallback copy failed", err);
-    return false;
+    console.warn("Sync copy failed, attempting modern fallback...", err);
   }
+
+  // Secondary: Modern Async API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.error("Async copy also failed", err);
+    }
+  }
+
+  return false;
 }
 
 /**
