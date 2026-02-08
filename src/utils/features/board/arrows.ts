@@ -1,3 +1,4 @@
+import type { Square } from 'chess.js';
 import type {
   CustomShapeBrushes,
   CustomShape,
@@ -27,26 +28,41 @@ export const shapePriority: CustomShapeBrushes[] = [
   'blunderLine', // Draw this last (Top Layer)
 ];
 
-export const parseSquares = (sqArray) => {
-  if (!sqArray) return [];
-  const colorMap = { G: 'green', R: 'red', Y: 'yellow', B: 'blue' };
-
-  return sqArray.map(str => ({
-    orig: str.slice(1, 3),
-    brush: colorMap[str[0]] || 'green'
-  }));
+// Map PGN single-char codes to Chessground brush names
+const PGN_BRUSHES: Record<string, string> = {
+  G: 'green',
+  R: 'red',
+  Y: 'yellow',
+  B: 'blue',
 };
 
-export const parseArrows = (arrowArray) => {
-  if (!arrowArray) return [];
-  const colorMap = { G: 'green', R: 'red', Y: 'yellow', B: 'blue' };
 
-  return arrowArray.map(str => ({
-    orig: str.slice(1, 3),
-    dest: str.slice(3, 5),
-    brush: colorMap[str[0]] || 'green' // Default to green if unknown
+
+/**
+ * Parses [%cal G...] arrows into DrawShape objects
+ * Input example: ["Ge2e4", "Re1h5"]
+ */
+export function parseCal(arrows?: string[]): CustomShape[] {
+  if(!arrows) return [];
+  return arrows.map((str) => ({
+    orig: str.slice(1, 3) as Square, // e.g. 'e2'
+    dest: str.slice(3, 5) as Square, // e.g. 'e4'
+    brush: PGN_BRUSHES[str[0]] || 'green',
   }));
-};
+}
+
+/**
+ * Parses [%csl G...] squares into DrawShape objects (circles)
+ * Input example: ["Ge4", "Rd5"]
+ */
+export function parseCsl(squares?: string[]): CustomShape[] {
+  if(!squares) return [];
+  return squares.map((str) => ({
+    orig: str.slice(1, 3) as Square, // e.g. 'e4'
+    // dest is undefined for circles/highlights in Chessground
+    brush: PGN_BRUSHES[str[0]] || 'green',
+  }));
+}
 
 // helper to create a single shape object
 function createShape(
