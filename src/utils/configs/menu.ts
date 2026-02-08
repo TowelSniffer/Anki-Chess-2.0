@@ -48,11 +48,11 @@ export function getMenuData(): MenuItem[] {
       children: [
         {
           type: 'toggle',
-          label: 'mirror',
+          label: 'Single Click Move',
           tooltip:
-            'Randomises orientation and colour for PGNs with no castle rights',
-          checked: userConfig.mirror,
-          onToggle: () => setConfigBoolean('mirror'),
+            'If enabled, clicking on destination with only one valid move will make that move.',
+          checked: userConfig.singleClickMove,
+          onToggle: () => setConfigBoolean('singleClickMove'),
         },
         {
           type: 'toggle',
@@ -80,15 +80,15 @@ export function getMenuData(): MenuItem[] {
           type: 'toggle',
           label: 'Strict Scoring',
           tooltip: 'Always mark incorrect when solved if any mistake is made (despite handicap value), or timer runs out',
-          checked: userConfig.muteAudio,
-          onToggle: () => setConfigBoolean('muteAudio'),
+          checked: userConfig.strictScoring,
+          onToggle: () => setConfigBoolean('strictScoring'),
         },
         {
           type: 'separator',
         },
         {
           type: 'number',
-          label: 'Timer ()',
+          label: 'Timer (s)',
           tooltip: 'Initial time for Puzzle. set to 0 to disable',
           min: 1,
           max: 60,
@@ -118,12 +118,40 @@ export function getMenuData(): MenuItem[] {
           onToggle: () => setConfigBoolean('frontText'),
         },
         {
+          type: 'separator',
+        },
+        {
           type: 'toggle',
           label: 'Flip PGN',
           tooltip:
             'Dictates where puzzle is solves from first or second move of the PGN',
           checked: userConfig.flipBoard,
           onToggle: () => setConfigBoolean('flipBoard'),
+        },
+        {
+          type: 'toggle',
+          label: 'Mirror',
+          tooltip:
+            'Randomises orientation and colour for PGNs with no castle rights',
+          checked: userConfig.mirror,
+          onToggle: () => setConfigBoolean('mirror'),
+        },
+        {
+          type: 'toggle',
+          label: 'Random Orientation',
+          tooltip: 'Randomises orientation, and greys border to prevent knowing which colour has the solution for puzzle.',
+          checked: userConfig.randomOrientation,
+          onToggle: () => setConfigBoolean('randomOrientation'),
+        },
+        {
+          type: 'separator',
+        },
+        {
+          type: 'toggle',
+          label: 'Auto Advance',
+          tooltip: 'Uses anki API to automatically show answer when puzzle is solved. Note: might not work on anki mobile, and not yet supported on Ankidroid\'s "New Study Screen"',
+          checked: userConfig.autoAdvance,
+          onToggle: () => setConfigBoolean('autoAdvance'),
         },
         {
           type: 'toggle',
