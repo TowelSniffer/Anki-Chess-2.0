@@ -2,8 +2,6 @@
   // Import the specific icons as components
   import IconSettings from '~icons/material-symbols/settings-sharp';
   import IconDevBoard from '~icons/material-symbols/developer-board-sharp';
-  import IconKidStar from '~icons/material-symbols/kid-star-sharp'; // Check specific name on icon-sets.iconify.design
-  import IconSave from '~icons/material-symbols/save-sharp';
   import IconFirstPage from '~icons/material-symbols/first-page-sharp';
   import IconArrowLeft from '~icons/material-symbols/keyboard-arrow-left';
   import IconArrowRight from '~icons/material-symbols/keyboard-arrow-right';
@@ -12,13 +10,16 @@
   import IconDevBoardOff from '~icons/material-symbols/developer-board-off-sharp';
   import IconFlip from '~icons/material-symbols/flip-sharp';
 
-  import Dropdown, { type MenuItem } from './uiUtility/Dropdown.svelte';
+  import type { PgnGameStore } from '$stores/gameStore.svelte';
 
+  import { untrack, getContext } from 'svelte';
+  import Dropdown from './uiUtility/Dropdown.svelte';
   import { engineStore } from '$stores/engineStore.svelte';
   import { userConfig, type UserConfig } from '$stores/userConfig.svelte';
   import { playSound } from '$features/audio/audio';
-  import { untrack, getContext } from 'svelte';
-  import type { PgnGameStore } from '$stores/gameStore.svelte';
+  import { getMenuData } from '$configs/menu';
+  import { clickToCopy } from '$utils/toolkit/copyToClipboard';
+
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<PgnGameStore>('GAME_STORE');
@@ -26,20 +27,6 @@
   let isFlipped = $derived(gameStore.orientation === 'black');
   let canGoBack = $derived(gameStore.pgnPath.length > 0);
   let canGoForward = $derived(gameStore.hasNext);
-
-  type BooleanKeys<T> = {
-    [K in keyof T]: T[K] extends boolean ? K : never;
-  }[keyof T];
-
-  async function copyFen() {
-    try {
-      await navigator.clipboard.writeText(gameStore.fen);
-      playSound('computer-mouse-click');
-    } catch (err) {
-      console.error('Failed to copy FEN:', err);
-      playSound('error');
-    }
-  }
 
   function handleKeydown(e: KeyboardEvent): void {
     switch (e.key) {
@@ -55,133 +42,7 @@
     }
   }
 
-  function setConfigBoolean(key: BooleanKeys<UserConfig>) {
-    userConfig[key] = !userConfig[key];
-  }
-
-  const menuData: MenuItem[] = $derived([
-    {
-      label: 'Stockfish',
-      icon: IconDevBoard,
-      children: [
-        {
-          type: 'number',
-          label: 'Thinking Time (s)',
-          min: 1,
-          max: 300,
-          value: userConfig.analysisTime,
-          onChange: (val: number) => engineStore.setThinkingTime(val),
-        },
-        {
-          type: 'number',
-          label: 'Multi Pv',
-          min: 1,
-          max: 5,
-          value: userConfig.analysisLines,
-          onChange: (val: number) => engineStore.setMultiPv(val),
-        },
-      ],
-    },
-    {
-      label: 'Anki Config',
-      icon: IconKidStar,
-      children: [
-        {
-          type: 'number',
-          label: 'Handicap',
-          tooltip: 'Number of allowed mistakes before auto playing',
-          min: 1,
-          max: 10,
-          value: userConfig.handicap,
-          onChange: (val: number) => (userConfig.handicap = val),
-        },
-        {
-          type: 'separator',
-        },
-        {
-          type: 'number',
-          label: 'Timer ()',
-          tooltip: 'Initial time for Puzzle. set to 0 to disable',
-          min: 1,
-          max: 60,
-          value: userConfig.timer / 1000,
-          onChange: (val: number) => (userConfig.timer = val * 1000),
-        },
-        {
-          type: 'number',
-          label: 'Increment (s)',
-          tooltip: 'Add time with each correct move',
-          min: 1,
-          max: 60,
-          value: userConfig.increment / 1000,
-          onChange: (val: number) => (userConfig.increment = val * 1000),
-        },
-        {
-          type: 'separator',
-        },
-        {
-          type: 'toggle',
-          label: 'Front Text',
-          tooltip: 'Show textField on front side of note',
-          checked: userConfig.frontText,
-          onToggle: () => setConfigBoolean('frontText'),
-        },
-        {
-          type: 'toggle',
-          label: 'flipBoard',
-          tooltip:
-            'Dictates where puzzle is solves from first or second move of the PGN',
-          checked: userConfig.flipBoard,
-          onToggle: () => setConfigBoolean('flipBoard'),
-        },
-        {
-          type: 'toggle',
-          label: 'mirror',
-          tooltip:
-            'Randomises orientation and colour for PGNs with no castle rights',
-          checked: userConfig.mirror,
-          onToggle: () => setConfigBoolean('mirror'),
-        },
-        {
-          type: 'toggle',
-          label: 'showDests',
-          tooltip: 'Show legal moves for selected piece',
-          checked: userConfig.showDests,
-          onToggle: () => setConfigBoolean('showDests'),
-        },
-        {
-          type: 'toggle',
-          disabled: true,
-          label: 'muteAudio',
-          checked: userConfig.muteAudio,
-          onToggle: () => setConfigBoolean('muteAudio'),
-        },
-      ],
-    },
-    {
-      type: 'separator',
-    },
-    {
-      disabled: !userConfig.saveDue,
-      tooltip:
-        'Updates note template for current settings (requires anki connect addon)',
-      label: 'Save Config',
-      icon: IconSave,
-      danger: userConfig.saveDue,
-      action: () => userConfig.save(),
-    },
-  ]);
-
-  // --- Effects ---
-
-  $effect(() => {
-    // register dependencies by reading the values
-    userConfig.flipBoard;
-
-    untrack(() => {
-      gameStore.parsePGN();
-    });
-  });
+  const menuData = $derived(getMenuData());
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -216,10 +77,10 @@
 </button>
 
 <button
-  class="navBtn"
+  class="navBtn tooltip-btn"
   title="Copy FEN to clipboard"
-  id="copyFen"
-  onclick={copyFen}
+  use:clickToCopy={{ text: gameStore.fen, message: 'FEN Copied!' }}
+  onclick={() => playSound('computer-mouse-click')}
 >
   <span class="md-small"><IconCopy /></span>
 </button>
@@ -272,7 +133,7 @@
     }
 
     &.navBtn {
-      all: unset;
+      padding: 0;
       @include flex-center;
       z-index: 20;
       flex-direction: row;

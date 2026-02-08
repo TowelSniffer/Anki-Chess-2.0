@@ -33,6 +33,9 @@
       "$anki/*": [
         "src/anki_templates/*"
       ],
+      "$configs/*": [
+        "src/utils/configs/*"
+      ],
       "$Types/*": [
         "src/Types/*"
       ],

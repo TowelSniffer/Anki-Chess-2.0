@@ -440,7 +440,8 @@
     position: absolute;
     left: 100%;
     top: -0.3rem;
-    min-width: 180px;
+    font-size: 0.85rem;
+    min-width: 200px;
     background: var(--surface-primary, #fff);
     border: 1px solid #ccc;
     border-radius: 6px;
