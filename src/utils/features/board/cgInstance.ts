@@ -57,7 +57,7 @@ export function handleSelect(key: Key, store: PgnGameStore) {
     if (matchingArrow.san) {
       moveCheck = tempChess.move(matchingArrow.san);
     }
-  } else {
+  } else if (userConfig.singleClickMove) {
     // Case 2: Clicked a square with only ONE legal move reaching it (Ambiguity check)
     // useful for rapid clicking in viewer
     const allMoves = tempChess.moves({ verbose: true });
