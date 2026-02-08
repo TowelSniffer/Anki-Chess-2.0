@@ -101,9 +101,11 @@ export function updateBoard(
   const currentMove = gameStore.currentMove;
   const currentFen = gameStore.fen;
 
+  const latestConfig = gameStore.boardConfig;
+
   if (previousPath === null) {
     cg.set({ animation: { enabled: false } });
-    cg.set({ fen: gameStore.fen });
+    cg.set({ fen: gameStore.fen, ...latestConfig });
     cg.set({ animation: { enabled: true } });
     return
   }
@@ -133,7 +135,7 @@ export function updateBoard(
       animateBackwardPromotion(gameStore, cg, unplayedMove);
     } else {
       // Standard Undo: Snap FEN (slide piece back automatically)
-      cg.set({ fen: currentFen });
+      cg.set({ fen: currentFen, ...latestConfig });
     }
   } else {
     // --- FORWARD / JUMP LOGIC ---
@@ -144,7 +146,7 @@ export function updateBoard(
         // Reset audio
         playSound('move');
       }
-      cg.set({ fen: currentFen });
+      cg.set({ fen: currentFen, ...latestConfig });
       return;
     }
 
@@ -165,7 +167,7 @@ export function updateBoard(
       } else {
         // Standard Forward Move
         // We set FEN immediately; Chessground handles the slide animation
-        cg.set({ fen: currentFen });
+        cg.set({ fen: currentFen, ...latestConfig });
       }
     } else {
       // JUMP (e.g. clicking a variation, loading a new game, or skipping moves)
@@ -173,7 +175,7 @@ export function updateBoard(
       // audio for jumps/loading positions.
       playSound('castle');
 
-      cg.set({ fen: currentFen });
+      cg.set({ fen: currentFen, ...latestConfig });
     }
   }
 

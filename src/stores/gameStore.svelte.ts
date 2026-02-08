@@ -180,14 +180,6 @@ export class PgnGameStore {
       // NORMAL: Sync the shapes
       this._displayedShapes = this._rawShapes;
     });
-
-    $effect(() => {
-      const config = this.boardConfig;
-      // Only run if board exists
-      if (!this.cg) return;
-      // Apply the entire config
-      this.cg.set(config);
-    });
   }
 
   boardConfig = $derived({
