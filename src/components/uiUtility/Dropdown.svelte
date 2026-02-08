@@ -26,7 +26,7 @@
 
 <script lang="ts">
   import { clickOutside } from '$utils/toolkit/clickOutside';
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import type { Component } from 'svelte';
   import IconHelp from '~icons/material-symbols/help';
   import IconArrowRight from '~icons/material-symbols/keyboard-arrow-right';
@@ -41,17 +41,57 @@
   let { label = '', icon = '', items, position = 'bottom-left' }: Props = $props();
 
   let isOpen = $state(false);
-  let activeSelectorIndex = $state<number | null>(null); // Tracks which inner selector is open
-  // we use set instead of an array here as it automatically handles Svelte 5 proxy unwrapping
+  let activeSelectorIndex = $state<number | null>(null);
   let activeTooltips = $state(new Set<MenuItem>());
-
   let triggerRef: HTMLButtonElement | undefined = $state();
   let menuRef: HTMLDivElement | undefined = $state();
 
-  function toggleTooltip(e: Event, item: MenuItem) {
+  // --- Logic ---
+
+  /**
+   * Re-calculates the position of a submenu attached to the given LI.
+   * Ensures it stays within the viewport boundaries.
+   */
+  function repositionSubmenu(li: HTMLElement) {
+    const submenu = li.querySelector('.submenu') as HTMLElement;
+    if (!submenu) return;
+
+    // Reset transform to measure natural position
+    submenu.style.transform = 'none';
+
+    // Measure and shift
+    requestAnimationFrame(() => {
+      const rect = submenu.getBoundingClientRect();
+      const padding = 10;
+      let shiftX = 0;
+      let shiftY = 0;
+
+      // Horizontal Shift (Right Edge)
+      if (rect.right > window.innerWidth) {
+        shiftX = window.innerWidth - rect.right - padding;
+      }
+
+      // Vertical Shift (Bottom Edge)
+      if (rect.bottom > window.innerHeight) {
+        shiftY = window.innerHeight - rect.bottom - padding;
+      }
+
+      if (shiftX !== 0 || shiftY !== 0) {
+        submenu.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+      }
+    });
+  }
+
+  // Called on MouseEnter (existing logic)
+  function adjustSubmenuPosition(e: MouseEvent) {
+    repositionSubmenu(e.currentTarget as HTMLElement);
+  }
+
+  // Called on Tooltip Click (New logic)
+  async function toggleTooltip(e: Event, item: MenuItem) {
     e.stopPropagation();
 
-    // Create a new Set to ensure reactivity triggers
+    // Update State
     const next = new Set(activeTooltips);
     if (next.has(item)) {
       next.delete(item);
@@ -59,6 +99,25 @@
       next.add(item);
     }
     activeTooltips = next;
+
+    // Wait for DOM to render the tooltip text
+    await tick();
+
+    // Find relevant containers and update positions
+    const target = e.target as HTMLElement;
+
+    // A: If this item has its OWN submenu (it's a parent), update that submenu
+    const myWrapper = target.closest('.menu-item-wrapper') as HTMLElement;
+    if (myWrapper) {
+        repositionSubmenu(myWrapper);
+    }
+
+    // B: If this item is INSIDE a submenu, update the container submenu
+    // (Because the container just grew/shrank)
+    const containerSubmenu = target.closest('.submenu');
+    if (containerSubmenu && containerSubmenu.parentElement) {
+        repositionSubmenu(containerSubmenu.parentElement as HTMLElement);
+    }
   }
 
   function portal(node: HTMLElement) {
@@ -68,40 +127,6 @@
         if (node.parentNode) node.parentNode.removeChild(node);
       },
     };
-  }
-
-  function adjustSubmenuPosition(e: MouseEvent) {
-    const li = e.currentTarget as HTMLElement;
-    const submenu = li.querySelector('.submenu') as HTMLElement;
-    if (!submenu) return;
-
-    // reset transform to measure the natural position first
-    submenu.style.transform = 'none';
-
-    // we use requestAnimationFrame her to ensure we measure after the CSS :hover has made it visible
-    requestAnimationFrame(() => {
-      const rect = submenu.getBoundingClientRect();
-      const padding = 10;
-      let shiftX = 0;
-      let shiftY = 0;
-
-      // Horizontal Shift (Right Edge)
-      if (rect.right > window.innerWidth) {
-        // Negative value moves it left
-        shiftX = window.innerWidth - rect.right - padding;
-      }
-
-      // Vertical Shift (Bottom Edge)
-      if (rect.bottom > window.innerHeight) {
-        // Negative value moves it up
-        shiftY = window.innerHeight - rect.bottom - padding;
-      }
-
-      // Apply the shift if necessary
-      if (shiftX !== 0 || shiftY !== 0) {
-        submenu.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
-      }
-    });
   }
 
   $effect(() => {
@@ -114,21 +139,15 @@
         left = rect.right - menuRef.offsetWidth;
       }
 
-      // Initial placement
       menuRef.style.top = `${top}px`;
       menuRef.style.left = `${left}px`;
 
       const menuRect = menuRef.getBoundingClientRect();
-
-      // set the max-width to whatever the menu naturally is right now.
       menuRef.style.maxWidth = `${menuRect.width}px`;
 
-      // check Right edge
       if (menuRect.right > window.innerWidth) {
         menuRef.style.left = `${window.innerWidth - menuRect.width - 10}px`;
       }
-
-      // check bottom edge
       if (menuRect.bottom > window.innerHeight) {
         menuRef.style.top = `${window.innerHeight - menuRect.height - 10}px`;
       }
@@ -137,9 +156,17 @@
 
   $effect(() => {
     if (isOpen) {
-      const onScroll = () => close();
-      window.addEventListener('scroll', onScroll, true);
-      return () => window.removeEventListener('scroll', onScroll, true);
+      const onEvent = () => close();
+
+      // Close on scroll (capture phase to catch scrolling in sub-elements)
+      window.addEventListener('scroll', onEvent, true);
+      // Close on resize (standard bubble phase is fine)
+      window.addEventListener('resize', onEvent);
+
+      return () => {
+        window.removeEventListener('scroll', onEvent, true);
+        window.removeEventListener('resize', onEvent);
+      };
     }
   });
 
@@ -164,7 +191,6 @@
     close();
   }
 
-  // Prevents menu from closing when interacting with inner inputs
   function stopProp(e: Event) {
     e.stopPropagation();
   }
@@ -421,22 +447,50 @@
 
   /* --- Submenu --- */
   .submenu {
-    display: none;
+    display: block; /* Always layout so we can measure, but hide visually */
+    visibility: hidden;
+    opacity: 0;
+
     position: absolute;
     left: 100%;
     top: -0.3rem;
-    font-size: 0.85rem;
     min-width: 200px;
+    z-index: 10001;
+
+    /* ... (Your other styling: background, border, shadow, etc.) ... */
     background: var(--surface-primary, #fff);
     border: 1px solid #ccc;
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 0.3rem 0;
 
-    z-index: 10001;
+    /* GRACE PERIOD (Default / Mouse Leave) */
+    /* Wait 0.3s before doing anything. */
+    /* Then fade out opacity over 0.2s. */
+    /* Keep visibility 'visible' until the fade finishes (0.3s + 0.2s = 0.5s) */
+    transition-property: opacity, visibility;
+    transition-duration: 0.2s, 0s;
+    transition-delay: 0.3s, 0.5s;
   }
+
+  /* OPENING (Mouse Enter Self) */
   .menu-item-wrapper:hover > .submenu {
-    display: block;
+    visibility: visible;
+    opacity: 1;
+
+    /* Show immediately */
+    transition-delay: 0s, 0s;
+  }
+
+  /* SIBLING SWITCH (Immediate Hide Logic) */
+  /* If the parent list is hovered, BUT this specific item is NOT hovered... */
+  /* ...it means we are hovering a sibling. Close this one instantly. */
+  .menu-list:hover > .menu-item-wrapper:not(:hover) > .submenu {
+    /* Kill the delay so it vanishes immediately to make room for the new one */
+    transition-delay: 0s, 0s;
+
+    /* Make the fade-out super fast */
+    transition-duration: 0.1s, 0s;
   }
 
   .menu-list {
@@ -528,10 +582,12 @@
     gap: 0.5rem;
 
     &.has-tooltip {
-      cursor: help; /* The cursor you requested */
+      cursor: help;
+      /* The cursor you requested */
 
       &:hover .text {
-        text-decoration: underline dotted; /* Optional visual hint */
+        text-decoration: underline dotted;
+        /* Optional visual hint */
       }
     }
   }
