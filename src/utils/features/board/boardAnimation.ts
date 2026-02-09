@@ -6,11 +6,11 @@ import type {
   CustomPgnMove,
   SanPromotions,
   PgnPath,
-} from '$stores/gameStore.svelte';
+} from '$Types/ChessStructs';
+import type { PgnGameStore } from '$stores/gameStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { moveAudio, playSound } from '$features/audio/audio';
-import type { PgnGameStore } from '$stores/gameStore.svelte';
 
 const promotionToRole: Record<SanPromotions, Role> = {
   Q: 'queen',

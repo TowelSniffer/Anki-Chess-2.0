@@ -1,7 +1,7 @@
+import type { CustomShape } from '$Types/ChessStructs';
 import { untrack } from 'svelte';
 import { Chess, type Square } from 'chess.js';
 import { userConfig } from './userConfig.svelte';
-import { type CustomShape } from './gameStore.svelte';
 
 function convertCpToWinPercentage(cp: number): number {
   const probability = 1 / (1 + Math.pow(10, -cp / 400));

@@ -1,7 +1,7 @@
 import type { Color, Key } from '@lichess-org/chessground/types';
 import type { Move, Square } from 'chess.js';
 import { Chess, SQUARES } from 'chess.js';
-import type { CustomPgnMove } from '$stores/gameStore.svelte.ts';
+import type { CustomPgnMove } from '$Types/ChessStructs';
 
 export type MoveInput =
   | string

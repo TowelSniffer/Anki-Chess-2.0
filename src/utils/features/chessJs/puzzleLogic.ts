@@ -1,5 +1,5 @@
 import type {  Move, Square } from 'chess.js';
-import type { CustomPgnMove, PgnPath } from '$stores/gameStore.svelte.ts';
+import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { PgnGameStore } from '$stores/gameStore.svelte';
 import { timerStore } from '$stores/timerStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte.ts';

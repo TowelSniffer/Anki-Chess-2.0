@@ -1,4 +1,4 @@
-import type { CustomPgnMove } from '$stores/gameStore.svelte.ts';
+import type { CustomPgnMove } from '$Types/ChessStructs';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 
 // Explicitly import the audio files.
