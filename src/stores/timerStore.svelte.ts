@@ -5,7 +5,7 @@ class TimerStore {
   // --- State ---
   isRunning = $state(false);
   remainingTime = $state(0); // in ms
-  totalTime = $state(0); // in ms (initial duration)
+  totalTime = $state(userConfig.timer); // in ms (initial duration)
 
   // Controls if the board shows the timer gradient
   visible = $state(false);
