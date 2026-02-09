@@ -328,8 +328,8 @@ export class PgnGameStore {
       if (boardMode === 'Puzzle') {
         this._mirrorState = assignMirrorState();
         sessionStorage.setItem('chess__mirrorState', this._mirrorState);
-      } else if (boardMode !== 'Puzzle' && savedMirrorState) {
-        this._mirrorState = savedMirrorState;
+      } else if (savedMirrorState) {
+        this._mirrorState = (savedMirrorState as MirrorState);
         sessionStorage.removeItem('chess__mirrorState');
       }
     }
