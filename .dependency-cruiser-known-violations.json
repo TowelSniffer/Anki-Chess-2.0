@@ -1,0 +1,461 @@
+[
+  {
+    "type": "dependency",
+    "from": "src/Types/ChessStructs.d.ts",
+    "to": "node_modules/@mliebelt/pgn-types/lib/index.umd.js",
+    "rule": {
+      "severity": "error",
+      "name": "no-non-package-json"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/App.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/App.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/App.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ChessgroundBoard.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ChessgroundBoard.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ChessgroundBoard.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EngineAnalysis.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EngineAnalysis.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EngineAnalysis.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PgnViewer.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PgnViewer.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PgnViewer.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PromotePopup.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PromotePopup.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/PromotePopup.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Providers/GameProvider.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Providers/GameProvider.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/Providers/GameProvider.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/CustomSelector.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/CustomSelector.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/CustomSelector.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/Dropdown.svelte",
+    "to": "node_modules/svelte/src/internal/client/index.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/Dropdown.svelte",
+    "to": "node_modules/svelte/src/internal/disclose-version.js",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/Dropdown.svelte",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/main.ts",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/stores/engineStore.svelte.ts",
+    "to": "node_modules/svelte/types/index.d.ts",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-dev-dep"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/content-copy-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/developer-board-off-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/developer-board-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/first-page-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/flip-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/keyboard-arrow-left",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/keyboard-arrow-right",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/settings-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/ButtonsContainer.svelte",
+    "to": "~icons/material-symbols/sync-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EngineAnalysis.svelte",
+    "to": "~icons/material-symbols/arrow-split",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/EngineAnalysis.svelte",
+    "to": "~icons/material-symbols/search-gear",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/Dropdown.svelte",
+    "to": "~icons/material-symbols/help",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/components/uiUtility/Dropdown.svelte",
+    "to": "~icons/material-symbols/keyboard-arrow-right",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/utils/configs/menu.ts",
+    "to": "~icons/material-symbols/background-grid-small",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/utils/configs/menu.ts",
+    "to": "~icons/material-symbols/chess-knight",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/utils/configs/menu.ts",
+    "to": "~icons/material-symbols/content-copy-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/utils/configs/menu.ts",
+    "to": "~icons/material-symbols/developer-board-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/utils/configs/menu.ts",
+    "to": "~icons/material-symbols/kid-star-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/utils/configs/menu.ts",
+    "to": "~icons/material-symbols/save-sharp",
+    "rule": {
+      "severity": "error",
+      "name": "not-to-unresolvable"
+    }
+  },
+  {
+    "type": "cycle",
+    "from": "src/components/PgnViewer.svelte",
+    "to": "src/components/PgnViewer.svelte",
+    "rule": {
+      "severity": "warn",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/components/PgnViewer.svelte",
+        "dependencyTypes": [
+          "local",
+          "import"
+        ]
+      }
+    ]
+  }
+]

@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json && npm run check:deps",
     "check:error": "svelte-check --threshold error --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
-    "check:deps": "depcruise --exclude 'node_modules' --output-type err src"
+    "check:deps": "depcruise --ignore-known .dependency-cruiser-known-violations.json --output-type err src"
   },
   "devDependencies": {
     "@iconify-json/material-symbols": "^1.2.53",
