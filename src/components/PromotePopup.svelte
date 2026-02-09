@@ -13,10 +13,10 @@
   import bNRaw from '$assets/pieces/_bN.svg?raw';
 
   import { getContext } from 'svelte';
-  import type { PgnGameStore } from '$stores/gameStore.svelte';
+  import type { IPgnGameStore } from '$Types/StoreInterfaces';
 
   // Retrieve the instance created by the parent
-  const gameStore = getContext<PgnGameStore>('GAME_STORE');
+  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
 
   let turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
 
