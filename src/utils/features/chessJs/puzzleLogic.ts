@@ -1,13 +1,11 @@
-import { Chess, type Move, type Square } from 'chess.js';
-import type { Api } from '@lichess-org/chessground/api';
+import type {  Move, Square } from 'chess.js';
 import type { CustomPgnMove, PgnPath } from '$stores/gameStore.svelte.ts';
+import type { PgnGameStore } from '$stores/gameStore.svelte';
 import { timerStore } from '$stores/timerStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
-import { getContext } from 'svelte';
-import type { PgnGameStore } from '$stores/gameStore.svelte';
 
 
 // --- Helper Functions ---

@@ -2,8 +2,7 @@ import type { Move } from 'chess.js';
 import type {
   SanPromotions,
   CustomPgnMove,
-  PgnPath,
-  CustomPgnGame,
+  PgnPath
 } from '$stores/gameStore.svelte.ts';
 import { Chess } from 'chess.js';
 

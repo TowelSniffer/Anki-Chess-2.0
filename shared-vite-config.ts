@@ -1,5 +1,5 @@
 // shared-vite-config.ts
-import { defineConfig, type UserConfig } from 'vite';
+import { type UserConfig } from 'vite';
 import path from 'path';
 
 export const sharedViteConfig = (options: UserConfig = {}): UserConfig => {

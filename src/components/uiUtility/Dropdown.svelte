@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
   export type MenuItem = {
     type?: 'action' | 'separator' | 'toggle' | 'number' | 'select';
     label?: string;
@@ -26,7 +26,7 @@
 
 <script lang="ts">
   import { clickOutside } from '$utils/toolkit/clickOutside';
-  import { onMount, onDestroy, tick } from 'svelte';
+  import { tick } from 'svelte';
   import type { Component } from 'svelte';
   import IconHelp from '~icons/material-symbols/help';
   import IconArrowRight from '~icons/material-symbols/keyboard-arrow-right';
@@ -276,7 +276,8 @@
       </div>
     {/if}
     {#if activeTooltips.has(item)}
-      <div class="tooltip-text" onclick={stopProp}>
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+      <div class="tooltip-text" role="note" tabindex="-1" onclick={stopProp} onkeydown={stopProp}>
         {item.tooltip}
       </div>
     {/if}
@@ -289,63 +290,77 @@
       {#if item.type === 'separator'}
         <li class="separator"></li>
       {:else if item.type === 'toggle'}
-        <li class="control-item" onclick={stopProp}>
-          {@render itemLabel(item)}
-          <label class="switch">
-            <input
-              type="checkbox"
-              checked={item.checked}
-              onchange={(e) => item.onToggle?.(e.currentTarget.checked)}
-            />
-            <span class="slider round"></span>
-          </label>
+        <li>
+          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+          <div class="control-item" role="group" onclick={stopProp} onkeydown={stopProp}>
+            {@render itemLabel(item)}
+            <label class="switch">
+              <input
+                type="checkbox"
+                checked={item.checked}
+                onchange={(e) => item.onToggle?.(e.currentTarget.checked)}
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
         </li>
       {:else if item.type === 'number'}
-        <li class="control-item" onclick={stopProp}>
-          {@render itemLabel(item)}
-          <div class="number-stepper">
-            <button
-              class="step-btn"
-              onclick={() => item.onChange?.(Number(item.value) - (item.step || 1))}>-</button
-            >
-            <span class="step-val">{item.value}</span>
-            <button
-              class="step-btn"
-              onclick={() => item.onChange?.(Number(item.value) + (item.step || 1))}>+</button
-            >
+        <li>
+          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+          <div class="control-item" role="group" onclick={stopProp} onkeydown={stopProp}>
+            {@render itemLabel(item)}
+            <div class="number-stepper">
+              <button
+                class="step-btn"
+                onclick={() => item.onChange?.(Number(item.value) - (item.step || 1))}>-</button
+              >
+              <span class="step-val">{item.value}</span>
+              <button
+                class="step-btn"
+                onclick={() => item.onChange?.(Number(item.value) + (item.step || 1))}>+</button
+              >
+            </div>
           </div>
         </li>
       {:else if item.type === 'select'}
-        <li class="control-item select-container" onclick={stopProp}>
-          <div class="selector-wrapper">
-            <div class="sel-label">{item.label}</div>
-            <div class="sel-divider"></div>
-            <div class="sel-value-section">
-              <button
-                class="sel-trigger"
-                class:isActive={activeSelectorIndex === idx}
-                onclick={() => (activeSelectorIndex = activeSelectorIndex === idx ? null : idx)}
-              >
-                <span class="curr-val">{item.value}</span>
-                <span class="arrow" class:open={activeSelectorIndex === idx}>▼</span>
-              </button>
+        <li>
+          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+          <div
+            class="control-item select-container"
+            role="group"
+            onclick={stopProp}
+            onkeydown={stopProp}
+          >
+            <div class="selector-wrapper">
+              <div class="sel-label">{item.label}</div>
+              <div class="sel-divider"></div>
+              <div class="sel-value-section">
+                <button
+                  class="sel-trigger"
+                  class:isActive={activeSelectorIndex === idx}
+                  onclick={() => (activeSelectorIndex = activeSelectorIndex === idx ? null : idx)}
+                >
+                  <span class="curr-val">{item.value}</span>
+                  <span class="arrow" class:open={activeSelectorIndex === idx}>▼</span>
+                </button>
 
-              {#if activeSelectorIndex === idx}
-                <div class="sel-dropdown">
-                  {#each item.options || [] as opt}
-                    <button
-                      class="sel-option"
-                      class:selected={opt === item.value}
-                      onclick={() => {
-                        item.onChange?.(opt);
-                        activeSelectorIndex = null;
-                      }}
-                    >
-                      {opt}
-                    </button>
-                  {/each}
-                </div>
-              {/if}
+                {#if activeSelectorIndex === idx}
+                  <div class="sel-dropdown">
+                    {#each item.options || [] as opt}
+                      <button
+                        class="sel-option"
+                        class:selected={opt === item.value}
+                        onclick={() => {
+                          item.onChange?.(opt);
+                          activeSelectorIndex = null;
+                        }}
+                      >
+                        {opt}
+                      </button>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
             </div>
           </div>
         </li>
@@ -378,7 +393,6 @@
 {/snippet}
 
 <style lang="scss">
-  input,
   button {
     margin: 0;
     padding: 0;
@@ -530,8 +544,7 @@
         opacity: 0.5;
       }
       .icon,
-      .text,
-      .chevron {
+      .text {
         cursor: not-allowed;
         opacity: 0.5;
       }
@@ -544,11 +557,6 @@
     }
     .icon {
       font-size: 1.1rem;
-    }
-    .chevron {
-      margin-left: auto;
-      font-size: 1.1rem;
-      opacity: 0.6;
     }
   }
 
@@ -602,12 +610,6 @@
     white-space: normal;
     word-break: break-word;
     cursor: default;
-
-    &.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none; /* Prevents clicking the disabled row */
-    }
   }
 
   .info-hint {

@@ -1,7 +1,6 @@
 import type { Api } from '@lichess-org/chessground/api';
 import type { Key } from '@lichess-org/chessground/types';
-import { Chess } from 'chess.js';
-import type { Color, Role, Pieces } from '@lichess-org/chessground/types';
+import type { Color, Role } from '@lichess-org/chessground/types';
 import type { Color as ChessJsColor } from 'chess.js';
 import type {
   CustomPgnMove,
@@ -66,7 +65,6 @@ function animateForwardPromotion(
 }
 
 function animateBackwardPromotion(
-  gameStore: PgnGameStore,
   cg: Api,
   currentMove: CustomPgnMove,
 ) {
@@ -132,7 +130,7 @@ export function updateBoard(
     const unplayedMove = gameStore.getMoveByPath(previousPath);
 
     if (unplayedMove?.promotion) {
-      animateBackwardPromotion(gameStore, cg, unplayedMove);
+      animateBackwardPromotion(cg, unplayedMove);
     } else {
       // Standard Undo: Snap FEN (slide piece back automatically)
       cg.set({ fen: currentFen, ...latestConfig });

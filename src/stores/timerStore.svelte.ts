@@ -1,5 +1,4 @@
 import { userConfig } from '$stores/userConfig.svelte.ts';
-import { getContext } from 'svelte';
 
 class TimerStore {
   // --- State ---

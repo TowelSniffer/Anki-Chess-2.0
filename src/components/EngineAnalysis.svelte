@@ -53,7 +53,7 @@
       value={engineStore.multipv}
       options={engineStore.multipvOptions}
       icon={IconArrowSplit}
-      onChange={(val: number) => engineStore.setMultiPv(val)}
+      onChange={(val: number) => setLines(val)}
     />
 
     <CustomSelector

@@ -1,4 +1,3 @@
-import type { Color } from '@lichess-org/chessground/types';
 import defaultConfig from '$anki/default_config.json';
 import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect';
 import { copyToClipboard } from '$utils/toolkit/copyToClipboard';

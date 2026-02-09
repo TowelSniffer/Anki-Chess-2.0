@@ -258,7 +258,7 @@ class EngineStore {
       if (this._pendingFen) return;
       this._parseInfo(msg);
     } else if (msg.startsWith('bestmove')) {
-      this._parseBestMove(msg);
+      this._parseBestMove();
     }
   }
 
@@ -365,7 +365,7 @@ class EngineStore {
     }
   }
 
-  private _parseBestMove(msg: string) {
+  private _parseBestMove() {
     this.isThinking = false;
 
     // If we have a pending FEN (user moved while engine was thinking),

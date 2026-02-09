@@ -1,5 +1,4 @@
 <script lang="ts">
-  import PromotePopup from '$components/PromotePopup.svelte';
   import { type ChessJsPromotions } from '$stores/gameStore.svelte.ts';
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
 

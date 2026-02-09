@@ -1,10 +1,4 @@
-import type { Move } from 'chess.js';
-import type { PgnMove } from '@mliebelt/pgn-types';
-
-import type { CustomPgnMove, PgnPath } from '$stores/gameStore.svelte.ts';
-import { isNagKey, nags } from './nags';
-import { getContext } from 'svelte';
-import type { PgnGameStore } from '$stores/gameStore.svelte';
+import type { PgnPath } from '$stores/gameStore.svelte.ts';
 
 // --- PGN Navigation ---
 
