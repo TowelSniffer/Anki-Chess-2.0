@@ -1,6 +1,6 @@
 import type { Color as CgColor } from '@lichess-org/chessground/types';
 import type { Api } from '@lichess-org/chessground/api';
-import type { Square, Move } from 'chess.js';
+import type { Square, Move, Color } from 'chess.js';
 import type {
   CustomPgnGame,
   CustomPgnMove,
@@ -69,7 +69,7 @@ export class PgnGameStore {
   fen = $derived(this.currentMove?.after ?? this.startFen);
 
   // depends on cached currentMove
-  turn = $derived.by(() => {
+  turn: Color = $derived.by(() => {
     if (!this.currentMove) {
       // Ensure rootGame is loaded before accessing tags
       if (!this.rootGame) return 'w';

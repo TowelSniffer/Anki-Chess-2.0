@@ -1,6 +1,6 @@
 import type { Key } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
-import type { PgnGameStore } from '$stores/gameStore.svelte';
+import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { isMoveLegal, isPromotion } from '$features/chessJs/chessFunctions';
@@ -15,7 +15,7 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
  * 1. Smart Moves (Clicking an arrow destination)
  * 2. Manual Click-to-Move handling (if needed)
  */
-export function handleSelect(key: Key, store: PgnGameStore) {
+export function handleSelect(key: Key, store: IPgnGameStore) {
   if (store.wrongMoveDebounce || !store.cg) return;
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
@@ -75,7 +75,7 @@ export function handleSelect(key: Key, store: PgnGameStore) {
 /**
  * Handles the 'after' event (Drag and Drop completion).
  */
-export function handleMove( orig: Key, dest: Key, store: PgnGameStore) {
+export function handleMove( orig: Key, dest: Key, store: IPgnGameStore) {
   if (!store.cg) return;
   const from = orig as Square;
   const to = dest as Square;
@@ -143,7 +143,7 @@ const customBrushes = {
   yellow: { key: 'yellow', color: 'yellow', opacity: 1, lineWidth: 7 },
 };
 
-export function getInitialCgConfig(store: PgnGameStore) {
+export function getInitialCgConfig(store: IPgnGameStore) {
  return {
   fen: store.startFen,
   premovable: {

@@ -10,7 +10,7 @@
   import IconDevBoardOff from '~icons/material-symbols/developer-board-off-sharp';
   import IconFlip from '~icons/material-symbols/flip-sharp';
 
-  import type { PgnGameStore } from '$stores/gameStore.svelte';
+  import type { IPgnGameStore } from '$Types/StoreInterfaces';
 
   import { getContext } from 'svelte';
   import Dropdown from './uiUtility/Dropdown.svelte';
@@ -21,7 +21,7 @@
 
 
   // Retrieve the instance created by the parent
-  const gameStore = getContext<PgnGameStore>('GAME_STORE');
+  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
 
   let isFlipped = $derived(gameStore.orientation === 'black');
   let canGoBack = $derived(gameStore.pgnPath.length > 0);

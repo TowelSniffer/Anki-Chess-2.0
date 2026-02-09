@@ -1,6 +1,6 @@
 import type {  Move, Square } from 'chess.js';
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
-import type { PgnGameStore } from '$stores/gameStore.svelte';
+import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import { timerStore } from '$stores/timerStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { playSound } from '$features/audio/audio';
@@ -21,7 +21,7 @@ function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
 }
 
 function findMatchingPath(
-  gameStore: PgnGameStore,
+  gameStore: IPgnGameStore,
   playedMove: Move,
 ): PgnPath | null {
   const nextMainPath = navigateNextMove(gameStore.pgnPath);
@@ -53,7 +53,7 @@ function findMatchingPath(
 // --- Main Handler ---
 
 export function handleUserMove(
-  gameStore: PgnGameStore,
+  gameStore: IPgnGameStore,
   orig: Square,
   dest: Square,
   san?: string,
@@ -92,7 +92,7 @@ export function handleUserMove(
   }
 }
 
-export function playAiMove(gameStore: PgnGameStore, delay: number): void {
+export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
   setTimeout(() => {
     gameStore.errorCount = 0;
     const nextMovePathCheck = navigateNextMove(gameStore.pgnPath);
@@ -116,7 +116,7 @@ export function playAiMove(gameStore: PgnGameStore, delay: number): void {
   }, delay);
 }
 
-function playUserCorrectMove(gameStore: PgnGameStore, delay: number): void {
+function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
   setTimeout(() => {
     if (!gameStore.cg) return;
     gameStore.cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
@@ -128,7 +128,7 @@ function playUserCorrectMove(gameStore: PgnGameStore, delay: number): void {
   }, delay);
 }
 
-function handleWrongMove(gameStore: PgnGameStore, move: Move): void {
+function handleWrongMove(gameStore: IPgnGameStore, move: Move): void {
   if (!gameStore.cg) return;
   gameStore.errorCount++;
   gameStore.cg.move(move.from, move.to);

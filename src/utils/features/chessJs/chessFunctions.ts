@@ -1,5 +1,5 @@
-import type { Color, Key } from '@lichess-org/chessground/types';
-import type { Move, Square } from 'chess.js';
+import type { Key } from '@lichess-org/chessground/types';
+import type { Move, Square, Color } from 'chess.js';
 import { Chess, SQUARES } from 'chess.js';
 import type { CustomPgnMove } from '$Types/ChessStructs';
 

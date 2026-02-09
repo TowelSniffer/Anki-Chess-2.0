@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { PgnPath, PuzzleScored } from '$Types/ChessStructs';
-  import type { PgnGameStore } from '$stores/gameStore.svelte';
+  import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import '@lichess-org/chessground/assets/chessground.base.css';
   import '$scss/_components/_chessground.scss';
   import { userConfig } from '$stores/userConfig.svelte.ts';
@@ -43,7 +43,7 @@
     bK: toDataUri(bK_raw),
   };
 
-  const gameStore = getContext<PgnGameStore>('GAME_STORE');
+  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   $inspect(gameStore.rootGame);
 
   let boardContainer: HTMLDivElement;

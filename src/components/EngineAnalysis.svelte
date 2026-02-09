@@ -2,11 +2,11 @@
   import { engineStore } from '$stores/engineStore.svelte';
   import CustomSelector from './uiUtility/CustomSelector.svelte';
   import { getContext } from 'svelte';
-  import type { PgnGameStore } from '$stores/gameStore.svelte';
+  import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import IconArrowSplit from '~icons/material-symbols/arrow-split';
   import IconSearchGear from '~icons/material-symbols/search-gear';
 
-  const gameStore = getContext<PgnGameStore>('GAME_STORE');
+  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
 
   const lineOutput = $derived.by(() => {
     if (gameStore.isCheckmate) {

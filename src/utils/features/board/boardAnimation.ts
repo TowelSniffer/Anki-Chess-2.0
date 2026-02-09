@@ -7,7 +7,7 @@ import type {
   SanPromotions,
   PgnPath,
 } from '$Types/ChessStructs';
-import type { PgnGameStore } from '$stores/gameStore.svelte';
+import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { moveAudio, playSound } from '$features/audio/audio';
@@ -90,7 +90,7 @@ function animateBackwardPromotion(
  * Determines if we should Animate (Undo/Promotion) or Snap (Jump/Load).
  */
 export function updateBoard(
-  gameStore: PgnGameStore,
+  gameStore: IPgnGameStore,
   cg: Api,
   previousPath: PgnPath | null,
 ) {
