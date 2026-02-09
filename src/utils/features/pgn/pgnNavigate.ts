@@ -1,4 +1,4 @@
-import type { PgnPath } from '$stores/gameStore.svelte.ts';
+import type { PgnPath } from '$Types/ChessStructs';
 
 // --- PGN Navigation ---
 

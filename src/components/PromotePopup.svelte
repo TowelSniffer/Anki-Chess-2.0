@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type ChessJsPromotions } from '$stores/gameStore.svelte.ts';
+  import type { ChessJsPromotions } from '$Types/ChessStructs';
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
 
   import wQRaw from '$assets/pieces/_wQ.svg?raw';

@@ -1,4 +1,4 @@
-import type { CustomPgnMove } from '$stores/gameStore.svelte.ts';
+import type { CustomPgnMove } from '$Types/ChessStructs';
 
 type NotationMap = { [key: string]: string };
 

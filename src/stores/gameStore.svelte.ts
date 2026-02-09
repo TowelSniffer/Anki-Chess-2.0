@@ -1,8 +1,14 @@
 import type { Color as CgColor } from '@lichess-org/chessground/types';
 import type { Api } from '@lichess-org/chessground/api';
-import type { DrawShape } from '@lichess-org/chessground/draw';
 import type { Square, Move } from 'chess.js';
-import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
+import type {
+  CustomPgnGame,
+  CustomPgnMove,
+  PgnPath,
+  BoardModes,
+  PuzzleScored,
+  CustomShape
+} from '$Types/ChessStructs';
 import { parse } from '@mliebelt/pgn-parser';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
@@ -22,70 +28,6 @@ import {
 import { engineStore } from './engineStore.svelte';
 import { timerStore } from '$stores/timerStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte.ts';
-
-// --- Types ---
-
-export type PuzzleScored = 'perfect' | 'correct' | 'incorrect' | null;
-
-/**
- * Mlieberts promotion is uppercase. Gotten from san (ie dxc8=N)
- * chess.js promotion is lower case
- */
-export type SanPromotions = 'Q' | 'N' | 'R' | 'B';
-export type ChessJsPromotions = 'q' | 'n' | 'r' | 'b';
-export type BoardModes = 'Viewer' | 'Puzzle';
-export type PgnPath = (number | 'v')[];
-
-export type CustomShapeBrushes =
-  | 'stockfish'
-  | 'stockfishAlt'
-  | 'mainLine'
-  | 'goodLine'
-  | 'altLine'
-  | 'blunderLine'
-  | 'nagOnly'
-
-
-
-export type CustomShape = Omit<DrawShape, 'brush' | 'orig' | 'dest'> & {
-  orig: Square;
-  dest?: Square;
-  san?: string;
-  brush?: CustomShapeBrushes | string;
-};
-type CustomGameComment = GameComment & {
-  EV: string;
-};
-
-export type CustomPgnMove = Omit<
-  PgnMove,
-  'variations' | 'moveNumber' | 'drawOffer' | 'commentDiag'
-> & {
-  before: string;
-  after: string;
-  from: Square;
-  to: Square;
-  flags: string;
-  san: string;
-  promotion: SanPromotions | undefined;
-  drawOffer?: boolean;
-  moveNumber?: number;
-  commentDiag?: CustomGameComment;
-  pgnPath: PgnPath;
-  variations: CustomPgnMove[][];
-
-  // --- Pre-calculated State ---
-  history: string[];
-  isCheck: boolean;
-  isCheckmate: boolean;
-  isStalemate: boolean;
-  isThreefoldRepetition: boolean;
-  isDraw: boolean;
-};
-
-export type CustomPgnGame = Omit<PgnGame, 'moves'> & {
-  moves: CustomPgnMove[];
-};
 
 export class PgnGameStore {
   // --- Game State ---

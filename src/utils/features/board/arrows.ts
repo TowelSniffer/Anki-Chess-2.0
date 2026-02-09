@@ -5,7 +5,7 @@ import type {
   CustomPgnMove,
   PgnPath,
   BoardModes
-} from '$stores/gameStore.svelte';
+} from '$Types/ChessStructs';
 import { isNagKey, nags} from '$features/pgn/nags';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { areMovesEqual } from '$features/chessJs/chessFunctions'

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { nags, isNagKey } from '$features/pgn/nags';
-  import { type PgnPath } from '$stores/gameStore.svelte.ts';
-  import PgnViewer from './PgnViewer.svelte';
+  import type { PgnGameStore } from '$stores/gameStore.svelte';
+  import type { PgnPath, CustomPgnMove } from '$Types/ChessStructs';
   import { getContext } from 'svelte';
-  import type { PgnGameStore, CustomPgnMove } from '$stores/gameStore.svelte';
+  import PgnViewer from './PgnViewer.svelte';
+  import { nags, isNagKey } from '$features/pgn/nags';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<PgnGameStore>('GAME_STORE');

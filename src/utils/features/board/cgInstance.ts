@@ -1,6 +1,7 @@
 import type { Key } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
-import type { PgnGameStore, CustomShape } from '$stores/gameStore.svelte';
+import type { PgnGameStore } from '$stores/gameStore.svelte';
+import type { CustomShape } from '$Types/ChessStructs';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { isMoveLegal, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';

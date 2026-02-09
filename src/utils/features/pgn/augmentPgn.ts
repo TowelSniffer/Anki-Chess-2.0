@@ -3,7 +3,7 @@ import type {
   SanPromotions,
   CustomPgnMove,
   PgnPath
-} from '$stores/gameStore.svelte.ts';
+} from '$Types/ChessStructs';
 import { Chess } from 'chess.js';
 
 // Reconstructs game state by current path
