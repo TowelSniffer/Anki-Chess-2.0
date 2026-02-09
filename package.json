@@ -9,7 +9,7 @@
     "build:anki-media": "vite build --config vite.config.anki.ts",
     "build:anki": "npm run build:anki-media && uv run scripts/build_apkg.py",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json && npm run check:deps",
     "check:error": "svelte-check --threshold error --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
     "check:deps": "depcruise --exclude 'node_modules' --output-type err src"
   },
