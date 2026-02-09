@@ -1,12 +1,12 @@
 import type { Color as CgColor } from '@lichess-org/chessground/types';
 import type { Api } from '@lichess-org/chessground/api';
 import type { DrawShape } from '@lichess-org/chessground/draw';
-import type { Color, Square, Move } from 'chess.js';
+import type { Square, Move } from 'chess.js';
 import type { PgnMove, PgnGame, GameComment } from '@mliebelt/pgn-types';
 import { parse } from '@mliebelt/pgn-parser';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
-import { getInitialCgConfig, handleSelect, handleMove } from '$features/board/cgInstance';
+import { getInitialCgConfig } from '$features/board/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';

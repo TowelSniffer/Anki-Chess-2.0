@@ -12,10 +12,9 @@
 
   import type { PgnGameStore } from '$stores/gameStore.svelte';
 
-  import { untrack, getContext } from 'svelte';
+  import { getContext } from 'svelte';
   import Dropdown from './uiUtility/Dropdown.svelte';
   import { engineStore } from '$stores/engineStore.svelte';
-  import { userConfig, type UserConfig } from '$stores/userConfig.svelte';
   import { playSound } from '$features/audio/audio';
   import { getMenuData } from '$configs/menu';
   import { clickToCopy } from '$utils/toolkit/copyToClipboard';
@@ -151,11 +150,6 @@
       box-sizing: border-box;
       transition: background 0.2s;
       font-size: 1.65rem;
-
-      svg {
-        height: 100%;
-        width: 50%;
-      }
 
       &:hover:not(:disabled) {
         background-color: var(--interactive-button-hover);

@@ -6,7 +6,7 @@ import type {
   PgnPath,
   BoardModes
 } from '$stores/gameStore.svelte';
-import { isNagKey, nags, type NagKey} from '$features/pgn/nags';
+import { isNagKey, nags} from '$features/pgn/nags';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { areMovesEqual } from '$features/chessJs/chessFunctions'
 export const blunderNags = ['$2', '$4', '$6', '$9'];

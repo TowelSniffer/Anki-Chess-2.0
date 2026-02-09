@@ -126,10 +126,6 @@
     min-width: 60px; /* Ensures the dropdown isn't too skinny */
   }
 
-  .value-icon {
-    font-size: 1rem;
-  }
-
   /* The button inside the right side */
   .trigger-btn {
     flex: 1;

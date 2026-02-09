@@ -1,9 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import '@lichess-org/chessground/assets/chessground.base.css';
-  import type { Key } from '@lichess-org/chessground/types';
   import '$scss/_components/_chessground.scss';
-  import type { PgnGameStore, PgnPath, CustomPgnMove, PuzzleScored } from '$stores/gameStore.svelte.ts';
+  import type { PgnGameStore, PgnPath, PuzzleScored } from '$stores/gameStore.svelte.ts';
   import { userConfig } from '$stores/userConfig.svelte.ts';
   import { engineStore } from '$stores/engineStore.svelte';
   import { timerStore } from '$stores/timerStore.svelte';

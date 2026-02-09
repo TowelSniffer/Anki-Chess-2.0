@@ -55,3 +55,42 @@ hr {
   /* Bottom Outer Highlight: Catches the light on the bottom lip */
   0px 1px 0px rgba(255,255,255,0.8);
 }
+
+/* Global Clipboard Tooltip Styles */
+.global-tooltip {
+  position: fixed; /* Fixed relative to viewport */
+  z-index: 9999;   /* Top of everything */
+  pointer-events: none; /* Let clicks pass through */
+
+  /* Initial State (Hidden) */
+  opacity: 0;
+  transform: translate(-50%, -100%) scale(0.9); /* Centered X, Slide Up Y */
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+
+  /* Visuals */
+  background-color: var(--interactive-button-hover, #4caf50);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  white-space: nowrap;
+
+  /* Optional: Little triangle arrow pointing down */
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--interactive-button-hover, #4caf50);
+  }
+
+  /* Active State */
+  &.visible {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1); /* Final position */
+  }
+}
