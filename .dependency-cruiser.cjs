@@ -104,7 +104,8 @@ module.exports = {
       severity: 'error',
       from: {},
       to: {
-        couldNotResolve: true
+        couldNotResolve: true,
+        pathNot: ['^~icons/']
       }
     },
     {
@@ -274,7 +275,7 @@ module.exports = {
        defaults to './tsconfig.json'.
      */
     tsConfig: {
-      fileName: 'tsconfig.json'
+      fileName: 'tsconfig.app.json'
     },
 
     /* Webpack configuration to use to get resolve options from.
