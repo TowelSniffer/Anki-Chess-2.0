@@ -1,24 +1,11 @@
 import { untrack } from 'svelte';
-import type { Api } from '@lichess-org/chessground/api';
-import type { Key } from '@lichess-org/chessground/types';
-import type { Color, Role } from '@lichess-org/chessground/types';
-import type { Color as ChessJsColor } from 'chess.js';
 import type {
   CustomPgnMove,
-  SanPromotions,
   PgnPath,
 } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
-import { userConfig } from '$stores/userConfig.svelte.ts';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { moveAudio, playSound } from '$features/audio/audio';
-
-const promotionToRole: Record<SanPromotions, Role> = {
-  Q: 'queen',
-  R: 'rook',
-  B: 'bishop',
-  N: 'knight',
-};
 
 function injectPiece(fen: string, square: string, replacement: string): string {
   const files = 'abcdefgh';
@@ -65,11 +52,9 @@ function injectPiece(fen: string, square: string, replacement: string): string {
 function animateForwardPromotion(
   gameStore: IPgnGameStore,
   move: CustomPgnMove,
-  promotion: SanPromotions,
 
 ) {
-  const role = promotionToRole[promotion];
-
+  if (!gameStore.cg) return;
   const pieceCheck = gameStore.cg.state.pieces.get(move.to);
   if (pieceCheck?.role === 'pawn') {
     // If called with promotePopup, move animation is not needed
@@ -85,7 +70,6 @@ function animateBackwardPromotion(
   gameStore: IPgnGameStore,
   currentMove: CustomPgnMove,
 ) {
-  const pieceCheck = gameStore.cg.state.pieces.get(currentMove.to);
   const pawnSymbol = currentMove.turn === 'w' ? 'P' : 'p';
   const pawnMovedFen = injectPiece(currentMove.after, currentMove.to, pawnSymbol)
 
@@ -106,9 +90,6 @@ export function updateBoard(
 
   const currentPath = gameStore.pgnPath;
   const currentMove = gameStore.currentMove;
-  const currentFen = gameStore.fen;
-
-  const latestConfig = gameStore.boardConfig;
 
   if (previousPath === null) {
     return
@@ -163,7 +144,7 @@ export function updateBoard(
       moveAudio(currentMove);
 
       if (currentMove.promotion) {
-        animateForwardPromotion(gameStore, currentMove, currentMove.promotion);
+        animateForwardPromotion(gameStore, currentMove);
       }
     } else {
       // JUMP (e.g. clicking a variation, loading a new game, or skipping moves)
@@ -172,5 +153,5 @@ export function updateBoard(
       playSound('castle');
     }
   }
-  gameStore.cg.playPremove();
+  if (gameStore.cg) gameStore.cg.playPremove();
 }
