@@ -161,7 +161,8 @@ module.exports = {
           'type-only'
         ],
         pathNot: [
-          'node_modules/@types/'
+          'node_modules/@types/',
+          'node_modules/svelte/'
         ]
       }
     },
