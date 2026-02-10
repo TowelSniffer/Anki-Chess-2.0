@@ -204,7 +204,7 @@
     if (!gameStore?.cg) return;
     const isMove = gameStore.fen !== lastSyncedFen || gameStore.pgnPath.length !== previousPath?.length;
     if(isMove) {
-        updateBoard(gameStore, gameStore.cg, previousPath);
+        updateBoard(gameStore, previousPath);
         previousPath = [...gameStore.pgnPath];
         lastSyncedFen = gameStore.fen;
     } else { // no animation just set config

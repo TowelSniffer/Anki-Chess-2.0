@@ -27,6 +27,9 @@ export interface IPgnGameStore {
   opponentColor: CgColor;
   wrongMoveDebounce: ReturnType<typeof setTimeout> | null;
   pendingPromotion: { from: Square; to: Square } | null;
+  customAnimationFen: string | null;
+  shouldAnimate: boolean;
+  isAnimating: ReturnType<typeof setTimeout> | null;
 
   // --- DERIVED (Getters) ---
   readonly isPuzzleComplete: boolean;

@@ -30,17 +30,16 @@ const mountApp = () => {
     ? pgnDiv.textContent?.trim()
     : `[Event "?"]
 [Site "?"]
-[Date "2023.02.13"]
+[Date "2026.02.11"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "8/p6p/6k1/1pp2r2/7R/KP4P1/P7/8 w - - 2 31"]
+[FEN "8/p6p/8/1P3k2/8/K5P1/P1p5/8 b - - 0 36"]
 [SetUp "1"]
 
-{[%cal Ge2c3,Ge6e7,Gc3e4,Ge7e8,Ge4f6]}
-31. Re4 {ddd [%csl Ge4,Rd5,Yf6]} (31. Rf4? {[%cal Ge2c3,Be6e7,Gc3e4,Ye7e8,Ye4f6]}) a5? {[%eval 3.02]} 32. Re8 {[%eval #-3]} Rf2 {[%eval 1.02] [%EV 23.7]} (32... Rg5? {EV:
-71.5%}) *`;
+36... Kf6 *
+`;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
   const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Viewer';

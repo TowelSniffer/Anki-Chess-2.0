@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { Api } from '@lichess-org/chessground/api';
 import type { Key } from '@lichess-org/chessground/types';
 import type { Color, Role } from '@lichess-org/chessground/types';
@@ -19,70 +20,79 @@ const promotionToRole: Record<SanPromotions, Role> = {
   N: 'knight',
 };
 
-const chessColorToCg: Record<ChessJsColor, Color> = {
-  w: 'white',
-  b: 'black',
-};
+function injectPiece(fen: string, square: string, replacement: string): string {
+  const files = 'abcdefgh';
+  const ranks = '87654321';
+  const [boardStr, ...rest] = fen.split(' ');
+  const rows = boardStr.split('/');
+
+  const fileIdx = files.indexOf(square[0]);
+  const rankIdx = ranks.indexOf(square[1]);
+
+  let row = rows[rankIdx];
+  let col = 0;
+  let newRow = '';
+
+  // Reconstruct the row string
+  for (let i = 0; i < row.length; i++) {
+    const char = row[i];
+    if (isNaN(parseInt(char))) {
+      // It's a piece
+      if (col === fileIdx) newRow += replacement;
+      else newRow += char;
+      col++;
+    } else {
+      // It's a number (skips)
+      const skip = parseInt(char);
+      if (col + skip > fileIdx && col <= fileIdx) {
+        // The target is inside this skip
+        const pre = fileIdx - col;
+        const post = skip - pre - 1;
+        if (pre > 0) newRow += pre.toString();
+        newRow += replacement;
+        if (post > 0) newRow += post.toString();
+      } else {
+        newRow += char;
+      }
+      col += skip;
+    }
+  }
+
+  rows[rankIdx] = newRow;
+  return [rows.join('/'), ...rest].join(' ');
+}
 
 function animateForwardPromotion(
-  cg: Api,
+  gameStore: IPgnGameStore,
   move: CustomPgnMove,
   promotion: SanPromotions,
 
 ) {
   const role = promotionToRole[promotion];
-  const color = chessColorToCg[move.turn];
 
-  // If called with promotePopup, move animation is not needed
-  const pieceCheck = cg.state.pieces.get(move.to);
+  const pieceCheck = gameStore.cg.state.pieces.get(move.to);
   if (pieceCheck?.role === 'pawn') {
-    cg.set({ animation: { enabled: false } });
-    cg.set({ fen: move.after });
-    cg.set({ animation: { enabled: true } });
+    // If called with promotePopup, move animation is not needed
     return;
   }
+  const pawnSymbol = move.turn === 'w' ? 'P' : 'p';
+  const pawnMovedFen = injectPiece(move.after, move.to, pawnSymbol)
+  gameStore.customAnimationFen = pawnMovedFen;
 
-  // move the Pawn visually (Pawn slides to last rank)
-  cg.move(move.from, move.to);
-
-  // schedule the swap (Pawn -> Piece)
-  const delay = userConfig.animationTime;
-
-  setTimeout(() => {
-    // Disable animation briefly to "snap" the new piece in place
-    cg.set({ animation: { enabled: false } });
-
-    const newPieces = new Map<
-      Key,
-      { role: Role; color: Color; promoted?: boolean }
-    >();
-    newPieces.set(move.to, { role, color, promoted: true });
-
-    cg.setPieces(newPieces);
-
-    cg.set({ animation: { enabled: true } });
-  }, delay);
 }
 
 function animateBackwardPromotion(
-  cg: Api,
+  gameStore: IPgnGameStore,
   currentMove: CustomPgnMove,
 ) {
-  const color = chessColorToCg[currentMove.turn];
+  const pieceCheck = gameStore.cg.state.pieces.get(currentMove.to);
+  const pawnSymbol = currentMove.turn === 'w' ? 'P' : 'p';
+  const pawnMovedFen = injectPiece(currentMove.after, currentMove.to, pawnSymbol)
 
-  // immediately swap Queen/Rook back to a Pawn (No animation yet)
-  cg.set({ animation: { enabled: false } });
-
-  const diff = new Map<Key, { role: Role; color: Color; promoted?: boolean }>();
-  diff.set(currentMove.to, { role: 'pawn', color, promoted: true });
-
-  cg.setPieces(diff);
-
-  // set FEN (The Pawn slides back to origin automatically via FEN diff)
-  cg.set({
-    animation: { enabled: true },
-    fen: currentMove.before,
+  untrack(() => {
+    gameStore.customAnimationFen = pawnMovedFen;
   });
+  gameStore.shouldAnimate = false;
 }
 
 /**
@@ -91,7 +101,6 @@ function animateBackwardPromotion(
  */
 export function updateBoard(
   gameStore: IPgnGameStore,
-  cg: Api,
   previousPath: PgnPath | null,
 ) {
 
@@ -102,9 +111,6 @@ export function updateBoard(
   const latestConfig = gameStore.boardConfig;
 
   if (previousPath === null) {
-    cg.set({ animation: { enabled: false } });
-    cg.set({ fen: gameStore.fen, ...latestConfig });
-    cg.set({ animation: { enabled: true } });
     return
   }
 
@@ -130,10 +136,7 @@ export function updateBoard(
     const unplayedMove = gameStore.getMoveByPath(previousPath);
 
     if (unplayedMove?.promotion) {
-      animateBackwardPromotion(cg, unplayedMove);
-    } else {
-      // Standard Undo: Snap FEN (slide piece back automatically)
-      cg.set({ fen: currentFen, ...latestConfig });
+      animateBackwardPromotion(gameStore, unplayedMove);
     }
   } else {
     // --- FORWARD / JUMP LOGIC ---
@@ -144,7 +147,6 @@ export function updateBoard(
         // Reset audio
         playSound('move');
       }
-      cg.set({ fen: currentFen, ...latestConfig });
       return;
     }
 
@@ -161,22 +163,14 @@ export function updateBoard(
       moveAudio(currentMove);
 
       if (currentMove.promotion) {
-        animateForwardPromotion(cg, currentMove, currentMove.promotion);
-      } else {
-        // Standard Forward Move
-        // We set FEN immediately; Chessground handles the slide animation
-        cg.set({ fen: currentFen, ...latestConfig });
+        animateForwardPromotion(gameStore, currentMove, currentMove.promotion);
       }
     } else {
       // JUMP (e.g. clicking a variation, loading a new game, or skipping moves)
 
       // audio for jumps/loading positions.
       playSound('castle');
-
-      cg.set({ fen: currentFen, ...latestConfig });
     }
   }
-
-  // Always sync arrows and markers at the end and premove
-  cg.playPremove();
+  gameStore.cg.playPremove();
 }
