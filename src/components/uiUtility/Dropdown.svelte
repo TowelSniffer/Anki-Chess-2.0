@@ -129,6 +129,96 @@
     };
   }
 
+  function toggle() {
+    isOpen = !isOpen;
+    if (!isOpen) activeSelectorIndex = null;
+  }
+
+  function close() {
+    isOpen = false;
+    activeSelectorIndex = null;
+  }
+
+  function handleAction(item: MenuItem) {
+    if (item.disabled || item.children) return;
+    if (item.action) item.action();
+    close();
+  }
+
+  function handleOutsideClick(event: MouseEvent) {
+    if (triggerRef && triggerRef.contains(event.target as Node)) return;
+    close();
+  }
+
+  function stopProp(e: Event) {
+    e.stopPropagation();
+  }
+
+  function handleInput(e: Event, item: MenuItem) {
+    const target = e.currentTarget as HTMLElement;
+    const val = parseFloat(e.currentTarget.value);
+
+    if (!isNaN(val)) {
+      // Calculate clamped value
+      const constrained = Math.min(item.max ?? Infinity, Math.max(item.min ?? -Infinity, val));
+
+      // Update parent state
+      item.onChange?.(constrained);
+
+      // Force visual reset if the value was clamped
+      // (We do this manually here because if the value clamps from 99 -> 10,
+      // and the previous value was already 10, Svelte won't trigger the action update)
+      if (constrained !== val) {
+        target.textContent = String(constrained);
+      }
+    } else {
+      // Reset to old value if input was garbage (NaN)
+      target.textContent = String(item.value);
+    }
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    // Handle Enter to save/blur
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).blur();
+      return;
+    }
+
+    // Block non-numeric keys (Allow only positive whole numbers)
+    // Allow navigation/editing keys (Backspace, Arrows, etc.)
+    if (
+      ['Backspace', 'Delete', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key) ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      return;
+    }
+
+    // Block anything that isn't a number 0-9
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  }
+
+  function editableValue(node: HTMLElement, value: string | number) {
+    // Initial set
+    node.textContent = String(value);
+
+    return {
+      update(newValue: string | number) {
+        // Only update the DOM if the element is NOT currently focused.
+        // This allows the + / - buttons to update the text,
+        // but prevents Svelte from fighting the user while they type.
+        if (document.activeElement !== node) {
+          node.textContent = String(newValue);
+        }
+      },
+    };
+  }
+
+  // --- Reactive Logic ---
+
   $effect(() => {
     if (isOpen && triggerRef && menuRef) {
       const rect = triggerRef.getBoundingClientRect();
@@ -169,31 +259,6 @@
       };
     }
   });
-
-  function toggle() {
-    isOpen = !isOpen;
-    if (!isOpen) activeSelectorIndex = null;
-  }
-
-  function close() {
-    isOpen = false;
-    activeSelectorIndex = null;
-  }
-
-  function handleAction(item: MenuItem) {
-    if (item.disabled || item.children) return;
-    if (item.action) item.action();
-    close();
-  }
-
-  function handleOutsideClick(event: MouseEvent) {
-    if (triggerRef && triggerRef.contains(event.target as Node)) return;
-    close();
-  }
-
-  function stopProp(e: Event) {
-    e.stopPropagation();
-  }
 </script>
 
 <div class="dropdown-container">
@@ -312,12 +377,30 @@
             <div class="number-stepper">
               <button
                 class="step-btn"
-                onclick={() => item.onChange?.(Number(item.value) - (item.step || 1))}>-</button
+                onclick={() =>
+                  item.onChange?.(
+                    Math.max(item.min ?? -Infinity, Number(item.value) - (item.step || 1)),
+                  )}>-</button
               >
-              <span class="step-val">{item.value}</span>
+              <input
+                type="number"
+                class="step-input"
+                value={item.value}
+                inputmode="decimal"
+                enterkeyhint="done"
+                onblur={(e) => handleInput(e, item)}
+                onkeydown={handleKeydown}
+                onclick={(e) => {
+                  e.stopPropagation(); // Prevent menu closing
+                  e.currentTarget.select();
+                }}
+              />
               <button
                 class="step-btn"
-                onclick={() => item.onChange?.(Number(item.value) + (item.step || 1))}>+</button
+                onclick={() =>
+                  item.onChange?.(
+                    Math.min(item.max ?? Infinity, Number(item.value) + (item.step || 1)),
+                  )}>+</button
               >
             </div>
           </div>
@@ -487,23 +570,23 @@
     transition-delay: 0.3s, 0.5s;
   }
 
-  /* OPENING (Mouse Enter Self) */
-  .menu-item-wrapper:hover > .submenu {
+  /* OPENING (Mouse Enter Self OR Focus Inside) */
+  .menu-item-wrapper:hover > .submenu,
+  .menu-item-wrapper:focus-within > .submenu {
     visibility: visible;
     opacity: 1;
-
-    /* Show immediately */
     transition-delay: 0s, 0s;
   }
 
   /* SIBLING SWITCH (Immediate Hide Logic) */
   /* If the parent list is hovered, BUT this specific item is NOT hovered... */
-  /* ...it means we are hovering a sibling. Close this one instantly. */
   .menu-list:hover > .menu-item-wrapper:not(:hover) > .submenu {
-    /* Kill the delay so it vanishes immediately to make room for the new one */
-    transition-delay: 0s, 0s;
+    /* FORCE HIDE: Overrides :focus-within if we are hovering a sibling */
+    visibility: hidden;
+    opacity: 0;
 
-    /* Make the fade-out super fast */
+    /* Kill the delay so it vanishes immediately */
+    transition-delay: 0s, 0s;
     transition-duration: 0.1s, 0s;
   }
 
@@ -677,10 +760,27 @@
         background: #e0e0e0;
       }
     }
-    .step-val {
+    /* --- Number Stepper Input --- */
+    .step-input {
+      /* Reset all default input styles */
+      all: unset;
       font-size: 0.8rem;
       min-width: 20px;
+      max-width: 40px; /* prevents layout shift */
       text-align: center;
+      color: inherit;
+      background: transparent;
+      cursor: text;
+
+      /* Hide the Up/Down spinners in WebKit (Chrome/Safari/Android) */
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* Hide spinners in Firefox */
+      -moz-appearance: textfield;
     }
   }
 
