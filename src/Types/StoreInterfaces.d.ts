@@ -29,7 +29,6 @@ export interface IPgnGameStore {
   pendingPromotion: { from: Square; to: Square } | null;
   customAnimationFen: string | null;
   shouldAnimate: boolean;
-  isAnimating: ReturnType<typeof setTimeout> | null;
 
   // --- DERIVED (Getters) ---
   readonly isPuzzleComplete: boolean;
@@ -59,8 +58,6 @@ export interface IPgnGameStore {
 
   // Note: loadCgInstance depends on an HTML element
   loadCgInstance(boardContainer: HTMLDivElement): void;
-
-  parsePGN(rawPgn?: string, boardMode?: BoardModes): CustomPgnGame;
 
   getMoveByPath(path: PgnPath): CustomPgnMove | null;
   toggleOrientation(): void;
