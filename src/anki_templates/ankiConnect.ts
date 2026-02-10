@@ -6,6 +6,11 @@ import pkg from '../../package.json';
 const ANKI_URL = 'http://127.0.0.1:8765';
 
 export async function checkAnkiConnection(): Promise<boolean> {
+  // Safety Check: If we are not in desktop
+  if (typeof pycmd === "undefined") {
+    return false;
+  }
+
   try {
     const res = await fetch(ANKI_URL, {
       method: 'POST',
