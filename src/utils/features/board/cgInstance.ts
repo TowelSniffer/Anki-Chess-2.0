@@ -1,9 +1,10 @@
-import type { Key } from '@lichess-org/chessground/types';
+import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
+import { untrack } from 'svelte';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
 import { userConfig } from '$stores/userConfig.svelte.ts';
-import { isMoveLegal, isPromotion } from '$features/chessJs/chessFunctions';
+import { isMoveLegal, isPromotion, getLegalMove } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
 import { handleUserMove } from '$features/chessJs/puzzleLogic';
 
@@ -33,9 +34,9 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
      * NOTE: we defer to default click to move here as after: event will be called after select event
      * Setting Fen here without animation solves inconsistent animations for certain moves (en passant, promotion)
      */
-    store.cg.set({ animation: { enabled: false } });
-    store.cg.set({ fen: store.fen });
-    store.cg.set({ animation: { enabled: true } });
+    const moveCheck = getLegalMove({ from: store.selectedPiece, to: dest }, store.fen);
+    console.log(moveCheck);
+    if (moveCheck?.flags.includes('e')) store.shouldAnimate = false;
     return;
   }
 
@@ -75,7 +76,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
 /**
  * Handles the 'after' event (Drag and Drop completion).
  */
-export function handleMove( orig: Key, dest: Key, store: IPgnGameStore) {
+export function handleMove(orig: Key, dest: Key, store: IPgnGameStore) {
   if (!store.cg) return;
   const from = orig as Square;
   const to = dest as Square;
@@ -143,37 +144,76 @@ const customBrushes = {
   yellow: { key: 'yellow', color: 'yellow', opacity: 1, lineWidth: 7 },
 };
 
-export function getInitialCgConfig(store: IPgnGameStore) {
- return {
-  fen: store.startFen,
-  premovable: {
-    enabled: true,
-  },
-  highlight: {
-    check: true,
-    currentMove: true,
-  },
-  animation: {
-    duration: userConfig.animationTime,
-  },
-  drawable: {
-    enabled: true,
-    brushes: customBrushes,
-  },
-  events: {
-    select: (key: Key) => {
-      handleSelect(key, store);
+// track existing custom animations
+let isAnimating: ReturnType<typeof setTimeout> | null;
+
+export function getCgConfig(store: IPgnGameStore) {
+  const animationEnabled = store.shouldAnimate;
+  const customAnimationFen = store.customAnimationFen;
+  untrack(() => {
+    if (!store.shouldAnimate) store.shouldAnimate = true;
+  });
+  if (customAnimationFen) {
+    requestAnimationFrame(() => {
+      if (isAnimating) {
+        clearTimeout(isAnimating);
+        isAnimating = null;
+        store.customAnimationFen = null;
+      } else if (animationEnabled) {
+        isAnimating = setTimeout(() => {
+          isAnimating = null;
+          store.customAnimationFen = null;
+        }, 200);
+      } else {
+        store.customAnimationFen = null;
+      }
+    });
+  }
+
+  return {
+    fen: customAnimationFen ?? store.fen,
+    lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
+    check: store.inCheck,
+    orientation: store.orientation,
+    viewOnly: store.isPuzzleComplete,
+    turnColor: (store.turn === 'w' ? 'white' : 'black') as CgColor,
+    premovable: {
+      enabled: true,
     },
-  },
-  movable: {
-    free: false,
-    showDests: userConfig.showDests,
+    highlight: {
+      check: true,
+      currentMove: true,
+    },
+    animation: {
+      enabled: animationEnabled,
+      duration: userConfig.animationTime,
+    },
+    drawable: {
+      enabled: true,
+      brushes: customBrushes,
+      autoShapes: store.systemShapes,
+    },
     events: {
-      after: (orig: Key, dest: Key) => {
-        handleMove(orig, dest, store);
+      select: (key: Key) => {
+        handleSelect(key, store);
+      },
+    },
+    movable: {
+      free: false,
+      showDests: userConfig.showDests,
+      color:
+        store.boardMode === 'Puzzle'
+          ? store.playerColor
+          : store.turn === 'w'
+            ? 'white'
+            : 'black',
+      dests: store.dests,
+      events: {
+        after: (orig: Key, dest: Key) => {
+          handleMove(orig, dest, store);
+        }
       }
     }
   }
-}
 };
 

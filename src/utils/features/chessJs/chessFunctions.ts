@@ -51,7 +51,7 @@ export function isMoveLegal(moveInput: MoveInput, fen: string): boolean {
       (move) =>
         move.from === moveInput.from &&
         move.to === moveInput.to &&
-        (!moveInput.promotion || move.promotion === moveInput.promotion),
+        (!moveInput.promotion && !move.promotion || move.promotion === moveInput.promotion),
     );
   }
 }
