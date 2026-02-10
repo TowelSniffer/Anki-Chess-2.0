@@ -95,7 +95,7 @@ export function getMenuData(): MenuItem[] {
           value: userConfig.timer / 1000,
           onChange: (val: number) => (userConfig.timer = val * 1000),
         },
-        userConfig.timer ? {
+        userConfig.timer && {
           type: 'number',
           label: 'Increment (s)',
           tooltip: 'Add time with each correct move',
@@ -103,7 +103,7 @@ export function getMenuData(): MenuItem[] {
           max: 60,
           value: userConfig.increment / 1000,
           onChange: (val: number) => (userConfig.increment = val * 1000),
-        } : [],
+        },
       ],
     },
     {
@@ -162,7 +162,7 @@ export function getMenuData(): MenuItem[] {
       ],
     },
     ...getSaveMenuItemData()
-  ];
+  ].filter((item): item is MenuItem => !!item);;
 }
 
 function getSaveMenuItemData(): MenuItem[] {

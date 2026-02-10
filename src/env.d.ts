@@ -29,6 +29,7 @@ declare global {
       cardName: string;
     };
   }
+  const pycmd: (command: string) => void | any;
 }
 
 export {};
