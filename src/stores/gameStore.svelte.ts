@@ -32,7 +32,7 @@ import { userConfig } from '$stores/userConfig.svelte.ts';
 export class PgnGameStore {
   // --- Game State ---
   cg: Api | null = null;
-  rawPgn = $state('');
+  rawPgn = '';
   boardMode: BoardModes = 'Viewer';
   readonly aiDelayTime = userConfig.animationTime + 100;
   rootGame = $state<CustomPgnGame | undefined>(undefined);

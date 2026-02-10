@@ -155,8 +155,8 @@
   }
 
   function handleInput(e: Event, item: MenuItem) {
-    const target = e.currentTarget as HTMLElement;
-    const val = parseFloat(e.currentTarget.value);
+    const target = e.currentTarget as HTMLInputElement;
+    const val = parseFloat(target?.value);
 
     if (!isNaN(val)) {
       // Calculate clamped value
@@ -199,22 +199,6 @@
     if (!/^[0-9]$/.test(e.key)) {
       e.preventDefault();
     }
-  }
-
-  function editableValue(node: HTMLElement, value: string | number) {
-    // Initial set
-    node.textContent = String(value);
-
-    return {
-      update(newValue: string | number) {
-        // Only update the DOM if the element is NOT currently focused.
-        // This allows the + / - buttons to update the text,
-        // but prevents Svelte from fighting the user while they type.
-        if (document.activeElement !== node) {
-          node.textContent = String(newValue);
-        }
-      },
-    };
   }
 
   // --- Reactive Logic ---
@@ -780,6 +764,7 @@
       }
 
       /* Hide spinners in Firefox */
+      appearance: textfield;
       -moz-appearance: textfield;
     }
   }
