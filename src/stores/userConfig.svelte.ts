@@ -23,24 +23,22 @@ export class UserConfig {
     flipBoard: getConfig('flipBoard'),
     mirror: getConfig('mirror'),
     showDests: getConfig('showDests'),
+    disableArrows: getConfig('disableArrows'),
     singleClickMove: getConfig('singleClickMove'),
+    animationTime: getConfig('animationTime'),
     handicap: getConfig('handicap'),
     autoAdvance: getConfig('autoAdvance'),
+    handicapAdvance: getConfig('handicapAdvance'),
+    timerAdvance: getConfig('timerAdvance'),
     strictScoring: getConfig('strictScoring'),
+    acceptVariations: getConfig('acceptVariations'),
     timer: getConfig('timer'),
     increment: getConfig('increment'),
     randomOrientation: getConfig('randomOrientation'),
     analysisTime: getConfig('analysisTime'),
     analysisLines: getConfig('analysisLines'),
     muteAudio: getConfig('muteAudio'),
-    frontText: getConfig('frontText'),
-
-    // runtime-only flags separate
-    animationTime: 200,
-    disableArrows: false,
-    handicapAdvance: false,
-    timerAdvance: false,
-    acceptVariations: true,
+    frontText: getConfig('frontText')
   });
 
 
@@ -54,11 +52,16 @@ export class UserConfig {
   saveDue: boolean = $derived(JSON.stringify(this.opts) !== JSON.stringify(this.lastSavedState));
 
   constructor() {
-    if (!window.USER_CONFIG) window.USER_CONFIG = { ...this.opts };
-    // Read directly from window (It's already there!)
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
+      // We clone it to break reference
       this.lastSavedState = { ...window.USER_CONFIG };
+
       this._ankiConnectStatus();
+    } else {
+        // If no window config, we "are" the config
+        if (typeof window !== 'undefined') {
+            window.USER_CONFIG = $state.snapshot(this.opts);
+        }
     }
   }
 
