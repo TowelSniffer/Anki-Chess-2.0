@@ -59,8 +59,7 @@ export class PgnGameStore {
 
   // depends on cached currentMove
   fen = $derived(this.currentMove?.after ?? this.startFen);
-  customAnimationFen = $state('');
-  shouldAnimate = true;
+  customAnimation = null;
   viewOnly = $state(false);
 
   // depends on cached currentMove
@@ -108,7 +107,6 @@ export class PgnGameStore {
           : 'black';
     this.playerColor = this.orientation;
     this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
-    this.customAnimationFen = this.startFen;
     this.rootGame = parsed;
 
     augmentPgnTree(

@@ -130,7 +130,7 @@ function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
 function handleWrongMove(gameStore: IPgnGameStore, move: Move): void {
   if (!gameStore.cg) return;
   gameStore.errorCount++;
-  gameStore.customAnimationFen = move.after;
+  gameStore.customAnimation = { fen: move.after, animate: true };
   playSound('error');
   gameStore.wrongMoveDebounce = setTimeout(() => {
     if (!gameStore.cg) return;

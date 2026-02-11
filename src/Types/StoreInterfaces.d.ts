@@ -26,8 +26,7 @@ export interface IPgnGameStore {
   opponentColor: CgColor;
   wrongMoveDebounce: ReturnType<typeof setTimeout> | null;
   pendingPromotion: { from: Square; to: Square } | null;
-  customAnimationFen: string;
-  shouldAnimate: boolean;
+  customAnimation: { fen: string; animate: boolean } | null;
   viewOnly: boolean;
 
   // --- DERIVED (Getters) ---

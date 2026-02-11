@@ -20,21 +20,22 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
+  const isLegal = isMoveLegal(
+    { from: store.selectedPiece as Square, to: dest },
+    store.fen);
+  const isPromote = isPromotion(store.selectedPiece as Square, dest, store.fen);
   if (
     store.selectedPiece &&
     dest &&
-    isMoveLegal(
-      { from: store.selectedPiece as Square, to: dest },
-      store.fen,
-    )
+    (isLegal || isPromote)
   ) {
     /**
      * Checks if user makes a standard click to move
      * NOTE: we defer to default click to move here as after: event will be called after select event
      * Setting Fen here without animation solves inconsistent animations for certain moves (en passant, promotion)
      */
-    const moveCheck = getLegalMove({ from: store.selectedPiece, to: dest }, store.fen);
-    if (moveCheck?.flags.includes('e')) store.shouldAnimate = false;
+    if (isPromote) return;
+    store.customAnimation = { fen: store.fen, animate: false }
     return;
   }
 
@@ -144,37 +145,47 @@ const customBrushes = {
 
 // track existing custom animations
 let isAnimating: ReturnType<typeof setTimeout> | null;
-let lastCustomAnimationFen: string = '';
-
+let fenState = 0;
 export function getCgConfig(store: IPgnGameStore) {
-  const isDefaultAnimation = store.shouldAnimate;
-  if (lastCustomAnimationFen !== store.customAnimationFen) {
-    lastCustomAnimationFen = store.customAnimationFen;
+  if (fenState) {
+    fenState = 0;
+  } else {
+    fenState++;
 
-    if (!store.shouldAnimate) store.shouldAnimate = true;
-
-    if (store.customAnimationFen !== store.fen) {
-      requestAnimationFrame(() => {
+    if (store.customAnimation) {
+      if (store.customAnimation?.fen !== store.fen) {
+        const timer = store.customAnimation?.animate;
         if (isAnimating) {
           clearTimeout(isAnimating);
+          fenState = 0;
           isAnimating = null;
-          store.customAnimationFen = store.fen;
-        } else if (isDefaultAnimation) {
-
+        }
+        store.cg?.set({ fen: store.customAnimation?.fen });
+        if (timer) {
           isAnimating = setTimeout(() => {
             isAnimating = null;
-            store.customAnimationFen = store.fen;
+
+            store.cg?.set({ fen: store.fen });
           }, userConfig.opts.animationTime);
         } else {
-          store.customAnimationFen = store.fen;
+          store.cg?.set({ fen: store.fen })
         }
-      });
+      }
+      store.customAnimation = null;
+    } else if (store.fen.split(' ')[0] !== store.cg?.getFen()) {
+
+      if (isAnimating) {
+        console.log(store.fen.split(' ')[0], store.cg?.getFen());
+        clearTimeout(isAnimating);
+        fenState = 0;
+        isAnimating = null;
+      }
+      store.cg?.set({ fen: store.fen });
     }
   }
 
 
   return {
-    fen: store.customAnimationFen,
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
@@ -188,7 +199,7 @@ export function getCgConfig(store: IPgnGameStore) {
       currentMove: true,
     },
     animation: {
-      enabled: isDefaultAnimation,
+      enabled: store.customAnimation ? store.customAnimation.animate : true,
       duration: userConfig.opts.animationTime,
     },
     drawable: {

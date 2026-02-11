@@ -78,7 +78,7 @@ export function isPromotion(orig: Square, dest: Square, fen: string): boolean {
     if (piece.color === 'w' && rank === '8') return true;
     if (piece.color === 'b' && rank === '1') return true;
   } else {
-    console.error('Invalid square passed:', orig, dest);
+    console.warn('Invalid square passed:', orig, dest);
   }
   return false;
 }
