@@ -41,12 +41,18 @@
 
   function cancelPopup() {
     gameStore.pendingPromotion = null;
-    gameStore.customAnimation = { fen: gameStore.fen, animate: true }
+    requestAnimationFrame(() => {
+      gameStore.cg?.set({ fen: gameStore.fen, ...gameStore.boardConfig });
+    });
   }
 </script>
 
 {#if gameStore.pendingPromotion}
-  <div id="promoteButtonsContainer" class:top={turnColor === orientaion} class:bottom={turnColor !== orientaion}>
+  <div
+    id="promoteButtonsContainer"
+    class:top={turnColor === orientaion}
+    class:bottom={turnColor !== orientaion}
+  >
     <button class="promoteBtn" onclick={() => select('q')}>
       <img class="promotePiece" src={pieceAssets.q} alt="Promote to Queen" />
     </button>
@@ -60,7 +66,15 @@
       <img class="promotePiece" src={pieceAssets.r} alt="Promote to Rook" />
     </button>
   </div>
-  <div id="overlay" onclick={() => cancelPopup()}></div>
+  <div
+    id="overlay"
+    role="button"
+    tabindex="0"
+    onclick={() => cancelPopup()}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') cancelPopup();
+    }}
+  ></div>
 {/if}
 
 <style lang="scss">
@@ -119,7 +133,7 @@
     }
     &.bottom {
       bottom: 0;
-    };
+    }
   }
 
   #overlay {

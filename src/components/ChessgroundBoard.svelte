@@ -215,19 +215,19 @@
       lastSyncedFen = gameStore.fen;
     }
   });
-// Set cg config with rAF optimization
-let rAF_id;
-$effect(() => {
-  if (!gameStore?.cg) return;
-  const config = gameStore.boardConfig;
-  // Cancel any pending render from this frame
-  if (rAF_id) cancelAnimationFrame(rAF_id);
+  // Set cg config with rAF optimization
+  let rAF_id: number;
+  $effect(() => {
+    if (!gameStore?.cg) return;
+    const config = gameStore.boardConfig;
+    // Cancel any pending render from this frame
+    if (rAF_id) cancelAnimationFrame(rAF_id);
 
-  // Schedule the render for the next paint
-  rAF_id = requestAnimationFrame(() => {
-    gameStore.cg.set(config);
+    // Schedule the render for the next paint
+    rAF_id = requestAnimationFrame(() => {
+      gameStore.cg?.set(config);
+    });
   });
-});
 
   // Engine Analysis Trigger
   $effect(() => {

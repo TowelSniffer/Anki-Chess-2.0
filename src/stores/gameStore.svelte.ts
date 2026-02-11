@@ -235,7 +235,7 @@ export class PgnGameStore {
   // Public methods
 
   loadCgInstance(boardContainer: HTMLDivElement) {
-    this.cg = Chessground(boardContainer, getCgConfig(this));
+    this.cg = Chessground(boardContainer, {fen: this.fen});
   }
 
   getMoveByPath(path: PgnPath): CustomPgnMove | null {
