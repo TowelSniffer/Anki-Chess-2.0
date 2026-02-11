@@ -19,6 +19,7 @@
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
 
   let turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
+  let orientaion = $derived(gameStore.orientation[0]);
 
   const toDataUri = (svg: string) => `data:image/svg+xml;base64,${btoa(svg)}`;
   let pieceAssets = $derived({
@@ -37,10 +38,15 @@
 
     gameStore.pendingPromotion = null;
   }
+
+  function cancelPopup() {
+    gameStore.pendingPromotion = null;
+    gameStore.customAnimation = { fen: gameStore.fen, animate: true }
+  }
 </script>
 
 {#if gameStore.pendingPromotion}
-  <div id="promoteButtonsContainer">
+  <div id="promoteButtonsContainer" class:top={turnColor === orientaion} class:bottom={turnColor !== orientaion}>
     <button class="promoteBtn" onclick={() => select('q')}>
       <img class="promotePiece" src={pieceAssets.q} alt="Promote to Queen" />
     </button>
@@ -54,7 +60,7 @@
       <img class="promotePiece" src={pieceAssets.r} alt="Promote to Rook" />
     </button>
   </div>
-  <div id="overlay"></div>
+  <div id="overlay" onclick={() => cancelPopup()}></div>
 {/if}
 
 <style lang="scss">
@@ -97,19 +103,31 @@
 
   #promoteButtonsContainer {
     @include flex-center;
+    margin: $board-border-width;
     position: absolute;
+    left: 0; /* Anchor to the left */
     height: calc(var(--board-size) * 0.25);
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
-    width: var(--board-size);
+    width: calc(100% - $board-border-width * 2); /* This ensures it spans the full width */
+    box-sizing: border-box;
     box-shadow: $shadow-strong;
     z-index: 100;
+    border-radius: var(--border-radius-global) var(--border-radius-global) 0 0;
+    &.top {
+      top: 0;
+    }
+    &.bottom {
+      bottom: 0;
+    };
   }
 
   #overlay {
     height: 100dvh;
     width: 100dvw;
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
     z-index: 99;
     background: rgba(0, 0, 0, 0.5);
   }

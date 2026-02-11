@@ -61,7 +61,7 @@ function animateForwardPromotion(
   }
   const pawnSymbol = move.turn === 'w' ? 'P' : 'p';
   const pawnMovedFen = injectPiece(move.after, move.to, pawnSymbol)
-  gameStore.customAnimationFen = pawnMovedFen;
+  gameStore.customAnimation = { fen: pawnMovedFen, animate: true }
 }
 
 function animateBackwardPromotion(
@@ -70,8 +70,7 @@ function animateBackwardPromotion(
 ) {
   const pawnSymbol = currentMove.turn === 'w' ? 'P' : 'p';
   const pawnMovedFen = injectPiece(currentMove.after, currentMove.to, pawnSymbol)
-  gameStore.shouldAnimate = false;
-  gameStore.customAnimationFen = pawnMovedFen;
+  gameStore.customAnimation = { fen: pawnMovedFen, animate: false }
 
 }
 
@@ -114,8 +113,6 @@ export function updateBoard(
 
     if (unplayedMove?.promotion) {
       animateBackwardPromotion(gameStore, unplayedMove);
-    } else {
-      gameStore.customAnimationFen = unplayedMove?.before ?? gameStore.startFen;
     }
   } else {
     // --- FORWARD / JUMP LOGIC ---
@@ -134,15 +131,12 @@ export function updateBoard(
 
       if (currentMove.promotion) {
         animateForwardPromotion(gameStore, currentMove);
-      } else {
-        gameStore.customAnimationFen = currentMove?.after;
       }
     } else {
       // JUMP (e.g. clicking a variation, loading a new game, or skipping moves)
 
       // audio for jumps/loading positions.
       playSound('castle');
-      gameStore.customAnimationFen = currentMove?.after ?? gameStore.startFen;
     }
   }
   if (gameStore.cg) gameStore.cg.playPremove();

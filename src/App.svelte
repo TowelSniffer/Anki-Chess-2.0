@@ -45,9 +45,9 @@
         {#key userConfig.boardKey}
           <ChessgroundBoard />
         {/key}
+        <PromotePopup />
       </div>
     </div>
-    <PromotePopup />
   </GameProvider>
 {/key}
 
@@ -120,6 +120,7 @@
       }
     }
     #board-container {
+      position: relative;
       margin: 0 auto;
       grid-area: two;
       max-width: 600px;
