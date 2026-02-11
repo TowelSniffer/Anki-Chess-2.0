@@ -1,42 +1,60 @@
+import type { UserConfigOpts } from '$Types/UserConfig';
 import defaultConfig from '$anki/default_config.json';
 import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect';
 import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
 
+function getConfig<K extends keyof UserConfigOpts>(key: K): UserConfigOpts[K] {
+  const stored = sessionStorage.getItem(key);
+
+  if (stored !== null) {
+    // We cast the return values as UserConfigOpts[K] because we trust
+    // our logic matches the expected type for that key.
+    if (stored === 'true') return true as UserConfigOpts[K];
+    if (stored === 'false') return false as UserConfigOpts[K];
+    return parseInt(stored, 10) as UserConfigOpts[K];
+  }
+
+  // Fallback
+  return (window.USER_CONFIG?.[key] ?? defaultConfig[key as keyof typeof defaultConfig]) as UserConfigOpts[K];
+}
+
 export class UserConfig {
-  flipBoard = $state(window.USER_CONFIG?.['flipBoard'] ?? false);
-  mirror = $state(window.USER_CONFIG?.['mirror'] ?? false);
-  showDests = $state(window.USER_CONFIG?.['showDests'] ?? true);
-  disableArrows = false;
-  singleClickMove = $state(window.USER_CONFIG?.['singleClickMove'] ?? true);
-  animationTime = 200;
-  handicap = $state(window.USER_CONFIG?.['handicap'] ?? 1);
-  autoAdvance = $state(window.USER_CONFIG?.['autoAdvance'] ?? false);
-  handicapAdvance = false;
-  timerAdvance = false;
-  strictScoring = $state(window.USER_CONFIG?.['strictScoring'] ?? false);
-  acceptVariations = true;
-  timer = $state(window.USER_CONFIG?.timer ?? 5000); // 5 * 1000
-  increment = $state(window.USER_CONFIG?.['increment'] ?? 1000); // 1 * 1000
-  randomOrientation = $state(window.USER_CONFIG?.['randomOrientation'] ?? false);
-  analysisTime = $state(window.USER_CONFIG?.['analysisTime'] ?? 4);
-  analysisLines = $state(window.USER_CONFIG?.['analysisLines'] ?? 1);
-  muteAudio = $state(window.USER_CONFIG?.['muteAudio'] ?? false);
-  frontText = $state(window.USER_CONFIG?.['frontText'] ?? true);
+  opts = $state<UserConfigOpts>({
+    flipBoard: getConfig('flipBoard'),
+    mirror: getConfig('mirror'),
+    showDests: getConfig('showDests'),
+    singleClickMove: getConfig('singleClickMove'),
+    handicap: getConfig('handicap'),
+    autoAdvance: getConfig('autoAdvance'),
+    strictScoring: getConfig('strictScoring'),
+    timer: getConfig('timer'),
+    increment: getConfig('increment'),
+    randomOrientation: getConfig('randomOrientation'),
+    analysisTime: getConfig('analysisTime'),
+    analysisLines: getConfig('analysisLines'),
+    muteAudio: getConfig('muteAudio'),
+    frontText: getConfig('frontText'),
+
+    // runtime-only flags separate
+    animationTime: 200,
+    disableArrows: false,
+    handicapAdvance: false,
+    timerAdvance: false,
+    acceptVariations: true,
+  });
+
+
+
+
   boardKey = $state<number>(0);
   isAnkiConnect = $state(false);
-
   lastSavedState = $state<Record<string, any>>({});
 
   // --- Derived State ---
-  saveDue: boolean = $derived.by((): boolean => {
-    return Object.keys(this.lastSavedState).some((key) => {
-      const k = key as keyof UserConfig; // Cast key to valid class property
-      return this[k] !== undefined && this[k] !== this.lastSavedState[key];
-    });
-  });
+  saveDue: boolean = $derived(JSON.stringify(this.opts) !== JSON.stringify(this.lastSavedState));
 
   constructor() {
-    if (!window.USER_CONFIG) window.USER_CONFIG = defaultConfig;
+    if (!window.USER_CONFIG) window.USER_CONFIG = { ...this.opts };
     // Read directly from window (It's already there!)
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
       this.lastSavedState = { ...window.USER_CONFIG };
@@ -48,33 +66,13 @@ export class UserConfig {
     this.isAnkiConnect = await checkAnkiConnection();
   }
 
-  applyConfig(config: Partial<UserConfig>) {
-    Object.keys(config).forEach((key) => {
-      const k = key as keyof UserConfig;
-      if (this[k] !== undefined) {
-        // @ts-ignore
-        this[k] = config[key];
-      }
-    });
-  }
-
   async save() {
     if (typeof window === 'undefined') return;
 
-    // Prepare the new config object based on current class state
-    // We use the keys from the last saved state to know what to save
-    const newConfig: Record<string, any> = {};
-    Object.keys(this.lastSavedState).forEach(key => {
-      const k = key as keyof UserConfig;
-      if (this[k] !== undefined) newConfig[key] = this[k];
-    });
+    Object.assign(this.lastSavedState, { ...this.opts });
 
     // Update window.USER_CONFIG (for consistency with external scripts)
-    window.USER_CONFIG = newConfig;
-
-    // Update the internal baseline
-    // CRITICAL: This mutation triggers 'saveDue' to re-run and return false
-    this.lastSavedState = { ...newConfig };
+    window.USER_CONFIG = { ...this.lastSavedState };
 
     // Persist to Anki
     // Ensure window.CARD_CONFIG exists or fallback gracefully
@@ -84,13 +82,11 @@ export class UserConfig {
         updateAnkiChessTemplate(
           window.CARD_CONFIG['modelName'],
           window.CARD_CONFIG['cardName'],
-          newConfig
+          this.lastSavedState
         );
       } else {
         console.warn("AnkiConnect is offline. Settings saved to clipboard only.");
-        // merge userConfig with defaults to ensure no keys are missing
-        const finalConfig = { ...defaultConfig, ...newConfig };
-        const clipboardString = `window.USER_CONFIG = ${JSON.stringify(finalConfig, null, 2)};`;
+        const clipboardString = `window.USER_CONFIG = ${JSON.stringify({ ...this.lastSavedState }, null, 2)};`;
         copyToClipboard(clipboardString);
       }
     } else {

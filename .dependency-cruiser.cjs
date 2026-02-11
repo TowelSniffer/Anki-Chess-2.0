@@ -93,6 +93,9 @@ module.exports = {
         dependencyTypes: [
           'npm-no-pkg',
           'npm-unknown'
+        ],
+        pathNot: [
+          'node_modules/@mliebelt/pgn-types/'
         ]
       }
     },

@@ -14,7 +14,6 @@ import type {
 export interface IPgnGameStore {
   // --- STATE (Variables) ---
   cg: Api | null;
-  rawPgn: string;
   boardMode: BoardModes;
   aiDelayTime: number;
   rootGame: CustomPgnGame | undefined;
@@ -27,8 +26,9 @@ export interface IPgnGameStore {
   opponentColor: CgColor;
   wrongMoveDebounce: ReturnType<typeof setTimeout> | null;
   pendingPromotion: { from: Square; to: Square } | null;
-  customAnimationFen: string | null;
+  customAnimationFen: string;
   shouldAnimate: boolean;
+  viewOnly: boolean;
 
   // --- DERIVED (Getters) ---
   readonly isPuzzleComplete: boolean;

@@ -1,4 +1,3 @@
-import { untrack } from 'svelte';
 import type {
   CustomPgnMove,
   PgnPath,
@@ -63,7 +62,6 @@ function animateForwardPromotion(
   const pawnSymbol = move.turn === 'w' ? 'P' : 'p';
   const pawnMovedFen = injectPiece(move.after, move.to, pawnSymbol)
   gameStore.customAnimationFen = pawnMovedFen;
-
 }
 
 function animateBackwardPromotion(
@@ -72,11 +70,9 @@ function animateBackwardPromotion(
 ) {
   const pawnSymbol = currentMove.turn === 'w' ? 'P' : 'p';
   const pawnMovedFen = injectPiece(currentMove.after, currentMove.to, pawnSymbol)
-
-  untrack(() => {
-    gameStore.customAnimationFen = pawnMovedFen;
-  });
   gameStore.shouldAnimate = false;
+  gameStore.customAnimationFen = pawnMovedFen;
+
 }
 
 /**
@@ -118,18 +114,11 @@ export function updateBoard(
 
     if (unplayedMove?.promotion) {
       animateBackwardPromotion(gameStore, unplayedMove);
+    } else {
+      gameStore.customAnimationFen = unplayedMove?.before ?? gameStore.startFen;
     }
   } else {
     // --- FORWARD / JUMP LOGIC ---
-
-    // Edge case: Initial load or Reset to start
-    if (!currentMove) {
-      if (previousPath?.length) {
-        // Reset audio
-        playSound('move');
-      }
-      return;
-    }
 
     // Check if we are making a single Step Forward
     // (The board state before this move matches what is currently on screen)
@@ -137,7 +126,7 @@ export function updateBoard(
     const previousMove = gameStore.getMoveByPath(previousPath);
     const previousFen = previousMove?.after ?? gameStore.startFen;
 
-    const isForwardStep = previousFen === currentMove.before;
+    const isForwardStep = previousFen === currentMove?.before;
 
     if (isForwardStep) {
       // Play Audio for Forward Moves
@@ -145,12 +134,15 @@ export function updateBoard(
 
       if (currentMove.promotion) {
         animateForwardPromotion(gameStore, currentMove);
+      } else {
+        gameStore.customAnimationFen = currentMove?.after;
       }
     } else {
       // JUMP (e.g. clicking a variation, loading a new game, or skipping moves)
 
       // audio for jumps/loading positions.
       playSound('castle');
+      gameStore.customAnimationFen = currentMove?.after ?? gameStore.startFen;
     }
   }
   if (gameStore.cg) gameStore.cg.playPremove();

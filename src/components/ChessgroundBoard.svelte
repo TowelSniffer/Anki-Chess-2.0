@@ -44,13 +44,12 @@
   };
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
-  $inspect(gameStore.rootGame);
 
   let boardContainer: HTMLDivElement;
   onMount(() => {
     if (boardContainer) {
       if (gameStore.boardMode === 'Viewer') {
-        if (userConfig.flipBoard) {
+        if (userConfig.opts.flipBoard) {
           gameStore.next();
         }
       } else {
@@ -149,7 +148,6 @@
       // If the engine is thinking, default to last score.
       cachedEval = bestLine ? bestLine.winChance : evalPercent;
 
-      console.log(cachedEval);
       // Calculate based on board orientation
       // If Top is White: Return White %.
       // If Top is Black: Return Black % (100 - White %).
@@ -179,14 +177,22 @@
       boardContainer.focus();
       if (gameStore.boardMode === 'Puzzle') {
         // These should only trigger ONCE per component mount/reset
-        if (userConfig.timer && !timerStore.isRunning) {
+        if (userConfig.opts.timer && !timerStore.isRunning) {
           timerStore.start();
         }
-        if (userConfig.flipBoard && gameStore.pgnPath.length === 0) {
-          playAiMove(gameStore, 300);
+        if (userConfig.opts.flipBoard && gameStore.pgnPath.length === 0) {
+          playAiMove(gameStore, userConfig.opts.animationTime + 100);
         }
       }
     });
+  });
+
+  // handle config changes
+  $effect(() => {
+    // Loop through options and update sessionStorage
+    for (const [key, value] of Object.entries(userConfig.opts)) {
+      sessionStorage.setItem(key, String(value));
+    }
   });
 
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
@@ -199,25 +205,24 @@
 
   // Move & Animation an Handler
   let previousPath: PgnPath | null = null;
-  let lastSyncedFen = $state(gameStore.startFen);
+  let lastSyncedFen = '';
+
   $effect(() => {
     if (!gameStore?.cg) return;
-    const isMove = gameStore.fen !== lastSyncedFen || gameStore.pgnPath.length !== previousPath?.length;
-    if(isMove) {
-        updateBoard(gameStore, previousPath);
-        previousPath = [...gameStore.pgnPath];
-        lastSyncedFen = gameStore.fen;
-    } else { // no animation just set config
-      const config = gameStore.boardConfig;
-      // Only apply config separately if the FEN hasn't changed.
-      // If FEN changed, the effect above handles it via updateBoard.
-      if (gameStore.fen === lastSyncedFen) {
-          gameStore.cg.set(config);
-      }
+    const currentKey = gameStore.currentPathKey; // dependency
+
+    if (lastSyncedFen !== gameStore.fen) {
+      updateBoard(gameStore, previousPath);
+      previousPathKey = currentKey;
+      previousPath = [...gameStore.pgnPath];
+      lastSyncedFen = gameStore.fen;
     }
   });
-
-
+  // Set cg config
+  $effect(() => {
+    if (!gameStore?.cg) return;
+    gameStore.cg.set(gameStore.boardConfig);
+  });
 
   // Engine Analysis Trigger
   $effect(() => {

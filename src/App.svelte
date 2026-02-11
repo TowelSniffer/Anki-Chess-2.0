@@ -21,7 +21,7 @@
 {#key pgn}
   <GameProvider {pgn} {boardMode}>
     <div id="container">
-      {#if boardMode === 'Viewer' || (userConfig.frontText && userText)}
+      {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
         <div id="commentBox">
           {#if userText}
             <div id="userTextContainer">

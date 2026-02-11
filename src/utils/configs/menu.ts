@@ -5,17 +5,16 @@ import IconCopy from '~icons/material-symbols/content-copy-sharp';
 import IconChessKnight from '~icons/material-symbols/chess-knight';
 import IconBackgroundGridSmall from '~icons/material-symbols/background-grid-small';
 
-import { engineStore } from '$stores/engineStore.svelte';
-import { userConfig, type UserConfig } from '$stores/userConfig.svelte';
-
+import { userConfig } from '$stores/userConfig.svelte';
+import type { UserConfigOpts } from '$Types/UserConfig';
 import type { MenuItem } from '$components/uiUtility/Dropdown.svelte';
 
 type BooleanKeys<T> = {
   [K in keyof T]: T[K] extends boolean ? K : never;
 }[keyof T];
 
-function setConfigBoolean(key: BooleanKeys<UserConfig>) {
-  userConfig[key] = !userConfig[key];
+function setConfigBoolean(key: BooleanKeys<UserConfigOpts>) {
+  userConfig.opts[key] = !userConfig.opts[key];
 }
 
 export function getMenuData(): MenuItem[] {
@@ -29,16 +28,16 @@ export function getMenuData(): MenuItem[] {
           label: 'Thinking Time (s)',
           min: 1,
           max: 300,
-          value: userConfig.analysisTime,
-          onChange: (val: number) => engineStore.setThinkingTime(val),
+          value: userConfig.opts.analysisTime,
+          onChange: (val: number) => userConfig.opts.analysisTime = val,
         },
         {
           type: 'number',
           label: 'Multi Pv',
           min: 1,
           max: 5,
-          value: userConfig.analysisLines,
-          onChange: (val: number) => engineStore.setMultiPv(val),
+          value: userConfig.opts.analysisLines,
+          onChange: (val: number) => userConfig.opts.analysisLines = val,
         },
       ],
     },
@@ -51,14 +50,14 @@ export function getMenuData(): MenuItem[] {
           label: 'Single Click Move',
           tooltip:
             'If enabled, clicking on destination with only one valid move will make that move.',
-          checked: userConfig.singleClickMove,
+          checked: userConfig.opts.singleClickMove,
           onToggle: () => setConfigBoolean('singleClickMove'),
         },
         {
           type: 'toggle',
           label: 'showDests',
           tooltip: 'Show legal moves for selected piece',
-          checked: userConfig.showDests,
+          checked: userConfig.opts.showDests,
           onToggle: () => setConfigBoolean('showDests'),
         },
       ],
@@ -73,14 +72,14 @@ export function getMenuData(): MenuItem[] {
           tooltip: 'Number of allowed mistakes before auto playing',
           min: 1,
           max: 10,
-          value: userConfig.handicap,
-          onChange: (val: number) => (userConfig.handicap = val),
+          value: userConfig.opts.handicap,
+          onChange: (val: number) => (userConfig.opts.handicap = val),
         },
         {
           type: 'toggle',
           label: 'Strict Scoring',
           tooltip: 'Always mark incorrect when solved if any mistake is made (despite handicap value), or timer runs out',
-          checked: userConfig.strictScoring,
+          checked: userConfig.opts.strictScoring,
           onToggle: () => setConfigBoolean('strictScoring'),
         },
         {
@@ -92,17 +91,17 @@ export function getMenuData(): MenuItem[] {
           tooltip: 'Initial time for Puzzle. set to 0 to disable',
           min: 0,
           max: 60,
-          value: userConfig.timer / 1000,
-          onChange: (val: number) => (userConfig.timer = val * 1000),
+          value: userConfig.opts.timer / 1000,
+          onChange: (val: number) => (userConfig.opts.timer = val * 1000),
         },
-        userConfig.timer && {
+        userConfig.opts.timer && {
           type: 'number',
           label: 'Increment (s)',
           tooltip: 'Add time with each correct move',
           min: 0,
           max: 60,
-          value: userConfig.increment / 1000,
-          onChange: (val: number) => (userConfig.increment = val * 1000),
+          value: userConfig.opts.increment / 1000,
+          onChange: (val: number) => (userConfig.opts.increment = val * 1000),
         },
       ],
     },
@@ -114,7 +113,7 @@ export function getMenuData(): MenuItem[] {
           type: 'toggle',
           label: 'User Text on Front',
           tooltip: 'Show textField on front side of note',
-          checked: userConfig.frontText,
+          checked: userConfig.opts.frontText,
           onToggle: () => setConfigBoolean('frontText'),
         },
         {
@@ -125,7 +124,7 @@ export function getMenuData(): MenuItem[] {
           label: 'Flip PGN',
           tooltip:
             'Dictates where puzzle is solves from first or second move of the PGN',
-          checked: userConfig.flipBoard,
+          checked: userConfig.opts.flipBoard,
           onToggle: () => setConfigBoolean('flipBoard'),
         },
         {
@@ -133,14 +132,14 @@ export function getMenuData(): MenuItem[] {
           label: 'Mirror',
           tooltip:
             'Randomises orientation and colour for PGNs with no castle rights',
-          checked: userConfig.mirror,
+          checked: userConfig.opts.mirror,
           onToggle: () => setConfigBoolean('mirror'),
         },
         {
           type: 'toggle',
           label: 'Random Orientation',
           tooltip: 'Randomises orientation, and greys border to prevent knowing which colour has the solution for puzzle.',
-          checked: userConfig.randomOrientation,
+          checked: userConfig.opts.randomOrientation,
           onToggle: () => setConfigBoolean('randomOrientation'),
         },
         {
@@ -150,13 +149,13 @@ export function getMenuData(): MenuItem[] {
           type: 'toggle',
           label: 'Auto Advance',
           tooltip: 'Uses anki API to automatically show answer when puzzle is solved. Note: might not work on anki mobile, and not yet supported on Ankidroid\'s "New Study Screen"',
-          checked: userConfig.autoAdvance,
+          checked: userConfig.opts.autoAdvance,
           onToggle: () => setConfigBoolean('autoAdvance'),
         },
         {
           type: 'toggle',
           label: 'Mute Audio',
-          checked: userConfig.muteAudio,
+          checked: userConfig.opts.muteAudio,
           onToggle: () => setConfigBoolean('muteAudio'),
         },
       ],

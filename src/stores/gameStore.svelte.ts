@@ -9,7 +9,6 @@ import type {
   PuzzleScored,
   CustomShape
 } from '$Types/ChessStructs';
-import { parse } from '@mliebelt/pgn-parser';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
 import { getCgConfig } from '$features/board/cgInstance';
@@ -18,13 +17,8 @@ import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
 import { getSystemShapes, blunderNags, parseCal, parseCsl } from '$features/board/arrows';
 import { playSound } from '$features/audio/audio';
-import {
-  checkCastleRights,
-  assignMirrorState,
-  mirrorFen,
-  mirrorPgnTree,
-  type MirrorState,
-} from '$features/pgn/mirror';
+import { parsePGN, mirrorPGN } from '$features/pgn/pgnParsing';
+
 import { engineStore } from './engineStore.svelte';
 import { timerStore } from '$stores/timerStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte.ts';
@@ -32,9 +26,8 @@ import { userConfig } from '$stores/userConfig.svelte.ts';
 export class PgnGameStore {
   // --- Game State ---
   cg: Api | null = null;
-  rawPgn = '';
   boardMode: BoardModes = 'Viewer';
-  readonly aiDelayTime = userConfig.animationTime + 100;
+  readonly aiDelayTime = userConfig.opts.animationTime + 100;
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   pgnPath = $state<PgnPath>([]);
   orientation = $state<CgColor>('white');
@@ -50,7 +43,6 @@ export class PgnGameStore {
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
 
   // --- Internal State ---
-  private _mirrorState: MirrorState = 'original';
   private _puzzleScore: PuzzleScored = null;
   private _hasMadeMistake: boolean = false;
   private _moveMap = new Map<string, CustomPgnMove>();
@@ -67,8 +59,9 @@ export class PgnGameStore {
 
   // depends on cached currentMove
   fen = $derived(this.currentMove?.after ?? this.startFen);
-  customAnimationFen = $state(null);
-  shouldAnimate = $state(true);
+  customAnimationFen = $state('');
+  shouldAnimate = true;
+  viewOnly = $state(false);
 
   // depends on cached currentMove
   turn: Color = $derived.by(() => {
@@ -92,25 +85,38 @@ export class PgnGameStore {
     ...parseCsl(this.boardMode === 'Puzzle' ? [] : this.currentMove?.commentDiag?.colorFields)
   ]);
 
-  constructor(pgn: string, boardMode: BoardModes) {
+  constructor(rawPGN: string, boardMode: BoardModes) {
     const storedScore = sessionStorage.getItem('chess_puzzle_score');
     if (boardMode !== 'Puzzle') {
       this._puzzleScore = (storedScore as PuzzleScored) ?? null;
     }
     if (storedScore) sessionStorage.removeItem('chess_puzzle_score');
-    this.rawPgn = pgn;
     this.boardMode = boardMode;
 
-    const parsed = this._parsePGN(pgn, boardMode);
+    const parsed = parsePGN(rawPGN);
+    mirrorPGN(parsed, boardMode);
+
+    this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
+
+    this.orientation =
+      parsed?.moves[0]?.turn === 'w'
+        ? userConfig.opts.flipBoard
+          ? 'black'
+          : 'white'
+        : userConfig.opts.flipBoard
+          ? 'white'
+          : 'black';
+    this.playerColor = this.orientation;
+    this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
+    this.customAnimationFen = this.startFen;
+    this.rootGame = parsed;
 
     augmentPgnTree(
-      parsed.moves,
+      this.rootGame.moves,
       [],
       this.newChess(this.startFen),
       this._moveMap,
     );
-
-    this.rootGame = parsed;
 
     $effect(() => {
       const redrawCachedShapes = this.boardMode === 'Puzzle' &&
@@ -156,7 +162,6 @@ export class PgnGameStore {
 
     // Iterate and play each move
     moves_to_play?.forEach((move) => chess.move(move));
-
     return chess
   }
 
@@ -175,18 +180,18 @@ export class PgnGameStore {
 
   get puzzleScore() {
     if (this._puzzleScore || this.boardMode !== 'Puzzle') return this._puzzleScore;
-    if (this._hasMadeMistake && userConfig.strictScoring) {
+    if (this._hasMadeMistake && userConfig.opts.strictScoring) {
       this._puzzleScore = 'incorrect';
     } else if (this.currentMove?.nag?.some((n) => blunderNags.includes(n)) && this.currentMove?.turn === this.playerColor[0]) {
       this._puzzleScore = 'incorrect';
-    } else if (this.errorCount > userConfig.handicap) {
+    } else if (this.errorCount > userConfig.opts.handicap) {
       this._puzzleScore = 'incorrect';
     }
     // seperate if statement to force read when puzzle is finished.
     if (!this._puzzleScore && this.isPuzzleComplete) {
       this._puzzleScore = this._hasMadeMistake
         ? 'correct'
-        : userConfig.strictScoring
+        : userConfig.opts.strictScoring
           ? 'correct'
           : 'perfect';
     }
@@ -228,52 +233,6 @@ export class PgnGameStore {
 
 
   // --- Methods ---
-  // private methods
-
-  private _parsePGN(rawPgn = this.rawPgn, boardMode = this.boardMode) {
-    userConfig.boardKey++;
-
-    const parsed = parse(rawPgn, {
-      startRule: 'game',
-    }) as unknown as CustomPgnGame;
-
-    let pgnBaseFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
-    const savedMirrorState =
-      sessionStorage.getItem('chess__mirrorState') ?? null;
-    if (
-      userConfig.mirror &&
-      !checkCastleRights(pgnBaseFen)
-    ) {
-
-      if (boardMode === 'Puzzle') {
-        this._mirrorState = assignMirrorState();
-        sessionStorage.setItem('chess__mirrorState', this._mirrorState);
-      } else if (savedMirrorState) {
-        this._mirrorState = (savedMirrorState as MirrorState);
-        sessionStorage.removeItem('chess__mirrorState');
-      }
-    }
-
-    if (this._mirrorState && this._mirrorState !== 'original') {
-      pgnBaseFen = mirrorFen(pgnBaseFen, this._mirrorState)
-      mirrorPgnTree(parsed.moves, this._mirrorState);
-    }
-
-    this.startFen = pgnBaseFen;
-
-    this.orientation =
-      parsed?.moves[0]?.turn === 'w'
-        ? userConfig.flipBoard
-          ? 'black'
-          : 'white'
-        : userConfig.flipBoard
-          ? 'white'
-          : 'black';
-    this.playerColor = this.orientation;
-    this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
-
-    return parsed;
-  }
 
   // Public methods
 
