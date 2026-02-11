@@ -1,6 +1,5 @@
 import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
-import { untrack } from 'svelte';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
 import { userConfig } from '$stores/userConfig.svelte.ts';
@@ -35,7 +34,6 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
      * Setting Fen here without animation solves inconsistent animations for certain moves (en passant, promotion)
      */
     const moveCheck = getLegalMove({ from: store.selectedPiece, to: dest }, store.fen);
-    console.log(moveCheck);
     if (moveCheck?.flags.includes('e')) store.shouldAnimate = false;
     return;
   }
@@ -58,7 +56,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
     if (matchingArrow.san) {
       moveCheck = tempChess.move(matchingArrow.san);
     }
-  } else if (userConfig.singleClickMove) {
+  } else if (userConfig.opts.singleClickMove) {
     // Case 2: Clicked a square with only ONE legal move reaching it (Ambiguity check)
     // useful for rapid clicking in viewer
     const allMoves = tempChess.moves({ verbose: true });
@@ -146,36 +144,41 @@ const customBrushes = {
 
 // track existing custom animations
 let isAnimating: ReturnType<typeof setTimeout> | null;
+let lastCustomAnimationFen: string = '';
 
 export function getCgConfig(store: IPgnGameStore) {
-  const animationEnabled = store.shouldAnimate;
-  const customAnimationFen = store.customAnimationFen;
-  untrack(() => {
+  const isDefaultAnimation = store.shouldAnimate;
+  if (lastCustomAnimationFen !== store.customAnimationFen) {
+    lastCustomAnimationFen = store.customAnimationFen;
+
     if (!store.shouldAnimate) store.shouldAnimate = true;
-  });
-  if (customAnimationFen) {
-    requestAnimationFrame(() => {
-      if (isAnimating) {
-        clearTimeout(isAnimating);
-        isAnimating = null;
-        store.customAnimationFen = null;
-      } else if (animationEnabled) {
-        isAnimating = setTimeout(() => {
+
+    if (store.customAnimationFen !== store.fen) {
+      requestAnimationFrame(() => {
+        if (isAnimating) {
+          clearTimeout(isAnimating);
           isAnimating = null;
-          store.customAnimationFen = null;
-        }, 200);
-      } else {
-        store.customAnimationFen = null;
-      }
-    });
+          store.customAnimationFen = store.fen;
+        } else if (isDefaultAnimation) {
+
+          isAnimating = setTimeout(() => {
+            isAnimating = null;
+            store.customAnimationFen = store.fen;
+          }, userConfig.opts.animationTime);
+        } else {
+          store.customAnimationFen = store.fen;
+        }
+      });
+    }
   }
 
+
   return {
-    fen: customAnimationFen ?? store.fen,
+    fen: store.customAnimationFen,
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
-    viewOnly: store.isPuzzleComplete,
+    viewOnly: store.isPuzzleComplete || store.viewOnly,
     turnColor: (store.turn === 'w' ? 'white' : 'black') as CgColor,
     premovable: {
       enabled: true,
@@ -185,8 +188,8 @@ export function getCgConfig(store: IPgnGameStore) {
       currentMove: true,
     },
     animation: {
-      enabled: animationEnabled,
-      duration: userConfig.animationTime,
+      enabled: isDefaultAnimation,
+      duration: userConfig.opts.animationTime,
     },
     drawable: {
       enabled: true,
@@ -200,7 +203,7 @@ export function getCgConfig(store: IPgnGameStore) {
     },
     movable: {
       free: false,
-      showDests: userConfig.showDests,
+      showDests: userConfig.opts.showDests,
       color:
         store.boardMode === 'Puzzle'
           ? store.playerColor

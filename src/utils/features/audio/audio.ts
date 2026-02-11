@@ -92,7 +92,7 @@ function initAudio(): Map<Sounds, HTMLAudioElement> {
 const audioMap: Map<Sounds, HTMLAudioElement> = initAudio();
 
 export function playSound(soundName: Sounds | 'click'): void {
-  if (userConfig.muteAudio) return;
+  if (userConfig.opts.muteAudio) return;
 
   if (soundName === 'click') {
     playSyntheticClick();
@@ -116,7 +116,7 @@ export function playSound(soundName: Sounds | 'click'): void {
 }
 
 export function moveAudio(move: CustomPgnMove): void {
-  if (userConfig.muteAudio) return;
+  if (userConfig.opts.muteAudio) return;
 
   const moveType = moveSoundPriority.find((p) =>
     p.condition(move.san, move.flags),

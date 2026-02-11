@@ -24,33 +24,20 @@ class EngineStore {
   enabled = $state(false);
   isThinking = $state(false);
   loading = $state(false);
-  multipv = $state(1);
   multipvOptions = [1, 2, 3, 4, 5];
 
   // Data
   evalFen = $state<string>(''); // The FEN that the current analysis belongs to
   analysisLines = $state<AnalysisLine[]>([]);
 
-  analysisThinkingTime = $state(userConfig.analysisTime);
+  analysisThinkingTime = $derived(userConfig.opts.analysisTime);
+  multipv = $derived(userConfig.opts.analysisLines);
+
   thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
 
   private _worker: Worker | null = null;
   private _currentFen = ''; // The FEN currently being processed by the engine
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
-
-  constructor() {
-    // get stored settings
-    if (typeof window === 'undefined') return;
-    const savedPv = sessionStorage.getItem('chess_multipv') ?? null;
-    if (savedPv) this.setMultiPv(parseInt(savedPv, 10));
-
-    const savedThinkingTime =
-      sessionStorage.getItem('chess_analysisTime') ?? null;
-    if (savedThinkingTime)
-      this.analysisThinkingTime = parseInt(savedThinkingTime, 10);
-
-    this.analysisThinkingTime = this._getClosestTime(this.analysisThinkingTime);
-  }
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -118,28 +105,6 @@ class EngineStore {
 
   // --- Public Actions ---
 
-  setMultiPv(count: number) {
-    if (count < 1) count = 1;
-    if (count > 5) count = 5;
-    this.multipv = count;
-    userConfig.analysisLines = count;
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('chess_multipv', `${count}`);
-    }
-    this._restart();
-  }
-
-  setThinkingTime(time: number) {
-    if (time < 1) time = 1;
-    if (time > 300) time = 300;
-    userConfig.analysisTime = time;
-    this.analysisThinkingTime = time;
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('chess_analysisTime', `${time}`);
-    }
-    this._restart();
-  }
-
   async toggle(fen: string) {
     if (this.enabled) {
       this.enabled = false;
@@ -198,9 +163,7 @@ class EngineStore {
     this._currentFen = '';
   }
 
-  // --- Private Engine Logic ---
-
-  private _restart() {
+  restart() {
     // Restart analysis if active
     if (this.enabled && this._currentFen) {
       // We force a re-analysis by acting like the FEN changed
@@ -210,11 +173,7 @@ class EngineStore {
     }
   }
 
-  private _getClosestTime(target: number): number {
-    return this.thinkingTimeOptions.reduce((prev, curr) =>
-      Math.abs(curr - target) < Math.abs(prev - target) ? curr : prev,
-    );
-  }
+  // --- Private Engine Logic ---
 
   private _processPending() {
     if (!this._pendingFen || !this._worker) return;

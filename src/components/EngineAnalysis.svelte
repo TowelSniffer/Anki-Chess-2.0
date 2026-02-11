@@ -1,5 +1,6 @@
 <script lang="ts">
   import { engineStore } from '$stores/engineStore.svelte';
+  import { userConfig } from '$stores/userConfig.svelte.ts';
   import CustomSelector from './uiUtility/CustomSelector.svelte';
   import { getContext } from 'svelte';
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
@@ -42,7 +43,7 @@
   }
 
   function setLines(n: number) {
-    engineStore.setMultiPv(n);
+    userConfig.opts.analysisLines = n;
   }
 </script>
 
@@ -61,7 +62,7 @@
       value={engineStore.analysisThinkingTime}
       options={engineStore.thinkingTimeOptions}
       icon={IconSearchGear}
-      onChange={(val: number) => engineStore.setThinkingTime(val)}
+      onChange={(val: number) => userConfig.opts.analysisTime = val}
     />
   </div>
   {#if engineStore.loading}

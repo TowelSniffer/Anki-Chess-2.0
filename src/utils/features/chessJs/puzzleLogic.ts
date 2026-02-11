@@ -78,7 +78,7 @@ export function handleUserMove(
     gameStore.pgnPath = existingPath;
 
     if (gameStore.boardMode === 'Puzzle') {
-      timerStore.extend(userConfig.increment, gameStore.aiDelayTime);
+      timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
       playAiMove(gameStore, gameStore.aiDelayTime || 300);
     }
   } else {
@@ -103,7 +103,7 @@ export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
       const candidates: PgnPath[] = [nextMovePathCheck];
 
       // If variations exist, add them to candidates
-      if (userConfig.acceptVariations && nextMove.variations) {
+      if (userConfig.opts.acceptVariations && nextMove.variations) {
         nextMove.variations.forEach((variation: CustomPgnMove[]) => {
           candidates.push(variation[0].pgnPath);
         });
@@ -118,8 +118,7 @@ export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
 
 function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
   setTimeout(() => {
-    if (!gameStore.cg) return;
-    gameStore.cg.set({ viewOnly: false }); // will be disabled when user reaches handicap
+    gameStore.viewOnly = false; // will be disabled when user reaches handicap
     timerStore.resume();
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(gameStore.pgnPath);
@@ -131,18 +130,18 @@ function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
 function handleWrongMove(gameStore: IPgnGameStore, move: Move): void {
   if (!gameStore.cg) return;
   gameStore.errorCount++;
-  gameStore.cg.move(move.from, move.to);
+  gameStore.customAnimationFen = move.after;
   playSound('error');
   gameStore.wrongMoveDebounce = setTimeout(() => {
     if (!gameStore.cg) return;
     gameStore.wrongMoveDebounce = null;
-    gameStore.cg.set({ ...gameStore.boardConfig, fen: move.before });
-  }, userConfig.animationTime);
+    // FIXME need to reset board fen?
+  }, userConfig.opts.animationTime);
 
-  const isFailed = gameStore.errorCount > userConfig.handicap;
+  const isFailed = gameStore.errorCount > userConfig.opts.handicap;
 
-  if (isFailed && !userConfig.handicapAdvance) {
-    gameStore.cg.set({ viewOnly: true }); // disable user movement until after puzzle advances
+  if (isFailed && !userConfig.opts.handicapAdvance) {
+    gameStore.viewOnly = true; // disable user movement until after puzzle advances
     timerStore.pause();
     playUserCorrectMove(gameStore, gameStore.aiDelayTime); // show the correct user move
   }

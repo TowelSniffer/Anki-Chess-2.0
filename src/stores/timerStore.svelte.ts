@@ -4,7 +4,7 @@ class TimerStore {
   // --- State ---
   isRunning = $state(false);
   remainingTime = $state(0); // in ms
-  totalTime = $state(userConfig.timer); // in ms (initial duration)
+  totalTime = $state(userConfig.opts.timer); // in ms (initial duration)
 
   // Controls if the board shows the timer gradient
   visible = $state(false);
@@ -30,7 +30,7 @@ class TimerStore {
    * Initialize and start the timer
    * @param durationMs - Duration in milliseconds
    */
-  start(durationMs: number = userConfig.timer) {
+  start(durationMs: number = userConfig.opts.timer) {
     this.stop();
 
     // Reset totalTime to the initial duration requested
@@ -73,8 +73,8 @@ class TimerStore {
    * Smoothly adds time to the clock over (gameStore.aiDelayTime)
    */
   extend(
-    ms: number = userConfig.increment,
-    duration: number = userConfig.animationTime + 100,
+    ms: number = userConfig.opts.increment,
+    duration: number = userConfig.opts.animationTime + 100,
   ) {
     if (!this.visible || !this.isRunning) return;
 
