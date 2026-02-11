@@ -213,7 +213,6 @@
 
     if (lastSyncedFen !== gameStore.fen) {
       updateBoard(gameStore, previousPath);
-      previousPathKey = currentKey;
       previousPath = [...gameStore.pgnPath];
       lastSyncedFen = gameStore.fen;
     }
