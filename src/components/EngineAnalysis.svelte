@@ -11,9 +11,7 @@
 
   const lineOutput = $derived.by(() => {
     if (gameStore.isCheckmate) {
-      return gameStore.turn === 'b'
-        ? 'White Checkmates...'
-        : 'Black Checkmates...';
+      return gameStore.turn === 'b' ? 'White Checkmates...' : 'Black Checkmates...';
     }
     if (gameStore.isDraw) {
       return 'Draw...';
@@ -62,7 +60,7 @@
       value={engineStore.analysisThinkingTime}
       options={engineStore.thinkingTimeOptions}
       icon={IconSearchGear}
-      onChange={(val: number) => userConfig.opts.analysisTime = val}
+      onChange={(val: number) => (userConfig.opts.analysisTime = val)}
     />
   </div>
   {#if engineStore.loading}
