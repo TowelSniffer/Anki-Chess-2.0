@@ -1,7 +1,4 @@
-import type {
-  CustomPgnMove,
-  PgnPath,
-} from '$Types/ChessStructs';
+import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { moveAudio, playSound } from '$features/audio/audio';
@@ -48,11 +45,7 @@ function injectPiece(fen: string, square: string, replacement: string): string {
   return [rows.join('/'), ...rest].join(' ');
 }
 
-function animateForwardPromotion(
-  gameStore: IPgnGameStore,
-  move: CustomPgnMove,
-
-) {
+function animateForwardPromotion(gameStore: IPgnGameStore, move: CustomPgnMove) {
   if (!gameStore.cg) return;
   const pieceCheck = gameStore.cg.state.pieces.get(move.to);
   if (pieceCheck?.role === 'pawn') {
@@ -60,34 +53,26 @@ function animateForwardPromotion(
     return;
   }
   const pawnSymbol = move.turn === 'w' ? 'P' : 'p';
-  const pawnMovedFen = injectPiece(move.after, move.to, pawnSymbol)
-  gameStore.customAnimation = { fen: pawnMovedFen, animate: true }
+  const pawnMovedFen = injectPiece(move.after, move.to, pawnSymbol);
+  gameStore.customAnimation = { fen: pawnMovedFen, animate: true };
 }
 
-function animateBackwardPromotion(
-  gameStore: IPgnGameStore,
-  currentMove: CustomPgnMove,
-) {
+function animateBackwardPromotion(gameStore: IPgnGameStore, currentMove: CustomPgnMove) {
   const pawnSymbol = currentMove.turn === 'w' ? 'P' : 'p';
-  const pawnMovedFen = injectPiece(currentMove.after, currentMove.to, pawnSymbol)
-  gameStore.customAnimation = { fen: pawnMovedFen, animate: false }
-
+  const pawnMovedFen = injectPiece(currentMove.after, currentMove.to, pawnSymbol);
+  gameStore.customAnimation = { fen: pawnMovedFen, animate: false };
 }
 
 /**
  * The Central Controller for board updates.
  * Determines if we should Animate (Undo/Promotion) or Snap (Jump/Load).
  */
-export function updateBoard(
-  gameStore: IPgnGameStore,
-  previousPath: PgnPath | null,
-) {
-
+export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | null) {
   const currentPath = gameStore.pgnPath;
   const currentMove = gameStore.currentMove;
 
   if (previousPath === null) {
-    return
+    return;
   }
 
   // calculate Expected Undo Path
