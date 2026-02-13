@@ -71,10 +71,10 @@ export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | nu
   const currentPath = gameStore.pgnPath;
   const currentMove = gameStore.currentMove;
 
-  if (previousPath === null) {
-    return null;
-  }
+
   let moveType = currentMove;
+  if (previousPath === null) return moveType;
+
   // calculate Expected Undo Path
   // If we just clicked "Back", logic says we should be at this specific path.
   const expectedUndoPath = navigatePrevMove(previousPath);
