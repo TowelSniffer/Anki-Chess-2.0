@@ -2,7 +2,6 @@ import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
-import { getSystemShapes } from '$features/board/arrows';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { getLegalMove, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
@@ -17,7 +16,7 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
  * 2. Manual Click-to-Move handling (if needed)
  */
 export function handleSelect(key: Key, store: IPgnGameStore) {
-  if (store.wrongMoveDebounce || !store.cg) return;
+  if (!store.cg) return;
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
 
@@ -27,7 +26,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   const isPromote = isPromotion(store.selectedPiece as Square, dest, store.fen);
 
-  if (isPromote | isNotPuzzleTurn) return;
+  if (isPromote || isNotPuzzleTurn) return;
 
   const legalMoveCheck = getLegalMove({ from: store.selectedPiece as Square, to: dest }, store.fen);
   if (store.selectedPiece && dest && legalMoveCheck) {

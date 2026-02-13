@@ -24,7 +24,6 @@ export interface IPgnGameStore {
   startFen: string;
   playerColor: CgColor;
   opponentColor: CgColor;
-  wrongMoveDebounce: ReturnType<typeof setTimeout> | null;
   pendingPromotion: { from: Square; to: Square } | null;
   customAnimation: { fen: string; animate: boolean } | null;
   viewOnly: boolean;
@@ -48,8 +47,10 @@ export interface IPgnGameStore {
   readonly isDraw: boolean;
   readonly isThreefoldRepetition: boolean;
   readonly isGameOver: boolean;
+  readonly prevPath: PgnPath | null;
 
   // --- METHODS ---
+  setMoveDebounce(): void;
   next(): void;
   prev(): void;
   reset(): void;

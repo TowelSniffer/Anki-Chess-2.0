@@ -215,15 +215,15 @@
       const moveType = updateBoard(gameStore, previousPath);
 
       if (typeof moveType === 'string') {
-        playSound(moveType)
+        playSound(moveType);
       } else if (moveType) {
-        moveAudio(moveType)
+        moveAudio(moveType);
       }
 
       previousPath = [...gameStore.pgnPath];
     } else if (previousPath) {
       // drag & drop or click to move
-      moveAudio(gameStore.currentMove)
+      if (gameStore.currentMove) moveAudio(gameStore.currentMove);
       previousPath = [...gameStore.pgnPath];
     }
   });
@@ -400,4 +400,3 @@
     }
   }
 </style>
-
