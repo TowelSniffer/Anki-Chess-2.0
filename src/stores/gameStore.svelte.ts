@@ -234,6 +234,11 @@ export class PgnGameStore {
     return this.currentMove.isCheckmate || this.currentMove.isStalemate || this.currentMove.isDraw;
   }
 
+  get prevPath() {
+    if (!this.pgnPath.length) return null;
+    return navigatePrevMove(this.pgnPath);
+  }
+
   // --- Methods ---
 
   // Public methods

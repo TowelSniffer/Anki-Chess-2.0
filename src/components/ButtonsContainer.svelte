@@ -24,7 +24,7 @@
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
 
   let isFlipped = $derived(gameStore.orientation === 'black');
-  let canGoBack = $derived(gameStore.pgnPath.length > 0);
+  let canGoBack = $derived(gameStore.pgnPath.length);
   let canGoForward = $derived(gameStore.hasNext);
 
   function handleKeydown(e: KeyboardEvent): void {

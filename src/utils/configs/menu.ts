@@ -60,6 +60,16 @@ export function getMenuData(): MenuItem[] {
           checked: userConfig.opts.showDests,
           onToggle: () => setConfigBoolean('showDests'),
         },
+        {
+          type: 'number',
+          label: 'Animation time (ms)',
+          tooltip: 'Set time for piece movement animations',
+          min: 1,
+          max: 1000,
+          step: 100,
+          value: userConfig.opts.animationTime,
+          onChange: (val: number) => (userConfig.opts.animationTime = val),
+        },
       ],
     },
     {

@@ -207,7 +207,6 @@
 
   // Move & Animation an Handler
   let previousPath: PgnPath | null = null;
-
   $effect(() => {
     if (!gameStore?.cg) return;
     const isNewFen = gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen();
@@ -401,3 +400,4 @@
     }
   }
 </style>
+

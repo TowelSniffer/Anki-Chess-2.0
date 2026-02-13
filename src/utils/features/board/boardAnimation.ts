@@ -70,10 +70,10 @@ function animateBackwardPromotion(gameStore: IPgnGameStore, currentMove: CustomP
 export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | null): Sounds | CustomPgnMove {
   const currentPath = gameStore.pgnPath;
   const currentMove = gameStore.currentMove;
-
+  console.log(currentMove)
 
   let moveType = currentMove;
-  if (previousPath === null) return moveType;
+  if (previousPath === null && !currentMove) return 'move';
 
   // calculate Expected Undo Path
   // If we just clicked "Back", logic says we should be at this specific path.
@@ -83,7 +83,7 @@ export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | nu
   // We are undoing if we were somewhere (length > 0) AND
   // the current path exactly matches the logical parent of the previous path.
   const isUndo =
-    previousPath.length > 0 &&
+    previousPath?.length > 0 &&
     currentPath.length === expectedUndoPath.length &&
     currentPath.every((val, i) => val === expectedUndoPath[i]);
 
