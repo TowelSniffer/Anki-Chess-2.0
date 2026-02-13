@@ -20,9 +20,14 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   if (store.wrongMoveDebounce || !store.cg) return;
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
+
+  // prevent out of turn moves in Puzzle mode
+  const isNotPuzzleTurn = store.turn !== store.playerColor[0];
+
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   const isPromote = isPromotion(store.selectedPiece as Square, dest, store.fen);
-  if (isPromote) return;
+
+  if (isPromote | isNotPuzzleTurn) return;
 
   const legalMoveCheck = getLegalMove({ from: store.selectedPiece as Square, to: dest }, store.fen);
   if (store.selectedPiece && dest && legalMoveCheck) {
@@ -36,7 +41,6 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
       // fix broken animation for en passent click to move.
       store.customAnimation = { fen: store.fen, animate: false };
     }
-    //
     return;
   }
 
@@ -193,6 +197,7 @@ export function getCgConfig(store: IPgnGameStore) {
       store.cg?.setAutoShapes([]);
     });
   }
+
   return {
     fen: store.customAnimation?.fen ?? store.fen,
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
