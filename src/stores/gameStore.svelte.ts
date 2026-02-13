@@ -7,7 +7,6 @@ import type {
   PgnPath,
   BoardModes,
   PuzzleScored,
-  CustomShape,
 } from '$Types/ChessStructs';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
@@ -60,7 +59,7 @@ export class PgnGameStore {
   // depends on cached currentMove
   fen = $derived(this.currentMove?.after ?? this.startFen);
   customAnimation = $state(null);
-  viewOnly = $derived(this._moveDebounce);
+  viewOnly = $derived(this._moveDebounce ? true : false);
 
   // depends on cached currentMove
   turn: Color = $derived.by(() => {
@@ -90,12 +89,12 @@ export class PgnGameStore {
   });
 
   constructor(rawPGN: string, boardMode: BoardModes) {
-    const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean');
+    const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
     if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
     const randomBoolean =
-      boardMode !== 'Puzzle' ? (storedRandomBoolean ?? false) : !Math.round(Math.random());
-    if (boardMode === 'Puzzle') sessionStorage.setItem('chess_randomBoolean', randomBoolean);
+      boardMode !== 'Puzzle' ? storedRandomBoolean : !Math.round(Math.random());
+    if (boardMode === 'Puzzle') sessionStorage.setItem('chess_randomBoolean', `${randomBoolean}`);
 
     const storedScore = sessionStorage.getItem('chess_puzzle_score');
     if (boardMode !== 'Puzzle') {

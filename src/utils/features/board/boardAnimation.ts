@@ -67,23 +67,27 @@ function animateBackwardPromotion(gameStore: IPgnGameStore, currentMove: CustomP
  * The Central Controller for board updates.
  * Determines if we should Animate (Undo/Promotion) or Snap (Jump/Load).
  */
-export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | null): Sounds | CustomPgnMove {
+export function updateBoard(
+  gameStore: IPgnGameStore,
+  previousPath: PgnPath | null,
+): Sounds | CustomPgnMove {
   const currentPath = gameStore.pgnPath;
   const currentMove = gameStore.currentMove;
-  console.log(currentMove)
 
-  let moveType = currentMove;
-  if (previousPath === null && !currentMove) return 'move';
+  let moveType: Sounds | CustomPgnMove = currentMove ?? 'move';
+  if (previousPath === null && !currentMove) return moveType;
 
   // calculate Expected Undo Path
   // If we just clicked "Back", logic says we should be at this specific path.
-  const expectedUndoPath = navigatePrevMove(previousPath);
+  const expectedUndoPath = previousPath ? navigatePrevMove(previousPath) : null;
 
   // check for Undo
   // We are undoing if we were somewhere (length > 0) AND
   // the current path exactly matches the logical parent of the previous path.
   const isUndo =
-    previousPath?.length > 0 &&
+    previousPath &&
+    expectedUndoPath &&
+    previousPath.length > 0 &&
     currentPath.length === expectedUndoPath.length &&
     currentPath.every((val, i) => val === expectedUndoPath[i]);
 
@@ -105,11 +109,10 @@ export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | nu
     // Check if we are making a single Step Forward
     // (The board state before this move matches what is currently on screen)
 
-    const previousMove = gameStore.getMoveByPath(previousPath);
+    const previousMove = previousPath ? gameStore.getMoveByPath(previousPath) : null;
     const previousFen = previousMove?.after ?? gameStore.startFen;
 
     const isForwardStep = previousFen === currentMove?.before;
-    console.log(previousFen, currentMove)
     if (isForwardStep) {
       // Play Audio for Forward Moves
 

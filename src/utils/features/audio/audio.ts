@@ -10,7 +10,7 @@ import castleSound from '$assets/audio/_castle.mp3';
 import promoteSound from '$assets/audio/_promote.mp3';
 import errorSound from '$assets/audio/_error.mp3';
 
-type Sounds =
+export type Sounds =
   | 'move'
   | 'checkmate'
   | 'check'
