@@ -54,6 +54,7 @@ class TimerStore {
   }
 
   pause() {
+    if (!this.isRunning) return;
     this.isRunning = false;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -76,7 +77,7 @@ class TimerStore {
     ms: number = userConfig.opts.increment,
     duration: number = userConfig.opts.animationTime + 100,
   ) {
-    if (!this.visible || !this.isRunning) return;
+    if (!this.visible) return;
 
     this.pause();
 
@@ -100,8 +101,7 @@ class TimerStore {
       // Apply Easing (Cubic Ease Out)
       const progress = 1 - Math.pow(1 - rawProgress, 3);
 
-      this.remainingTime =
-        startRemaining + (targetRemaining - startRemaining) * progress;
+      this.remainingTime = startRemaining + (targetRemaining - startRemaining) * progress;
       this.totalTime = startTotal + (targetTotal - startTotal) * progress;
 
       if (rawProgress < 1) {
