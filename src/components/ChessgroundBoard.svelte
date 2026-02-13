@@ -44,7 +44,6 @@
   };
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
-
   let boardContainer: HTMLDivElement;
   onMount(() => {
     if (boardContainer) {
@@ -181,7 +180,9 @@
           timerStore.start();
         }
         if (userConfig.opts.flipBoard && gameStore.pgnPath.length === 0) {
-          playAiMove(gameStore, userConfig.opts.animationTime + 100);
+          requestAnimationFrame(() => {
+            playAiMove(gameStore, userConfig.opts.animationTime + 100);
+          });
         }
       }
     });
@@ -209,7 +210,8 @@
 
   $effect(() => {
     if (!gameStore?.cg) return;
-    if (lastSyncedFen !== gameStore.fen) {
+    const isNewFen = gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen();
+    if (isNewFen) {
       updateBoard(gameStore, previousPath);
       previousPath = [...gameStore.pgnPath];
       lastSyncedFen = gameStore.fen;

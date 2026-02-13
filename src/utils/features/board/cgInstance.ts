@@ -2,6 +2,7 @@ import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
+import { getSystemShapes } from '$features/board/arrows';
 import { userConfig } from '$stores/userConfig.svelte.ts';
 import { isMoveLegal, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
@@ -20,22 +21,16 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
-  const isLegal = isMoveLegal(
-    { from: store.selectedPiece as Square, to: dest },
-    store.fen);
+  const isLegal = isMoveLegal({ from: store.selectedPiece as Square, to: dest }, store.fen);
   const isPromote = isPromotion(store.selectedPiece as Square, dest, store.fen);
-  if (
-    store.selectedPiece &&
-    dest &&
-    (isLegal || isPromote)
-  ) {
+  if (store.selectedPiece && dest && (isLegal || isPromote)) {
     /**
      * Checks if user makes a standard click to move
      * NOTE: we defer to default click to move here as after: event will be called after select event
      * Setting Fen here without animation solves inconsistent animations for certain moves (en passant, promotion)
      */
     if (isPromote) return;
-    store.customAnimation = { fen: store.fen, animate: false }
+    store.customAnimation = { fen: store.fen, animate: false };
     return;
   }
 
@@ -46,9 +41,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   let matchingArrow: CustomShape | undefined;
 
   for (const brushType of shapePriority) {
-    matchingArrow = store.systemShapes.find(
-      (s) => s.dest === dest && s.brush === brushType,
-    );
+    matchingArrow = store.systemShapes.find((s) => s.dest === dest && s.brush === brushType);
     if (matchingArrow) break;
   }
 
@@ -145,47 +138,57 @@ const customBrushes = {
 
 // track existing custom animations
 let isAnimating: ReturnType<typeof setTimeout> | null;
-let fenState = 0;
 export function getCgConfig(store: IPgnGameStore) {
-  if (fenState) {
-    fenState = 0;
-  } else {
-    fenState++;
+  /*
+   * Here we define a derived config to auto apply board updates with
+   * Svelte reactions.
+   */
 
-    if (store.customAnimation) {
-      if (store.customAnimation?.fen.split(' ')[0] !== store.cg?.getFen()) {
-        const timer = store.customAnimation?.animate;
-        if (isAnimating) {
-          clearTimeout(isAnimating);
-          fenState = 0;
-          isAnimating = null;
-        }
-        store.cg?.set({ fen: store.customAnimation?.fen });
-        if (timer) {
-          isAnimating = setTimeout(() => {
-            isAnimating = null;
+  // we will distinguish between Fen changes and other config changes
+  let isFenUpdate = true;
 
-            store.cg?.set({ fen: store.fen });
-          }, userConfig.opts.animationTime);
-        } else {
-          store.cg?.set({ fen: store.fen })
-        }
-      }
-      store.customAnimation = null;
-    } else if (store.fen.split(' ')[0] !== store.cg?.getFen()) {
+  const isCustomAnimation =
+    store.customAnimation && store.customAnimation?.fen.split(' ')[0] !== store.cg?.getFen();
+  const isStandardFenUpdate = store.fen.split(' ')[0] !== store.cg?.getFen();
 
-      if (isAnimating) {
-        console.log(store.fen.split(' ')[0], store.cg?.getFen());
-        clearTimeout(isAnimating);
-        fenState = 0;
-        isAnimating = null;
-      }
-      store.cg?.set({ fen: store.fen });
+  if (isCustomAnimation) {
+    const timer = store.customAnimation?.animate;
+    const animationTime = userConfig.opts.animationTime;
+    if (isAnimating) {
+      clearTimeout(isAnimating);
+      isAnimating = null;
     }
+    isAnimating = setTimeout(
+      () => {
+        isAnimating = null;
+
+        store.customAnimation = null;
+      },
+      timer ? animationTime : 0,
+    );
+  } else if (isStandardFenUpdate) {
+    if (store.customAnimation) {
+      requestAnimationFrame(() => {
+        store.customAnimation = null;
+      });
+    }
+    if (isAnimating) {
+      clearTimeout(isAnimating);
+      isAnimating = null;
+    }
+  } else {
+    // No Fen change
+    // Reacting to other config change
+    isFenUpdate = false;
   }
-
-
+  if (isFenUpdate) {
+    // immediately clear shapes.
+    requestAnimationFrame(() => {
+      store.cg?.setAutoShapes([]);
+    });
+  }
   return {
+    fen: store.customAnimation?.fen ?? store.fen,
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
@@ -216,18 +219,13 @@ export function getCgConfig(store: IPgnGameStore) {
       free: false,
       showDests: userConfig.opts.showDests,
       color:
-        store.boardMode === 'Puzzle'
-          ? store.playerColor
-          : store.turn === 'w'
-            ? 'white'
-            : 'black',
+        store.boardMode === 'Puzzle' ? store.playerColor : store.turn === 'w' ? 'white' : 'black',
       dests: store.dests,
       events: {
         after: (orig: Key, dest: Key) => {
           handleMove(orig, dest, store);
-        }
-      }
-    }
-  }
-};
-
+        },
+      },
+    },
+  };
+}

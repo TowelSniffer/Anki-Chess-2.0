@@ -7,7 +7,7 @@ import type {
   PgnPath,
   BoardModes,
   PuzzleScored,
-  CustomShape
+  CustomShape,
 } from '$Types/ChessStructs';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
@@ -39,13 +39,13 @@ export class PgnGameStore {
   playerColor: CgColor = 'white';
   opponentColor: CgColor = 'black';
 
-  wrongMoveDebounce: ReturnType<typeof setTimeout> | null = null;
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
 
   // --- Internal State ---
   private _puzzleScore: PuzzleScored = null;
   private _hasMadeMistake: boolean = false;
   private _moveMap = new Map<string, CustomPgnMove>();
+  private _moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
 
   // --- DERIVED STATE ---
 
@@ -59,8 +59,8 @@ export class PgnGameStore {
 
   // depends on cached currentMove
   fen = $derived(this.currentMove?.after ?? this.startFen);
-  customAnimation = null;
-  viewOnly = $state(false);
+  customAnimation = $state(null);
+  viewOnly = $derived(this._moveDebounce);
 
   // depends on cached currentMove
   turn: Color = $derived.by(() => {
@@ -72,19 +72,31 @@ export class PgnGameStore {
     return this.currentMove.turn === 'w' ? 'b' : 'w';
   });
 
-  // The last cached "Output" (What the board sees)
-  _displayedShapes = $state<CustomShape[]>([]);
-
   // The "Raw" Calculation (Always calculates the freshest shapes)
-  private _rawShapes = $derived([
-    // Only spread engine shapes if the engine's eval matches our visual FEN
-    ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
-    ...getSystemShapes(this.pgnPath, this._moveMap, this.boardMode),
-    ...parseCal(this.boardMode === 'Puzzle' ? [] : this.currentMove?.commentDiag?.colorArrows),
-    ...parseCsl(this.boardMode === 'Puzzle' ? [] : this.currentMove?.commentDiag?.colorFields)
-  ]);
+  systemShapes = $derived.by(() => {
+    const isStartOfPuzzle =
+      (this.boardMode === 'Puzzle' && !this.pgnPath.length) ||
+      (this.boardMode === 'Puzzle' && userConfig.opts.flipBoard && this.currentPathKey === '0');
+    if (isStartOfPuzzle) return [];
+    const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
+    const pgnPath = redrawCachedShapes ? navigatePrevMove(this.pgnPath) : this.pgnPath;
+    return [
+      // Only spread engine shapes if the engine's eval matches our visual FEN
+      ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
+      ...getSystemShapes(pgnPath, this._moveMap, this.boardMode),
+      ...parseCal(this.boardMode === 'Puzzle' ? [] : this.currentMove?.commentDiag?.colorArrows),
+      ...parseCsl(this.boardMode === 'Puzzle' ? [] : this.currentMove?.commentDiag?.colorFields),
+    ];
+  });
 
   constructor(rawPGN: string, boardMode: BoardModes) {
+    const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean');
+    if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
+
+    const randomBoolean =
+      boardMode !== 'Puzzle' ? (storedRandomBoolean ?? false) : !Math.round(Math.random());
+    if (boardMode === 'Puzzle') sessionStorage.setItem('chess_randomBoolean', randomBoolean);
+
     const storedScore = sessionStorage.getItem('chess_puzzle_score');
     if (boardMode !== 'Puzzle') {
       this._puzzleScore = (storedScore as PuzzleScored) ?? null;
@@ -107,35 +119,31 @@ export class PgnGameStore {
           : 'black';
     this.playerColor = this.orientation;
     this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
+
+    if (userConfig.opts.randomOrientation && randomBoolean)
+      this.orientation = this.orientation === 'white' ? 'black' : 'white';
+
     this.rootGame = parsed;
 
-    augmentPgnTree(
-      this.rootGame.moves,
-      [],
-      this.newChess(this.startFen),
-      this._moveMap,
-    );
+    augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
 
     $effect(() => {
-      const redrawCachedShapes = this.boardMode === 'Puzzle' &&
-        (this.turn === this.playerColor[0] || !this.pgnPath.length);
-
-      if (redrawCachedShapes) {
-        // FREEZE: Keeps systemShapes unchanged
-        return;
-      }
-
-      // NORMAL: Sync the shapes
-      this._displayedShapes = this._rawShapes;
-    });
-    $effect(() => {
-      if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime)) this._hasMadeMistake = true;
+      if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
+        this._hasMadeMistake = true;
     });
   }
 
   boardConfig = $derived(getCgConfig(this));
 
   // --- Navigation Helpers ---
+
+  setMoveDebounce(time = userConfig.opts.animationTime) {
+    timerStore.pause();
+    this._moveDebounce = setTimeout(() => {
+      this._moveDebounce = null;
+      if (!this.isPuzzleComplete) timerStore.resume();
+    }, time);
+  }
 
   next() {
     if (this.hasNext) {
@@ -160,7 +168,7 @@ export class PgnGameStore {
 
     // Iterate and play each move
     moves_to_play?.forEach((move) => chess.move(move));
-    return chess
+    return chess;
   }
 
   // --- Getters ---
@@ -172,15 +180,14 @@ export class PgnGameStore {
     return this._moveMap.has(nextPath.join(','));
   }
 
-  get systemShapes() {
-    return this._displayedShapes;
-  }
-
   get puzzleScore() {
     if (this._puzzleScore || this.boardMode !== 'Puzzle') return this._puzzleScore;
     if (this._hasMadeMistake && userConfig.opts.strictScoring) {
       this._puzzleScore = 'incorrect';
-    } else if (this.currentMove?.nag?.some((n) => blunderNags.includes(n)) && this.currentMove?.turn === this.playerColor[0]) {
+    } else if (
+      this.currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
+      this.currentMove?.turn === this.playerColor[0]
+    ) {
       this._puzzleScore = 'incorrect';
     } else if (this.errorCount > userConfig.opts.handicap) {
       this._puzzleScore = 'incorrect';
@@ -224,18 +231,15 @@ export class PgnGameStore {
 
   get isGameOver() {
     if (!this.currentMove) return false;
-    return this.currentMove.isCheckmate ||
-      this.currentMove.isStalemate ||
-      this.currentMove.isDraw;
+    return this.currentMove.isCheckmate || this.currentMove.isStalemate || this.currentMove.isDraw;
   }
-
 
   // --- Methods ---
 
   // Public methods
 
   loadCgInstance(boardContainer: HTMLDivElement) {
-    this.cg = Chessground(boardContainer, {fen: this.fen});
+    this.cg = Chessground(boardContainer, { fen: this.fen });
   }
 
   getMoveByPath(path: PgnPath): CustomPgnMove | null {
@@ -251,14 +255,8 @@ export class PgnGameStore {
 
   addMove(move: Move) {
     if (!this.rootGame) return;
-    const chess = this.replayHistory()
-    const newPath = addMoveToPgn(
-      move,
-      this.pgnPath,
-      this._moveMap,
-      this.rootGame.moves,
-      chess
-    );
+    const chess = this.replayHistory();
+    const newPath = addMoveToPgn(move, this.pgnPath, this._moveMap, this.rootGame.moves, chess);
 
     // update local state
     this.pgnPath = newPath;
@@ -276,7 +274,7 @@ export class PgnGameStore {
 
   // Chess js
   newChess(fen: string) {
-    return new Chess(fen)
+    return new Chess(fen);
   }
 
   // --- Helpers (Private) ---

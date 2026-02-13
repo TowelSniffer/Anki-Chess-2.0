@@ -30,19 +30,17 @@ const mountApp = () => {
     ? pgnDiv.textContent?.trim()
     : `[Event "?"]
 [Site "?"]
-[Date "2026.02.11"]
+[Date "2026.02.14"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "8/p6p/8/1P3k2/8/K5P1/P1p5/8 b - - 0 36"]
-[SetUp "1"]
 
-36... Kf6 *
+1. e4 (1. d4 d5 (1... e5)) e5 (1... d5) *
 `;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Viewer';
+  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Puzzle';
 
   // If an app already exists, unmount it to prevent memory leaks
   if (appInstance) {

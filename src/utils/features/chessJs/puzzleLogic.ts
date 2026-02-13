@@ -1,4 +1,4 @@
-import type {  Move, Square } from 'chess.js';
+import type { Move, Square } from 'chess.js';
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import { timerStore } from '$stores/timerStore.svelte';
@@ -7,7 +7,6 @@ import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
 
-
 // --- Helper Functions ---
 
 function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
@@ -15,15 +14,11 @@ function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
     pgnMove.from === playedMove.from &&
     pgnMove.to === playedMove.to &&
     // chess.js uses lowercase for promotion, PGN often uses uppercase
-    (pgnMove.promotion?.toLowerCase() ?? null) ===
-    (playedMove.promotion ?? null)
+    (pgnMove.promotion?.toLowerCase() ?? null) === (playedMove.promotion ?? null)
   );
 }
 
-function findMatchingPath(
-  gameStore: IPgnGameStore,
-  playedMove: Move,
-): PgnPath | null {
+function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath | null {
   const nextMainPath = navigateNextMove(gameStore.pgnPath);
 
   // check Root (if at start of game)
@@ -42,8 +37,7 @@ function findMatchingPath(
   // check Variations
   if (nextMainMove.variations?.length) {
     for (const variationLine of nextMainMove.variations) {
-      if (isSameMove(variationLine[0], playedMove))
-        return variationLine[0].pgnPath;
+      if (isSameMove(variationLine[0], playedMove)) return variationLine[0].pgnPath;
     }
   }
 
@@ -93,6 +87,7 @@ export function handleUserMove(
 }
 
 export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
+  gameStore.setMoveDebounce(delay * 2); // disable user movement until after puzzle advances
   setTimeout(() => {
     gameStore.errorCount = 0;
     const nextMovePathCheck = navigateNextMove(gameStore.pgnPath);
@@ -118,8 +113,6 @@ export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
 
 function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
   setTimeout(() => {
-    gameStore.viewOnly = false; // will be disabled when user reaches handicap
-    timerStore.resume();
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(gameStore.pgnPath);
     gameStore.pgnPath = nextMovePath;
@@ -132,17 +125,11 @@ function handleWrongMove(gameStore: IPgnGameStore, move: Move): void {
   gameStore.errorCount++;
   gameStore.customAnimation = { fen: move.after, animate: true };
   playSound('error');
-  gameStore.wrongMoveDebounce = setTimeout(() => {
-    if (!gameStore.cg) return;
-    gameStore.wrongMoveDebounce = null;
-    // FIXME need to reset board fen?
-  }, userConfig.opts.animationTime);
+  gameStore.setMoveDebounce();
 
   const isFailed = gameStore.errorCount > userConfig.opts.handicap;
 
   if (isFailed && !userConfig.opts.handicapAdvance) {
-    gameStore.viewOnly = true; // disable user movement until after puzzle advances
-    timerStore.pause();
     playUserCorrectMove(gameStore, gameStore.aiDelayTime); // show the correct user move
   }
 }
