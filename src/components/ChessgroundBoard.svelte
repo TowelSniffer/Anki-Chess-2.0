@@ -227,9 +227,6 @@
       moveAudio(gameStore.currentMove)
       previousPath = [...gameStore.pgnPath];
     }
-    requestAnimationFrame(() => {
-      gameStore.cg?.playPremove();
-    });
   });
   // Set cg config with rAF optimization
   let rAF_id: number;
@@ -242,6 +239,7 @@
     // Schedule the render for the next paint
     rAF_id = requestAnimationFrame(() => {
       gameStore.cg?.set(config);
+      gameStore.cg?.playPremove();
     });
   });
 

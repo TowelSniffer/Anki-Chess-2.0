@@ -87,7 +87,6 @@ export function handleUserMove(
 }
 
 export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
-  gameStore.setMoveDebounce(delay * 2); // disable user movement until after puzzle advances
   setTimeout(() => {
     gameStore.errorCount = 0;
     const nextMovePathCheck = navigateNextMove(gameStore.pgnPath);
@@ -112,6 +111,8 @@ export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
 }
 
 function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
+  // disable interaction until player move is made
+  gameStore.setMoveDebounce();
   setTimeout(() => {
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(gameStore.pgnPath);
@@ -125,8 +126,6 @@ function handleWrongMove(gameStore: IPgnGameStore, move: Move): void {
   gameStore.errorCount++;
   gameStore.customAnimation = { fen: move.after, animate: true };
   playSound('error');
-  gameStore.setMoveDebounce();
-
   const isFailed = gameStore.errorCount > userConfig.opts.handicap;
 
   if (isFailed && !userConfig.opts.handicapAdvance) {
