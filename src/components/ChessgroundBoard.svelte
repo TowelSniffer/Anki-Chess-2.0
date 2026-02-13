@@ -9,6 +9,7 @@
   import { timerStore } from '$stores/timerStore.svelte';
   import { updateBoard } from '$features/board/boardAnimation';
   import { playAiMove } from '$features/chessJs/puzzleLogic';
+  import { moveAudio, playSound } from '$features/audio/audio';
   import { getContext, untrack } from 'svelte';
   import { spring } from 'svelte/motion';
 
@@ -206,16 +207,29 @@
 
   // Move & Animation an Handler
   let previousPath: PgnPath | null = null;
-  let lastSyncedFen = '';
 
   $effect(() => {
     if (!gameStore?.cg) return;
     const isNewFen = gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen();
     if (isNewFen) {
-      updateBoard(gameStore, previousPath);
+      // single click move or en passant
+      const moveType = updateBoard(gameStore, previousPath);
+
+      if (typeof moveType === 'string') {
+        playSound(moveType)
+      } else if (moveType) {
+        moveAudio(moveType)
+      }
+
       previousPath = [...gameStore.pgnPath];
-      lastSyncedFen = gameStore.fen;
+    } else if (previousPath) {
+      // drag & drop or click to move
+      moveAudio(gameStore.currentMove)
+      previousPath = [...gameStore.pgnPath];
     }
+    requestAnimationFrame(() => {
+      gameStore.cg?.playPremove();
+    });
   });
   // Set cg config with rAF optimization
   let rAF_id: number;

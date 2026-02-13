@@ -1,7 +1,7 @@
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
+import type { Sounds } from '$features/audio/audio';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
-import { moveAudio, playSound } from '$features/audio/audio';
 
 function injectPiece(fen: string, square: string, replacement: string): string {
   const files = 'abcdefgh';
@@ -67,14 +67,14 @@ function animateBackwardPromotion(gameStore: IPgnGameStore, currentMove: CustomP
  * The Central Controller for board updates.
  * Determines if we should Animate (Undo/Promotion) or Snap (Jump/Load).
  */
-export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | null) {
+export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | null): Sounds | CustomPgnMove {
   const currentPath = gameStore.pgnPath;
   const currentMove = gameStore.currentMove;
 
   if (previousPath === null) {
-    return;
+    return null;
   }
-
+  let moveType = currentMove;
   // calculate Expected Undo Path
   // If we just clicked "Back", logic says we should be at this specific path.
   const expectedUndoPath = navigatePrevMove(previousPath);
@@ -92,7 +92,7 @@ export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | nu
     // Identify the move we just "unplayed" (it was the tip of the previous path)
 
     // nav back audio
-    playSound('move');
+    moveType = 'move';
 
     const unplayedMove = gameStore.getMoveByPath(previousPath);
 
@@ -109,10 +109,9 @@ export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | nu
     const previousFen = previousMove?.after ?? gameStore.startFen;
 
     const isForwardStep = previousFen === currentMove?.before;
-
+    console.log(previousFen, currentMove)
     if (isForwardStep) {
       // Play Audio for Forward Moves
-      moveAudio(currentMove);
 
       if (currentMove.promotion) {
         animateForwardPromotion(gameStore, currentMove);
@@ -121,8 +120,8 @@ export function updateBoard(gameStore: IPgnGameStore, previousPath: PgnPath | nu
       // JUMP (e.g. clicking a variation, loading a new game, or skipping moves)
 
       // audio for jumps/loading positions.
-      playSound('castle');
+      moveType = 'castle';
     }
   }
-  if (gameStore.cg) gameStore.cg.playPremove();
+  return moveType;
 }

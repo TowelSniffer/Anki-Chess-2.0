@@ -4,7 +4,7 @@ import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
 import { getSystemShapes } from '$features/board/arrows';
 import { userConfig } from '$stores/userConfig.svelte.ts';
-import { isMoveLegal, isPromotion } from '$features/chessJs/chessFunctions';
+import { getLegalMove, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
 import { handleUserMove } from '$features/chessJs/puzzleLogic';
 
@@ -21,16 +21,22 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   // type assertion as clicked square cannot be 'a0'
   const dest = key as Square;
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
-  const isLegal = isMoveLegal({ from: store.selectedPiece as Square, to: dest }, store.fen);
   const isPromote = isPromotion(store.selectedPiece as Square, dest, store.fen);
-  if (store.selectedPiece && dest && (isLegal || isPromote)) {
+  if (isPromote) return;
+
+  const legalMoveCheck = getLegalMove({ from: store.selectedPiece as Square, to: dest }, store.fen);
+  if (store.selectedPiece && dest && legalMoveCheck) {
     /**
      * Checks if user makes a standard click to move
      * NOTE: we defer to default click to move here as after: event will be called after select event
      * Setting Fen here without animation solves inconsistent animations for certain moves (en passant, promotion)
      */
-    if (isPromote) return;
-    store.customAnimation = { fen: store.fen, animate: false };
+
+    if (legalMoveCheck.flags?.includes('e')) {
+      // fix broken animation for en passent click to move.
+      store.customAnimation = { fen: store.fen, animate: false };
+    }
+    //
     return;
   }
 
