@@ -7,6 +7,7 @@ import fs from 'fs';
 import archiver from 'archiver';
 
 const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+const version = pkg.version;
 const versionedName = `_ankiChess${pkg.version}`;
 
 // A simple plugin to delete files not required for anki
@@ -36,7 +37,7 @@ const zipReleasePlugin = () => {
         const distPath = resolve(__dirname, 'dist-anki/collection.media');
         const outputZipPath = resolve(__dirname, 'dist-anki/anki-chess-release.zip');
         const templatesPath = resolve(__dirname, 'src/anki_templates');
-        const configPath = resolve(__dirname, 'src/anki/default_config.json');
+        const configPath = resolve(__dirname, 'src/anki_templates/default_config.json');
 
         console.log(`\n📦 Zipping release to: ${outputZipPath}...`);
 
@@ -69,7 +70,7 @@ const zipReleasePlugin = () => {
 
             //  Inject Default Config (Only for front.html)
             if (filename === 'front.html') {
-                const defaultConfig = fs.readFileSync(configPath, 'utf-8');
+                const defaultConfig = fs.readFileSync(configPath, 'utf-8').trim();
                 // Create the JS assignment string
                 const configInjection = `window.USER_CONFIG = ${defaultConfig};`;
                 content = content.replace('// __USER_CONFIG__', configInjection);
