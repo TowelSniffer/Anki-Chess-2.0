@@ -175,7 +175,7 @@ export function getMenuData(): MenuItem[] {
         {
           type: 'toggle',
           label: 'Auto Advance',
-          tooltip: 'Uses anki API to automatically show answer when puzzle is solved. Note: might not work on anki mobile, and not yet supported on Ankidroid\'s "New Study Screen"',
+          tooltip: 'Uses anki API to automatically show answer when puzzle is solved. Note: Does not work on anki mobile, and not yet supported on Ankidroid\'s "New Study Screen"',
           checked: userConfig.opts.autoAdvance,
           onToggle: () => setConfigBoolean('autoAdvance'),
         },
