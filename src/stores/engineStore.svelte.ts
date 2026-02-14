@@ -157,6 +157,7 @@ class EngineStore {
   }
 
   stop() {
+    clearTimeout(this._debounceTimer);
     this._pendingFen = '';
     this._worker?.postMessage('stop');
     this.isThinking = false;
