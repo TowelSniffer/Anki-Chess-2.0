@@ -7,7 +7,6 @@
   "animationTime": 200,
   "handicap": 2,
   "autoAdvance": false,
-  "handicapAdvance": false,
   "timerAdvance": false,
   "strictScoring": false,
   "acceptVariations": true,

@@ -7,7 +7,6 @@ export interface UserConfigOpts {
   animationTime: number;
   handicap: number;
   autoAdvance: boolean;
-  handicapAdvance: boolean;
   timerAdvance: boolean;
   strictScoring: boolean;
   acceptVariations: boolean;

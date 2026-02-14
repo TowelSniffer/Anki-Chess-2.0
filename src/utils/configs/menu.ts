@@ -84,6 +84,13 @@ export function getMenuData(): MenuItem[] {
           onToggle: () => setConfigBoolean('acceptVariations'),
         },
         {
+          type: 'toggle',
+          label: 'Disable Arrows',
+          tooltip: 'Disables alternate line arrows for Puzzle mode.',
+          checked: userConfig.opts.disableArrows,
+          onToggle: () => setConfigBoolean('disableArrows'),
+        },
+        {
           type: 'separator',
         },
         {
@@ -172,6 +179,16 @@ export function getMenuData(): MenuItem[] {
           checked: userConfig.opts.autoAdvance,
           onToggle: () => setConfigBoolean('autoAdvance'),
         },
+        (userConfig.opts.autoAdvance && userConfig.opts.timer) && {
+          type: 'toggle',
+          label: 'Timer Advance',
+          tooltip: 'Flip card when timer runs out',
+          checked: userConfig.opts.timerAdvance,
+          onToggle: () => setConfigBoolean('timerAdvance'),
+        },
+        {
+          type: 'separator',
+        },
         {
           type: 'toggle',
           label: 'Mute Audio',
@@ -181,7 +198,7 @@ export function getMenuData(): MenuItem[] {
       ],
     },
     ...getSaveMenuItemData()
-  ].filter((item): item is MenuItem => !!item);;
+  ].filter((item): item is MenuItem => !!item);
 }
 
 function getSaveMenuItemData(): MenuItem[] {
@@ -217,3 +234,4 @@ function getSaveMenuItemData(): MenuItem[] {
   }
   return []
 }
+

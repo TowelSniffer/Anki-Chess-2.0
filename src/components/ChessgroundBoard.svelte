@@ -216,6 +216,7 @@
     if (gameStore.isPuzzleComplete) {
       gameStore.cg?.cancelMove();
       timerStore.stop();
+      showViewer();
     }
   });
 
@@ -281,6 +282,7 @@
   $effect(() => {
     if (timerStore.isOutOfTime) {
       triggerFlash('incorrect');
+      if (userConfig.opts.timerAdvance) showViewer();
     }
   });
   // C) : Handle Puzzle Complete flash
@@ -317,6 +319,15 @@
     } else {
       // Scroll Down
       gameStore.prev();
+    }
+  }
+
+  function showViewer(): void {
+    if (!userConfig.opts.autoAdvance || gameStore.boardMode === 'Viewer') return;
+    if (typeof pycmd !== 'undefined') {
+      pycmd('ans');
+    } else if (typeof AnkiDroidJS !== 'undefined') {
+      showAnswer();
     }
   }
 </script>
