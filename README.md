@@ -1,5 +1,11 @@
 # Anki Chess Note Template
 
+#### Features:
+
+- Works on desktop and ankidroid/anki mobile
+- Robust PGN functionality, including multi line support, and embedded shapes. 
+- Local stockfish analysis for back side.
+
 ![Demo Gif](./Gifs/demo.gif)
 
 # installation
@@ -8,6 +14,7 @@ download the apkg in [releases](https://github.com/TowelSniffer/Anki-Chess-2.0/r
 
 ### [Companion Addon](https://github.com/TowelSniffer/ankiChess-Companion-Addon?tab=readme-ov-file)
 
+This is not required for the templates but will provide additional functionality:
 - Check for updates weekly, and handle updating for you existing templates
 -- NOTE: will attempt to update any template with PGN as first field
 - Provides an API to allow more utility from template. 
