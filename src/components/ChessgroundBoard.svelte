@@ -79,7 +79,9 @@
   const boardBorderColor = $derived.by(() => {
     // If we are in Puzzle mode and it's NOT done, keep it neutral/player color
     if (gameStore.boardMode === 'Puzzle' && !gameStore.isPuzzleComplete) {
-      return userConfig.opts.randomOrientation ? 'grey' : gameStore.playerColor;
+      return userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
+        ? 'grey'
+        : gameStore.playerColor;
     } else if (gameStore.puzzleScore) {
       return SCORE_COLORS[gameStore.puzzleScore];
     } else {
@@ -91,7 +93,7 @@
 
   // A) Analysis Centipawn:
   const barTopColor = $derived(
-    userConfig.opts.randomOrientation
+    userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
       ? 'var(--status-error)'
       : gameStore.orientation === 'white'
         ? 'black'
@@ -99,7 +101,7 @@
   );
 
   const barBottomColor = $derived(
-    userConfig.opts.randomOrientation
+    userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
       ? 'grey'
       : gameStore.orientation === 'white'
         ? 'white'

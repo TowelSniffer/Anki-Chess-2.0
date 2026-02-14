@@ -77,6 +77,16 @@ export function getMenuData(): MenuItem[] {
       icon: IconChessKnight,
       children: [
         {
+          type: 'toggle',
+          label: 'Accept Variations',
+          tooltip: 'Allows pgn variations for puzzle solution. Note: If this is enabled, you can mark a move as a mistake/blunder (?, ??, ?!) to mark a line as a mistake when played.',
+          checked: userConfig.opts.acceptVariations,
+          onToggle: () => setConfigBoolean('acceptVariations'),
+        },
+        {
+          type: 'separator',
+        },
+        {
           type: 'number',
           label: 'Handicap',
           tooltip: 'Number of allowed mistakes before auto playing',
