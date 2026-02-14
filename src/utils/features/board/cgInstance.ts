@@ -48,16 +48,17 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   let moveCheck = null;
   const tempChess = store.newChess(store.fen);
   let matchingArrow: CustomShape | undefined;
+  if (store.boardMode === 'Viewer') {
+    for (const brushType of shapePriority) {
+      matchingArrow = store.systemShapes.find((s) => s.dest === dest && s.brush === brushType);
+      if (matchingArrow) break;
+    }
 
-  for (const brushType of shapePriority) {
-    matchingArrow = store.systemShapes.find((s) => s.dest === dest && s.brush === brushType);
-    if (matchingArrow) break;
-  }
-
-  if (matchingArrow && store.boardMode === 'Viewer') {
-    // Case 1: Clicked an Arrow -> Play that move
-    if (matchingArrow.san) {
-      moveCheck = tempChess.move(matchingArrow.san);
+    if (matchingArrow) {
+      // Case 1: Clicked an Arrow -> Play that move
+      if (matchingArrow.san) {
+        moveCheck = tempChess.move(matchingArrow.san);
+      }
     }
   } else if (userConfig.opts.singleClickMove) {
     // Case 2: Clicked a square with only ONE legal move reaching it (Ambiguity check)

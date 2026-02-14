@@ -30,18 +30,14 @@ const mountApp = () => {
     ? pgnDiv.textContent?.trim()
     : `[Event "?"]
 [Site "?"]
-[Date "2023.02.13"]
+[Date "2026.02.14"]
 [Round "?"]
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "2kr4/p1p1N2p/6q1/4nb2/3P2p1/2P5/PP1b1BPP/3KR2R b - - 1 25"]
-[SetUp "1"]
 
-25... Kb8 26. Nxg6 {[%EV 96.5] [%N 99.66% of 21.5k]} Bxe1 {[%EV 2.7] [%N 48.30% of
-40.6k]} 27. Nxe5 {[%EV 97.8] [%N 99.62% of 31.6k]} Bxf2 {[%EV 2.3] [%N 86.13% of
-61.1k]} 28. Nc6+ {[%EV 98.1] [%N 75.42% of 100k]} (28. Rf1 {[%EV 97.5] [%N 24.38% of
-100k]}) *
+1. e4 (1. d4 d5 (1... c5 2. c4) 2. c4 c5) (1. Nf3 e5 2. d4 (2. Nd4 exd4) exd4)
+e5 (1... f5 2. f4) 2. f4 f5 *
 `;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;

@@ -73,12 +73,13 @@ export class PgnGameStore {
 
   // The "Raw" Calculation (Always calculates the freshest shapes)
   systemShapes = $derived.by(() => {
+    const prevMovePath = navigatePrevMove(this.pgnPath);
     const isStartOfPuzzle =
-      (this.boardMode === 'Puzzle' && !this.pgnPath.length) ||
-      (this.boardMode === 'Puzzle' && userConfig.opts.flipBoard && this.currentPathKey === '0');
+      this.boardMode === 'Puzzle' &&
+      (!this.pgnPath.length || (userConfig.opts.flipBoard && !prevMovePath.length));
     if (isStartOfPuzzle) return [];
     const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
-    const pgnPath = redrawCachedShapes ? navigatePrevMove(this.pgnPath) : this.pgnPath;
+    const pgnPath = redrawCachedShapes ? prevMovePath : this.pgnPath;
     return [
       // Only spread engine shapes if the engine's eval matches our visual FEN
       ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
@@ -130,7 +131,7 @@ export class PgnGameStore {
         this._hasMadeMistake = true;
     });
     $effect(() => {
-      if (this.puzzleScore) return;
+      if (this.puzzleScore || this.boardMode === 'Viewer') return;
       if (
         (this.currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
           this.currentMove?.turn === this.playerColor[0]) ||
@@ -143,7 +144,8 @@ export class PgnGameStore {
       }
     });
     $effect(() => {
-      if (this._puzzleScore) sessionStorage.setItem('chess_puzzle_score', this._puzzleScore);
+      if (this._puzzleScore && this.boardMode === 'Puzzle')
+        sessionStorage.setItem('chess_puzzle_score', this._puzzleScore);
     });
   }
 
