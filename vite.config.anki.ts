@@ -36,6 +36,7 @@ const zipReleasePlugin = () => {
         const distPath = resolve(__dirname, 'dist-anki/collection.media');
         const outputZipPath = resolve(__dirname, 'dist-anki/anki-chess-release.zip');
         const templatesPath = resolve(__dirname, 'src/anki_templates');
+        const configPath = resolve(__dirname, 'src/anki/default_config.json');
 
         console.log(`\n📦 Zipping release to: ${outputZipPath}...`);
 
@@ -54,17 +55,34 @@ const zipReleasePlugin = () => {
 
         archive.pipe(output);
 
-        // Add all built media files (JS, CSS, Assets) from dist
-        // We filter to ensure we don't accidentally zip the folder itself or hidden files
-        archive.directory(distPath, false, (entry) => {
-             // Extra safety to ensure we only include files starting with _
-             return entry;
-        });
+        //  Add compiled media files (Svelte JS/CSS)
+        // These will be versioned (e.g. _ankiChess1.0.0.css)
+        archive.directory(distPath, false);
 
-        // Add the Templates manually (Renaming them to what Python expects)
-        // Python looks for "front.html" and "style.css" specifically.
-        archive.file(resolve(templatesPath, 'front.html'), { name: 'front.html' });
-        archive.file(resolve(templatesPath, 'style.css'), { name: 'style.css' });
+        //  Process Templates (Front.html & style.css)
+        ['front.html', 'style.css'].forEach(filename => {
+            const srcPath = resolve(templatesPath, filename);
+            let content = fs.readFileSync(srcPath, 'utf-8');
+
+            //  Replace __VERSION__ placeholder (Used in front.html)
+            content = content.replaceAll('__VERSION__', version);
+
+            //  Inject Default Config (Only for front.html)
+            if (filename === 'front.html') {
+                const defaultConfig = fs.readFileSync(configPath, 'utf-8');
+                // Create the JS assignment string
+                const configInjection = `window.USER_CONFIG = ${defaultConfig};`;
+                content = content.replace('// __USER_CONFIG__', configInjection);
+            }
+
+            //  Add to zip
+            // "style.css" remains "style.css"
+            // "front.html" becomes "Front.html" (Capitalized for Python script)
+            const zipName = filename === 'front.html' ? 'Front.html' : filename;
+
+            archive.append(content, { name: zipName });
+            console.log(`   Formatted and added ${zipName}`);
+        });
 
         archive.finalize();
       });
