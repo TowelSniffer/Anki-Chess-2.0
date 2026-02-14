@@ -36,6 +36,12 @@ Without this addon, the card settings will need to be applied manually to BOTH s
 
 ![paste](images/paste.png)
 
+## Help
+
+Refer to configuration tool tips for details
+
+![paste](images/tooltips.png)
+
 # Build
 
 ```bash
