@@ -180,7 +180,13 @@
   // Sync the Spring to derived visualDivider
   $effect(() => {
     if (typeof visualDivider !== 'number') return;
-    dividerSpring.set(visualDivider);
+    if (gameStore.boardMode === 'Viewer' && !engineStore.enabled) {
+      setTimeout(() => {
+        dividerSpring.set(visualDivider);
+      }, userConfig.opts.animationTime);
+    } else {
+      dividerSpring.set(visualDivider);
+    }
   });
 
   // INITIAL LOAD
