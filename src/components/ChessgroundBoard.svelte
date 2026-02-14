@@ -79,7 +79,7 @@
   const boardBorderColor = $derived.by(() => {
     // If we are in Puzzle mode and it's NOT done, keep it neutral/player color
     if (gameStore.boardMode === 'Puzzle' && !gameStore.isPuzzleComplete) {
-      return gameStore.playerColor;
+      return userConfig.opts.randomOrientation ? 'grey' : gameStore.playerColor;
     } else if (gameStore.puzzleScore) {
       return SCORE_COLORS[gameStore.puzzleScore];
     } else {
@@ -90,9 +90,21 @@
   // --- Interactive Border ---
 
   // A) Analysis Centipawn:
-  const barTopColor = $derived(gameStore.orientation === 'white' ? 'black' : 'white');
+  const barTopColor = $derived(
+    userConfig.opts.randomOrientation
+      ? 'var(--status-error)'
+      : gameStore.orientation === 'white'
+        ? 'black'
+        : 'white',
+  );
 
-  const barBottomColor = $derived(gameStore.orientation === 'white' ? 'white' : 'black');
+  const barBottomColor = $derived(
+    userConfig.opts.randomOrientation
+      ? 'grey'
+      : gameStore.orientation === 'white'
+        ? 'white'
+        : 'black',
+  );
 
   const dividerSpring = spring(gameStore.boardMode === 'Puzzle' ? 0 : 50, {
     stiffness: 0.1,
@@ -225,6 +237,8 @@
       // drag & drop or click to move
       if (gameStore.currentMove) moveAudio(gameStore.currentMove);
       previousPath = [...gameStore.pgnPath];
+    } else if (previousPath === null) {
+      previousPath = [...gameStore.pgnPath];
     }
   });
   // Set cg config with rAF optimization
@@ -271,7 +285,6 @@
   $effect(() => {
     if (gameStore.isPuzzleComplete && gameStore.puzzleScore) {
       triggerFlash(gameStore.puzzleScore);
-      sessionStorage.setItem('chess_puzzle_score', gameStore.puzzleScore);
     }
   });
 
