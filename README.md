@@ -1,6 +1,33 @@
-# Companion addon for my (anki chess template)[https://github.com/TowelSniffer/Anki-Chess-2.0]
+# Anki Chess Note Template
 
 ![Demo Gif](./Gifs/demo.gif)
+
+# installation
+
+download the apkg in [releases](https://github.com/TowelSniffer/Anki-Chess-2.0/releases) and ioimport to anki
+
+### [Companion Addon](https://github.com/TowelSniffer/ankiChess-Companion-Addon?tab=readme-ov-file)
+
+- Check for updates weekly, and handle updating for you existing templates
+-- NOTE: will attempt to update any template with PGN as first field
+- Provides an API to allow more utility from template. 
+- Allows saving config option to template automatically
+
+### Configuring the templates
+
+#### Auto update settings for current template with companion addon (Also works with anki connect)
+
+![settings](images/settings.png)
+
+## No addon
+
+Without this addon, the card settings will need to be applied manually to BOTH sides via the copy to clipboard option.
+
+![clipboard](images/clipboard.png)
+
+> replace this part:
+
+![paste](images/paste.png)
 
 # Build
 
