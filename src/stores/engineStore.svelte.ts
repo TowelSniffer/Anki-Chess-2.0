@@ -34,7 +34,9 @@ class EngineStore {
   multipv = $derived(userConfig.opts.analysisLines);
 
   thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
+  delay = userConfig.opts.animationTime ?? 200;
 
+  private _debounceTimer: ReturnType<typeof setTimeout> | undefined;
   private _worker: Worker | null = null;
   private _currentFen = ''; // The FEN currently being processed by the engine
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
@@ -134,19 +136,23 @@ class EngineStore {
     untrack(() => {
       if (!this.enabled || !this._worker || this.loading) return;
 
-      // If we are already thinking about this exact FEN, do nothing
-      if (this.isThinking && this._currentFen === fen && !this._pendingFen)
-        return;
+      clearTimeout(this._debounceTimer);
+      this._debounceTimer = setTimeout(() => {
+        // Double check enabled state in case it changed during the delay
+        if (!this.enabled) return;
+        // If we are already thinking about this exact FEN, do nothing
+        if (this.isThinking && this._currentFen === fen && !this._pendingFen) return;
 
-      this._pendingFen = fen;
+        this._pendingFen = fen;
 
-      // if the engine is currently thinking, we must stop it first.
-      if (this.isThinking) {
-        this._worker.postMessage('stop');
-      } else {
-        // If engine is idle, start immediately
-        this._processPending();
-      }
+        // if the engine is currently thinking, we must stop it first.
+        if (this.isThinking) {
+          this._worker?.postMessage('stop');
+        } else {
+          // If engine is idle, start immediately
+          this._processPending();
+        }
+      }, this.delay);
     });
   }
 
@@ -294,7 +300,6 @@ class EngineStore {
             // Stop parsing this line if we hit an illegal move/error.
             break;
           }
-
         }
         pvSan = sanMoves.join(' ');
       }

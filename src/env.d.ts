@@ -9,7 +9,8 @@ declare global {
       cardName: string;
     };
   }
-  const AnkiDroidJS: (command: string) => void | any;
+  const showAnswer: () => void | any;
+  const AnkiDroidJS: () => void | any;
   const pycmd: (command: string) => void | any;
 }
 
