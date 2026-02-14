@@ -4,6 +4,10 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'path';
 import Icons from 'unplugin-icons/vite';
 import fs from 'fs';
+import archiver from 'archiver';
+
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+const versionedName = `_ankiChess${pkg.version}`;
 
 // A simple plugin to delete files not required for anki
 const cleanupDistPlugin = () => {
@@ -24,8 +28,49 @@ const cleanupDistPlugin = () => {
   };
 };
 
-const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
-const versionedName = `_ankiChess${pkg.version}`;
+const zipReleasePlugin = () => {
+  return {
+    name: 'zip-release',
+    closeBundle: () => {
+      return new Promise<void>((resolvePromise, rejectPromise) => {
+        const distPath = resolve(__dirname, 'dist-anki/collection.media');
+        const outputZipPath = resolve(__dirname, 'dist-anki/anki-chess-release.zip');
+        const templatesPath = resolve(__dirname, 'src/anki_templates');
+
+        console.log(`\n📦 Zipping release to: ${outputZipPath}...`);
+
+        const output = fs.createWriteStream(outputZipPath);
+        const archive = archiver('zip', { zlib: { level: 9 } });
+
+        output.on('close', () => {
+          console.log(`✅ Release zip created! (${archive.pointer()} total bytes)`);
+          resolvePromise();
+        });
+
+        archive.on('error', (err) => {
+          console.error('Zip Error:', err);
+          rejectPromise(err);
+        });
+
+        archive.pipe(output);
+
+        // Add all built media files (JS, CSS, Assets) from dist
+        // We filter to ensure we don't accidentally zip the folder itself or hidden files
+        archive.directory(distPath, false, (entry) => {
+             // Extra safety to ensure we only include files starting with _
+             return entry;
+        });
+
+        // Add the Templates manually (Renaming them to what Python expects)
+        // Python looks for "front.html" and "style.css" specifically.
+        archive.file(resolve(templatesPath, 'front.html'), { name: 'front.html' });
+        archive.file(resolve(templatesPath, 'style.css'), { name: 'style.css' });
+
+        archive.finalize();
+      });
+    },
+  };
+};
 
 export default defineConfig(sharedViteConfig({
   plugins: [
@@ -35,6 +80,7 @@ export default defineConfig(sharedViteConfig({
       compiler: 'svelte',
       autoInstall: true,
     }),
+    zipReleasePlugin()
   ],
   // anki requires relative paths (./) because files are served locally
   base: './',

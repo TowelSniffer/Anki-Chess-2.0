@@ -202,7 +202,9 @@ export function getMenuData(): MenuItem[] {
 }
 
 function getSaveMenuItemData(): MenuItem[] {
-  if (userConfig.isAnkiConnect) {
+
+  const canSave = userConfig.hasAddon || userConfig.isAnkiConnect;
+  if (canSave) {
     return [
       {
         type: 'separator',
@@ -217,7 +219,8 @@ function getSaveMenuItemData(): MenuItem[] {
         danger: userConfig.saveDue,
         action: () => userConfig.save(),
       }]
-  } else if (window.CARD_CONFIG) { // anki without connect
+  } else if (window.CARD_CONFIG) {
+    // Fallback for Mobile/Web/No-Addon
     return [
       {
         type: 'separator',

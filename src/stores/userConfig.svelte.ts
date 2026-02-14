@@ -45,6 +45,8 @@ export class UserConfig {
 
   boardKey = $state<number>(0);
   isAnkiConnect = $state(false);
+  hasAddon = $state(false);
+
   lastSavedState = $state<Record<string, any>>({});
 
   // --- Derived State ---
@@ -54,17 +56,29 @@ export class UserConfig {
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
       // We clone it to break reference
       this.lastSavedState = { ...window.USER_CONFIG };
-
-      this._ankiConnectStatus();
     } else {
         // If no window config, we "are" the config
         if (typeof window !== 'undefined') {
             window.USER_CONFIG = $state.snapshot(this.opts);
         }
     }
+    this._checkConnections();
   }
 
-  async _ankiConnectStatus() {
+  async _checkConnections() {
+    // Check for specific Add-on Marker
+    if (typeof pycmd !== "undefined") {
+      pycmd("ankiChess:handshake");
+
+      // Wait a tiny bit for Python to execute the eval
+      await new Promise(r => setTimeout(r, 50));
+
+      if ((window as any).ANKI_CHESS_ADDON_INSTALLED === true) {
+         this.hasAddon = true;
+      }
+    }
+
+    // Check for AnkiConnect (Localhost)
     this.isAnkiConnect = await checkAnkiConnection();
   }
 
@@ -76,24 +90,28 @@ export class UserConfig {
     // Update window.USER_CONFIG (for consistency with external scripts)
     window.USER_CONFIG = { ...this.lastSavedState };
 
-    // Persist to Anki
-    // Ensure window.CARD_CONFIG exists or fallback gracefully
-    if (window.CARD_CONFIG) {
-      // Check connection before firing
-      if (this.isAnkiConnect) {
-        updateAnkiChessTemplate(
+    // --- STRATEGY 1: ankiChess companion addon ---
+    if (this.hasAddon) {
+      // We send just the config. Python can figure out the current model.
+      const payload = JSON.stringify(this.lastSavedState);
+      pycmd(`ankiChess:saveConfig:${payload}`);
+      return;
+    }
+
+    // --- STRATEGY 2: AnkiConnect (Fallback) ---
+    if (window.CARD_CONFIG && this.isAnkiConnect) {
+       updateAnkiChessTemplate(
           window.CARD_CONFIG['modelName'],
           window.CARD_CONFIG['cardName'],
           this.lastSavedState
         );
-      } else {
-        console.warn("AnkiConnect is offline. Settings saved to clipboard only.");
-        const clipboardString = `window.USER_CONFIG = ${JSON.stringify({ ...this.lastSavedState }, null, 2)};`;
-        copyToClipboard(clipboardString);
-      }
-    } else {
-      console.warn("Cannot save: window.CARD_CONFIG is missing");
+       return;
     }
+
+    // --- STRATEGY 3: Clipboard (Mobile/Manual) ---
+    console.warn("No connection found. Settings copied to clipboard.");
+    const clipboardString = `window.USER_CONFIG = ${JSON.stringify({ ...this.lastSavedState }, null, 2)};`;
+    copyToClipboard(clipboardString);
   }
 }
 
