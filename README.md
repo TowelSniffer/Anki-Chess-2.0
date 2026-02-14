@@ -1,3 +1,7 @@
+# Companion addon for my (anki chess template)[https://github.com/TowelSniffer/Anki-Chess-2.0]
+
+![Demo Gif](./Gifs/demo.gif)
+
 # Build
 
 ```bash
