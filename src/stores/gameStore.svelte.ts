@@ -41,7 +41,7 @@ export class PgnGameStore {
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
 
   // --- Internal State ---
-  private _puzzleScore: PuzzleScored = null;
+  private _puzzleScore: PuzzleScored = $state(null);
   private _hasMadeMistake: boolean = false;
   private _moveMap = new Map<string, CustomPgnMove>();
   private _moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
@@ -92,8 +92,7 @@ export class PgnGameStore {
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
     if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
-    const randomBoolean =
-      boardMode !== 'Puzzle' ? storedRandomBoolean : !Math.round(Math.random());
+    const randomBoolean = boardMode !== 'Puzzle' ? storedRandomBoolean : !Math.round(Math.random());
     if (boardMode === 'Puzzle') sessionStorage.setItem('chess_randomBoolean', `${randomBoolean}`);
 
     const storedScore = sessionStorage.getItem('chess_puzzle_score');
@@ -129,6 +128,22 @@ export class PgnGameStore {
     $effect(() => {
       if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
         this._hasMadeMistake = true;
+    });
+    $effect(() => {
+      if (this.puzzleScore) return;
+      if (
+        (this.currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
+          this.currentMove?.turn === this.playerColor[0]) ||
+        (this._hasMadeMistake && userConfig.opts.strictScoring) ||
+        this.errorCount > userConfig.opts.handicap
+      ) {
+        this._puzzleScore = 'incorrect';
+      } else if (this.isPuzzleComplete) {
+        this._puzzleScore = this._hasMadeMistake ? 'correct' : 'perfect';
+      }
+    });
+    $effect(() => {
+      if (this._puzzleScore) sessionStorage.setItem('chess_puzzle_score', this._puzzleScore);
     });
   }
 
@@ -180,25 +195,6 @@ export class PgnGameStore {
   }
 
   get puzzleScore() {
-    if (this._puzzleScore || this.boardMode !== 'Puzzle') return this._puzzleScore;
-    if (this._hasMadeMistake && userConfig.opts.strictScoring) {
-      this._puzzleScore = 'incorrect';
-    } else if (
-      this.currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
-      this.currentMove?.turn === this.playerColor[0]
-    ) {
-      this._puzzleScore = 'incorrect';
-    } else if (this.errorCount > userConfig.opts.handicap) {
-      this._puzzleScore = 'incorrect';
-    }
-    // seperate if statement to force read when puzzle is finished.
-    if (!this._puzzleScore && this.isPuzzleComplete) {
-      this._puzzleScore = this._hasMadeMistake
-        ? 'correct'
-        : userConfig.opts.strictScoring
-          ? 'correct'
-          : 'perfect';
-    }
     return this._puzzleScore;
   }
 

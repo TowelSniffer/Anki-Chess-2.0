@@ -21,7 +21,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   const dest = key as Square;
 
   // prevent out of turn moves in Puzzle mode
-  const isNotPuzzleTurn = store.turn !== store.playerColor[0];
+  const isNotPuzzleTurn = store.boardMode === 'Puzzle' && store.turn !== store.playerColor[0];
 
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   const isPromote = isPromotion(store.selectedPiece as Square, dest, store.fen);
