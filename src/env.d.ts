@@ -9,6 +9,7 @@ declare global {
       cardName: string;
     };
   }
+  const AnkiDroidJS: (command: string) => void | any;
   const pycmd: (command: string) => void | any;
 }
 

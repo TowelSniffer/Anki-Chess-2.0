@@ -73,6 +73,7 @@ export class PgnGameStore {
 
   // The "Raw" Calculation (Always calculates the freshest shapes)
   systemShapes = $derived.by(() => {
+    if (this.boardMode === 'Puzzle' && userConfig.opts.disableArrows) return [];
     const prevMovePath = navigatePrevMove(this.pgnPath);
     const isStartOfPuzzle =
       this.boardMode === 'Puzzle' &&

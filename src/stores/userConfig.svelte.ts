@@ -28,7 +28,6 @@ export class UserConfig {
     animationTime: getConfig('animationTime'),
     handicap: getConfig('handicap'),
     autoAdvance: getConfig('autoAdvance'),
-    handicapAdvance: getConfig('handicapAdvance'),
     timerAdvance: getConfig('timerAdvance'),
     strictScoring: getConfig('strictScoring'),
     acceptVariations: getConfig('acceptVariations'),

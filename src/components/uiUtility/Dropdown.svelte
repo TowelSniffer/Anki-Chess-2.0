@@ -431,7 +431,7 @@
             </div>
           </div>
         </li>
-      {:else}
+      {:else if item}
         <li class="menu-item-wrapper" onmouseenter={adjustSubmenuPosition}>
           <div
             class="menu-item"
@@ -869,3 +869,4 @@
     }
   }
 </style>
+

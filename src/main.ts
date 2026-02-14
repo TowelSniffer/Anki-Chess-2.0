@@ -41,7 +41,7 @@ e5 (1... f5 2. f4) 2. f4 f5 *
 `;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Puzzle';
+  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Viewer';
 
   // If an app already exists, unmount it to prevent memory leaks
   if (appInstance) {
