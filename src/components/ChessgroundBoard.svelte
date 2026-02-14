@@ -216,7 +216,7 @@
     if (gameStore.isPuzzleComplete) {
       gameStore.cg?.cancelMove();
       timerStore.stop();
-      showViewer();
+      setTimeout(showViewer, 300);
     }
   });
 
