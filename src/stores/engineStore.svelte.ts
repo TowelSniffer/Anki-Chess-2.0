@@ -36,10 +36,10 @@ class EngineStore {
   thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
   delay = userConfig.opts.animationTime ?? 200;
 
-  private _debounceTimer: ReturnType<typeof setTimeout> | undefined;
   private _worker: Worker | null = null;
   private _currentFen = ''; // The FEN currently being processed by the engine
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
+  private _lastInfoUpdate = 0; // Throttle message updates to prevent reactive lag
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -136,8 +136,6 @@ class EngineStore {
     untrack(() => {
       if (!this.enabled || !this._worker || this.loading) return;
 
-      clearTimeout(this._debounceTimer);
-      this._debounceTimer = setTimeout(() => {
         // Double check enabled state in case it changed during the delay
         if (!this.enabled) return;
         // If we are already thinking about this exact FEN, do nothing
@@ -152,12 +150,10 @@ class EngineStore {
           // If engine is idle, start immediately
           this._processPending();
         }
-      }, this.delay);
     });
   }
 
   stop() {
-    clearTimeout(this._debounceTimer);
     this._pendingFen = '';
     this._worker?.postMessage('stop');
     this.isThinking = false;
@@ -191,6 +187,7 @@ class EngineStore {
     this._currentFen = fen;
     this.evalFen = fen;
     this.analysisLines = []; // Clear old lines
+    this._lastInfoUpdate = 0; // Reset throttle
     this.isThinking = true;
 
     // Send commands
@@ -222,6 +219,12 @@ class EngineStore {
     if (msg.startsWith('info') && msg.includes('pv')) {
       // Only block 'info' if we are explicitly waiting for a 'bestmove'
       if (this._pendingFen) return;
+
+      // We throttle parsing to max 5 updates per second to prevent reactive lag.
+      const now = performance.now();
+      if (now - this._lastInfoUpdate < 200) return;
+      this._lastInfoUpdate = now;
+
       this._parseInfo(msg);
     } else if (msg.startsWith('bestmove')) {
       this._parseBestMove();
