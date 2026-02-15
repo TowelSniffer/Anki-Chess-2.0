@@ -18,18 +18,19 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
 export function handleSelect(key: Key, store: IPgnGameStore) {
   if (!store.cg) return;
   // type assertion as clicked square cannot be 'a0'
-  const dest = key as Square;
+  const orig = store.selectedPiece; // Logged synchronously in ChessgroundBoard.svelte
+  const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
 
   // prevent out of turn moves in Puzzle mode
   const isNotPuzzleTurn = store.boardMode === 'Puzzle' && store.turn !== store.playerColor[0];
 
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
-  const isPromote = isPromotion(store.selectedPiece as Square, dest, store.fen);
+  const isPromote = orig && dest && isPromotion(orig as Square, dest, store.fen);
 
   if (isPromote || isNotPuzzleTurn) return;
 
-  const legalMoveCheck = getLegalMove({ from: store.selectedPiece as Square, to: dest }, store.fen);
-  if (store.selectedPiece && dest && legalMoveCheck) {
+  const legalMoveCheck = orig && dest &&  getLegalMove({ from: orig as Square, to: dest }, store.fen);
+  if (orig && dest && legalMoveCheck) {
     /**
      * Checks if user makes a standard click to move
      * NOTE: we defer to default click to move here as after: event will be called after select event
