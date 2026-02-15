@@ -164,25 +164,24 @@
 
 <style lang="scss">
   .move-number {
-    height: 1.5em;
+    padding: 0.3em;
     padding-left: 0.3em;
     padding-right: 0.3em;
     background-color: var(--surface-primary);
     border-right: var(--border-thin);
-    text-align: center;
+    @include flex-center;
   }
 
   .move,
   .nullMove {
-    height: 1.5em;
+    padding: 0.3em;
     background-color: var(--surface-primary);
-    text-align: center;
+    @include flex-center;
   }
 
   .move {
     cursor: pointer;
     position: relative;
-    display: inline-block;
     box-sizing: border-box;
 
     &:hover,
@@ -241,11 +240,7 @@
     padding: 0.3em;
 
     :global(span) {
-      display: inline-flex;
       background-color: inherit;
-      align-items: center;
-      justify-content: center;
-      vertical-align: middle;
       margin: 0;
       padding: 0.3em;
     }
