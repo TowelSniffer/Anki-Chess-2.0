@@ -5,6 +5,7 @@
 import genanki
 import os
 import json
+import zipfile
 
 # define the Unique Model (Note Type)
 # a unique ID once for the Model and Deck to preserve scheduling if we update later.
@@ -26,6 +27,8 @@ with open(os.path.join(TEMPLATE_DIR, 'style.css'), 'r', encoding='utf-8') as f:
 
 with open(os.path.join(TEMPLATE_DIR, 'default_config.json'), 'r', encoding='utf-8') as f:
     config_data = json.load(f)
+
+# Ensure no trailing newlines issues by using json.dumps directly
 config_js_string = f"window.USER_CONFIG = {json.dumps(config_data, indent=2)};"
 
 final_front = RAW_FRONT.replace('// __USER_CONFIG__', config_js_string)
@@ -78,21 +81,38 @@ note = genanki.Note(
 )
 deck.add_note(note)
 
-# gather Media Files from Vite output
-dist_path = os.path.join(os.path.dirname(__file__), '../dist-anki')
+# --- MEDIA COLLECTION ---
+dist_path = os.path.join(os.path.dirname(__file__), '../dist-anki/collection.media')
 media_files = []
 
-# walk dist-anki to find all generated assets (js, css, woff2, etc)
 for root, dirs, files in os.walk(dist_path):
     for file in files:
-        if file.startswith('_'): # Only include your hashed/prefixed assets
+        if file.startswith('_'):
             media_files.append(os.path.join(root, file))
 
-print(f"Bundling {len(media_files)} media files: {[os.path.basename(f) for f in media_files]}")
+print(f"Bundling {len(media_files)} media files...")
 
-# export
+# --- EXPORT APKG ---
 package = genanki.Package(deck)
 package.media_files = media_files
-package.write_to_file('dist-anki/ankichess.apkg')
+apkg_path = os.path.join(os.path.dirname(__file__), '../dist-anki/ankichess.apkg')
+package.write_to_file(apkg_path)
+print(f"Success: {os.path.basename(apkg_path)} created.")
 
-print("Success: ankichess.apkg created.")
+# --- EXPORT RELEASE ZIP (For Companion Add-on) ---
+zip_path = os.path.join(os.path.dirname(__file__), '../dist-anki/anki-chess-release.zip')
+
+print("Creating release zip...")
+with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+    # A. Add processed templates
+    # The Add-on expects "Front.html" and "style.css" at the root
+    zf.writestr("Front.html", final_front)
+    zf.writestr("style.css", final_css)
+
+    # B. Add media files
+    for file_path in media_files:
+        # Add files to the root of the zip
+        arcname = os.path.basename(file_path)
+        zf.write(file_path, arcname)
+
+print(f"Success: {os.path.basename(zip_path)} created.")
