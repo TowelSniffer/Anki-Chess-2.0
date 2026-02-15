@@ -43,7 +43,7 @@ const mountApp = () => {
 `;
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Puzzle';
+  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Viewer';
 
   // Refresh config from the new Window context
   userConfig.refresh();

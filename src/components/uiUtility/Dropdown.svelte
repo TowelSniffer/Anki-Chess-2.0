@@ -471,7 +471,8 @@
 
   /* --- Trigger --- */
   .trigger {
-    all: unset;
+    padding: 0;
+    @include flex-center;
     z-index: 20;
     border-radius: var(--border-radius-global, 4px);
     border: var(--border-thin, 1px solid #ccc);
