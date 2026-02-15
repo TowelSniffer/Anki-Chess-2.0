@@ -213,7 +213,8 @@
   $effect(() => {
     // Loop through options and update sessionStorage
     for (const [key, value] of Object.entries(userConfig.opts)) {
-      sessionStorage.setItem(key, String(value));
+      const getPrefixedKey = (key) => `${window.CARD_CONFIG?.modelName ?? ''}${key}`;
+      sessionStorage.setItem(getPrefixedKey(key), String(value));
     }
   });
 

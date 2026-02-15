@@ -3,46 +3,11 @@ import defaultConfig from '$anki/default_config.json';
 import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect';
 import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
 
-function getConfig<K extends keyof UserConfigOpts>(key: K): UserConfigOpts[K] {
-  const stored = sessionStorage.getItem(key);
-
-  if (stored !== null) {
-    // We cast the return values as UserConfigOpts[K] because we trust
-    // our logic matches the expected type for that key.
-    if (stored === 'true') return true as UserConfigOpts[K];
-    if (stored === 'false') return false as UserConfigOpts[K];
-    return parseInt(stored, 10) as UserConfigOpts[K];
-  }
-
-  // Fallback
-  return (window.USER_CONFIG?.[key] ?? defaultConfig[key as keyof typeof defaultConfig]) as UserConfigOpts[K];
-}
-
 export class UserConfig {
-  opts = $state<UserConfigOpts>({
-    flipBoard: getConfig('flipBoard'),
-    mirror: getConfig('mirror'),
-    showDests: getConfig('showDests'),
-    disableArrows: getConfig('disableArrows'),
-    singleClickMove: getConfig('singleClickMove'),
-    animationTime: getConfig('animationTime'),
-    handicap: getConfig('handicap'),
-    autoAdvance: getConfig('autoAdvance'),
-    timerAdvance: getConfig('timerAdvance'),
-    strictScoring: getConfig('strictScoring'),
-    acceptVariations: getConfig('acceptVariations'),
-    timer: getConfig('timer'),
-    increment: getConfig('increment'),
-    randomOrientation: getConfig('randomOrientation'),
-    analysisTime: getConfig('analysisTime'),
-    analysisLines: getConfig('analysisLines'),
-    muteAudio: getConfig('muteAudio'),
-    frontText: getConfig('frontText')
-  });
 
+  opts = $state<UserConfigOpts>(this._readConfigFromWindow());
 
-
-
+  // FIXME need to deside if we still need this
   boardKey = $state<number>(0);
   isAnkiConnect = $state(false);
   hasAddon = $state(false);
@@ -63,6 +28,53 @@ export class UserConfig {
         }
     }
     this._checkConnections();
+  }
+
+  // --- METHODS ---
+
+  refresh() {
+    // Force a re-read of window.USER_CONFIG and window.CARD_CONFIG
+    this.opts = this._readConfigFromWindow();
+
+    // Update legacy state tracking
+    if (typeof window !== 'undefined' && window.USER_CONFIG) {
+      this.lastSavedState = { ...window.USER_CONFIG };
+    } else if (typeof window !== 'undefined') {
+      window.USER_CONFIG = $state.snapshot(this.opts);
+    }
+
+    this._checkConnections();
+  }
+
+  // --- PRIVATE METHODS ---
+
+  // --- Centralized Config Reader ---
+  private _readConfigFromWindow(): UserConfigOpts {
+    const newOpts: Partial<UserConfigOpts> = {};
+
+    // We iterate over the default keys to ensure we grab everything
+    (Object.keys(defaultConfig) as Array<keyof UserConfigOpts>).forEach((key) => {
+      newOpts[key] = this._getConfigValue(key);
+    });
+
+    return newOpts as UserConfigOpts;
+  }
+
+  private _getConfigValue<K extends keyof UserConfigOpts>(key: K): UserConfigOpts[K] {
+
+    const prefix = typeof window !== 'undefined' ? (window.CARD_CONFIG?.modelName ?? '') : '';
+    const storageKey = `${prefix}${key}`;
+
+    const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(storageKey) : null;
+
+    // Prioritise session storage
+    if (stored !== null) {
+      if (stored === 'true') return true as UserConfigOpts[K];
+      if (stored === 'false') return false as UserConfigOpts[K];
+      return parseInt(stored, 10) as UserConfigOpts[K];
+    }
+
+    return (window.USER_CONFIG?.[key] ?? defaultConfig[key]) as UserConfigOpts[K];
   }
 
   async _checkConnections() {

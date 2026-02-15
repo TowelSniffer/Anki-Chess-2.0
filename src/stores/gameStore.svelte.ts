@@ -91,6 +91,7 @@ export class PgnGameStore {
   });
 
   constructor(rawPGN: string, boardMode: BoardModes) {
+
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
     if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
