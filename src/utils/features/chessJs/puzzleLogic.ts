@@ -21,13 +21,6 @@ function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
 function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath | null {
   const nextMainPath = navigateNextMove(gameStore.pgnPath);
 
-  // check Root (if at start of game)
-  if (gameStore.pgnPath.length === 0) {
-    for (const rootMove of gameStore.rootMoves ?? []) {
-      if (isSameMove(rootMove, playedMove)) return rootMove.pgnPath;
-    }
-  }
-
   const nextMainMove = gameStore.getMoveByPath(nextMainPath);
   if (!nextMainMove) return null;
 
