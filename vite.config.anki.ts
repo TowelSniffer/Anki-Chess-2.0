@@ -4,10 +4,8 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { resolve } from 'path';
 import Icons from 'unplugin-icons/vite';
 import fs from 'fs';
-import archiver from 'archiver';
 
 const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
-const version = pkg.version;
 const versionedName = `_ankiChess${pkg.version}`;
 
 // A simple plugin to delete files not required for anki
@@ -29,68 +27,6 @@ const cleanupDistPlugin = () => {
   };
 };
 
-const zipReleasePlugin = () => {
-  return {
-    name: 'zip-release',
-    closeBundle: () => {
-      return new Promise<void>((resolvePromise, rejectPromise) => {
-        const distPath = resolve(__dirname, 'dist-anki/collection.media');
-        const outputZipPath = resolve(__dirname, 'dist-anki/anki-chess-release.zip');
-        const templatesPath = resolve(__dirname, 'src/anki_templates');
-        const configPath = resolve(__dirname, 'src/anki_templates/default_config.json');
-
-        console.log(`\n📦 Zipping release to: ${outputZipPath}...`);
-
-        const output = fs.createWriteStream(outputZipPath);
-        const archive = archiver('zip', { zlib: { level: 9 } });
-
-        output.on('close', () => {
-          console.log(`✅ Release zip created! (${archive.pointer()} total bytes)`);
-          resolvePromise();
-        });
-
-        archive.on('error', (err) => {
-          console.error('Zip Error:', err);
-          rejectPromise(err);
-        });
-
-        archive.pipe(output);
-
-        //  Add compiled media files (Svelte JS/CSS)
-        // These will be versioned (e.g. _ankiChess1.0.0.css)
-        archive.directory(distPath, false);
-
-        //  Process Templates (Front.html & style.css)
-        ['front.html', 'style.css'].forEach(filename => {
-            const srcPath = resolve(templatesPath, filename);
-            let content = fs.readFileSync(srcPath, 'utf-8');
-
-            //  Replace __VERSION__ placeholder (Used in front.html)
-            content = content.replaceAll('__VERSION__', version);
-
-            //  Inject Default Config (Only for front.html)
-            if (filename === 'front.html') {
-                const defaultConfig = fs.readFileSync(configPath, 'utf-8').trim();
-                // Create the JS assignment string
-                const configInjection = `window.USER_CONFIG = ${defaultConfig};`;
-                content = content.replace('// __USER_CONFIG__', configInjection);
-            }
-
-            //  Add to zip
-            // "style.css" remains "style.css"
-            // "front.html" becomes "Front.html" (Capitalized for Python script)
-            const zipName = filename === 'front.html' ? 'Front.html' : filename;
-
-            archive.append(content, { name: zipName });
-            console.log(`   Formatted and added ${zipName}`);
-        });
-
-        archive.finalize();
-      });
-    },
-  };
-};
-
 export default defineConfig(sharedViteConfig({
   plugins: [
     svelte(),
@@ -99,7 +35,6 @@ export default defineConfig(sharedViteConfig({
       compiler: 'svelte',
       autoInstall: true,
     }),
-    zipReleasePlugin()
   ],
   // anki requires relative paths (./) because files are served locally
   base: './',
