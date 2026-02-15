@@ -213,7 +213,7 @@ function getSaveMenuItemData(): MenuItem[] {
         type: 'action',
         disabled: !userConfig.saveDue,
         tooltip:
-          'Updates note template for current settings (requires anki connect addon)',
+          'Updates note template for current settings (requires anki connect or anki chess companion addon)',
         label: 'Save Config',
         icon: IconSave,
         danger: userConfig.saveDue,
