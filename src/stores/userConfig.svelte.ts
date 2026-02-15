@@ -54,7 +54,7 @@ export class UserConfig {
 
     // We iterate over the default keys to ensure we grab everything
     (Object.keys(defaultConfig) as Array<keyof UserConfigOpts>).forEach((key) => {
-      newOpts[key] = this._getConfigValue(key);
+      (newOpts as any)[key] = this._getConfigValue(key);
     });
 
     return newOpts as UserConfigOpts;
