@@ -42,7 +42,7 @@ export class PgnGameStore {
 
   // --- Internal State ---
   private _puzzleScore: PuzzleScored = $state(null);
-  private _hasMadeMistake: boolean = false;
+  private _hasMadeMistake: boolean = $state(false);
   private _moveMap = new Map<string, CustomPgnMove>();
   private _moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
 
@@ -142,7 +142,9 @@ export class PgnGameStore {
         this._puzzleScore = 'incorrect';
       } else if (this.isPuzzleComplete) {
         const isPerfectScore =
-          (userConfig.opts.timer || userConfig.opts.handicap) && !this._hasMadeMistake;
+          (userConfig.opts.timer || userConfig.opts.handicap) &&
+          !this._hasMadeMistake &&
+          !userConfig.opts.strictScoring;
         this._puzzleScore = isPerfectScore ? 'perfect' : 'correct';
       }
     });
