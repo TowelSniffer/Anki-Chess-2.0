@@ -91,7 +91,6 @@ export class PgnGameStore {
   });
 
   constructor(rawPGN: string, boardMode: BoardModes) {
-
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
     if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
@@ -129,7 +128,10 @@ export class PgnGameStore {
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
 
     $effect(() => {
-      if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
+      if (
+        !this._hasMadeMistake &&
+        (this.errorCount > 0 || (userConfig.opts.timer && timerStore.isOutOfTime))
+      )
         this._hasMadeMistake = true;
     });
     $effect(() => {
