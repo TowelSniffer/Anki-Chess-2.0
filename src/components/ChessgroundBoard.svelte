@@ -346,6 +346,7 @@
 >
   <div
     id="board"
+    class="tappable"
     bind:this={boardContainer}
     onpointerdown={handlePointerDown}
     onwheel={gameStore.boardMode === 'Viewer' ? handleWheel : null}
@@ -433,3 +434,4 @@
     }
   }
 </style>
+
