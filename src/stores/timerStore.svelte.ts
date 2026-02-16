@@ -9,7 +9,7 @@ class TimerStore {
   // Controls if the board shows the timer gradient
   visible = $state(false);
 
-  isOutOfTime = $derived(this.remainingTime === 0);
+  isOutOfTime = $derived(userConfig.opts.timer && this.remainingTime === 0);
 
   // --- Internal ---
   private animationFrameId: number | null = null;
