@@ -58,16 +58,14 @@
             <div class="moves">
               {line.pvSan}
             </div>
+          {:else if gameStore.isCheckmate && i === 0}
+            <div class="eval">&nbsp;</div>
+            <div class="moves checkmate-msg" class:white-adv={whiteAdv}>
+              {gameStore.turn === 'b' ? 'White ' : 'Black '}Checkmates
+            </div>
           {:else}
-            {#if gameStore.isCheckmate && i === 0}
-               <div class="eval">&nbsp;</div>
-               <div class="moves checkmate-msg" class:white-adv={whiteAdv}>
-                  {gameStore.turn === 'b' ? 'White ' : 'Black '}Checkmates
-               </div>
-            {:else}
-               <div class="eval">&nbsp;</div>
-               <div class="moves">&nbsp;</div>
-            {/if}
+            <div class="eval">&nbsp;</div>
+            <div class="moves">&nbsp;</div>
           {/if}
         </div>
       {/each}
