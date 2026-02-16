@@ -141,7 +141,9 @@ export class PgnGameStore {
       ) {
         this._puzzleScore = 'incorrect';
       } else if (this.isPuzzleComplete) {
-        this._puzzleScore = this._hasMadeMistake ? 'correct' : 'perfect';
+        const isPerfectScore =
+          (userConfig.opts.timer || userConfig.opts.handicap) && !this._hasMadeMistake;
+        this._puzzleScore = isPerfectScore ? 'perfect' : 'correct';
       }
     });
     $effect(() => {

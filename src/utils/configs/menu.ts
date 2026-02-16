@@ -97,7 +97,7 @@ export function getMenuData(): MenuItem[] {
           type: 'number',
           label: 'Handicap',
           tooltip: 'Number of allowed mistakes before auto playing',
-          min: 1,
+          min: 0,
           max: 10,
           value: userConfig.opts.handicap,
           onChange: (val: number) => (userConfig.opts.handicap = val),
