@@ -24,6 +24,8 @@
         setTimeout(attemptMount, 20);
       }
     };
-    attemptMount();
+    requestAnimationFrame(() => {
+      attemptMount();
+    });
   })();
 </script>
