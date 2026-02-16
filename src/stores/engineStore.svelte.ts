@@ -110,12 +110,11 @@ class EngineStore {
   constructor() {
     $effect.root(() => {
       $effect(() => {
-        if (!this.enabled) return;
         // Register userConfig changes
-        const _lines = this.multipv;
-        const _time = this.analysisThinkingTime;
-        console.log("hi")
+        void this.multipv;
+        void this.analysisThinkingTime;
         untrack(() => {
+          if (!this.enabled) return; // prevent restarting on initial load
           this.restart();
         });
       });
@@ -207,10 +206,10 @@ class EngineStore {
     this.evalFen = fen;
     this.analysisLines = []; // Clear old lines
     this._lineBuffer.clear(); // Clear buffer
-  if (this._updateTimeout) {
+    if (this._updateTimeout) {
       clearTimeout(this._updateTimeout);
       this._updateTimeout = null;
-  }
+    }
 
     this.isThinking = true;
 
@@ -249,7 +248,6 @@ class EngineStore {
 
       // Schedule the reactive UI update (expensive)
       this._scheduleUpdate();
-
     } else if (msg.startsWith('bestmove')) {
       this._parseBestMove();
     }
@@ -369,28 +367,28 @@ class EngineStore {
   }
 
   private _scheduleUpdate() {
-  // If an update is already queued, we just wait for it to fire.
-  if (this._updateTimeout) return;
+    // If an update is already queued, we just wait for it to fire.
+    if (this._updateTimeout) return;
 
-  const now = performance.now();
-  const timeSinceLast = now - this._lastInfoUpdate;
-  const throttleDelay = 200; // ms
+    const now = performance.now();
+    const timeSinceLast = now - this._lastInfoUpdate;
+    const throttleDelay = 200; // ms
 
-  if (timeSinceLast > throttleDelay) {
-    // --- LEADING EDGE: Update Immediately ---
-    // If it's been a while since the last update (or it's the first one),
-    this._flushBuffer();
-  } else {
-    // --- TRAILING EDGE: Schedule for later ---
-    // If we updated recently, wait for the remainder of the cooldown
-    // to prevent UI freezing.
-    const waitTime = throttleDelay - timeSinceLast;
-
-    this._updateTimeout = window.setTimeout(() => {
+    if (timeSinceLast > throttleDelay) {
+      // --- LEADING EDGE: Update Immediately ---
+      // If it's been a while since the last update (or it's the first one),
       this._flushBuffer();
-    }, waitTime);
+    } else {
+      // --- TRAILING EDGE: Schedule for later ---
+      // If we updated recently, wait for the remainder of the cooldown
+      // to prevent UI freezing.
+      const waitTime = throttleDelay - timeSinceLast;
+
+      this._updateTimeout = window.setTimeout(() => {
+        this._flushBuffer();
+      }, waitTime);
+    }
   }
-}
 
   private _parseBestMove() {
     this.isThinking = false;
