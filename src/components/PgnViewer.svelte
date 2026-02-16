@@ -70,7 +70,7 @@
     {@const nag = getNagDetails(move)}
 
     <span
-      class="move"
+      class="move tappable"
       class:current={pathKey === currentPgnPathKey}
       data-path-key={pathKey}
       onclick={() => onMoveClick(move.pgnPath)}

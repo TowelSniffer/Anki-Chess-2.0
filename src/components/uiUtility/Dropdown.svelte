@@ -245,7 +245,7 @@
   });
 </script>
 
-<div class="dropdown-container">
+<div class="dropdown-container tappable">
   <button
     class="trigger"
     onclick={toggle}
