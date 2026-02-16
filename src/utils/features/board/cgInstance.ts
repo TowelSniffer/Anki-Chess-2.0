@@ -2,7 +2,7 @@ import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
-import { userConfig } from '$stores/userConfig.svelte.ts';
+import { userConfig } from '$stores/userConfig.svelte';
 import { getLegalMove, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
 import { handleUserMove } from '$features/chessJs/puzzleLogic';

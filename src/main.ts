@@ -2,7 +2,7 @@ import type { BoardModes } from '$Types/ChessStructs';
 import { mount, unmount } from 'svelte';
 import App from './App.svelte';
 import '$scss/app.scss';
-import { userConfig } from '$stores/userConfig.svelte.ts';
+import { userConfig } from '$stores/userConfig.svelte';
 import { engineStore } from '$stores/engineStore.svelte';
 
 // Track the current instance so we can destroy it before re-mounting

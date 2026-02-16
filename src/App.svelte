@@ -5,7 +5,7 @@
   import PgnViewer from '$components/PgnViewer.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
-  import { userConfig } from '$stores/userConfig.svelte.ts';
+  import { userConfig } from '$stores/userConfig.svelte';
   import { engineStore } from '$stores/engineStore.svelte';
   import { timerStore } from '$stores/timerStore.svelte';
   import { onDestroy } from 'svelte';
