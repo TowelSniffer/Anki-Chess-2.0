@@ -5,7 +5,7 @@ import type {
 import type { Tags } from '@mliebelt/pgn-types';
 import { DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
-import { userConfig } from '$stores/userConfig.svelte.ts';
+import { userConfig } from '$stores/userConfig.svelte';
 import {
   checkCastleRights,
   assignMirrorState,

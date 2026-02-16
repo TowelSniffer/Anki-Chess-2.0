@@ -2,7 +2,7 @@ import type { Move, Square } from 'chess.js';
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import { timerStore } from '$stores/timerStore.svelte';
-import { userConfig } from '$stores/userConfig.svelte.ts';
+import { userConfig } from '$stores/userConfig.svelte';
 import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';

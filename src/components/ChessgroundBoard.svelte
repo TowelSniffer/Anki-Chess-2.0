@@ -4,7 +4,7 @@
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import '@lichess-org/chessground/assets/chessground.base.css';
   import '$scss/_components/_chessground.scss';
-  import { userConfig } from '$stores/userConfig.svelte.ts';
+  import { userConfig } from '$stores/userConfig.svelte';
   import { engineStore } from '$stores/engineStore.svelte';
   import { timerStore } from '$stores/timerStore.svelte';
   import { updateBoard } from '$features/board/boardAnimation';

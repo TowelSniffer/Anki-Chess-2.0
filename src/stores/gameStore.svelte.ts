@@ -20,7 +20,7 @@ import { parsePGN, mirrorPGN } from '$features/pgn/pgnParsing';
 
 import { engineStore } from './engineStore.svelte';
 import { timerStore } from '$stores/timerStore.svelte';
-import { userConfig } from '$stores/userConfig.svelte.ts';
+import { userConfig } from '$stores/userConfig.svelte';
 
 export class PgnGameStore {
   // --- Game State ---

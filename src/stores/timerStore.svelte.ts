@@ -1,4 +1,4 @@
-import { userConfig } from '$stores/userConfig.svelte.ts';
+import { userConfig } from '$stores/userConfig.svelte';
 
 class TimerStore {
   // --- State ---
