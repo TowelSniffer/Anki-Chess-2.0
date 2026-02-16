@@ -1,7 +1,7 @@
 {
   "name": "ankichess",
   "private": true,
-  "version": "1.1.022",
+  "version": "1.1.03",
   "type": "module",
   "scripts": {
     "dev": "vite",
