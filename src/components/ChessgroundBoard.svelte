@@ -287,7 +287,7 @@
   });
   // B) : Handle Timeout (Flash Red)
   $effect(() => {
-    if (userConfig.opts.timer && timerStore.isOutOfTime) {
+    if (timerStore.isOutOfTime) {
       triggerFlash('incorrect');
       if (userConfig.opts.timerAdvance) showViewer();
     }

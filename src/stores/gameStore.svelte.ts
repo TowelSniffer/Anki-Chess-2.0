@@ -128,10 +128,7 @@ export class PgnGameStore {
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
 
     $effect(() => {
-      if (
-        !this._hasMadeMistake &&
-        (this.errorCount > 0 || (userConfig.opts.timer && timerStore.isOutOfTime))
-      )
+      if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
         this._hasMadeMistake = true;
     });
     $effect(() => {
