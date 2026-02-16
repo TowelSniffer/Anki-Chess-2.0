@@ -9,17 +9,6 @@
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
 
-  const lineOutput = $derived.by(() => {
-    if (gameStore.isCheckmate) {
-      return gameStore.turn === 'b' ? 'White Checkmates...' : 'Black Checkmates...';
-    }
-    if (gameStore.isDraw) {
-      return 'Draw...';
-    }
-
-    return 'Thinking...';
-  });
-
   const whiteAdv = $derived(
     engineStore.analysisLines[0]?.winChance > 50 ||
       (gameStore.isCheckmate && gameStore.turn === 'b'),
@@ -30,12 +19,6 @@
     if (line.isMate) {
       return `M${Math.abs(line.scoreNormalized)}`;
     }
-    // CP is centipawns from side-to-move perspective.
-    // we want it shown as + for White adv, - for Black adv.
-    // Since engineStore.winChance is normalized to White%,
-    // we just use a visual bar or calculate raw cp relative to white.
-
-    // Simple CP display:
     const val = line.scoreNormalized / 100;
     return val > 0 ? `+${val.toFixed(2)}` : `${val.toFixed(2)}`;
   }
@@ -80,11 +63,15 @@
               {line.pvSan}
             </div>
           {:else}
-            <!-- Placeholder State -->
-            <div class="eval" class:white-adv={whiteAdv}>{i + 1}.</div>
-            <div class="moves">
-              {engineStore.analysisLines.length === 0 ? lineOutput : '...'}
-            </div>
+            {#if gameStore.isCheckmate && i === 0}
+               <div class="eval">&nbsp;</div>
+               <div class="moves checkmate-msg" class:white-adv={whiteAdv}>
+                  {gameStore.turn === 'b' ? 'White ' : 'Black '}Checkmates
+               </div>
+            {:else}
+               <div class="eval">&nbsp;</div>
+               <div class="moves">&nbsp;</div>
+            {/if}
           {/if}
         </div>
       {/each}
@@ -98,7 +85,6 @@
     color: var(--text-primary, #fff);
     padding: 0.2rem;
     font-family: monospace;
-    /*     border-top: 1px solid #444; */
     box-shadow:
       inset 0px 1px 1px rgba(0, 0, 0, 0.6),
       inset 0px -1px 1px rgba(0, 0, 0, 0.6);
@@ -117,19 +103,18 @@
     gap: 0.8rem;
     padding: 0.2rem 0;
     border-bottom: 1px solid #333;
+    min-height: 1.5em; /* Ensure height when empty */
   }
 
   .eval {
     min-width: 3.5rem;
     font-weight: bold;
     text-align: right;
-    color: #ff6b6b;
-    /* Black advantage color */
+    color: #ff6b6b; /* Black advantage color */
   }
 
   .eval.white-adv {
-    color: #51cf66;
-    /* White advantage color */
+    color: #51cf66; /* White advantage color */
   }
 
   .moves {
@@ -137,5 +122,14 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    &.checkmate-msg {
+      font-weight: bold;
+      color: #ff6b6b; /* Default to Red (Black Wins) */
+
+      &.white-adv {
+        color: #51cf66; /* Green (White Wins) */
+      }
+    }
   }
 </style>
