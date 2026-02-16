@@ -1,6 +1,6 @@
 <script lang="ts">
   import { engineStore } from '$stores/engineStore.svelte';
-  import { userConfig } from '$stores/userConfig.svelte.ts';
+  import { userConfig } from '$stores/userConfig.svelte';
   import CustomSelector from './uiUtility/CustomSelector.svelte';
   import { getContext } from 'svelte';
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
@@ -49,7 +49,7 @@
   <div class="controls">
     <CustomSelector
       label="Lines:"
-      value={engineStore.multipv}
+      value={userConfig.opts.analysisLines}
       options={engineStore.multipvOptions}
       icon={IconArrowSplit}
       onChange={(val: number) => setLines(val)}
@@ -57,7 +57,7 @@
 
     <CustomSelector
       label="Thinking Time (s):"
-      value={engineStore.analysisThinkingTime}
+      value={userConfig.opts.analysisTime}
       options={engineStore.thinkingTimeOptions}
       icon={IconSearchGear}
       onChange={(val: number) => (userConfig.opts.analysisTime = val)}
