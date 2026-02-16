@@ -22,10 +22,6 @@
     const val = line.scoreNormalized / 100;
     return val > 0 ? `+${val.toFixed(2)}` : `${val.toFixed(2)}`;
   }
-
-  function setLines(n: number) {
-    userConfig.opts.analysisLines = n;
-  }
 </script>
 
 <div class="engine-container">
@@ -35,7 +31,7 @@
       value={userConfig.opts.analysisLines}
       options={engineStore.multipvOptions}
       icon={IconArrowSplit}
-      onChange={(val: number) => setLines(val)}
+      onChange={(val: number) => (userConfig.opts.analysisLines = val)}
     />
 
     <CustomSelector
