@@ -39,7 +39,9 @@ class EngineStore {
   private _worker: Worker | null = null;
   private _currentFen = ''; // The FEN currently being processed by the engine
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
-  private _lastInfoUpdate = 0; // Throttle message updates to prevent reactive lag
+
+  private _lineBuffer = new Map<number, AnalysisLine>(); // Buffer for incoming lines
+  private _updateTimeout: number | null = null; // Timer reference
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -105,6 +107,21 @@ class EngineStore {
       .filter((s) => s !== null) as CustomShape[];
   });
 
+  constructor() {
+    $effect.root(() => {
+      $effect(() => {
+        if (!this.enabled) return;
+        // Register userConfig changes
+        const _lines = this.multipv;
+        const _time = this.analysisThinkingTime;
+        console.log("hi")
+        untrack(() => {
+          this.restart();
+        });
+      });
+    });
+  }
+
   // --- Public Actions ---
 
   async toggle(fen: string) {
@@ -142,6 +159,8 @@ class EngineStore {
       if (this.isThinking && this._currentFen === fen && !this._pendingFen) return;
 
       this._pendingFen = fen;
+
+      this._flushBuffer();
 
       // if the engine is currently thinking, we must stop it first.
       if (this.isThinking) {
@@ -187,7 +206,12 @@ class EngineStore {
     this._currentFen = fen;
     this.evalFen = fen;
     this.analysisLines = []; // Clear old lines
-    this._lastInfoUpdate = 0; // Reset throttle
+    this._lineBuffer.clear(); // Clear buffer
+  if (this._updateTimeout) {
+      clearTimeout(this._updateTimeout);
+      this._updateTimeout = null;
+  }
+
     this.isThinking = true;
 
     // Send commands
@@ -220,18 +244,18 @@ class EngineStore {
       // Only block 'info' if we are explicitly waiting for a 'bestmove'
       if (this._pendingFen) return;
 
-      // We throttle parsing to max 5 updates per second to prevent reactive lag.
-      const now = performance.now();
-      if (now - this._lastInfoUpdate < 200) return;
-      this._lastInfoUpdate = now;
+      // Parse immediately into the buffer (cheap)
+      this._parseInfoToBuffer(msg);
 
-      this._parseInfo(msg);
+      // Schedule the reactive UI update (expensive)
+      this._scheduleUpdate();
+
     } else if (msg.startsWith('bestmove')) {
       this._parseBestMove();
     }
   }
 
-  private _parseInfo(msg: string) {
+  private _parseInfoToBuffer(msg: string) {
     // Final safety check: Does this message belong to the FEN
     // the UI is actually displaying right now?
     if (this._currentFen !== this.evalFen) return;
@@ -320,22 +344,56 @@ class EngineStore {
         firstMove: firstMoveData,
       };
 
-      const existing = [...this.analysisLines];
-      const others = existing.filter((l) => l.id !== multipvIndex);
-      const updated = [...others, newLine].sort((a, b) => a.id - b.id);
-
       // GUARD: mid-parse race conditions
       if (this._currentFen !== this.evalFen) return;
-      this.analysisLines = updated;
+
+      // STORE IN BUFFER instead of state
+      this._lineBuffer.set(multipvIndex, newLine);
     } catch (err) {
       // Silence parsing errors (e.g. from race conditions)
       // console.warn('Engine parse error:', err);
     }
   }
 
+  private _flushBuffer() {
+    // clear buffer for Immediate UI update
+    untrack(() => {
+      // Convert Map values to array and sort by ID
+      const lines = Array.from(this._lineBuffer.values()).sort((a, b) => a.id - b.id);
+      this.analysisLines = lines;
+
+      // Mark the time and clear the timeout handle
+      this._lastInfoUpdate = performance.now();
+      this._updateTimeout = null;
+    });
+  }
+
+  private _scheduleUpdate() {
+  // If an update is already queued, we just wait for it to fire.
+  if (this._updateTimeout) return;
+
+  const now = performance.now();
+  const timeSinceLast = now - this._lastInfoUpdate;
+  const throttleDelay = 200; // ms
+
+  if (timeSinceLast > throttleDelay) {
+    // --- LEADING EDGE: Update Immediately ---
+    // If it's been a while since the last update (or it's the first one),
+    this._flushBuffer();
+  } else {
+    // --- TRAILING EDGE: Schedule for later ---
+    // If we updated recently, wait for the remainder of the cooldown
+    // to prevent UI freezing.
+    const waitTime = throttleDelay - timeSinceLast;
+
+    this._updateTimeout = window.setTimeout(() => {
+      this._flushBuffer();
+    }, waitTime);
+  }
+}
+
   private _parseBestMove() {
     this.isThinking = false;
-
     // If we have a pending FEN (user moved while engine was thinking),
     // now that the engine has effectively 'stopped' (sent bestmove),
     // we can safely start the new analysis.
