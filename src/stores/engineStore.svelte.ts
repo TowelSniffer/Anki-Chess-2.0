@@ -41,7 +41,8 @@ class EngineStore {
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
 
   private _lineBuffer = new Map<number, AnalysisLine>(); // Buffer for incoming lines
-  private _updateTimeout: number | null = null; // Timer reference
+  private _updateTimeout: number | null = null; // UI timeout reference
+  private _lastInfoUpdate = 0; // Last UI update performance reference
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -159,8 +160,6 @@ class EngineStore {
 
       this._pendingFen = fen;
 
-      this._flushBuffer();
-
       // if the engine is currently thinking, we must stop it first.
       if (this.isThinking) {
         this._worker?.postMessage('stop');
@@ -206,6 +205,9 @@ class EngineStore {
     this.evalFen = fen;
     this.analysisLines = []; // Clear old lines
     this._lineBuffer.clear(); // Clear buffer
+    // Reset the throttle timer.
+    this._lastInfoUpdate = 0;
+
     if (this._updateTimeout) {
       clearTimeout(this._updateTimeout);
       this._updateTimeout = null;
@@ -249,6 +251,7 @@ class EngineStore {
       // Schedule the reactive UI update (expensive)
       this._scheduleUpdate();
     } else if (msg.startsWith('bestmove')) {
+      // example: bestmove e2e4 ponder e7e5
       this._parseBestMove();
     }
   }
@@ -370,6 +373,11 @@ class EngineStore {
     // If an update is already queued, we just wait for it to fire.
     if (this._updateTimeout) return;
 
+    // Wait for all MultiPV lines before pushing first update
+    if (this.analysisLines.length === 0 && this._lineBuffer.size < this.multipv) {
+      return;
+    }
+
     const now = performance.now();
     const timeSinceLast = now - this._lastInfoUpdate;
     const throttleDelay = 200; // ms
@@ -391,6 +399,7 @@ class EngineStore {
   }
 
   private _parseBestMove() {
+    this._flushBuffer();
     this.isThinking = false;
     // If we have a pending FEN (user moved while engine was thinking),
     // now that the engine has effectively 'stopped' (sent bestmove),
