@@ -110,6 +110,7 @@ class EngineStore {
 
   constructor() {
     $effect.root(() => {
+      // FIXME effect.root might make sense for handling new PGN in other stores
       $effect(() => {
         // Register userConfig changes
         void this.multipv;
@@ -123,6 +124,17 @@ class EngineStore {
   }
 
   // --- Public Actions ---
+
+  requestMove(fen: string, elo: number = 1500): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // Ensure worker exists
+      if (!this._worker) {
+        this._initWorker().then(() => this._performAiSearch(fen, elo, resolve));
+      } else {
+        this._performAiSearch(fen, elo, resolve);
+      }
+    });
+  }
 
   async toggle(fen: string) {
     if (this.enabled) {
@@ -170,6 +182,19 @@ class EngineStore {
     });
   }
 
+  async init() {
+    if (!this._worker) {
+      this.loading = true;
+      try {
+        await this._initWorker();
+        this.loading = false;
+      } catch (err) {
+        console.error('Engine failed to initialize', err);
+        this.loading = false;
+      }
+    }
+  }
+
   stop() {
     this._pendingFen = '';
     this._worker?.postMessage('stop');
@@ -194,6 +219,44 @@ class EngineStore {
   }
 
   // --- Private Engine Logic ---
+
+  private _performAiSearch(fen: string, elo: number, resolve: (san: string) => void) {
+    this.stop();
+    // Define a temporary listener for the 'bestmove'
+    // FIXME Can probably just adapt the default listener for messages. Then we can safely
+    // set this.enabled to true
+    const aiHandler = (e: MessageEvent) => {
+      const msg = e.data;
+      if (typeof msg === 'string' && msg.startsWith('bestmove')) {
+        // Cleanup: Remove listener and Reset Engine Strength
+        this._worker?.removeEventListener('message', aiHandler);
+        this._resetEngineStrength();
+
+        // Extract the move (UCI format: e2e4)
+        const parts = msg.split(' ');
+        const bestMoveUci = parts[1];
+
+        // We resolve with UCI. The GameStore can convert to SAN or process it directly.
+        resolve(bestMoveUci);
+      }
+    };
+
+    // Attach listener
+    this._worker!.addEventListener('message', aiHandler);
+
+    // Configure Engine for "Human" play
+    this._worker!.postMessage(`setoption name UCI_LimitStrength value true`);
+    this._worker!.postMessage(`setoption name UCI_Elo value ${elo}`);
+
+    // Start Search
+    this._worker!.postMessage(`position fen ${fen}`);
+    this._worker!.postMessage(`go movetime 1000`);
+  }
+
+  private _resetEngineStrength() {
+    // IMPORTANT: Turn off limits so normal analysis is accurate again
+    this._worker?.postMessage(`setoption name UCI_LimitStrength value false`);
+  }
 
   private _processPending() {
     if (!this._pendingFen || !this._worker) return;
