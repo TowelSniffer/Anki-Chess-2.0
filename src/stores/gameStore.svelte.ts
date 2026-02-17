@@ -73,10 +73,11 @@ export class PgnGameStore {
 
   // The "Raw" Calculation (Always calculates the freshest shapes)
   systemShapes = $derived.by(() => {
-    if (this.boardMode === 'Puzzle' && userConfig.opts.disableArrows) return [];
+    const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
+    if (this.boardMode === 'AI' || (puzzleMode && userConfig.opts.disableArrows)) return [];
     const prevMovePath = navigatePrevMove(this.pgnPath);
     const isStartOfPuzzle =
-      this.boardMode === 'Puzzle' &&
+      puzzleMode &&
       (!this.pgnPath.length || (userConfig.opts.flipBoard && !prevMovePath.length));
     if (isStartOfPuzzle) return [];
     const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
@@ -85,8 +86,8 @@ export class PgnGameStore {
       // Only spread engine shapes if the engine's eval matches our visual FEN
       ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
       ...getSystemShapes(pgnPath, this._moveMap, this.boardMode),
-      ...parseCal(this.boardMode === 'Puzzle' ? [] : this.currentMove?.commentDiag?.colorArrows),
-      ...parseCsl(this.boardMode === 'Puzzle' ? [] : this.currentMove?.commentDiag?.colorFields),
+      ...parseCal(puzzleMode ? [] : this.currentMove?.commentDiag?.colorArrows),
+      ...parseCsl(puzzleMode ? [] : this.currentMove?.commentDiag?.colorFields),
     ];
   });
 

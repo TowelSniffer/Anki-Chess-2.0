@@ -117,7 +117,7 @@ export function getMenuData(): MenuItem[] {
           label: 'Timer (s)',
           tooltip: 'Initial time for Puzzle. set to 0 to disable',
           min: 0,
-          max: 60,
+          max: 600,
           value: userConfig.opts.timer / 1000,
           onChange: (val: number) => (userConfig.opts.timer = val * 1000),
         },

@@ -10,7 +10,7 @@ export type PuzzleScored = 'perfect' | 'correct' | 'incorrect' | null;
 export type SanPromotions = 'Q' | 'N' | 'R' | 'B';
 export type ChessJsPromotions = 'q' | 'n' | 'r' | 'b';
 
-export type BoardModes = 'Viewer' | 'Puzzle';
+export type BoardModes = 'Viewer' | 'Puzzle' | 'Study' | 'AI';
 export type PgnPath = (number | 'v')[];
 
 export type CustomShapeBrushes =

@@ -7,7 +7,8 @@ export class UserConfig {
 
   opts = $state<UserConfigOpts>(this._readConfigFromWindow());
 
-  // FIXME need to deside if we still need this
+  // FIXME need to deside if we still need this. effect.root seems like a better solution
+  // then forcing a re-mounting of APP components
   boardKey = $state<number>(0);
   isAnkiConnect = $state(false);
   hasAddon = $state(false);

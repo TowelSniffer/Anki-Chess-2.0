@@ -353,7 +353,7 @@
     onanimationend={() => (flashState = null)}
     class:analysisMode={visualDivider !== null &&
       (engineStore.enabled || commentDiag) &&
-      gameStore.boardMode !== 'Puzzle'}
+      gameStore.boardMode === 'Viewer'}
     class:timerMode={timerStore.visible}
     class:border-flash={gameStore.boardMode === 'Puzzle' && flashState}
     class:view-only={gameStore.isPuzzleComplete}

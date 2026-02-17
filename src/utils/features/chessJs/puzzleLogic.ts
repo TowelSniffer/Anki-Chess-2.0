@@ -6,6 +6,7 @@ import { userConfig } from '$stores/userConfig.svelte';
 import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
+import { engineStore } from '$stores/engineStore.svelte';
 
 // --- Helper Functions ---
 
@@ -41,7 +42,7 @@ function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath |
 
 // --- Main Handler ---
 
-export function handleUserMove(
+export async function handleUserMove(
   gameStore: IPgnGameStore,
   orig: Square,
   dest: Square,
@@ -58,6 +59,27 @@ export function handleUserMove(
     gameStore.pgnPath = [...gameStore.pgnPath]; // Trigger re-render to snap piece back
     return;
   }
+
+  if (gameStore.boardMode === 'AI') {
+
+    gameStore.addMove(move);
+
+    if (gameStore.isGameOver) return;
+
+    // Trigger AI Response
+    try {
+      const bestMoveSan = await engineStore.requestMove(gameStore.fen, 2500);
+
+      // Play AI Move
+      const aiMove = getLegalMove(bestMoveSan, gameStore.fen); // Validate SAN
+      if (aiMove) {
+        gameStore.addMove(aiMove);
+      }
+    } catch (e) {
+      console.error("AI failed to move", e);
+    }
+
+  } else {
 
   // logic: Existing Path vs New Move
   const existingPath = findMatchingPath(gameStore, move);
@@ -78,6 +100,7 @@ export function handleUserMove(
       // Wrong move in Puzzle mode
       handleWrongMove(gameStore, move);
     }
+  }
   }
 }
 
@@ -112,7 +135,9 @@ function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(gameStore.pgnPath);
     gameStore.pgnPath = nextMovePath;
-    playAiMove(gameStore, delay); // then play the AI's response
+    if (gameStore.boardMode === 'Puzzle') {
+      playAiMove(gameStore, delay); // then play the AI's response
+    }
   }, delay);
 }
 
