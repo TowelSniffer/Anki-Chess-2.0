@@ -125,7 +125,33 @@ export class PgnGameStore {
 
     this.rootGame = parsed;
 
+    // ... (existing constructor code)
+
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
+
+    // --- State Persistence (Anki Card Flip) ---
+    if (this.boardMode !== 'Puzzle') {
+      try {
+        const savedStateJson = sessionStorage.getItem('anki_chess_state');
+        // Helper to normalize PGN string (alphanumeric only for robustness)
+        const normalize = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '');
+
+        if (savedStateJson) {
+          const savedState = JSON.parse(savedStateJson);
+          const currentRef = normalize(rawPGN).substring(0, 100);
+
+          if (savedState.pgnRef === currentRef) {
+            // We are in Viewer mode (checked above), so we can restore safely.
+            this.orientation = savedState.orientation;
+            if (savedState.pgnPath) {
+              this.pgnPath = savedState.pgnPath;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to restore state:', e);
+      }
+    }
 
     $effect(() => {
       if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
@@ -151,6 +177,20 @@ export class PgnGameStore {
     $effect(() => {
       if (this._puzzleScore && this.boardMode === 'Puzzle')
         sessionStorage.setItem('chess_puzzle_score', this._puzzleScore);
+    });
+
+    // Save state on change
+    $effect(() => {
+      // Helper to normalize PGN string (alphanumeric only for robustness)
+      const normalize = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '');
+
+      const stateToSave = {
+        pgnPath: this.pgnPath,
+        orientation: this.orientation,
+        pgnRef: normalize(rawPGN).substring(0, 100),
+        boardMode: this.boardMode
+      };
+      sessionStorage.setItem('anki_chess_state', JSON.stringify(stateToSave));
     });
   }
 
@@ -246,7 +286,7 @@ export class PgnGameStore {
   // Public methods
 
   loadCgInstance(boardContainer: HTMLDivElement) {
-    this.cg = Chessground(boardContainer, { fen: this.fen });
+    this.cg = Chessground(boardContainer, this.boardConfig);
   }
 
   getMoveByPath(path: PgnPath): CustomPgnMove | null {
