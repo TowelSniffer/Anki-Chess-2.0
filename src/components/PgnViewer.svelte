@@ -164,9 +164,7 @@
 
 <style lang="scss">
   .move-number {
-    padding: 0.3em;
-    padding-left: 0.3em;
-    padding-right: 0.3em;
+    padding: 0.2em;
     background-color: var(--surface-primary);
     border-right: var(--border-thin);
     @include flex-center;
@@ -174,7 +172,7 @@
 
   .move,
   .nullMove {
-    padding: 0.3em;
+    padding: 0.25em;
     background-color: var(--surface-primary);
     @include flex-center;
   }
@@ -201,7 +199,7 @@
     }
 
     &.current {
-      box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 1);
+      box-shadow: inset 0px 0px 2px rgba(0, 0, 0, 1);
     }
   }
 
