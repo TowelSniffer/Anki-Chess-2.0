@@ -16,17 +16,6 @@ export class UserConfig {
   saveDue: boolean = $derived(JSON.stringify(this.opts) !== JSON.stringify(this.lastSavedState));
 
   constructor() {
-    if (typeof window !== 'undefined' && window.USER_CONFIG) {
-      // We clone it to break reference
-      this.lastSavedState = { ...window.USER_CONFIG };
-    } else {
-        // If no window config, we "are" the config
-        if (typeof window !== 'undefined') {
-            window.USER_CONFIG = $state.snapshot(this.opts);
-        }
-    }
-    this._checkConnections();
-
     $effect.root(() => {
       // handle config changes
       $effect(() => {

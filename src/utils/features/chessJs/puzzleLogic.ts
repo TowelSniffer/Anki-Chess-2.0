@@ -28,7 +28,7 @@ function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath |
   // check Main Line
   if (isSameMove(nextMainMove, playedMove)) return nextMainPath;
 
-  if (gameStore.boardMode === 'Puzzle' && !userConfig.opts.acceptVariations) return null;
+  if (/^(Puzzle|Study)$/.test(gameStore.boardMode) && !userConfig.opts.acceptVariations) return null;
 
   // check Variations
   if (nextMainMove.variations?.length) {
@@ -106,7 +106,6 @@ export async function handleUserMove(
 
 export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
   setTimeout(() => {
-    gameStore.errorCount = 0;
     const nextMovePathCheck = navigateNextMove(gameStore.pgnPath);
     const nextMove = gameStore.getMoveByPath(nextMovePathCheck);
 
@@ -149,6 +148,6 @@ function handleWrongMove(gameStore: IPgnGameStore, move: Move): void {
   const isFailed = gameStore.errorCount > userConfig.opts.handicap;
 
   if (isFailed) {
-    playUserCorrectMove(gameStore, gameStore.aiDelayTime); // show the correct user move
+    playUserCorrectMove(gameStore, userConfig.opts.animationTime * 2); // show the correct user move
   }
 }

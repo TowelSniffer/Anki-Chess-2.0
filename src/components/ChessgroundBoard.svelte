@@ -82,8 +82,10 @@
       return userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
         ? 'grey'
         : gameStore.playerColor;
-    } else if (gameStore.puzzleScore) {
+    } else if (gameStore.isPuzzleComplete && gameStore.puzzleScore) {
       return SCORE_COLORS[gameStore.puzzleScore];
+    } else if (gameStore.boardMode === 'Study') {
+      return gameStore.turn === 'w' ? 'white' : 'black';
     } else {
       return gameStore.playerColor;
     }
@@ -91,24 +93,28 @@
 
   // --- Interactive Border ---
 
+  const barBottomColor = $derived(
+  userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
+    ? 'grey'
+    : gameStore.boardMode === 'Puzzle'
+      ? gameStore.orientation === 'white'
+        ? 'white'
+        : 'black'
+      : gameStore.turn === 'w' ? 'white' : 'black',
+  );
+
   // A) Analysis Centipawn:
   const barTopColor = $derived(
     userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
       ? 'var(--status-error)'
-      : gameStore.orientation === 'white'
+      : barBottomColor === 'white'
         ? 'black'
         : 'white',
   );
 
-  const barBottomColor = $derived(
-    userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
-      ? 'grey'
-      : gameStore.orientation === 'white'
-        ? 'white'
-        : 'black',
-  );
 
-  const dividerSpring = spring(gameStore.boardMode === 'Puzzle' ? 0 : 50, {
+
+  const dividerSpring = spring(50, {
     stiffness: 0.1,
     damping: 0.5,
   });
@@ -195,7 +201,7 @@
     if (!gameStore.cg || !boardContainer) return;
     untrack(() => {
       boardContainer.focus();
-      if (gameStore.boardMode === 'Puzzle') {
+      if (/^(Puzzle|Study)$/.test(gameStore.boardMode)) {
         // These should only trigger ONCE per component mount/reset
         if (userConfig.opts.timer && !timerStore.isRunning) {
           timerStore.start();
@@ -346,7 +352,7 @@
       (engineStore.enabled || commentDiag) &&
       gameStore.boardMode === 'Viewer'}
     class:timerMode={timerStore.visible}
-    class:border-flash={gameStore.boardMode === 'Puzzle' && flashState}
+    class:border-flash={/^(Puzzle|Study)$/.test(gameStore.boardMode) && flashState}
     class:view-only={gameStore.isPuzzleComplete}
     style="
     --player-color: {gameStore.playerColor};
@@ -363,6 +369,19 @@
 </div>
 
 <style lang="scss">
+  /* Register properties to allow transitions */
+  @property --bar-top-color {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: white;
+  }
+
+  @property --bar-bottom-color {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: black;
+  }
+
   @keyframes borderFlash {
     0% {
       box-shadow: 0 0 12px 6px var(--border-flash-color);
@@ -376,7 +395,11 @@
   /*  .cg-wrap might be nedded here? */
   #board {
     border: $board-border-width solid var(--border-color, grey);
-    transition: border-color 0.2s ease;
+    transition:
+      border-color 0.3s ease,
+      --bar-top-color 0.3s ease,
+      --bar-bottom-color 0.3s ease;
+
     box-shadow: var(--shadow-grey);
     width: var(--board-size);
     height: var(--board-size);
