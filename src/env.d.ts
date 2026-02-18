@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import type { UserConfigOpts } from '$Types/UserConfig';
 
 declare global {

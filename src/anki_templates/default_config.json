@@ -1,11 +1,11 @@
 {
-  "flipBoard": true,
+  "flipBoard": false,
   "mirror": false,
   "showDests": true,
   "disableArrows": false,
   "singleClickMove": true,
   "animationTime": 200,
-  "handicap": 2,
+  "handicap": 1,
   "autoAdvance": false,
   "timerAdvance": false,
   "strictScoring": false,

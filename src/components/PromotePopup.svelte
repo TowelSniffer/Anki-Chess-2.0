@@ -1,17 +1,7 @@
 <script lang="ts">
   import type { ChessJsPromotions } from '$Types/ChessStructs';
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
-
-  import wQRaw from '$assets/pieces/_wQ.svg?raw';
-  import wRRaw from '$assets/pieces/_wR.svg?raw';
-  import wBRaw from '$assets/pieces/_wB.svg?raw';
-  import wNRaw from '$assets/pieces/_wN.svg?raw';
-
-  import bQRaw from '$assets/pieces/_bQ.svg?raw';
-  import bRRaw from '$assets/pieces/_bR.svg?raw';
-  import bBRaw from '$assets/pieces/_bB.svg?raw';
-  import bNRaw from '$assets/pieces/_bN.svg?raw';
-
+  import { pieceImages } from '$utils/toolkit/importAssets';
   import { getContext } from 'svelte';
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
 
@@ -21,12 +11,11 @@
   let turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
   let orientaion = $derived(gameStore.orientation[0]);
 
-  const toDataUri = (svg: string) => `data:image/svg+xml;base64,${btoa(svg)}`;
-  let pieceAssets = $derived({
-    q: turnColor === 'w' ? toDataUri(wQRaw) : toDataUri(bQRaw),
-    b: turnColor === 'w' ? toDataUri(wBRaw) : toDataUri(bBRaw),
-    n: turnColor === 'w' ? toDataUri(wNRaw) : toDataUri(bNRaw),
-    r: turnColor === 'w' ? toDataUri(wRRaw) : toDataUri(bRRaw),
+  let promoteImages = $derived({
+    q: pieceImages[`${turnColor}Q`],
+    b: pieceImages[`${turnColor}B`],
+    n: pieceImages[`${turnColor}N`],
+    r: pieceImages[`${turnColor}R`],
   });
 
   function select(role: ChessJsPromotions) {
@@ -54,16 +43,16 @@
     class:bottom={turnColor !== orientaion}
   >
     <button class="promoteBtn" onclick={() => select('q')}>
-      <img class="promotePiece" src={pieceAssets.q} alt="Promote to Queen" />
+      <img class="promotePiece" src={promoteImages.q} alt="Promote to Queen" />
     </button>
     <button class="promoteBtn" onclick={() => select('b')}>
-      <img class="promotePiece" src={pieceAssets.b} alt="Promote to Bishop" />
+      <img class="promotePiece" src={promoteImages.b} alt="Promote to Bishop" />
     </button>
     <button class="promoteBtn" onclick={() => select('n')}>
-      <img class="promotePiece" src={pieceAssets.n} alt="Promote to Knight" />
+      <img class="promotePiece" src={promoteImages.n} alt="Promote to Knight" />
     </button>
     <button class="promoteBtn" onclick={() => select('r')}>
-      <img class="promotePiece" src={pieceAssets.r} alt="Promote to Rook" />
+      <img class="promotePiece" src={promoteImages.r} alt="Promote to Rook" />
     </button>
   </div>
   <div
