@@ -89,7 +89,7 @@
       {/if}
       <span
         class="comment"
-        class:has-variation={move.variations?.length > 0}
+        class:has-variation={!isVariation && move.variations?.length > 0}
         class:lastContainer={i === moves.length - 1}
       >
         {move.commentAfter}
