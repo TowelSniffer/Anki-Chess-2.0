@@ -384,6 +384,7 @@
 
   /*  .cg-wrap might be nedded here? */
   #board {
+    touch-action: none;
     border: $board-border-width solid var(--border-color, grey);
     transition: border-color 0.2s ease;
     box-shadow: var(--shadow-grey);
