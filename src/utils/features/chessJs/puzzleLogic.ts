@@ -87,9 +87,8 @@ export async function handleUserMove(
   if (existingPath) {
     // A) Move exists in PGN (Main line or Variation)
     gameStore.pgnPath = existingPath;
-
+    timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
     if (gameStore.boardMode === 'Puzzle') {
-      timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
       playAiMove(gameStore, gameStore.aiDelayTime || 300);
     }
   } else {
