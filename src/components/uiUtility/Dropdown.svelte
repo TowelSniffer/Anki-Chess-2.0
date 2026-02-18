@@ -513,7 +513,6 @@
 
   /* --- Menu --- */
   .menu {
-    all: unset;
     box-sizing: border-box;
     position: fixed;
     z-index: 9999;
@@ -652,6 +651,7 @@
   .label-content {
     display: flex;
     align-items: center;
+    font-size: 0.85rem;
     gap: 0.5rem;
 
     &.has-tooltip {
