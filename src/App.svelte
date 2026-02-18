@@ -42,9 +42,7 @@
         </div>
       {/if}
       <div id="board-container">
-        {#key userConfig.boardKey}
-          <ChessgroundBoard />
-        {/key}
+        <ChessgroundBoard />
         <PromotePopup />
       </div>
     </div>
