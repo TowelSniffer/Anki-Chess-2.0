@@ -11,8 +11,7 @@ let appInstance: any = null;
 // The logic to mount the app
 const mountApp = () => {
   const target =
-    document.getElementById('anki-chess-root') ??
-    document.getElementById('chessRs-root');
+    document.getElementById('anki-chess-root') ?? document.getElementById('chessRs-root');
 
   // Prevent double mounting
   if (!target || target.hasAttribute('data-mounted')) return;
@@ -29,33 +28,23 @@ const mountApp = () => {
 
   let pgnContent = pgnDiv
     ? pgnDiv.textContent?.trim()
-    : `[Event "?"]
-[Site "?"]
-[Date "2026.02.19"]
-[Round "?"]
-[White "White"]
-[Black "Black"]
-[Result "*"]
-[FEN "rnbqk1nr/ppppp1Pp/8/8/8/8/PPPPP1PP/RNBQKBNR b KQkq - 0 4"]
-[SetUp "1"]
+    : `8/pkppp1Pp/8/8/8/8/PPPPP1PP/RNBQKBNR b KQ - 0 4`;
 
-4... Nf6?! *
+  // Detect FEN vs PGN
+  // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
+  const isFen = /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(pgnContent || '');
 
-`;
+  if (isFen && pgnContent) {
+    // Wrap raw FEN in a minimal PGN structure
+    // SetUp "1" is crucial for PGN parsers to respect the FEN tag
+    engineStore.init();
+    pgnContent = `[Event "AI Practice"]\n[FEN "${pgnContent}"]\n[SetUp "1"]\n\n*`;
+  }
 
-// Detect FEN vs PGN
-// Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
-const isFen = /^\s*([rnbqkbnr1-8]+\/){7}[rnbqkbnr1-8]/.test(pgnContent || '');
-
-if (isFen && pgnContent) {
-  // Wrap raw FEN in a minimal PGN structure
-  // SetUp "1" is crucial for PGN parsers to respect the FEN tag
-  engineStore.init();
-  pgnContent = `[Event "AI Practice"]\n[FEN "${pgnContent}"]\n[SetUp "1"]\n\n*`;
-}
-
+  console.log(pgnContent)
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Viewer';
+  const boardModeFromAnki: BoardModes =
+    (target.getAttribute('data-boardMode') as BoardModes) || 'AI';
 
   // Refresh config from the new Window context
   userConfig.refresh();
