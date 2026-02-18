@@ -10,39 +10,11 @@
   import { updateBoard } from '$features/board/boardAnimation';
   import { playAiMove } from '$features/chessJs/puzzleLogic';
   import { moveAudio, playSound } from '$features/audio/audio';
+  import { pieceImages } from '$utils/toolkit/importAssets';
   import { getContext, untrack } from 'svelte';
   import { spring } from 'svelte/motion';
 
-  import wP_raw from '$assets/pieces/_wP.svg?raw';
-  import wN_raw from '$assets/pieces/_wN.svg?raw';
-  import wB_raw from '$assets/pieces/_wB.svg?raw';
-  import wR_raw from '$assets/pieces/_wR.svg?raw';
-  import wQ_raw from '$assets/pieces/_wQ.svg?raw';
-  import wK_raw from '$assets/pieces/_wK.svg?raw';
-  import bP_raw from '$assets/pieces/_bP.svg?raw';
-  import bN_raw from '$assets/pieces/_bN.svg?raw';
-  import bB_raw from '$assets/pieces/_bB.svg?raw';
-  import bR_raw from '$assets/pieces/_bR.svg?raw';
-  import bQ_raw from '$assets/pieces/_bQ.svg?raw';
-  import bK_raw from '$assets/pieces/_bK.svg?raw';
 
-  // helper to convert raw SVG to Base64 Data URI
-  const toDataUri = (svg: string) => `data:image/svg+xml;base64,${btoa(svg)}`;
-
-  const pieceImages = {
-    wP: toDataUri(wP_raw),
-    wN: toDataUri(wN_raw),
-    wB: toDataUri(wB_raw),
-    wR: toDataUri(wR_raw),
-    wQ: toDataUri(wQ_raw),
-    wK: toDataUri(wK_raw),
-    bP: toDataUri(bP_raw),
-    bN: toDataUri(bN_raw),
-    bB: toDataUri(bB_raw),
-    bR: toDataUri(bR_raw),
-    bQ: toDataUri(bQ_raw),
-    bK: toDataUri(bK_raw),
-  };
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   let boardContainer: HTMLDivElement;
@@ -94,13 +66,15 @@
   // --- Interactive Border ---
 
   const barBottomColor = $derived(
-  userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
-    ? 'grey'
-    : gameStore.boardMode === 'Puzzle'
-      ? gameStore.orientation === 'white'
-        ? 'white'
-        : 'black'
-      : gameStore.turn === 'w' ? 'white' : 'black',
+    userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
+      ? 'grey'
+      : gameStore.boardMode === 'Puzzle'
+        ? gameStore.orientation === 'white'
+          ? 'white'
+          : 'black'
+        : gameStore.turn === 'w'
+          ? 'white'
+          : 'black',
   );
 
   // A) Analysis Centipawn:
@@ -111,8 +85,6 @@
         ? 'black'
         : 'white',
   );
-
-
 
   const dividerSpring = spring(50, {
     stiffness: 0.1,
@@ -200,13 +172,15 @@
     // Only run if board exists
     if (!gameStore.cg || !boardContainer) return;
     untrack(() => {
+      const flipPgn = gameStore.boardMode === 'Puzzle' && userConfig.opts.flipBoard;
+      const isRootMove = gameStore.pgnPath.length === 0;
       boardContainer.focus();
       if (/^(Puzzle|Study)$/.test(gameStore.boardMode)) {
         // These should only trigger ONCE per component mount/reset
         if (userConfig.opts.timer && !timerStore.isRunning) {
           timerStore.start();
         }
-        if (userConfig.opts.flipBoard && gameStore.pgnPath.length === 0) {
+        if (flipPgn && isRootMove) {
           requestAnimationFrame(() => {
             playAiMove(gameStore, userConfig.opts.animationTime + 100);
           });
@@ -448,4 +422,3 @@
     }
   }
 </style>
-

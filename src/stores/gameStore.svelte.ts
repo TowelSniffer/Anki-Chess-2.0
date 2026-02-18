@@ -76,8 +76,9 @@ export class PgnGameStore {
     const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
     if (this.boardMode === 'AI' || (puzzleMode && userConfig.opts.disableArrows)) return [];
     const prevMovePath = navigatePrevMove(this.pgnPath);
+    const flipPgn = userConfig.opts.flipBoard && this.boardMode === 'Puzzle';
     const isStartOfPuzzle =
-      puzzleMode && (!this.pgnPath.length || (userConfig.opts.flipBoard && !prevMovePath.length));
+      puzzleMode && (!this.pgnPath.length || (flipPgn && !prevMovePath.length));
     if (isStartOfPuzzle) return [];
     const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
     const pgnPath = redrawCachedShapes ? prevMovePath : this.pgnPath;
@@ -92,6 +93,7 @@ export class PgnGameStore {
 
   constructor(rawPGN: string, boardMode: BoardModes) {
     const puzzleMode = /^(Puzzle|Study)$/.test(boardMode);
+    const flipPgn = userConfig.opts.flipBoard && this.boardMode === 'Puzzle';
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
     if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
@@ -113,13 +115,7 @@ export class PgnGameStore {
     this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
 
     this.orientation =
-      parsed?.moves[0]?.turn === 'w'
-        ? userConfig.opts.flipBoard
-          ? 'black'
-          : 'white'
-        : userConfig.opts.flipBoard
-          ? 'white'
-          : 'black';
+      parsed?.moves[0]?.turn === 'w' ? (flipPgn ? 'black' : 'white') : flipPgn ? 'white' : 'black';
     this.playerColor = this.orientation;
     this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
 
@@ -131,7 +127,7 @@ export class PgnGameStore {
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
 
     $effect(() => {
-      $inspect(this._puzzleScore)
+      $inspect(this._puzzleScore);
       if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
         this._hasMadeMistake = true;
     });

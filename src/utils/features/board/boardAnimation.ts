@@ -1,6 +1,6 @@
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
-import type { Sounds } from '$features/audio/audio';
+import type { Sounds } from '$Types/Audio';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 
 function injectPiece(fen: string, square: string, replacement: string): string {

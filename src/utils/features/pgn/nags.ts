@@ -1,8 +1,4 @@
-import goodIcon from '$assets/nags/_good.webp';
-import brillIcon from '$assets/nags/_brilliant.webp';
-import blunderIcon from '$assets/nags/_blunder.webp';
-import mistakeIcon from '$assets/nags/_mistake.webp';
-import dubIcon from '$assets/nags/_dubious.webp';
+import { nagImages } from '$utils/toolkit/importAssets';
 
 type NagValue = [string, string] | [string, string, string];
 export type NagKey = `$${number}`;
@@ -15,15 +11,15 @@ export function isNagKey(key: string): key is NagKey {
 }
 
 export const nags: NagMap = {
-  $1: ['Good move', '!', goodIcon],
-  $2: ['Poor move', '?', mistakeIcon],
-  $3: ['Excellent move', '!!', brillIcon],
-  $4: ['Blunder', '??', blunderIcon],
+  $1: ['Good move', '!', nagImages.good],
+  $2: ['Poor move', '?', nagImages.mistake],
+  $3: ['Excellent move', '!!', nagImages.brilliant],
+  $4: ['Blunder', '??', nagImages.blunder],
   $5: ['Interesting move', '!?'],
-  $6: ['Dubious move', '?!', dubIcon],
+  $6: ['Dubious move', '?!', nagImages.dubious],
   $7: ['Forced move', '+'],
   $8: ['The only move', '□'],
-  $9: ['Worst move', '???', blunderIcon],
+  $9: ['Worst move', '???', nagImages.blunder],
   $10: ['Drawish position', '='],
   $11: ['Equal chances, quiet position', '='],
   $12: ['Equal chances, active position', '↉'],
