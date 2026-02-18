@@ -7,9 +7,6 @@ export class UserConfig {
 
   opts = $state<UserConfigOpts>(this._readConfigFromWindow());
 
-  // FIXME need to deside if we still need this. effect.root seems like a better solution
-  // then forcing a re-mounting of APP components
-  boardKey = $state<number>(0);
   isAnkiConnect = $state(false);
   hasAddon = $state(false);
 
@@ -29,6 +26,17 @@ export class UserConfig {
         }
     }
     this._checkConnections();
+
+    $effect.root(() => {
+      // handle config changes
+      $effect(() => {
+        // Loop through options and update sessionStorage
+        for (const [key, value] of Object.entries(this.opts)) {
+          const getPrefixedKey = (key: string) => `${window.CARD_CONFIG?.modelName ?? ''}${key}`;
+          sessionStorage.setItem(getPrefixedKey(key), String(value));
+        }
+      });
+    });
   }
 
   // --- METHODS ---
