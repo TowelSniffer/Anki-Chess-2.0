@@ -24,7 +24,7 @@ export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes): void
     const savedMirrorState =
       sessionStorage.getItem('chess__mirrorState') ?? null;
 
-    if (boardMode === 'Puzzle') {
+    if (/^(Puzzle|Study)$/.test(boardMode)) {
       mirrorState = assignMirrorState();
       sessionStorage.setItem('chess__mirrorState', mirrorState);
     } else if (savedMirrorState) {

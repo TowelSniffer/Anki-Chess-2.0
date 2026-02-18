@@ -48,7 +48,7 @@ export class PgnGameStore {
 
   // --- DERIVED STATE ---
 
-  isPuzzleComplete = $derived(this.boardMode === 'Puzzle' && !this.hasNext);
+  isPuzzleComplete = $derived(/^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext);
 
   // caches the string key (prevents repeated .join() calls)
   currentPathKey = $derived(this.pgnPath.join(','));
@@ -77,8 +77,7 @@ export class PgnGameStore {
     if (this.boardMode === 'AI' || (puzzleMode && userConfig.opts.disableArrows)) return [];
     const prevMovePath = navigatePrevMove(this.pgnPath);
     const isStartOfPuzzle =
-      puzzleMode &&
-      (!this.pgnPath.length || (userConfig.opts.flipBoard && !prevMovePath.length));
+      puzzleMode && (!this.pgnPath.length || (userConfig.opts.flipBoard && !prevMovePath.length));
     if (isStartOfPuzzle) return [];
     const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
     const pgnPath = redrawCachedShapes ? prevMovePath : this.pgnPath;
@@ -92,15 +91,18 @@ export class PgnGameStore {
   });
 
   constructor(rawPGN: string, boardMode: BoardModes) {
+    const puzzleMode = /^(Puzzle|Study)$/.test(boardMode);
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
     if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
-    const randomBoolean = boardMode !== 'Puzzle' ? storedRandomBoolean : !Math.round(Math.random());
-    if (boardMode === 'Puzzle') sessionStorage.setItem('chess_randomBoolean', `${randomBoolean}`);
+    const randomBoolean = !puzzleMode ? storedRandomBoolean : !Math.round(Math.random());
+    if (puzzleMode) sessionStorage.setItem('chess_randomBoolean', `${randomBoolean}`);
 
     const storedScore = sessionStorage.getItem('chess_puzzle_score');
-    if (boardMode !== 'Puzzle') {
+    if (!puzzleMode) {
       this._puzzleScore = (storedScore as PuzzleScored) ?? null;
+    } else {
+      this._puzzleScore = null;
     }
     if (storedScore) sessionStorage.removeItem('chess_puzzle_score');
     this.boardMode = boardMode;
@@ -129,16 +131,23 @@ export class PgnGameStore {
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
 
     $effect(() => {
+      $inspect(this._puzzleScore)
       if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
         this._hasMadeMistake = true;
     });
     $effect(() => {
-      if (this.puzzleScore || this.boardMode === 'Viewer') return;
+      if (this.errorCount > userConfig.opts.handicap) {
+        this.errorCount = 0;
+        this._puzzleScore = 'incorrect';
+      }
+    });
+    $effect(() => {
+      if (this._puzzleScore || this.boardMode === 'Viewer') return;
       if (
-        (this.currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
+        (this.boardMode === 'Puzzle' &&
+          this.currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
           this.currentMove?.turn === this.playerColor[0]) ||
-        (this._hasMadeMistake && userConfig.opts.strictScoring) ||
-        this.errorCount > userConfig.opts.handicap
+        (this._hasMadeMistake && userConfig.opts.strictScoring)
       ) {
         this._puzzleScore = 'incorrect';
       } else if (this.isPuzzleComplete) {
@@ -150,7 +159,7 @@ export class PgnGameStore {
       }
     });
     $effect(() => {
-      if (this._puzzleScore && this.boardMode === 'Puzzle')
+      if (this._puzzleScore && /^(Puzzle|Study)$/.test(this.boardMode))
         sessionStorage.setItem('chess_puzzle_score', this._puzzleScore);
     });
   }

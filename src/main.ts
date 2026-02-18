@@ -54,7 +54,7 @@ if (isFen && pgnContent) {
 }
 
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Viewer';
+  const boardModeFromAnki: BoardModes = target.getAttribute('data-boardMode') as BoardModes || 'Study';
 
   // Refresh config from the new Window context
   userConfig.refresh();
