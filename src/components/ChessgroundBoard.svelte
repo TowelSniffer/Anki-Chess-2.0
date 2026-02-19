@@ -14,8 +14,6 @@
   import { getContext, untrack } from 'svelte';
   import { spring } from 'svelte/motion';
 
-
-
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   let boardContainer: HTMLDivElement;
   onMount(() => {
@@ -58,6 +56,12 @@
       return SCORE_COLORS[gameStore.puzzleScore];
     } else if (gameStore.boardMode === 'Study') {
       return gameStore.turn === 'w' ? 'white' : 'black';
+    } else if (gameStore.boardMode === 'AI' && gameStore.isGameOver) {
+      if (gameStore.isCheckmate)
+        return gameStore.turn === gameStore.playerColor
+          ? SCORE_COLORS.correct
+          : SCORE_COLORS.incorrect;
+      return 'grey'; // draw
     } else {
       return gameStore.playerColor;
     }
@@ -65,10 +69,20 @@
 
   // --- Interactive Border ---
 
+  // analysisMode class for board
+  const analysisMode = $derived(
+    visualDivider !== null &&
+      (engineStore.enabled || commentDiag) &&
+      (gameStore.boardMode === 'Puzzle' || (gameStore.boardMode === 'AI' && !gameStore.isGameOver)),
+  );
+
+  // borderFlash class for board
+  const borderFlash = $derived(/^(Puzzle|Study)$/.test(gameStore.boardMode) && flashState);
+
   const barBottomColor = $derived(
     userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
       ? 'grey'
-      : gameStore.boardMode === 'Puzzle'
+      : /^(Puzzle|AI)$/.test(gameStore.boardMode)
         ? gameStore.orientation === 'white'
           ? 'white'
           : 'black'
@@ -97,12 +111,13 @@
       ? gameStore.currentMove?.commentDiag
       : false,
   );
+
   const visualDivider = $derived.by(() => {
     if (timerStore.visible) {
+      // A) Timer
       return timerStore.percent;
     } else if (!engineStore.enabled && commentDiag) {
-      // Assumes gameStore exposes the current move object.
-      // If your store uses a different name (e.g., gameStore.currentNode), adjust here.
+      // B) %eval
 
       const evMatch = commentDiag?.EV;
       const cpMatch = commentDiag?.eval;
@@ -124,6 +139,7 @@
         return barBottomColor === 'white' ? 100 - winPercent : winPercent;
       }
     } else if (engineStore.enabled) {
+      // C) Engine eval
       let evalPercent = cachedEval;
       const bestLine = engineStore.analysisLines.find((l) => l.id === 1);
       if (bestLine) {
@@ -239,7 +255,8 @@
 
   // Engine Analysis Trigger
   $effect(() => {
-    if (engineStore.enabled) {
+    // Only auto-analyze if we are NOT in AI mode
+    if (engineStore.enabled && gameStore.boardMode !== 'AI') {
       engineStore.analyze(gameStore.fen);
     }
   });
@@ -322,12 +339,10 @@
     onpointerdown={handlePointerDown}
     onwheel={gameStore.boardMode === 'Viewer' ? handleWheel : null}
     onanimationend={() => (flashState = null)}
-    class:analysisMode={visualDivider !== null &&
-      (engineStore.enabled || commentDiag) &&
-      gameStore.boardMode === 'Viewer'}
+    class:analysisMode
     class:timerMode={timerStore.visible}
-    class:border-flash={/^(Puzzle|Study)$/.test(gameStore.boardMode) && flashState}
-    class:view-only={gameStore.isPuzzleComplete}
+    class:border-flash={borderFlash}
+    class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
     style="
     --player-color: {gameStore.playerColor};
     --opponent-color: {gameStore.opponentColor};

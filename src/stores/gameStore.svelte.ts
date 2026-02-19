@@ -115,7 +115,7 @@ export class PgnGameStore {
     this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
 
     this.orientation =
-      parsed?.moves[0]?.turn === 'w' ? (flipPgn ? 'black' : 'white') : flipPgn ? 'white' : 'black';
+      getTurnFromFen(this.startFen) === 'w' ? (flipPgn ? 'black' : 'white') : flipPgn ? 'white' : 'black';
     this.playerColor = this.orientation;
     this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
 

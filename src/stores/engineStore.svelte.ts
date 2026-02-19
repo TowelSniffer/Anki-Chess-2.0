@@ -43,6 +43,9 @@ class EngineStore {
   private _lineBuffer = new Map<number, AnalysisLine>(); // Buffer for incoming lines
   private _updateTimeout: number | null = null; // UI timeout reference
   private _lastInfoUpdate = 0; // Last UI update performance reference
+  // We use this to check if existing has been made.
+  private _initPromise: Promise<void> | null = null;
+  private _aiMoveResolver: ((san: string) => void) | null = null;
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -125,10 +128,10 @@ class EngineStore {
 
   // --- Public Actions ---
 
-  requestMove(fen: string, elo: number = 1500): Promise<string> {
+  requestMove(fen: string, elo: number = 3150): Promise<string> {
     return new Promise((resolve, reject) => {
       // Ensure worker exists
-      if (!this._worker) {
+      if (!this._worker || this.loading) {
         this._initWorker().then(() => this._performAiSearch(fen, elo, resolve));
       } else {
         this._performAiSearch(fen, elo, resolve);
@@ -222,31 +225,24 @@ class EngineStore {
 
   private _performAiSearch(fen: string, elo: number, resolve: (san: string) => void) {
     this.stop();
-    // Define a temporary listener for the 'bestmove'
-    // FIXME Can probably just adapt the default listener for messages. Then we can safely
-    // set this.enabled to true
-    const aiHandler = (e: MessageEvent) => {
-      const msg = e.data;
-      if (typeof msg === 'string' && msg.startsWith('bestmove')) {
-        // Cleanup: Remove listener and Reset Engine Strength
-        this._worker?.removeEventListener('message', aiHandler);
-        this._resetEngineStrength();
 
-        // Extract the move (UCI format: e2e4)
-        const parts = msg.split(' ');
-        const bestMoveUci = parts[1];
+    this._aiMoveResolver = resolve; // Store the resolver for _parseBestMove to use
+    /**
+     * Keep elo value within default stockfish UCI_Elo min/max values
+     * min 1320; max 3190
+     */
+    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+    const clampedElo = clamp(elo, 1320, 3190);
 
-        // We resolve with UCI. The GameStore can convert to SAN or process it directly.
-        resolve(bestMoveUci);
-      }
-    };
+    // Trick the buffer into accepting info lines for this position
+    this._currentFen = fen;
+    this.evalFen = fen;
+    this.isThinking = true;
+    this.enabled = true;
 
-    // Attach listener
-    this._worker!.addEventListener('message', aiHandler);
-
-    // Configure Engine for "Human" play
+    // Configure Engine for "Human" play.
     this._worker!.postMessage(`setoption name UCI_LimitStrength value true`);
-    this._worker!.postMessage(`setoption name UCI_Elo value ${elo}`);
+    this._worker!.postMessage(`setoption name UCI_Elo value ${clampedElo}`);
 
     // Start Search
     this._worker!.postMessage(`position fen ${fen}`);
@@ -285,9 +281,14 @@ class EngineStore {
   }
 
   private _initWorker(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    // If initialization is already happening (or finished), return that exact promise.
+    if (this._initPromise) return this._initPromise;
+    this._initPromise = new Promise((resolve, reject) => {
       this._worker = new Worker('/_stockfish.js');
-      this._worker.onerror = (err) => reject(err);
+      this._worker.onerror = (err) => {
+        this._initPromise = null; // Reset on failure
+        reject(err);
+      };
       this._worker.onmessage = (e) => {
         const msg = e.data;
         if (msg === 'uciok') this._worker?.postMessage('isready');
@@ -298,6 +299,7 @@ class EngineStore {
       };
       this._worker.postMessage('uci');
     });
+    return this._initPromise;
   }
 
   private _handleEngineMessage(e: MessageEvent) {
@@ -315,7 +317,7 @@ class EngineStore {
       this._scheduleUpdate();
     } else if (msg.startsWith('bestmove')) {
       // example: bestmove e2e4 ponder e7e5
-      this._parseBestMove();
+      this._parseBestMove(msg);
     }
   }
 
@@ -461,12 +463,24 @@ class EngineStore {
     }
   }
 
-  private _parseBestMove() {
+  private _parseBestMove(msg?: string) {
     this._flushBuffer();
     this.isThinking = false;
-    // If we have a pending FEN (user moved while engine was thinking),
-    // now that the engine has effectively 'stopped' (sent bestmove),
-    // we can safely start the new analysis.
+
+    // A. Intercept for AI Move
+    if (this._aiMoveResolver && msg) {
+      const parts = msg.split(' ');
+      const bestMoveUci = parts[1];
+
+      const resolve = this._aiMoveResolver;
+      this._aiMoveResolver = null; // Clear it
+      this._resetEngineStrength();
+
+      resolve(bestMoveUci);
+      return; // Exit early so we don't trigger pending analysis
+    }
+
+    // B. logic for continuous analysis
     if (this._pendingFen) {
       this._processPending();
     }

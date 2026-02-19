@@ -28,7 +28,7 @@ const mountApp = () => {
 
   let pgnContent = pgnDiv
     ? pgnDiv.textContent?.trim()
-    : `8/pkppp1Pp/8/8/8/8/PPPPP1PP/RNBQKBNR b KQ - 0 4`;
+    : `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`;
 
   // Detect FEN vs PGN
   // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
