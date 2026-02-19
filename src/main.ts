@@ -37,7 +37,7 @@ const mountApp = () => {
   if (isFen && pgnContent) {
     // Wrap raw FEN in a minimal PGN structure
     // SetUp "1" is crucial for PGN parsers to respect the FEN tag
-    engineStore.init();
+    engineStore.init(pgnContent);
     pgnContent = `[Event "AI Practice"]\n[FEN "${pgnContent}"]\n[SetUp "1"]\n\n*`;
   }
 
