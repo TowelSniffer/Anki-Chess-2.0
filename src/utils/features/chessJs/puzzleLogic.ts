@@ -68,12 +68,14 @@ export async function handleUserMove(
 
     // Trigger AI Response
     try {
-      const bestMoveSan = await engineStore.requestMove(gameStore.fen, 2500);
+      const bestMoveSan = await engineStore.requestMove(gameStore.fen, 3190);
 
       // Play AI Move
       const aiMove = getLegalMove(bestMoveSan, gameStore.fen); // Validate SAN
       if (aiMove) {
-        gameStore.addMove(aiMove);
+        setTimeout(() => {
+          gameStore.addMove(aiMove);
+        }, gameStore.aiDelayTime || 300);
       }
     } catch (e) {
       console.error("AI failed to move", e);

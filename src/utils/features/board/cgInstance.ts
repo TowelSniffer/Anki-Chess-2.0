@@ -29,7 +29,8 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
 
   if (isPromote || isNotPuzzleTurn) return;
 
-  const legalMoveCheck = orig && dest &&  getLegalMove({ from: orig as Square, to: dest }, store.fen);
+  const legalMoveCheck =
+    orig && dest && getLegalMove({ from: orig as Square, to: dest }, store.fen);
   if (orig && dest && legalMoveCheck) {
     /**
      * Checks if user makes a standard click to move
@@ -155,6 +156,14 @@ export function getCgConfig(store: IPgnGameStore) {
    * Svelte reactions.
    */
 
+  // For AI and Puzzle movable should be kept as player color
+  const fixedMovable = /^(Puzzle|AI)$/.test(store.boardMode);
+  const movableColor = fixedMovable
+    ? store.playerColor
+    : store.turn === 'w'
+      ? 'white'
+      : 'black';
+
   // we will distinguish between Fen changes and other config changes
   let isFenUpdate = true;
 
@@ -204,7 +213,7 @@ export function getCgConfig(store: IPgnGameStore) {
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
-    viewOnly: store.isPuzzleComplete || store.viewOnly,
+    viewOnly: store.isPuzzleComplete || store.viewOnly || store.isGameOver,
     turnColor: (store.turn === 'w' ? 'white' : 'black') as CgColor,
     premovable: {
       enabled: true,
@@ -230,8 +239,7 @@ export function getCgConfig(store: IPgnGameStore) {
     movable: {
       free: false,
       showDests: userConfig.opts.showDests,
-      color:
-        store.boardMode === 'Puzzle' ? store.playerColor : store.turn === 'w' ? 'white' : 'black',
+      color: movableColor,
       dests: store.dests,
       events: {
         after: (orig: Key, dest: Key) => {
