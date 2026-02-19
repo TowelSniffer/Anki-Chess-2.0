@@ -257,7 +257,10 @@
   $effect(() => {
     // Only auto-analyze if we are NOT in AI mode
     if (engineStore.enabled && gameStore.boardMode !== 'AI') {
-      engineStore.analyze(gameStore.fen);
+      void gameStore.fen;
+      untrack(() => {
+        engineStore.analyze(gameStore.fen);
+      });
     }
   });
 

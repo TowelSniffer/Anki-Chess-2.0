@@ -47,6 +47,12 @@ class EngineStore {
   private _initPromise: Promise<void> | null = null;
   private _aiMoveResolver: ((san: string) => void) | null = null;
 
+  // Track if the engine is busy and provide a way to wait for it
+  private _idlePromise: Promise<void> = Promise.resolve();
+  private _idleResolver: (() => void) | null = null;
+  // Tracks if requestMove has been called but hasn't finished
+  private _aiRequestPending = false;
+
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
     // We only show the arrow if the analysis actually matches the visual board FEN
@@ -128,14 +134,22 @@ class EngineStore {
 
   // --- Public Actions ---
 
-  requestMove(fen: string, elo: number = 3150): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // Ensure worker exists
-      if (!this._worker || this.loading) {
-        this._initWorker().then(() => this._performAiSearch(fen, elo, resolve));
-      } else {
-        this._performAiSearch(fen, elo, resolve);
-      }
+  async requestMove(fen: string, elo: number = 3150): Promise<string> {
+    this._aiRequestPending = true;
+
+    if (!this._worker || this.loading) {
+      await this._initWorker();
+    }
+    await this._stopAndWait(); // Ensure previous analysis is dead
+
+    return new Promise((resolve) => {
+      // Wrap the resolve to clear the flag when the move is found
+      const wrappedResolve = (san: string) => {
+        this._aiRequestPending = false;
+        resolve(san);
+      };
+
+      this._performAiSearch(fen, elo, wrappedResolve);
     });
   }
 
@@ -150,8 +164,6 @@ class EngineStore {
       this.loading = true;
       try {
         await this._initWorker();
-        this.enabled = true;
-        this.loading = false;
         this.analyze(fen);
       } catch (err) {
         console.error('Engine failed to initialize', err);
@@ -164,8 +176,7 @@ class EngineStore {
     }
   }
 
-  analyze(fen: string) {
-    untrack(() => {
+  async analyze(fen: string) {
       if (!this.enabled || !this._worker || this.loading) return;
 
       // Double check enabled state in case it changed during the delay
@@ -174,23 +185,24 @@ class EngineStore {
       if (this.isThinking && this._currentFen === fen && !this._pendingFen) return;
 
       this._pendingFen = fen;
+      await this._stopAndWait();
 
-      // if the engine is currently thinking, we must stop it first.
-      if (this.isThinking) {
-        this._worker?.postMessage('stop');
-      } else {
-        // If engine is idle, start immediately
-        this._processPending();
-      }
-    });
+      // If the user moved again while we were waiting to stop, abort this older request
+      if (this._pendingFen !== fen) return;
+
+      this._processPending();
   }
 
-  async init() {
+  async init(fen?: string) {
     if (!this._worker) {
       this.loading = true;
       try {
         await this._initWorker();
         this.loading = false;
+        this.enabled = true;
+        if (fen && !this._aiRequestPending) {
+          this.analyze(fen)
+        }
       } catch (err) {
         console.error('Engine failed to initialize', err);
         this.loading = false;
@@ -223,8 +235,27 @@ class EngineStore {
 
   // --- Private Engine Logic ---
 
+  private _lockEngine() {
+    this._idlePromise = new Promise(resolve => {
+      this._idleResolver = resolve;
+    });
+  }
+
+  private _unlockEngine() {
+    if (this._idleResolver) {
+      this._idleResolver();
+      this._idleResolver = null;
+    }
+  }
+
+  private async _stopAndWait() {
+    if (this.isThinking) {
+      this._worker?.postMessage('stop');
+      await this._idlePromise; // Wait until _parseBestMove unlocks it
+    }
+  }
+
   private _performAiSearch(fen: string, elo: number, resolve: (san: string) => void) {
-    this.stop();
 
     this._aiMoveResolver = resolve; // Store the resolver for _parseBestMove to use
     /**
@@ -238,7 +269,7 @@ class EngineStore {
     this._currentFen = fen;
     this.evalFen = fen;
     this.isThinking = true;
-    this.enabled = true;
+    this._lockEngine();
 
     // Configure Engine for "Human" play.
     this._worker!.postMessage(`setoption name UCI_LimitStrength value true`);
@@ -273,6 +304,7 @@ class EngineStore {
     }
 
     this.isThinking = true;
+    this._lockEngine();
 
     // Send commands
     this._worker.postMessage(`position fen ${fen}`);
@@ -467,7 +499,9 @@ class EngineStore {
     this._flushBuffer();
     this.isThinking = false;
 
-    // A. Intercept for AI Move
+    this._unlockEngine();
+
+    // Intercept for AI Move
     if (this._aiMoveResolver && msg) {
       const parts = msg.split(' ');
       const bestMoveUci = parts[1];
@@ -478,11 +512,6 @@ class EngineStore {
 
       resolve(bestMoveUci);
       return; // Exit early so we don't trigger pending analysis
-    }
-
-    // B. logic for continuous analysis
-    if (this._pendingFen) {
-      this._processPending();
     }
   }
 }
