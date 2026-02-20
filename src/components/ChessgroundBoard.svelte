@@ -73,7 +73,7 @@
   const analysisMode = $derived(
     visualDivider !== null &&
       (engineStore.enabled || commentDiag) &&
-      (gameStore.boardMode === 'Puzzle' || (gameStore.boardMode === 'AI' && !gameStore.isGameOver)),
+      (gameStore.boardMode === 'Viewer' || (gameStore.boardMode === 'AI' && !gameStore.isGameOver)),
   );
 
   // borderFlash class for board
@@ -82,7 +82,7 @@
   const barBottomColor = $derived(
     userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
       ? 'grey'
-      : /^(Puzzle|AI)$/.test(gameStore.boardMode)
+      : gameStore.boardMode !== 'Study'
         ? gameStore.orientation === 'white'
           ? 'white'
           : 'black'
@@ -203,6 +203,14 @@
         }
       }
     });
+  });
+
+  $effect(() => {
+    if (gameStore.boardMode !== 'AI') return;
+    const aiPgn = gameStore.currentMove?.history;
+    if (aiPgn) {
+     sessionStorage.setItem('chess_aiPgn', `${aiPgn}`);
+    }
   });
 
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
