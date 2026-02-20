@@ -1,6 +1,7 @@
 import type { BoardModes } from '$Types/ChessStructs';
 import { mount, unmount } from 'svelte';
 import App from './App.svelte';
+import { Chess, validateFen, DEFAULT_POSITION } from 'chess.js';
 import '$scss/app.scss';
 import { userConfig } from '$stores/userConfig.svelte';
 import { engineStore } from '$stores/engineStore.svelte';
@@ -28,23 +29,35 @@ const mountApp = () => {
 
   let pgnContent = pgnDiv
     ? pgnDiv.textContent?.trim()
-    : `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`;
+    : `rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2`;
+  let boardModeFromAnki: BoardModes =
+    (target.getAttribute('data-boardMode') as BoardModes) || 'Puzzle';
 
   // Detect FEN vs PGN
   // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
   const isFen = /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(pgnContent || '');
-
   if (isFen && pgnContent) {
     // Wrap raw FEN in a minimal PGN structure
     // SetUp "1" is crucial for PGN parsers to respect the FEN tag
-    engineStore.init(pgnContent);
-    pgnContent = `[Event "AI Practice"]\n[FEN "${pgnContent}"]\n[SetUp "1"]\n\n*`;
+    const { ok, error } = validateFen(pgnContent);
+    const fen = ok ? pgnContent : DEFAULT_POSITION;
+    engineStore.init(fen);
+    pgnContent = `[Event "AI Practice"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n*`;
+    if (boardModeFromAnki !== 'Viewer') boardModeFromAnki = 'AI'
+  } else if(pgnContent) {
+    const chess = new Chess();
+    try {
+      chess.loadPgn(pgnContent);
+      // PGN is valid and loaded
+    } catch (e) {
+      // Invalid PGN
+      console.error("PGN Validation Failed:", e.message);
+      pgnContent = `[Event "AI Practice"]\n[FEN "${DEFAULT_POSITION}"]\n[SetUp "1"]\n\n*`;
+    }
   }
 
-  console.log(pgnContent)
   const userTextFromAnki = textDiv?.innerHTML ?? null;
-  const boardModeFromAnki: BoardModes =
-    (target.getAttribute('data-boardMode') as BoardModes) || 'AI';
+
 
   // Refresh config from the new Window context
   userConfig.refresh();

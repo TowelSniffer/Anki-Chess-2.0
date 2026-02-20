@@ -22,7 +22,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
 
   // prevent out of turn moves in Puzzle mode
-  const isNotPuzzleTurn = store.boardMode === 'Puzzle' && store.turn !== store.playerColor[0];
+  const isNotPuzzleTurn = /^Puzzle|AI$/.test(store.boardMode) && store.turn !== store.playerColor[0];
 
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   const isPromote = orig && dest && isPromotion(orig as Square, dest, store.fen);
