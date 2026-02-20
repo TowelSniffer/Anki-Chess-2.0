@@ -164,6 +164,8 @@ class EngineStore {
       this.loading = true;
       try {
         await this._initWorker();
+        this.enabled = true;
+        this.loading = false;
         this.analyze(fen);
       } catch (err) {
         console.error('Engine failed to initialize', err);

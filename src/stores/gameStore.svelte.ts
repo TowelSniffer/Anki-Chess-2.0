@@ -127,7 +127,6 @@ export class PgnGameStore {
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
 
     $effect(() => {
-      $inspect(this._puzzleScore);
       if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
         this._hasMadeMistake = true;
     });
@@ -186,16 +185,6 @@ export class PgnGameStore {
 
   reset() {
     this.pgnPath = [];
-  }
-
-  replayHistory(): Chess {
-    const chess = this.newChess(this.startFen);
-    // Get the list of moves to play
-    const moves_to_play = this.currentMove?.history; // Can also use the verbose objects
-
-    // Iterate and play each move
-    moves_to_play?.forEach((move) => chess.move(move));
-    return chess;
   }
 
   // --- Getters ---
@@ -268,9 +257,13 @@ export class PgnGameStore {
 
   addMove(move: Move) {
     if (!this.rootGame) return;
-    const chess = this.replayHistory();
+    const chess = this.newChess()
+    if (this.currentMove?.history) {
+      chess.loadPgn(this.currentMove.history);
+    } else {
+      chess.load(this.startFen)
+    }
     const newPath = addMoveToPgn(move, this.pgnPath, this._moveMap, this.rootGame.moves, chess);
-
     // update local state
     this.pgnPath = newPath;
   }
@@ -286,7 +279,7 @@ export class PgnGameStore {
   }
 
   // Chess js
-  newChess(fen: string) {
+  newChess(fen?: string) {
     return new Chess(fen);
   }
 
