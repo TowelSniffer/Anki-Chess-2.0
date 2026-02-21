@@ -5,6 +5,7 @@ import IconCopy from '~icons/material-symbols/content-copy-sharp';
 import IconChessKnight from '~icons/material-symbols/chess-knight';
 import IconBackgroundGridSmall from '~icons/material-symbols/background-grid-small';
 import IconBugReport from '~icons/material-symbols/bug-report';
+import IconDelete from '~icons/material-symbols/delete';
 
 import { userConfig } from '$stores/userConfig.svelte';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
@@ -207,6 +208,7 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
       children: [
         {
           type: 'action',
+          icon: IconDelete,
           label: 'Clear sessionStorage',
           action: () => sessionStorage.clear(),
         },
@@ -219,6 +221,7 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
         },
         {
           type: 'action',
+          icon: IconCopy,
           label: 'Paste PGN',
           action: () => {
             const newPgn = prompt('Paste new PGN string:');

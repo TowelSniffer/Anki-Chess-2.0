@@ -100,7 +100,11 @@ export class PgnGameStore {
       this.boardMode = getBoardMode();
     });
 
-    // 2. React to entirely new PGNs being loaded without killing the UI
+    $effect(() => {
+      this.boardMode === 'AI' && engineStore.init(this.fen);
+    });
+
+    // React to entirely new PGNs being loaded without killing the UI
     $effect(() => {
       const rawPGN = getPgn();
       untrack(() => {
@@ -142,6 +146,8 @@ export class PgnGameStore {
   }
 
   loadNewGame(rawPGN: string) {
+    engineStore.stopAndClear();
+
     const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
     const flipPgn = userConfig.opts.flipBoard && this.boardMode === 'Puzzle';
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
@@ -175,6 +181,7 @@ export class PgnGameStore {
     this.rootGame = parsed;
 
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
+
   }
 
   // --- Navigation Helpers ---

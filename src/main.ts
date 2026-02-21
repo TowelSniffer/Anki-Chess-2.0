@@ -5,7 +5,6 @@ import { Chess, validateFen, DEFAULT_POSITION } from 'chess.js';
 import '$scss/app.scss';
 import { devPgn, devBoardMode, devText} from '$configs/defaults'
 import { userConfig } from '$stores/userConfig.svelte';
-import { engineStore } from '$stores/engineStore.svelte';
 
 // Track the current instance so we can destroy it before re-mounting
 let appInstance: any = null;
@@ -55,7 +54,6 @@ const mountApp = () => {
     pgnContent = `[Event "AI Practice"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n*`;
     if (boardModeFromAnki !== 'Viewer') {
       boardModeFromAnki = 'AI';
-      engineStore.init(fen);
     }
   } else if (pgnContent) {
     const chess = new Chess();
@@ -78,7 +76,6 @@ const mountApp = () => {
   // If an app already exists, unmount it to prevent memory leaks
   if (appInstance) {
     unmount(appInstance);
-    engineStore.stopAndClear();
     appInstance = null;
   }
 
