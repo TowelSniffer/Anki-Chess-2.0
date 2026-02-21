@@ -40,8 +40,8 @@
         break;
     }
   }
-
-  const menuData = $derived(getMenuData(gameStore));
+  const isDevMenu = import.meta.env.DEV;
+  const menuData = $derived(getMenuData(isDevMenu ? gameStore : undefined));
 </script>
 
 <svelte:window onkeydown={handleKeydown} />

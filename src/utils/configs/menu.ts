@@ -201,7 +201,7 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
     },
 
     // Developer tools
-    ...(import.meta.env.DEV ? [{
+    ...(import.meta.env.DEV && gameStore ? [{
       label: 'Dev Tools',
       icon: IconBugReport,
       children: [
