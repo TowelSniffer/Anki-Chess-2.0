@@ -17,4 +17,6 @@ export interface UserConfigOpts {
   analysisLines: number;
   muteAudio: boolean;
   frontText: boolean;
+  aiMoveTime: number;
+  aiEval: boolean
 }
