@@ -170,7 +170,8 @@ export class PgnGameStore {
 
     if (userConfig.opts.randomOrientation && randomBoolean)
       this.orientation = this.orientation === 'white' ? 'black' : 'white';
-
+    this._moveMap = new Map<string, CustomPgnMove>();
+    this.pgnPath = [];
     this.rootGame = parsed;
 
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
