@@ -790,9 +790,9 @@
   .sel-label {
     padding: 0.3rem 0.5rem;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 400;
     background: var(--surface-primary, #eaeaea);
-    color: var(--surface-primary, #555);
+    color: var(--text-primary, #555);
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
   }
@@ -801,6 +801,7 @@
     background: #ccc;
   }
   .sel-value-section {
+    color: var(--surface-primary, #fff);
     flex: 1;
     position: relative;
   }
@@ -830,6 +831,7 @@
   }
   /* Inner Dropdown for Selector */
   .sel-dropdown {
+    color: var(--surface-primary, #fff);
     position: absolute;
     top: calc(100% + 2px);
     left: -1px;
@@ -851,7 +853,7 @@
     text-align: center;
     cursor: pointer;
     &:hover {
-      background: var(--surface-primary, #f0f0f0);
+      background: var(--text-muted, #f0f0f0);
     }
     &.selected {
       background: #e8f5e9;
