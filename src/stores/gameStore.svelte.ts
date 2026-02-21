@@ -198,7 +198,7 @@ export class PgnGameStore {
    * METHODS
    */
 
-  // --- Internal Methods ---
+  // --- Internal ---
 
   private _resetGameState() {
     this.pgnPath = [];
@@ -234,7 +234,7 @@ export class PgnGameStore {
     return this._moveMap.get(pathKey) || null;
   }
 
-  // --- CG Board Methods ---
+  // --- CG Board ---
 
   loadCgInstance(boardContainer: HTMLDivElement) {
     this.cg = Chessground(boardContainer, { fen: this.fen });
