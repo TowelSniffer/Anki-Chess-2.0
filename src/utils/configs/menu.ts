@@ -4,8 +4,10 @@ import IconSave from '~icons/material-symbols/save-sharp';
 import IconCopy from '~icons/material-symbols/content-copy-sharp';
 import IconChessKnight from '~icons/material-symbols/chess-knight';
 import IconBackgroundGridSmall from '~icons/material-symbols/background-grid-small';
+import IconBugReport from '~icons/material-symbols/bug-report';
 
 import { userConfig } from '$stores/userConfig.svelte';
+import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { UserConfigOpts } from '$Types/UserConfig';
 import type { MenuItem } from '$components/uiUtility/Dropdown.svelte';
 
@@ -17,7 +19,7 @@ function setConfigBoolean(key: BooleanKeys<UserConfigOpts>) {
   userConfig.opts[key] = !userConfig.opts[key];
 }
 
-export function getMenuData(): MenuItem[] {
+export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
   return [
     {
       label: 'Stockfish',
@@ -197,6 +199,36 @@ export function getMenuData(): MenuItem[] {
         },
       ],
     },
+
+    // Developer tools
+    ...(import.meta.env.DEV ? [{
+      label: 'Dev Tools',
+      icon: IconBugReport,
+      children: [
+        {
+          type: 'action',
+          label: 'Clear sessionStorage',
+          action: () => sessionStorage.clear(),
+        },
+        {
+          type: 'select',
+          label: 'Board Mode',
+          options: ['Viewer', 'Puzzle', 'AI', 'Study'],
+          value: gameStore.boardMode,
+          onChange: (val: any) => (gameStore.boardMode = val),
+        },
+        {
+          type: 'action',
+          label: 'Paste PGN',
+          action: () => {
+            const newPgn = prompt('Paste new PGN string:');
+            if (newPgn) gameStore.loadNewGame(newPgn);
+          },
+        }
+      ]
+    } as MenuItem] : []),
+
+    // Save/Copy button
     ...getSaveMenuItemData()
   ].filter((item): item is MenuItem => !!item);
 }

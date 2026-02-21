@@ -41,7 +41,7 @@
     }
   }
 
-  const menuData = $derived(getMenuData());
+  const menuData = $derived(getMenuData(gameStore));
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
