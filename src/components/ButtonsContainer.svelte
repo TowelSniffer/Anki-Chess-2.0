@@ -140,7 +140,7 @@
       border: var(--border-thin);
       background-color: var(--surface-primary);
       color: var(--text-primary);
-      box-shadow: $shadow-main;
+      @include border-shadow;
       height: calc(var(--board-size) * 0.12);
       width: calc(var(--board-size) * 0.12);
       max-width: 45px;
@@ -151,22 +151,26 @@
       transition: background 0.2s;
       font-size: 1.65rem;
 
-      &:hover:not(:disabled) {
+      &:hover:not(:disabled, .active-toggle) {
         background-color: var(--interactive-button-hover);
         color: var(--surface-primary);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 1);
+        @include border-shadow(0.7);
       }
 
       &:active:not(:disabled) {
         background-color: var(--interactive-button-active);
         color: var(--surface-primary);
+        @include border-shadow(0.7, inset);
       }
 
       /* Style for when the analysis toggle button is active */
       &.active-toggle {
         background-color: var(--interactive-button-active);
-        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+        @include border-shadow(0.7, inset);
         color: var(--surface-secondary);
+        &:hover:not(:active) {
+          @include border-shadow(0.7);
+        }
       }
 
       &:focus {
