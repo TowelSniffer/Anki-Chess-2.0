@@ -80,3 +80,7 @@ body.light-theme {
   height: calc($board-size-calc * 0.125);
   width: calc($board-size-calc * 0.125);
 }
+
+@mixin border-shadow($opacity: 0.5, $inset: "") {
+  box-shadow: #{$inset} 0 1px 3px rgba(0, 0, 0, $opacity);
+}

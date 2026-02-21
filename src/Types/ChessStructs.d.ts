@@ -49,7 +49,7 @@ export type CustomPgnMove = Omit<
   commentDiag?: CustomGameComment;
   pgnPath: PgnPath;
   variations: CustomPgnMove[][];
-  history: string[];
+  history: string;
   isCheck: boolean;
   isCheckmate: boolean;
   isDraw: boolean;

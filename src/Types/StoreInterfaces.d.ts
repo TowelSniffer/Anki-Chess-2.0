@@ -54,7 +54,6 @@ export interface IPgnGameStore {
   next(): void;
   prev(): void;
   reset(): void;
-  replayHistory(): Chess;
 
   // Note: loadCgInstance depends on an HTML element
   loadCgInstance(boardContainer: HTMLDivElement): void;

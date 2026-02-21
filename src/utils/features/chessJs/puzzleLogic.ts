@@ -48,7 +48,7 @@ export async function handleUserMove(
   dest: Square,
   san?: string,
   promotionRole?: string,
-): void {
+) {
   let moveObject: string | MoveInput;
   moveObject = promotionRole
     ? { from: orig, to: dest, promotion: promotionRole }

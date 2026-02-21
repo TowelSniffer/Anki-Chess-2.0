@@ -45,13 +45,13 @@ class EngineStore {
   private _lastInfoUpdate = 0; // Last UI update performance reference
   // We use this to check if existing has been made.
   private _initPromise: Promise<void> | null = null;
-  private _aiMoveResolver: ((san: string) => void) | null = null;
 
   // Track if the engine is busy and provide a way to wait for it
   private _idlePromise: Promise<void> = Promise.resolve();
   private _idleResolver: (() => void) | null = null;
   // Tracks if requestMove has been called but hasn't finished
   private _aiRequestPending = false;
+  private _aiMoveResolver: ((san: string) => void) | null = null;
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -179,20 +179,20 @@ class EngineStore {
   }
 
   async analyze(fen: string) {
-      if (!this.enabled || !this._worker || this.loading) return;
+    if (!this.enabled || !this._worker || this.loading) return;
 
-      // Double check enabled state in case it changed during the delay
-      if (!this.enabled) return;
-      // If we are already thinking about this exact FEN, do nothing
-      if (this.isThinking && this._currentFen === fen && !this._pendingFen) return;
+    // Double check enabled state in case it changed during the delay
+    if (!this.enabled) return;
+    // If we are already thinking about this exact FEN, do nothing
+    if (this.isThinking && this._currentFen === fen && !this._pendingFen) return;
 
-      this._pendingFen = fen;
-      await this._stopAndWait();
+    this._pendingFen = fen;
+    await this._stopAndWait();
 
-      // If the user moved again while we were waiting to stop, abort this older request
-      if (this._pendingFen !== fen) return;
+    // If the user moved again while we were waiting to stop, abort this older request
+    if (this._pendingFen !== fen) return;
 
-      this._processPending();
+    this._processPending();
   }
 
   async init(fen?: string) {
@@ -203,7 +203,7 @@ class EngineStore {
         this.loading = false;
         this.enabled = true;
         if (fen && !this._aiRequestPending) {
-          this.analyze(fen)
+          this.analyze(fen);
         }
       } catch (err) {
         console.error('Engine failed to initialize', err);
@@ -238,7 +238,7 @@ class EngineStore {
   // --- Private Engine Logic ---
 
   private _lockEngine() {
-    this._idlePromise = new Promise(resolve => {
+    this._idlePromise = new Promise((resolve) => {
       this._idleResolver = resolve;
     });
   }
@@ -258,13 +258,12 @@ class EngineStore {
   }
 
   private _performAiSearch(fen: string, elo: number, resolve: (san: string) => void) {
-
     this._aiMoveResolver = resolve; // Store the resolver for _parseBestMove to use
     /**
      * Keep elo value within default stockfish UCI_Elo min/max values
      * min 1320; max 3190
      */
-    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+    const clamp = (val: number, min: number, max: number) => Math.min(Math.max(val, min), max);
     const clampedElo = clamp(elo, 1320, 3190);
 
     // Trick the buffer into accepting info lines for this position
