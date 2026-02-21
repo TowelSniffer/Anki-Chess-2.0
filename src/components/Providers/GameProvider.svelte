@@ -4,7 +4,7 @@
 
   let { pgn, boardMode, children } = $props();
 
-  const gameStore = new PgnGameStore(pgn, boardMode);
+  const gameStore = new PgnGameStore(() => pgn, () => boardMode);
   setContext('GAME_STORE', gameStore);
 </script>
 

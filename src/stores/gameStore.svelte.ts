@@ -10,6 +10,8 @@ import type {
 } from '$Types/ChessStructs';
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
+import { untrack } from 'svelte';
+
 import { getCgConfig } from '$features/board/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
@@ -25,7 +27,7 @@ import { userConfig } from '$stores/userConfig.svelte';
 export class PgnGameStore {
   // --- Game State ---
   cg: Api | null = null;
-  boardMode: BoardModes = 'Viewer';
+  boardMode = $state<BoardModes>('Viewer');
   readonly aiDelayTime = userConfig.opts.animationTime + 100;
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   pgnPath = $state<PgnPath>([]);
@@ -91,40 +93,20 @@ export class PgnGameStore {
     ];
   });
 
-  constructor(rawPGN: string, boardMode: BoardModes) {
-    const puzzleMode = /^(Puzzle|Study)$/.test(boardMode);
-    const flipPgn = userConfig.opts.flipBoard && this.boardMode === 'Puzzle';
-    const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
-    if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
+  boardConfig = $derived(getCgConfig(this));
 
-    const randomBoolean = !puzzleMode ? storedRandomBoolean : !Math.round(Math.random());
-    if (puzzleMode) sessionStorage.setItem('chess_randomBoolean', `${randomBoolean}`);
+  constructor(getPgn: () => string, getBoardMode: () => BoardModes) {
+    $effect(() => {
+      this.boardMode = getBoardMode();
+    });
 
-    const storedScore = sessionStorage.getItem('chess_puzzle_score');
-    if (!puzzleMode) {
-      this._puzzleScore = (storedScore as PuzzleScored) ?? null;
-    } else {
-      this._puzzleScore = null;
-    }
-    if (storedScore) sessionStorage.removeItem('chess_puzzle_score');
-    this.boardMode = boardMode;
-
-    const parsed = parsePGN(rawPGN);
-    mirrorPGN(parsed, boardMode);
-
-    this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
-
-    this.orientation =
-      getTurnFromFen(this.startFen) === 'w' ? (flipPgn ? 'black' : 'white') : flipPgn ? 'white' : 'black';
-    this.playerColor = this.orientation;
-    this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
-
-    if (userConfig.opts.randomOrientation && randomBoolean)
-      this.orientation = this.orientation === 'white' ? 'black' : 'white';
-
-    this.rootGame = parsed;
-
-    augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
+    // 2. React to entirely new PGNs being loaded without killing the UI
+    $effect(() => {
+      const rawPGN = getPgn();
+      untrack(() => {
+        this.loadNewGame(rawPGN);
+      });
+    });
 
     $effect(() => {
       if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
@@ -159,7 +141,40 @@ export class PgnGameStore {
     });
   }
 
-  boardConfig = $derived(getCgConfig(this));
+  loadNewGame(rawPGN: string) {
+    const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
+    const flipPgn = userConfig.opts.flipBoard && this.boardMode === 'Puzzle';
+    const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
+    if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
+
+    const randomBoolean = !puzzleMode ? storedRandomBoolean : !Math.round(Math.random());
+    if (puzzleMode) sessionStorage.setItem('chess_randomBoolean', `${randomBoolean}`);
+
+    const storedScore = sessionStorage.getItem('chess_puzzle_score');
+    if (!puzzleMode) {
+      this._puzzleScore = (storedScore as PuzzleScored) ?? null;
+    } else {
+      this._puzzleScore = null;
+    }
+    if (storedScore) sessionStorage.removeItem('chess_puzzle_score');
+
+    const parsed = parsePGN(rawPGN);
+    mirrorPGN(parsed, this.boardMode);
+
+    this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
+
+    this.orientation =
+      getTurnFromFen(this.startFen) === 'w' ? (flipPgn ? 'black' : 'white') : flipPgn ? 'white' : 'black';
+    this.playerColor = this.orientation;
+    this.opponentColor = this.playerColor === 'white' ? 'black' : 'white';
+
+    if (userConfig.opts.randomOrientation && randomBoolean)
+      this.orientation = this.orientation === 'white' ? 'black' : 'white';
+
+    this.rootGame = parsed;
+
+    augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
+  }
 
   // --- Navigation Helpers ---
 
