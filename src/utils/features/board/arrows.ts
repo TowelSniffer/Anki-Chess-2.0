@@ -23,7 +23,8 @@ export enum ShapeFilter {
 export const shapePriority: CustomShapeBrushes[] = [
   'stockfish', // Draw this first (Bottom Layer)
   'stockfishAlt',
-  'mainLine', // Draw this second
+  'goodLine',
+  'mainLine',
   'altLine',
   'blunderLine', // Draw this last (Top Layer)
 ];
