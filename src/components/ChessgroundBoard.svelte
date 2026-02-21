@@ -43,6 +43,9 @@
     perfect: 'var(--status-perfect)',
   };
 
+  // BORDER FLASH FIXME type for flash colours
+  let flashState = $state<PuzzleScored>(null);
+
   // --- DERIVATIONS ---
 
   // Border Color
@@ -58,7 +61,7 @@
       return gameStore.turn === 'w' ? 'white' : 'black';
     } else if (gameStore.boardMode === 'AI' && gameStore.isGameOver) {
       if (gameStore.isCheckmate)
-        return gameStore.turn === gameStore.playerColor
+        return gameStore.turn === gameStore.playerColor[0]
           ? SCORE_COLORS.correct
           : SCORE_COLORS.incorrect;
       return 'grey'; // draw
@@ -68,16 +71,6 @@
   });
 
   // --- Interactive Border ---
-
-  // analysisMode class for board
-  const analysisMode = $derived(
-    visualDivider !== null &&
-      (engineStore.enabled || commentDiag) &&
-      (gameStore.boardMode === 'Viewer' || (gameStore.boardMode === 'AI' && !gameStore.isGameOver)),
-  );
-
-  // borderFlash class for board
-  const borderFlash = $derived(/^(Puzzle|Study)$/.test(gameStore.boardMode) && flashState);
 
   const barBottomColor = $derived(
     userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
@@ -169,6 +162,16 @@
     }
   });
 
+  // analysisMode class for board
+  const analysisMode = $derived(
+    visualDivider !== null &&
+      (engineStore.enabled || commentDiag) &&
+      (gameStore.boardMode === 'Viewer' || (gameStore.boardMode === 'AI' && !gameStore.isGameOver)),
+  );
+
+  // borderFlash class for board
+  const borderFlash = $derived(/^(Puzzle|Study)$/.test(gameStore.boardMode) && flashState);
+
   // --- REACTIVE LOGIC ---
 
   // Sync the Spring to derived visualDivider
@@ -209,7 +212,7 @@
     if (gameStore.boardMode !== 'AI') return;
     const aiPgn = gameStore.currentMove?.history;
     if (aiPgn) {
-     sessionStorage.setItem('chess_aiPgn', `${aiPgn}`);
+      sessionStorage.setItem('chess_aiPgn', `${aiPgn}`);
     }
   });
 
@@ -272,17 +275,11 @@
     }
   });
 
-  // BORDER FLASH FIXME type for flash colours
-  let flashState = $state<PuzzleScored>(null);
-  let lastErrorCount = 0; // To track changes, not just values
-
   // A) : Handle Mistakes (Flash Red)
   $effect(() => {
-    // Determine if error count increased
-    if (gameStore.errorCount > lastErrorCount) {
+    if (gameStore.errorCount) { // ie > 0
       triggerFlash('incorrect');
     }
-    lastErrorCount = gameStore.errorCount;
   });
   // B) : Handle Timeout (Flash Red)
   $effect(() => {
