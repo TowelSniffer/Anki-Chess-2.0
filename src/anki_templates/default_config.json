@@ -10,6 +10,7 @@
   "timerAdvance": false,
   "strictScoring": false,
   "acceptVariations": true,
+  "playBothSides": false,
   "timer": 10000,
   "increment": 1000,
   "randomOrientation": false,
