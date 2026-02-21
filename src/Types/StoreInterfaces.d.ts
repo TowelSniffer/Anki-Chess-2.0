@@ -15,24 +15,26 @@ export interface IPgnGameStore {
   // --- STATE (Variables) ---
   cg: Api | null;
   boardMode: BoardModes;
-  aiDelayTime: number;
   rootGame: CustomPgnGame | undefined;
   pgnPath: PgnPath;
   orientation: CgColor;
   errorCount: number;
   selectedPiece: Square | undefined;
+  pendingPromotion: { from: Square; to: Square } | null;
+  customAnimation: { fen: string; animate: boolean } | null;
+
+  // Non-reactive variables
   startFen: string;
   playerColor: CgColor;
   opponentColor: CgColor;
-  pendingPromotion: { from: Square; to: Square } | null;
-  customAnimation: { fen: string; animate: boolean } | null;
-  viewOnly: boolean;
 
   // --- DERIVED (Getters) ---
+  readonly aiDelayTime: number;
   readonly isPuzzleComplete: boolean;
   readonly currentPathKey: string;
   readonly currentMove: CustomPgnMove | null;
   readonly fen: string;
+  readonly viewOnly: boolean;
   readonly turn: Color;
   readonly boardConfig: any;
   readonly hasNext: boolean;
