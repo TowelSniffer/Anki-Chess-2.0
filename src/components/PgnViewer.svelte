@@ -34,6 +34,22 @@
     const key = move.nag?.find(isNagKey);
     return key ? { title: nags[key]?.[0], symbol: nags[key]?.[1] } : {};
   }
+
+  // Auto-scroll logic
+  $effect(() => {
+    // We depend on currentPgnPathKey to trigger the scroll
+    const activeKey = currentPgnPathKey;
+    requestAnimationFrame(() => {
+      const activeEl = document.querySelector(`[data-path-key="${activeKey}"]`);
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'start'
+        });
+      }
+    });
+  });
 </script>
 
 {#snippet nullItem()}
@@ -178,6 +194,7 @@
   }
 
   .move {
+    scroll-margin-top: calc($button-size-calc + 9px);
     cursor: pointer;
     position: relative;
     box-sizing: border-box;

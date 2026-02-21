@@ -107,6 +107,7 @@
 </button>
 
 <style lang="scss">
+
   /* Animation for when the analysis toggle button is loading */
   @keyframes spin {
     from {
@@ -132,7 +133,6 @@
     }
 
     &.navBtn {
-      padding: 0;
       @include flex-center;
       z-index: 20;
       flex-direction: row;
@@ -141,11 +141,9 @@
       background-color: var(--surface-primary);
       color: var(--text-primary);
       @include border-shadow;
-      height: calc(var(--board-size) * 0.12);
-      width: calc(var(--board-size) * 0.12);
-      max-width: 45px;
-      max-height: 45px;
-      margin: 3px;
+      width: $button-size-calc;
+      height: $button-size-calc;
+      @include x-margin($button-margin-calc);
       cursor: pointer;
       box-sizing: border-box;
       transition: background 0.2s;
