@@ -50,6 +50,7 @@ export interface IPgnGameStore {
   readonly prevPath: PgnPath | null;
 
   // --- METHODS ---
+  loadNewGame(rawPGN: string): void;
   setMoveDebounce(): void;
   next(): void;
   prev(): void;
