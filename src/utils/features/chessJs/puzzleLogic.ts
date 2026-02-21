@@ -25,16 +25,19 @@ function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath |
   const nextMainMove = gameStore.getMoveByPath(nextMainPath);
   if (!nextMainMove) return null;
 
-  // check Main Line
+  // A) Check Main Line
   if (isSameMove(nextMainMove, playedMove)) return nextMainPath;
 
-  if (/^(Puzzle|Study)$/.test(gameStore.boardMode) && !userConfig.opts.acceptVariations) return null;
+  // B) Check Variation Lines
+  const isVariations = nextMainMove.variations?.length;
+  const isPuzzle = /^(Puzzle|Study)$/.test(gameStore.boardMode);
+  const rejectVariations = isPuzzle && !userConfig.opts.acceptVariations;
+  // acceptVariations?
+  if (rejectVariations || !isVariations) return null;
 
-  // check Variations
-  if (nextMainMove.variations?.length) {
-    for (const variationLine of nextMainMove.variations) {
-      if (isSameMove(variationLine[0], playedMove)) return variationLine[0].pgnPath;
-    }
+  // Loop through Variations
+  for (const variationLine of nextMainMove.variations) {
+    if (isSameMove(variationLine[0], playedMove)) return variationLine[0].pgnPath;
   }
 
   return null;
@@ -61,7 +64,6 @@ export async function handleUserMove(
   }
 
   if (gameStore.boardMode === 'AI') {
-
     gameStore.addMove(move);
 
     if (gameStore.isGameOver) return;
@@ -78,30 +80,28 @@ export async function handleUserMove(
         }, gameStore.aiDelayTime || 300);
       }
     } catch (e) {
-      console.error("AI failed to move", e);
-    }
-
-  } else {
-
-  // logic: Existing Path vs New Move
-  const existingPath = findMatchingPath(gameStore, move);
-
-  if (existingPath) {
-    // A) Move exists in PGN (Main line or Variation)
-    gameStore.pgnPath = existingPath;
-    timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
-    if (gameStore.boardMode === 'Puzzle') {
-      playAiMove(gameStore, gameStore.aiDelayTime || 300);
+      console.error('AI failed to move', e);
     }
   } else {
-    // B) Move does not exist in PGN
-    if (gameStore.boardMode === 'Viewer') {
-      gameStore.addMove(move); // Add to PGN
+    // logic: Existing Path vs New Move
+    const existingPath = findMatchingPath(gameStore, move);
+
+    if (existingPath) {
+      // A) Move exists in PGN (Main line or Variation)
+      gameStore.pgnPath = existingPath;
+      timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
+      if (gameStore.boardMode === 'Puzzle') {
+        playAiMove(gameStore, gameStore.aiDelayTime || 300);
+      }
     } else {
-      // Wrong move in Puzzle mode
-      handleWrongMove(gameStore, move);
+      // B) Move does not exist in PGN
+      if (gameStore.boardMode === 'Viewer') {
+        gameStore.addMove(move); // Add to PGN
+      } else {
+        // Wrong move in Puzzle mode
+        handleWrongMove(gameStore, move);
+      }
     }
-  }
   }
 }
 
