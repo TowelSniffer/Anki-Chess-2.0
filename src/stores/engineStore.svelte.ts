@@ -134,7 +134,7 @@ class EngineStore {
 
   // --- Public Actions ---
 
-  async requestMove(fen: string, elo: number = 3150): Promise<string> {
+  async requestMove(fen: string, elo: number = 3190, moveTime: number = 1000): Promise<string> {
     this._aiRequestPending = true;
 
     if (!this._worker || this.loading) {
@@ -149,7 +149,7 @@ class EngineStore {
         resolve(san);
       };
 
-      this._performAiSearch(fen, elo, wrappedResolve);
+      this._performAiSearch(fen, elo, moveTime, wrappedResolve);
     });
   }
 
@@ -258,7 +258,7 @@ class EngineStore {
     }
   }
 
-  private _performAiSearch(fen: string, elo: number, resolve: (san: string) => void) {
+  private _performAiSearch(fen: string, elo: number, moveTime: number, resolve: (san: string) => void) {
     this._aiMoveResolver = resolve; // Store the resolver for _parseBestMove to use
     /**
      * Keep elo value within default stockfish UCI_Elo min/max values
@@ -280,7 +280,7 @@ class EngineStore {
 
     // Start Search
     this._worker!.postMessage(`position fen ${fen}`);
-    this._worker!.postMessage(`go movetime 1000`);
+    this._worker!.postMessage(`go movetime ${moveTime}`);
   }
 
   private _resetEngineStrength() {

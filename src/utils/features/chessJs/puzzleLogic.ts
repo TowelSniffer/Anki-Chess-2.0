@@ -68,7 +68,7 @@ export async function handleUserMove(
 
     // Trigger AI Response
     try {
-      const bestMoveSan = await engineStore.requestMove(gameStore.fen, 3190);
+      const bestMoveSan = await engineStore.requestMove(gameStore.fen);
 
       // Play AI Move
       const aiMove = getLegalMove(bestMoveSan, gameStore.fen); // Validate SAN
