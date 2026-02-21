@@ -478,7 +478,7 @@
     border: var(--border-thin, 1px solid #ccc);
     background-color: var(--surface-primary, #fff);
     color: var(--text-primary, #333);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    @include border-shadow;
     height: calc(var(--board-size) * 0.12);
     width: calc(var(--board-size) * 0.12);
     max-width: 45px;
@@ -488,18 +488,19 @@
     box-sizing: border-box;
     transition: background 0.2s;
 
-    &:hover:not(:disabled, :active) {
+    &:hover:not(:disabled, :active, .isActive) {
       background-color: var(--interactive-button-hover, #f0f0f0);
       color: var(--surface-primary);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 1);
+      @include border-shadow(0.7);
     }
     &.isActive,
     &:active {
-      background-color: var(--interactive-button-hover, #e0e0e0);
+      background-color: var(--interactive-button-active, #e0e0e0);
       color: var(--surface-primary);
-    }
-    &:active {
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 1);
+      @include border-shadow(0.7, inset);
+      &:hover:not(:active) {
+        @include border-shadow(0.7);
+      }
     }
     &:disabled {
       opacity: 0.5;
@@ -511,7 +512,17 @@
     }
   }
 
+  @mixin menu-shadow($opacity) {
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, $opacity),
+      0 10px 15px -3px rgba(0, 0, 0, $opacity);
+  }
+
   /* --- Menu --- */
+  .menu, .submenu {
+    @include menu-shadow(0.5);
+  }
+
   .menu {
     box-sizing: border-box;
     position: fixed;
@@ -520,7 +531,6 @@
     background-color: var(--surface-primary, #fff);
     color: var(--text-primary, #333);
     border: 1px solid #ccc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-radius: 6px;
     padding: 0.3rem 0;
     animation: fade-in 0.1s ease-out;
@@ -542,7 +552,6 @@
     background: var(--surface-primary, #fff);
     border: 1px solid #ccc;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 0.3rem 0;
 
     /* GRACE PERIOD (Default / Mouse Leave) */
@@ -870,4 +879,3 @@
     }
   }
 </style>
-
