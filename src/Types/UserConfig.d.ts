@@ -10,6 +10,7 @@ export interface UserConfigOpts {
   timerAdvance: boolean;
   strictScoring: boolean;
   acceptVariations: boolean;
+  playBothSides: boolean;
   timer: number;
   increment: number;
   randomOrientation: boolean;
