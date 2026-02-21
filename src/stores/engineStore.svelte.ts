@@ -20,21 +20,25 @@ export interface AnalysisLine {
 }
 
 class EngineStore {
-  // --- Reactive State ---
-  enabled = $state(false);
-  isThinking = $state(false);
-  loading = $state(false);
-  multipvOptions = [1, 2, 3, 4, 5];
 
-  // Data
+  /*
+   * ENGINE STATE
+   */
+
+  // --- State variables ---
+  enabled = $state(false);
+  loading = $state(false);
+
+  // Analysis Data
   evalFen = $state<string>(''); // The FEN that the current analysis belongs to
   analysisLines = $state<AnalysisLine[]>([]);
 
-  analysisThinkingTime = $derived(userConfig.opts.analysisTime);
-  multipv = $derived(userConfig.opts.analysisLines);
+  // --- Non-reactive variables ---
 
-  thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
-  delay = userConfig.opts.animationTime ?? 200;
+  isThinking = false;
+  multipvOptions = [1, 2, 3, 4, 5];
+
+  // --- Internal State ---
 
   private _worker: Worker | null = null;
   private _currentFen = ''; // The FEN currently being processed by the engine
@@ -52,6 +56,17 @@ class EngineStore {
   // Tracks if requestMove has been called but hasn't finished
   private _aiRequestPending = false;
   private _aiMoveResolver: ((san: string) => void) | null = null;
+
+  /*
+   * DERIVED STATE
+   */
+
+  // --- User Config ---
+  analysisThinkingTime = $derived(userConfig.opts.analysisTime);
+  multipv = $derived(userConfig.opts.analysisLines);
+
+  thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
+  delay = userConfig.opts.animationTime ?? 200;
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -132,7 +147,11 @@ class EngineStore {
     });
   }
 
-  // --- Public Actions ---
+  /*
+   * METHODS
+   */
+
+  // --- Public ---
 
   async requestMove(fen: string, elo: number = 3190, moveTime: number = 1000): Promise<string> {
     this._aiRequestPending = true;
@@ -236,7 +255,7 @@ class EngineStore {
     }
   }
 
-  // --- Private Engine Logic ---
+  // --- Private ---
 
   private _lockEngine() {
     this._idlePromise = new Promise((resolve) => {
@@ -274,19 +293,19 @@ class EngineStore {
     this._lockEngine();
 
     // Configure Engine for "Human" play.
-    this._worker.postMessage(`setoption name MultiPV value 1`);
-    this._worker!.postMessage(`setoption name UCI_LimitStrength value true`);
-    this._worker!.postMessage(`setoption name UCI_Elo value ${clampedElo}`);
+    this._worker?.postMessage(`setoption name MultiPV value 1`);
+    this._worker?.postMessage(`setoption name UCI_LimitStrength value true`);
+    this._worker?.postMessage(`setoption name UCI_Elo value ${clampedElo}`);
 
     // Start Search
-    this._worker!.postMessage(`position fen ${fen}`);
-    this._worker!.postMessage(`go movetime ${moveTime}`);
+    this._worker?.postMessage(`position fen ${fen}`);
+    this._worker?.postMessage(`go movetime ${moveTime}`);
   }
 
   private _resetEngineStrength() {
     // IMPORTANT: Turn off limits so normal analysis is accurate again
     this._worker?.postMessage(`setoption name UCI_LimitStrength value false`);
-    this._worker.postMessage(`setoption name MultiPV value ${this.multipv}`);
+    this._worker?.postMessage(`setoption name MultiPV value ${this.multipv}`);
   }
 
   private _processPending() {
