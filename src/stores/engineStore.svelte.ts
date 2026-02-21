@@ -196,7 +196,7 @@ class EngineStore {
   }
 
   async init(fen?: string) {
-    if (!this._worker) {
+    if (!this._worker && !this.loading) {
       this.loading = true;
       try {
         await this._initWorker();
@@ -207,7 +207,6 @@ class EngineStore {
         }
       } catch (err) {
         console.error('Engine failed to initialize', err);
-        this.loading = false;
       }
     }
   }
