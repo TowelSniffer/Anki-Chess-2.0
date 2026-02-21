@@ -196,6 +196,7 @@ class EngineStore {
   }
 
   async init(fen?: string) {
+    this.enabled = true;
     if (!this._worker && !this.loading) {
       this.loading = true;
       try {
@@ -207,6 +208,7 @@ class EngineStore {
         }
       } catch (err) {
         console.error('Engine failed to initialize', err);
+        this.enabled = false;
       }
     }
   }
@@ -272,6 +274,7 @@ class EngineStore {
     this._lockEngine();
 
     // Configure Engine for "Human" play.
+    this._worker.postMessage(`setoption name MultiPV value 1`);
     this._worker!.postMessage(`setoption name UCI_LimitStrength value true`);
     this._worker!.postMessage(`setoption name UCI_Elo value ${clampedElo}`);
 
@@ -283,6 +286,7 @@ class EngineStore {
   private _resetEngineStrength() {
     // IMPORTANT: Turn off limits so normal analysis is accurate again
     this._worker?.postMessage(`setoption name UCI_LimitStrength value false`);
+    this._worker.postMessage(`setoption name MultiPV value ${this.multipv}`);
   }
 
   private _processPending() {
