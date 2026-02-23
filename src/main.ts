@@ -3,7 +3,7 @@ import { mount, unmount } from 'svelte';
 import App from './App.svelte';
 import { Chess, validateFen, DEFAULT_POSITION } from 'chess.js';
 import '$scss/app.scss';
-import { devPgn, devBoardMode, devText} from '$configs/defaults'
+import { devPgn, devBoardMode, devText } from '$configs/defaults';
 import { userConfig } from '$stores/userConfig.svelte';
 
 // Track the current instance so we can destroy it before re-mounting
@@ -27,13 +27,14 @@ const mountApp = () => {
   const textDiv = document.getElementById('anki-textField');
   const pgnDiv = document.getElementById('anki-pgn');
 
-  let pgnContent = pgnDiv
-    ? pgnDiv.textContent?.trim()
-    : devPgn;
+  let pgnContent = pgnDiv ? pgnDiv.textContent?.trim() : devPgn;
   let boardModeFromAnki: BoardModes =
     (target.getAttribute('data-boardMode') as BoardModes) || devBoardMode;
 
-  // Detect FEN vs PGN
+  /*
+   * Detect FEN vs PGN for AI mode
+   */
+
   // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
   const aiPgn = sessionStorage.getItem('chess_aiPgn');
   if (aiPgn) {
@@ -68,7 +69,7 @@ const mountApp = () => {
     }
   }
 
-  const userTextFromAnki = textDiv?.innerHTML ?? import.meta.env.DEV ? devText : '';
+  const userTextFromAnki = (textDiv?.innerHTML ?? import.meta.env.DEV) ? devText : '';
 
   // Refresh config from the new Window context
   userConfig.refresh();

@@ -101,13 +101,18 @@ export class PgnGameStore {
 
   constructor(getPgn: () => string, getBoardMode: () => BoardModes) {
     // Initialize synchronously (BEFORE child components mount)
-    this.boardMode = getBoardMode();
+    const boardMode = () => {
+      if (getBoardMode() === 'Puzzle' && userConfig.opts.playBothSides) return 'Study';
+      return getBoardMode();
+    };
+    this.boardMode = boardMode();
     this.loadNewGame(getPgn());
     let isInitialPgnLoad = true;
 
     $effect(() => {
-      this.boardMode = getBoardMode();
+      this.boardMode = boardMode();
     });
+
     $effect(() => {
       if (this.boardMode === 'AI') {
         timerStore.reset();
@@ -115,7 +120,7 @@ export class PgnGameStore {
       } else if (/^Puzzle|Study$/.test(this.boardMode)) {
         const flipPgn = this.boardMode === 'Puzzle' && userConfig.opts.flipBoard;
         untrack(() => {
-          if(!isInitialPgnLoad) this.loadNewGame(getPgn());
+          if (!isInitialPgnLoad) this.loadNewGame(getPgn());
           engineStore.stopAndClear();
           timerStore.reset();
           timerStore.start();
@@ -128,7 +133,7 @@ export class PgnGameStore {
       } else if (this.boardMode === 'Viewer') {
         untrack(() => {
           timerStore.stop();
-          if(!isInitialPgnLoad) this.loadNewGame(getPgn());
+          if (!isInitialPgnLoad) this.loadNewGame(getPgn());
         });
       }
     });
