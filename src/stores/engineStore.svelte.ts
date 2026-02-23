@@ -222,13 +222,15 @@ class EngineStore {
         await this._initWorker();
         this.loading = false;
         this.enabled = true;
-        if (fen && !this._aiRequestPending) {
+        if (!!fen && !this._aiRequestPending) {
           this.analyze(fen);
         }
       } catch (err) {
         console.error('Engine failed to initialize', err);
         this.enabled = false;
       }
+    } else if (!!fen && this._worker && !this._aiRequestPending) {
+      this.analyze(fen);
     }
   }
 
