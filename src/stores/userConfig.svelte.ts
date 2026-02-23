@@ -10,10 +10,10 @@ export class UserConfig {
   isAnkiConnect = $state(false);
   hasAddon = $state(false);
 
-  lastSavedState = $state<Record<string, any>>({});
+  lastSavedState = $state.snapshot(this.opts);
 
   // --- Derived State ---
-  saveDue: boolean = $derived(JSON.stringify(this.opts) !== JSON.stringify(this.lastSavedState));
+  saveDue: boolean = $derived(JSON.stringify($state.snapshot(this.opts)) !== JSON.stringify(this.lastSavedState));
 
   constructor() {
     $effect.root(() => {
@@ -39,6 +39,7 @@ export class UserConfig {
       this.lastSavedState = { ...window.USER_CONFIG };
     } else if (typeof window !== 'undefined') {
       window.USER_CONFIG = $state.snapshot(this.opts);
+      this.lastSavedState = $state.snapshot(this.opts);
     }
 
     this._checkConnections();
@@ -95,10 +96,12 @@ export class UserConfig {
   async save() {
     if (typeof window === 'undefined') return;
 
-    Object.assign(this.lastSavedState, { ...this.opts });
+    this.lastSavedState = $state.snapshot(this.opts);
 
     // Update window.USER_CONFIG (for consistency with external scripts)
     window.USER_CONFIG = { ...this.lastSavedState };
+
+    console.log(this.lastSavedState, this.opts, window.USER_CONFIG)
 
     // --- STRATEGY 1: ankiChess companion addon ---
     if (this.hasAddon) {

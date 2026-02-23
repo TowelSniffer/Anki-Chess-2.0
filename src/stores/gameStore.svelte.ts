@@ -12,6 +12,7 @@ import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
 import { untrack } from 'svelte';
 
+import { playAiMove } from '$features/chessJs/puzzleLogic';
 import { getCgConfig } from '$features/board/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
@@ -39,11 +40,9 @@ export class PgnGameStore {
   selectedPiece = $state<Square | undefined>(undefined);
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
   customAnimation = $state(null);
-
-  // --- Non-reactive variables ---
-  startFen = DEFAULT_POSITION;
-  playerColor: CgColor = 'white';
-  opponentColor: CgColor = 'black';
+  startFen = $state(DEFAULT_POSITION);
+  playerColor = $state<CgColor>('white');
+  opponentColor = $state<CgColor>('black');
 
   // --- Internal State ---
   private _puzzleScore: PuzzleScored = $state(null);
@@ -101,19 +100,46 @@ export class PgnGameStore {
   boardConfig = $derived(getCgConfig(this));
 
   constructor(getPgn: () => string, getBoardMode: () => BoardModes) {
+    // Initialize synchronously (BEFORE child components mount)
+    this.boardMode = getBoardMode();
+    this.loadNewGame(getPgn());
+    let isInitialPgnLoad = true;
+
     $effect(() => {
       this.boardMode = getBoardMode();
     });
-
     $effect(() => {
       if (this.boardMode === 'AI') {
+        timerStore.reset();
         engineStore.init(this.fen);
+      } else if (/^Puzzle|Study$/.test(this.boardMode)) {
+        const flipPgn = this.boardMode === 'Puzzle' && userConfig.opts.flipBoard;
+        untrack(() => {
+          if(!isInitialPgnLoad) this.loadNewGame(getPgn());
+          engineStore.stopAndClear();
+          timerStore.reset();
+          timerStore.start();
+        });
+        if (flipPgn) {
+          requestAnimationFrame(() => {
+            playAiMove(this, userConfig.opts.animationTime + 100);
+          });
+        }
+      } else if (this.boardMode === 'Viewer') {
+        untrack(() => {
+          timerStore.stop();
+          if(!isInitialPgnLoad) this.loadNewGame(getPgn());
+        });
       }
     });
 
     // React to entirely new PGNs being loaded without killing the UI
     $effect(() => {
       const rawPGN = getPgn();
+      if (isInitialPgnLoad) {
+        isInitialPgnLoad = false;
+        return;
+      }
       untrack(() => {
         this.loadNewGame(rawPGN);
       });
@@ -154,9 +180,9 @@ export class PgnGameStore {
 
   loadNewGame(rawPGN: string) {
     this._resetGameState();
-
+    this._moveMap = new Map<string, CustomPgnMove>();
     const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
-    const flipPgn = userConfig.opts.flipBoard && this.boardMode === 'Puzzle';
+    const flipPgn = userConfig.opts.flipBoard && !/^Study|AI$/.test(this.boardMode);
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
     if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
@@ -208,7 +234,6 @@ export class PgnGameStore {
     this.customAnimation = null;
     this._puzzleScore = null;
     this._hasMadeMistake = false;
-    this._moveMap = new Map<string, CustomPgnMove>();
   }
 
   // --- Navigation Helpers ---

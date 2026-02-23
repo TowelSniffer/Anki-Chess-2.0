@@ -68,7 +68,7 @@ const mountApp = () => {
     }
   }
 
-  const userTextFromAnki = textDiv?.innerHTML || devText;
+  const userTextFromAnki = textDiv?.innerHTML ?? import.meta.env.DEV ? devText : '';
 
   // Refresh config from the new Window context
   userConfig.refresh();
