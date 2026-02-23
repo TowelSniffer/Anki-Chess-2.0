@@ -8,7 +8,6 @@
   import { engineStore } from '$stores/engineStore.svelte';
   import { timerStore } from '$stores/timerStore.svelte';
   import { updateBoard } from '$features/board/boardAnimation';
-  import { playAiMove } from '$features/chessJs/puzzleLogic';
   import { moveAudio, playSound } from '$features/audio/audio';
   import { pieceImages } from '$utils/toolkit/importAssets';
   import { getContext, untrack } from 'svelte';
@@ -18,7 +17,7 @@
   let boardContainer: HTMLDivElement;
   onMount(() => {
     if (boardContainer) {
-      if (gameStore.boardMode === 'Viewer') {
+      if (isViewerMode) {
         if (userConfig.opts.flipBoard) {
           gameStore.next();
         }
@@ -37,6 +36,22 @@
     };
   });
 
+  const SOFT_WHITE = '#eaeaea';
+  const SOFT_BLACK = '#0f0f0f';
+  const SOFT_GREY = '#c0c0c0';
+  const DEFAULT_DIVIDER_COLOR = 'lightslategray'
+
+  // Maps logical strings to visual hex codes
+  const mapBorderColor = (color: string) => {
+    const themes: Record<string, string> = {
+      white: SOFT_WHITE,
+      black: SOFT_BLACK,
+      grey: SOFT_GREY,
+      divider: DEFAULT_DIVIDER_COLOR
+    };
+    return themes[color] || color;
+  };
+
   const SCORE_COLORS = {
     incorrect: 'var(--status-error)',
     correct: 'var(--status-correct)',
@@ -46,52 +61,78 @@
   // BORDER FLASH FIXME type for flash colours
   let flashState = $state<PuzzleScored>(null);
 
-  // --- DERIVATIONS ---
+  /*
+   * DERIVATIONS
+   */
 
-  // Border Color
+  // --- Board State ---
+
+  // True: When our custom puzzle logic handles new moves
+  // False: When Chessground 'after' move logic updates board
+  const isFenUpdate = $derived(gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen());
+
+  // A) Puzzle state
+  const isPuzzleMode = $derived(gameStore.boardMode === 'Puzzle');
+
+  const puzzleInProgress = $derived(isPuzzleMode && !gameStore.isPuzzleComplete);
+
+  const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && !!gameStore.puzzleScore);
+
+  const isRandomPuzzle = $derived(userConfig.opts.randomOrientation && isPuzzleMode);
+
+  // B) AI state
+
+  const isAiMode = $derived(gameStore.boardMode === 'AI');
+
+  // AI mode and checkmate/draw
+  const isAIGameOver = $derived(isAiMode && gameStore.isGameOver);
+
+  // C) Study state
+
+  const isStudyMode = $derived(gameStore.boardMode === 'Study');
+
+  // D) Viewer state
+
+  const isViewerMode = $derived(gameStore.boardMode === 'Viewer');
+
+  // --- Border Color ---
+
   const boardBorderColor = $derived.by(() => {
     // If we are in Puzzle mode and it's NOT done, keep it neutral/player color
-    if (gameStore.boardMode === 'Puzzle' && !gameStore.isPuzzleComplete) {
-      return userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
-        ? 'grey'
-        : gameStore.playerColor;
-    } else if (gameStore.isPuzzleComplete && gameStore.puzzleScore) {
-      return SCORE_COLORS[gameStore.puzzleScore];
-    } else if (gameStore.boardMode === 'Study') {
+    if (puzzleInProgress) {
+      return isRandomPuzzle ? 'grey' : gameStore.playerColor;
+    } else if (puzzleCompleteAndScored) {
+      return SCORE_COLORS[gameStore.puzzleScore!];
+    } else if (isStudyMode) {
       return gameStore.turn === 'w' ? 'white' : 'black';
-    } else if (gameStore.boardMode === 'AI' && gameStore.isGameOver) {
+    } else if (isAIGameOver) {
       if (gameStore.isCheckmate)
         return gameStore.turn === gameStore.playerColor[0]
           ? SCORE_COLORS.correct
           : SCORE_COLORS.incorrect;
       return 'grey'; // draw
     } else {
-      return gameStore.playerColor;
+      return !!gameStore.puzzleScore ? SCORE_COLORS[gameStore.puzzleScore] : gameStore.playerColor;
     }
   });
 
   // --- Interactive Border ---
 
-  const barBottomColor = $derived(
-    userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
-      ? 'grey'
-      : gameStore.boardMode !== 'Study'
-        ? gameStore.orientation === 'white'
-          ? 'white'
-          : 'black'
-        : gameStore.turn === 'w'
-          ? 'white'
-          : 'black',
-  );
+  const barBottomColor = $derived.by(() => {
+    if (isRandomPuzzle) return 'grey';
+    if (isStudyMode) return gameStore.turn === 'w' ? 'white' : 'black';
+    return gameStore.orientation;
+  });
 
-  // A) Analysis Centipawn:
-  const barTopColor = $derived(
-    userConfig.opts.randomOrientation && gameStore.boardMode === 'Puzzle'
-      ? 'var(--status-error)'
-      : barBottomColor === 'white'
-        ? 'black'
-        : 'white',
-  );
+  const barTopColor = $derived.by(() => {
+    if (isRandomPuzzle) return 'var(--status-error)';
+    return barBottomColor === 'white' ? 'black' : 'white';
+  });
+
+  const barDividerColor = $derived.by(() => {
+    if (!isViewerMode) return 'divider';
+    return !!gameStore.puzzleScore ? SCORE_COLORS[gameStore.puzzleScore] : 'divider';
+  });
 
   const dividerSpring = spring(50, {
     stiffness: 0.1,
@@ -166,7 +207,7 @@
   const analysisMode = $derived(
     visualDivider !== null &&
       (engineStore.enabled || commentDiag) &&
-      (gameStore.boardMode === 'Viewer' || (gameStore.boardMode === 'AI' && !gameStore.isGameOver)),
+      (isViewerMode || (isAiMode && !gameStore.isGameOver)),
   );
 
   // borderFlash class for board
@@ -175,41 +216,36 @@
   // --- REACTIVE LOGIC ---
 
   // Sync the Spring to derived visualDivider
+  let shouldHardSpring = false;
   $effect(() => {
     if (typeof visualDivider !== 'number') return;
-    if (gameStore.boardMode === 'Viewer' && !engineStore.enabled) {
-      setTimeout(() => {
-        dividerSpring.set(visualDivider);
-      }, userConfig.opts.animationTime);
-    } else {
-      dividerSpring.set(visualDivider);
+
+    // Timer handles its own animation; keep spring in sync instantly without physics
+    if (timerStore.visible) {
+      dividerSpring.set(visualDivider, { hard: true });
+      return;
     }
+
+    const isAnalysis = engineStore.enabled || !!commentDiag;
+    const isInitialActivation = isAnalysis && !shouldHardSpring;
+
+    dividerSpring.set(visualDivider, { hard: isInitialActivation });
+
+    shouldHardSpring = isAnalysis;
   });
 
   // INITIAL LOAD
   $effect(() => {
     // Only run if board exists
     if (!gameStore.cg || !boardContainer) return;
-    untrack(() => {
-      const flipPgn = gameStore.boardMode === 'Puzzle' && userConfig.opts.flipBoard;
-      const isRootMove = gameStore.pgnPath.length === 0;
-      boardContainer.focus();
-      if (/^(Puzzle|Study)$/.test(gameStore.boardMode)) {
-        // These should only trigger ONCE per component mount/reset
-        if (userConfig.opts.timer && !timerStore.isRunning) {
-          timerStore.start();
-        }
-        if (flipPgn && isRootMove) {
-          requestAnimationFrame(() => {
-            playAiMove(gameStore, userConfig.opts.animationTime + 100);
-          });
-        }
-      }
+    requestAnimationFrame(() => {
+      boardContainer?.focus();
     });
   });
 
+  // Store AI pgn
   $effect(() => {
-    if (gameStore.boardMode !== 'AI') return;
+    if (!isAiMode) return;
     const aiPgn = gameStore.currentMove?.history;
     if (aiPgn) {
       sessionStorage.setItem('chess_aiPgn', `${aiPgn}`);
@@ -229,11 +265,10 @@
   let previousPath: PgnPath | null = null;
   $effect(() => {
     if (!gameStore?.cg) return;
-    const isNewFen = gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen();
-    if (isNewFen) {
+    gameStore.errorCount = 0;
+    if (isFenUpdate) {
       // single click move or en passant
       const moveType = updateBoard(gameStore, previousPath);
-
       if (typeof moveType === 'string') {
         playSound(moveType);
       } else if (moveType) {
@@ -249,6 +284,12 @@
       previousPath = [...gameStore.pgnPath];
     }
   });
+
+  // Reset errorCount on new fen
+  $effect(() => {
+    if (isFenUpdate && isPuzzleMode) gameStore.errorCount = 0;
+  });
+
   // Set cg config with rAF optimization
   let rAF_id: number;
   $effect(() => {
@@ -267,7 +308,7 @@
   // Engine Analysis Trigger
   $effect(() => {
     // Only auto-analyze if we are NOT in AI mode
-    if (engineStore.enabled && gameStore.boardMode !== 'AI') {
+    if (engineStore.enabled && !isAiMode) {
       void gameStore.fen;
       untrack(() => {
         engineStore.analyze(gameStore.fen);
@@ -277,7 +318,8 @@
 
   // A) : Handle Mistakes (Flash Red)
   $effect(() => {
-    if (gameStore.errorCount) { // ie > 0
+    if (gameStore.errorCount) {
+      // ie > 0
       triggerFlash('incorrect');
     }
   });
@@ -290,7 +332,7 @@
   });
   // C) : Handle Puzzle Complete flash
   $effect(() => {
-    if (gameStore.isPuzzleComplete && gameStore.puzzleScore) {
+    if (puzzleCompleteAndScored) {
       triggerFlash(gameStore.puzzleScore);
     }
   });
@@ -310,6 +352,7 @@
   function handlePointerDown(): void {
     if (!gameStore || !gameStore.cg) return;
     if (gameStore.cg.state.selected !== 'a0') {
+      // Type Check For Extra CG a0 key
       gameStore.selectedPiece = gameStore.cg.state.selected;
     }
   }
@@ -326,7 +369,7 @@
   }
 
   function showViewer(): void {
-    if (!userConfig.opts.autoAdvance || gameStore.boardMode === 'Viewer') return;
+    if (!userConfig.opts.autoAdvance || isViewerMode) return;
     if (typeof pycmd !== 'undefined') {
       pycmd('ans');
     } else if (typeof AnkiDroidJS !== 'undefined') {
@@ -345,27 +388,29 @@
     class="tappable"
     bind:this={boardContainer}
     onpointerdown={handlePointerDown}
-    onwheel={gameStore.boardMode === 'Viewer' ? handleWheel : null}
+    onwheel={isViewerMode ? handleWheel : null}
     onanimationend={() => (flashState = null)}
     class:analysisMode
     class:timerMode={timerStore.visible}
     class:border-flash={borderFlash}
     class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
     style="
-    --player-color: {gameStore.playerColor};
-    --opponent-color: {gameStore.opponentColor};
-    --border-color: {boardBorderColor};
+    --border-color: {mapBorderColor(boardBorderColor)};
     --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
 
     /* Interative Border Colors (Engine Analysis/Timer) */
-    --bar-top-color: {barTopColor};
-    --bar-bottom-color: {barBottomColor};
-    --divider: {$dividerSpring}%;
+    --bar-top-color: {mapBorderColor(barTopColor)};
+    --bar-bottom-color: {mapBorderColor(barBottomColor)};
+    --bar-divider-color: {mapBorderColor(barDividerColor)};
+    --divider: {timerStore.visible ? visualDivider : $dividerSpring}%;
     "
   ></div>
 </div>
 
 <style lang="scss">
+  /* halve of actual value */
+  $dividerSize: calc($board-border-width/2);
+
   /* Register properties to allow transitions */
   @property --bar-top-color {
     syntax: '<color>';
@@ -391,7 +436,7 @@
 
   /*  .cg-wrap might be nedded here? */
   #board {
-    border: $board-border-width solid var(--border-color, grey);
+    border: $board-border-width solid var(--border-color, #c0c0c0);
     transition:
       border-color 0.3s ease,
       --bar-top-color 0.3s ease,
@@ -427,17 +472,16 @@
     &.analysisMode,
     &.timerMode {
       border-color: transparent;
-      box-shadow: var(--shadow-grey);
       background-repeat: no-repeat;
       background-image:
         linear-gradient(var(--content-bg, white), var(--content-bg, white)),
         linear-gradient(
           to bottom,
           var(--bar-top-color) 0%,
-          var(--bar-top-color) calc(var(--divider) - 1px),
-          red calc(var(--divider) - 1px),
-          red calc(var(--divider) + 1px),
-          var(--bar-bottom-color) calc(var(--divider) + 1px),
+          var(--bar-top-color) calc(var(--divider) - $dividerSize),
+          var(--bar-divider-color) calc(var(--divider) - $dividerSize),
+          var(--bar-divider-color) calc(var(--divider) + $dividerSize),
+          var(--bar-bottom-color) calc(var(--divider) + $dividerSize),
           var(--bar-bottom-color) 100%
         );
       background-clip: padding-box, border-box;

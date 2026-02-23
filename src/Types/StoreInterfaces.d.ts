@@ -22,8 +22,6 @@ export interface IPgnGameStore {
   selectedPiece: Square | undefined;
   pendingPromotion: { from: Square; to: Square } | null;
   customAnimation: { fen: string; animate: boolean } | null;
-
-  // Non-reactive variables
   startFen: string;
   playerColor: CgColor;
   opponentColor: CgColor;
