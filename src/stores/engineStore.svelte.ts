@@ -242,6 +242,7 @@ class EngineStore {
   async stopAndClear() {
     this.enabled = false;
     this._pendingFen = '';
+    this.analysisLines = [];
     this._currentFen = '';
 
     // Clear the map
@@ -444,7 +445,6 @@ class EngineStore {
   private _handleEngineMessage(e: MessageEvent) {
     const msg = e.data;
     if (typeof msg !== 'string') return;
-
     if (msg.startsWith('bestmove')) {
       this._parseBestMove(msg);
       return;
