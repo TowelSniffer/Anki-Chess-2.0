@@ -19,5 +19,6 @@ export interface UserConfigOpts {
   muteAudio: boolean;
   frontText: boolean;
   aiMoveTime: number;
+  aiElo: number;
   aiEval: boolean
 }

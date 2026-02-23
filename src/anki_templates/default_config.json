@@ -19,5 +19,6 @@
   "muteAudio": false,
   "frontText": false,
   "aiMoveTime": 1000,
+  "aiElo": 2700,
   "aiEval": true
 }
