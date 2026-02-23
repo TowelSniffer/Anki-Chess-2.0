@@ -6,6 +6,7 @@ import IconChessKnight from '~icons/material-symbols/chess-knight';
 import IconBackgroundGridSmall from '~icons/material-symbols/background-grid-small';
 import IconBugReport from '~icons/material-symbols/bug-report';
 import IconDelete from '~icons/material-symbols/delete';
+import IconRobot from '~icons/material-symbols/robot-2';
 
 import { userConfig } from '$stores/userConfig.svelte';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
@@ -29,18 +30,20 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
         {
           type: 'number',
           label: 'Thinking Time (s)',
+          tooltip: 'Default Thinking time for analysis',
           min: 1,
           max: 300,
           value: userConfig.opts.analysisTime,
-          onChange: (val: number) => userConfig.opts.analysisTime = val,
+          onChange: (val: number) => (userConfig.opts.analysisTime = val),
         },
         {
           type: 'number',
           label: 'Multi Pv',
+          tooltip: 'Default Pv for analysis',
           min: 1,
           max: 5,
           value: userConfig.opts.analysisLines,
-          onChange: (val: number) => userConfig.opts.analysisLines = val,
+          onChange: (val: number) => (userConfig.opts.analysisLines = val),
         },
       ],
     },
@@ -67,7 +70,7 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
           type: 'number',
           label: 'Animation time (ms)',
           tooltip: 'Set time for piece movement animations',
-          min: 1,
+          min: 100,
           max: 1000,
           step: 100,
           value: userConfig.opts.animationTime,
@@ -82,7 +85,8 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
         {
           type: 'toggle',
           label: 'Accept Variations',
-          tooltip: 'Allows pgn variations for puzzle solution. Note: If this is enabled, you can mark a move as a mistake/blunder (?, ??, ?!) to mark a line as a mistake when played.',
+          tooltip:
+            'Allows pgn variations for puzzle solution. Note: If this is enabled, you can mark a move as a mistake/blunder (?, ??, ?!) to mark a line as a mistake when played.',
           checked: userConfig.opts.acceptVariations,
           onToggle: () => setConfigBoolean('acceptVariations'),
         },
@@ -108,7 +112,8 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
         {
           type: 'toggle',
           label: 'Strict Scoring',
-          tooltip: 'Always mark incorrect when solved if any mistake is made (despite handicap value), or timer runs out',
+          tooltip:
+            'Always mark incorrect when solved if any mistake is made (despite handicap value), or timer runs out',
           checked: userConfig.opts.strictScoring,
           onToggle: () => setConfigBoolean('strictScoring'),
         },
@@ -136,13 +141,52 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
       ],
     },
     {
+      label: 'AI Settings',
+      icon: IconRobot,
+      children: [
+        {
+          type: 'number',
+          label: 'AI Move Time (s)',
+          tooltip:
+            'Default move time time for stockfish AI. Note on weaker harware, setting too low will result in weaker than intended play. (Min 0.3, max 5)',
+          min: 0.3,
+          max: 5,
+          step: 0.1,
+          value: userConfig.opts.aiMoveTime,
+          onChange: (val: number) => (userConfig.opts.aiMoveTime = Math.round(val * 10) / 10),
+        },
+        {
+          type: 'number',
+          label: 'AI ELO',
+          tooltip: 'Default UCI_Elo target for stockfish AI. (Min 1320, max 3190)',
+          min: 1320,
+          max: 3190,
+          step: 100,
+          value: userConfig.opts.aiElo,
+          onChange: (val: number) => (userConfig.opts.aiElo = val),
+        },
+        {
+          type: 'separator',
+        },
+        {
+          type: 'toggle',
+          label: 'Show Eval',
+          tooltip:
+            'Toggle whether to show AI evaluation for AI mode.',
+          checked: userConfig.opts.aiEval,
+          onToggle: () => setConfigBoolean('aiEval'),
+        }
+      ]
+    },
+    {
       label: 'Anki Template',
       icon: IconKidStar,
       children: [
         {
           type: 'toggle',
           label: 'Play Both Sides',
-          tooltip: 'Enables "Study" mode which disables auto response and requires user to play both sides of PGN. Useful for learning games.',
+          tooltip:
+            'Enables "Study" mode which disables auto response and requires user to play both sides of PGN. Useful for learning games.',
           checked: userConfig.opts.playBothSides,
           onToggle: () => setConfigBoolean('playBothSides'),
         },
@@ -162,23 +206,22 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
         {
           type: 'toggle',
           label: 'Flip PGN',
-          tooltip:
-            'Dictates where puzzle is solves from first or second move of the PGN',
+          tooltip: 'Dictates where puzzle is solves from first or second move of the PGN',
           checked: userConfig.opts.flipBoard,
           onToggle: () => setConfigBoolean('flipBoard'),
         },
         {
           type: 'toggle',
           label: 'Mirror',
-          tooltip:
-            'Randomises orientation and colour for PGNs with no castle rights',
+          tooltip: 'Randomises orientation and colour for PGNs with no castle rights',
           checked: userConfig.opts.mirror,
           onToggle: () => setConfigBoolean('mirror'),
         },
         {
           type: 'toggle',
           label: 'Random Orientation',
-          tooltip: 'Randomises orientation, and greys border to prevent knowing which colour has the solution for puzzle.',
+          tooltip:
+            'Randomises orientation, and greys border to prevent knowing which colour has the solution for puzzle.',
           checked: userConfig.opts.randomOrientation,
           onToggle: () => setConfigBoolean('randomOrientation'),
         },
@@ -188,17 +231,19 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
         {
           type: 'toggle',
           label: 'Auto Advance',
-          tooltip: 'Uses anki API to automatically show answer when puzzle is solved. Note: Does not work on anki mobile, and not yet supported on Ankidroid\'s "New Study Screen"',
+          tooltip:
+            'Uses anki API to automatically show answer when puzzle is solved. Note: Does not work on anki mobile, and not yet supported on Ankidroid\'s "New Study Screen"',
           checked: userConfig.opts.autoAdvance,
           onToggle: () => setConfigBoolean('autoAdvance'),
         },
-        (userConfig.opts.autoAdvance && userConfig.opts.timer) && {
-          type: 'toggle',
-          label: 'Timer Advance',
-          tooltip: 'Flip card when timer runs out',
-          checked: userConfig.opts.timerAdvance,
-          onToggle: () => setConfigBoolean('timerAdvance'),
-        },
+        userConfig.opts.autoAdvance &&
+          userConfig.opts.timer && {
+            type: 'toggle',
+            label: 'Timer Advance',
+            tooltip: 'Flip card when timer runs out',
+            checked: userConfig.opts.timerAdvance,
+            onToggle: () => setConfigBoolean('timerAdvance'),
+          },
         {
           type: 'separator',
         },
@@ -212,42 +257,45 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
     },
 
     // Developer tools
-    ...(import.meta.env.DEV && gameStore ? [{
-      label: 'Dev Tools',
-      icon: IconBugReport,
-      children: [
-        {
-          type: 'action',
-          icon: IconDelete,
-          label: 'Clear sessionStorage',
-          action: () => sessionStorage.clear(),
-        },
-        {
-          type: 'select',
-          label: 'Board Mode',
-          options: ['Viewer', 'Puzzle', 'AI', 'Study'],
-          value: gameStore.boardMode,
-          onChange: (val: any) => (gameStore.boardMode = val),
-        },
-        {
-          type: 'action',
-          icon: IconCopy,
-          label: 'Paste PGN',
-          action: () => {
-            const newPgn = prompt('Paste new PGN string:');
-            if (newPgn) gameStore.loadNewGame(newPgn);
-          },
-        }
-      ]
-    } as MenuItem] : []),
+    ...(import.meta.env.DEV && gameStore
+      ? [
+          {
+            label: 'Dev Tools',
+            icon: IconBugReport,
+            children: [
+              {
+                type: 'action',
+                icon: IconDelete,
+                label: 'Clear sessionStorage',
+                action: () => sessionStorage.clear(),
+              },
+              {
+                type: 'select',
+                label: 'Board Mode',
+                options: ['Viewer', 'Puzzle', 'AI', 'Study'],
+                value: gameStore.boardMode,
+                onChange: (val: any) => (gameStore.boardMode = val),
+              },
+              {
+                type: 'action',
+                icon: IconCopy,
+                label: 'Paste PGN',
+                action: () => {
+                  const newPgn = prompt('Paste new PGN string:');
+                  if (newPgn) gameStore.loadNewGame(newPgn);
+                },
+              },
+            ],
+          } as MenuItem,
+        ]
+      : []),
 
     // Save/Copy button
-    ...getSaveMenuItemData()
+    ...getSaveMenuItemData(),
   ].filter((item): item is MenuItem => !!item);
 }
 
 function getSaveMenuItemData(): MenuItem[] {
-
   const canSave = userConfig.hasAddon || userConfig.isAnkiConnect;
   if (canSave) {
     return [
@@ -263,7 +311,8 @@ function getSaveMenuItemData(): MenuItem[] {
         icon: IconSave,
         danger: userConfig.saveDue,
         action: () => userConfig.save(),
-      }]
+      },
+    ];
   } else if (window.CARD_CONFIG) {
     // Fallback for Mobile/Web/No-Addon
     return [
@@ -278,8 +327,8 @@ function getSaveMenuItemData(): MenuItem[] {
         icon: IconCopy,
         danger: userConfig.saveDue,
         action: () => userConfig.save(),
-      }]
+      },
+    ];
   }
-  return []
+  return [];
 }
-

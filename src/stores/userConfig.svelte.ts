@@ -70,7 +70,7 @@ export class UserConfig {
     if (stored !== null) {
       if (stored === 'true') return true as UserConfigOpts[K];
       if (stored === 'false') return false as UserConfigOpts[K];
-      return parseInt(stored, 10) as UserConfigOpts[K];
+      return parseFloat(stored) as UserConfigOpts[K];
     }
 
     return (window.USER_CONFIG?.[key] ?? defaultConfig[key]) as UserConfigOpts[K];
@@ -100,8 +100,6 @@ export class UserConfig {
 
     // Update window.USER_CONFIG (for consistency with external scripts)
     window.USER_CONFIG = { ...this.lastSavedState };
-
-    console.log(this.lastSavedState, this.opts, window.USER_CONFIG)
 
     // --- STRATEGY 1: ankiChess companion addon ---
     if (this.hasAddon) {

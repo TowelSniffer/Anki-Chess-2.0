@@ -7,13 +7,6 @@
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
   import { userConfig } from '$stores/userConfig.svelte';
   import { engineStore } from '$stores/engineStore.svelte';
-  import { timerStore } from '$stores/timerStore.svelte';
-  import { onDestroy } from 'svelte';
-
-  onDestroy(() => {
-    engineStore.stopAndClear();
-    timerStore.stop();
-  });
 
   let { pgn, boardMode, userText } = $props();
 </script>

@@ -12,7 +12,7 @@ import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
 import { untrack } from 'svelte';
 
-import { playAiMove } from '$features/chessJs/puzzleLogic';
+import { playAiMove, destroyPuzzleTimeouts } from '$features/chessJs/puzzleLogic';
 import { getCgConfig } from '$features/board/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
@@ -114,18 +114,17 @@ export class PgnGameStore {
     });
 
     $effect(() => {
-      if (this.boardMode === 'AI') {
+      if (isInitialPgnLoad && this.boardMode === 'AI') {
         timerStore.reset();
         engineStore.init(this.fen);
       } else if (/^Puzzle|Study$/.test(this.boardMode)) {
         const flipPgn = this.boardMode === 'Puzzle' && userConfig.opts.flipBoard;
         untrack(() => {
           if (!isInitialPgnLoad) this.loadNewGame(getPgn());
-          engineStore.stopAndClear();
           timerStore.reset();
           timerStore.start();
         });
-        if (flipPgn) {
+        if (flipPgn && this.cg) {
           requestAnimationFrame(() => {
             playAiMove(this, userConfig.opts.animationTime + 100);
           });
@@ -185,14 +184,15 @@ export class PgnGameStore {
 
   loadNewGame(rawPGN: string) {
     this._resetGameState();
-    this._moveMap = new Map<string, CustomPgnMove>();
     const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
-    const flipPgn = userConfig.opts.flipBoard && !/^Study|AI$/.test(this.boardMode);
+
+    const storedFlipBoolean = sessionStorage.getItem('chess_flipBoolean') === 'true';
+
+    const flipPgn = this.boardMode === 'Puzzle' && userConfig.opts.flipBoard || storedFlipBoolean;
+    flipPgn && sessionStorage.setItem('chess_flipBoolean', 'true');
     const storedRandomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
-    if (storedRandomBoolean) sessionStorage.removeItem('chess_randomBoolean');
 
     const randomBoolean = !puzzleMode ? storedRandomBoolean : !Math.round(Math.random());
-    if (puzzleMode) sessionStorage.setItem('chess_randomBoolean', `${randomBoolean}`);
 
     const storedScore = sessionStorage.getItem('chess_puzzle_score');
     if (!puzzleMode) {
@@ -200,7 +200,6 @@ export class PgnGameStore {
     } else {
       this._puzzleScore = null;
     }
-    if (storedScore) sessionStorage.removeItem('chess_puzzle_score');
 
     const parsed = parsePGN(rawPGN);
     mirrorPGN(parsed, this.boardMode);
@@ -235,6 +234,7 @@ export class PgnGameStore {
     this.pgnPath = [];
     this.errorCount = 0;
     this.selectedPiece = undefined;
+    this.startFen = DEFAULT_POSITION;
     this.pendingPromotion = null;
     this.customAnimation = null;
     this._puzzleScore = null;
@@ -362,5 +362,17 @@ export class PgnGameStore {
   get prevPath() {
     if (!this.pgnPath.length) return null;
     return navigatePrevMove(this.pgnPath);
+  }
+
+  destroy() {
+    this._resetGameState();
+    this.rootGame = undefined;
+    this._moveMap = new Map<string, CustomPgnMove>();
+    destroyPuzzleTimeouts();
+    if (this._moveDebounce) {
+      clearTimeout(this._moveDebounce);
+      this._moveDebounce = null;
+    }
+    if (this.boardMode === 'Viewer') sessionStorage.clear();
   }
 }

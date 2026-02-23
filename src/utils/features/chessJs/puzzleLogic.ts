@@ -8,6 +8,22 @@ import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
 import { engineStore } from '$stores/engineStore.svelte';
 
+// --- Timeout Management ---
+const activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
+
+function setTrackedTimeout(callback: () => void, delay: number) {
+  const id = setTimeout(() => {
+    activeTimeouts.delete(id);
+    callback();
+  }, delay);
+  activeTimeouts.add(id);
+}
+
+export function destroyPuzzleTimeouts() {
+  activeTimeouts.forEach(clearTimeout);
+  activeTimeouts.clear();
+}
+
 // --- Helper Functions ---
 
 function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
@@ -75,8 +91,8 @@ export async function handleUserMove(
       // Play AI Move
       const aiMove = getLegalMove(bestMoveSan, gameStore.fen); // Validate SAN
       if (aiMove) {
-        setTimeout(() => {
-          gameStore.addMove(aiMove);
+        setTrackedTimeout(() => {
+          !!getLegalMove(bestMoveSan, gameStore.fen) && gameStore.addMove(aiMove);
         }, gameStore.aiDelayTime || 300);
       }
     } catch (e) {
@@ -106,7 +122,7 @@ export async function handleUserMove(
 }
 
 export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
-  setTimeout(() => {
+  setTrackedTimeout(() => {
     const nextMovePathCheck = navigateNextMove(gameStore.pgnPath);
     const nextMove = gameStore.getMoveByPath(nextMovePathCheck);
 
@@ -131,7 +147,7 @@ export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
 function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
   // disable interaction until player move is made
   gameStore.setMoveDebounce();
-  setTimeout(() => {
+  setTrackedTimeout(() => {
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(gameStore.pgnPath);
     gameStore.pgnPath = nextMovePath;

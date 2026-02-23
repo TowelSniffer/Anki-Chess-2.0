@@ -131,12 +131,16 @@
 
   function toggle() {
     isOpen = !isOpen;
-    if (!isOpen) activeSelectorIndex = null;
+    if (!isOpen) {
+      activeSelectorIndex = null;
+      activeTooltips = new Set();
+    }
   }
 
   function close() {
     isOpen = false;
     activeSelectorIndex = null;
+    activeTooltips = new Set();
   }
 
   function handleAction(item: MenuItem) {
@@ -185,10 +189,10 @@
       return;
     }
 
-    // Block non-numeric keys (Allow only positive whole numbers)
+    // Block non-numeric keys (Allow only positive whole numbers and decimal)
     // Allow navigation/editing keys (Backspace, Arrows, etc.)
     if (
-      ['Backspace', 'Delete', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key) ||
+      ['Backspace', 'Delete', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', '.'].includes(e.key) ||
       e.ctrlKey ||
       e.metaKey
     ) {
@@ -559,7 +563,7 @@
     /* Keep visibility 'visible' until the fade finishes (0.3s + 0.2s = 0.5s) */
     transition-property: opacity, visibility;
     transition-duration: 0.2s, 0s;
-    transition-delay: 0.3s, 0.5s;
+    transition-delay: 0.2s, 0.4s;
   }
 
   /* OPENING (Mouse Enter Self OR Focus Inside) */
@@ -600,8 +604,8 @@
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.8rem;
+    gap: 0.3rem;
+    padding: 0.4rem 0.6rem;
     font-size: 0.85rem;
     cursor: pointer;
     &:hover:not(.disabled) {
@@ -640,8 +644,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.4rem 0.8rem;
-    gap: 1rem;
+    padding: 0.4rem 0.6rem;
+    gap: 0.3rem;
     &.select-container {
       padding: 0.4rem 0.5rem;
       justify-content: center;
@@ -660,7 +664,7 @@
     display: flex;
     align-items: center;
     font-size: 0.85rem;
-    gap: 0.5rem;
+    gap: 0.3rem;
 
     &.has-tooltip {
       cursor: help;
@@ -677,7 +681,7 @@
     font-size: 0.75rem;
     color: var(--surface-secondary, #666);
     background: var(--text-primary, #333);
-    padding: 4px 8px;
+    padding: 4px;
     border-radius: 4px;
     margin-top: 4px;
     border-left: 2px solid #2196f3;
@@ -826,7 +830,7 @@
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
-    gap: 0.5rem;
+    gap: 0.3rem;
     &:hover {
       background: #f0f0f0;
     }

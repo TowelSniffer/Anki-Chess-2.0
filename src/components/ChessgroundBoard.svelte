@@ -10,7 +10,7 @@
   import { updateBoard } from '$features/board/boardAnimation';
   import { moveAudio, playSound } from '$features/audio/audio';
   import { pieceImages } from '$utils/toolkit/importAssets';
-  import { getContext, untrack } from 'svelte';
+  import { getContext, untrack, onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
@@ -22,17 +22,23 @@
           gameStore.next();
         }
       }
-      engineStore.stopAndClear();
       gameStore.loadCgInstance(boardContainer);
       requestAnimationFrame(() => {
         gameStore.cg?.redrawAll();
       });
     }
     return () => {
-      if (gameStore.cg) {
-        gameStore.cg.destroy(); // Explicitly kill the cg instance
-      }
+      gameStore.cg?.destroy(); // Explicitly kill the cg instance
+      gameStore.cg = null;
     };
+  });
+
+  onDestroy(() => {
+    if (rAF_id) cancelAnimationFrame(rAF_id);
+    if (viewerTimeout) clearTimeout(viewerTimeout);
+    engineStore.stopAndClear();
+    timerStore.reset();
+    gameStore.destroy();
   });
 
   const SOFT_WHITE = '#eaeaea';
@@ -195,9 +201,7 @@
 
   // analysisMode class for board
   const analysisMode = $derived(
-    visualDivider !== null &&
-      (engineStore.enabled || commentDiag) &&
-      (isViewerMode || (isAiMode && !gameStore.isGameOver)),
+    visualDivider !== null && (engineStore.enabled || commentDiag) && (isViewerMode || isAiMode),
   );
 
   // borderFlash class for board
@@ -243,11 +247,12 @@
   });
 
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
+  let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
     if (gameStore.isPuzzleComplete) {
       gameStore.cg?.cancelMove();
       timerStore.stop();
-      setTimeout(showViewer, 300);
+      viewerTimeout = setTimeout(showViewer, 300);
     }
   });
 
