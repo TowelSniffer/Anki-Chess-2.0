@@ -89,6 +89,7 @@
   const isRandomPuzzle = $derived(userConfig.opts.randomOrientation && isPuzzleMode);
 
   // AI mode and checkmate/draw
+  const isAiEval = $derived(isAiMode && userConfig.opts.aiEval && !gameStore.isGameOver);
   const isAIGameOver = $derived(isAiMode && gameStore.isGameOver);
 
   // --- Border Color ---
@@ -184,8 +185,7 @@
 
       // Extract win chance (0-100 for White).
       // If the engine is thinking, default to last score.
-      cachedEval = bestLine ? bestLine.winChance : evalPercent;
-
+      cachedEval = evalPercent;
       // Calculate based on board orientation
       // If Top is White: Return White %.
       // If Top is Black: Return Black % (100 - White %).
@@ -201,7 +201,7 @@
 
   // analysisMode class for board
   const analysisMode = $derived(
-    visualDivider !== null && (engineStore.enabled || commentDiag) && (isViewerMode || isAiMode),
+    visualDivider !== null && (engineStore.enabled || commentDiag) && (isViewerMode || isAiEval),
   );
 
   // borderFlash class for board
@@ -220,10 +220,9 @@
       return;
     }
 
-    const isAnalysis = engineStore.enabled || !!commentDiag;
+    const isAnalysis = engineStore.enabled || !!commentDiag || isAiEval;
     const isInitialActivation = isAnalysis && !shouldHardSpring;
-
-    dividerSpring.set(visualDivider, { hard: isInitialActivation });
+    dividerSpring.set(visualDivider, { hard: !!isInitialActivation });
 
     shouldHardSpring = isAnalysis;
   });
