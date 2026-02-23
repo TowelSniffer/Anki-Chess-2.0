@@ -39,7 +39,7 @@
   const SOFT_WHITE = '#eaeaea';
   const SOFT_BLACK = '#0f0f0f';
   const SOFT_GREY = '#c0c0c0';
-  const DEFAULT_DIVIDER_COLOR = 'lightslategray'
+  const DEFAULT_DIVIDER_COLOR = 'lightslategray';
 
   // Maps logical strings to visual hex codes
   const mapBorderColor = (color: string) => {
@@ -47,7 +47,7 @@
       white: SOFT_WHITE,
       black: SOFT_BLACK,
       grey: SOFT_GREY,
-      divider: DEFAULT_DIVIDER_COLOR
+      divider: DEFAULT_DIVIDER_COLOR,
     };
     return themes[color] || color;
   };
@@ -71,29 +71,20 @@
   // False: When Chessground 'after' move logic updates board
   const isFenUpdate = $derived(gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen());
 
-  // A) Puzzle state
+  // Board Modes
   const isPuzzleMode = $derived(gameStore.boardMode === 'Puzzle');
-
-  const puzzleInProgress = $derived(isPuzzleMode && !gameStore.isPuzzleComplete);
-
-  const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && !!gameStore.puzzleScore);
-
-  const isRandomPuzzle = $derived(userConfig.opts.randomOrientation && isPuzzleMode);
-
-  // B) AI state
-
+  const isStudyMode = $derived(gameStore.boardMode === 'Study');
+  const isViewerMode = $derived(gameStore.boardMode === 'Viewer');
   const isAiMode = $derived(gameStore.boardMode === 'AI');
+  const isScoredMode = $derived(isPuzzleMode || isStudyMode);
+
+  // Puzzle state
+  const puzzleInProgress = $derived(isPuzzleMode && !gameStore.isPuzzleComplete);
+  const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && !!gameStore.puzzleScore);
+  const isRandomPuzzle = $derived(userConfig.opts.randomOrientation && isPuzzleMode);
 
   // AI mode and checkmate/draw
   const isAIGameOver = $derived(isAiMode && gameStore.isGameOver);
-
-  // C) Study state
-
-  const isStudyMode = $derived(gameStore.boardMode === 'Study');
-
-  // D) Viewer state
-
-  const isViewerMode = $derived(gameStore.boardMode === 'Viewer');
 
   // --- Border Color ---
 
@@ -107,7 +98,7 @@
       return gameStore.turn === 'w' ? 'white' : 'black';
     } else if (isAIGameOver) {
       if (gameStore.isCheckmate)
-        return gameStore.turn === gameStore.playerColor[0]
+        return gameStore.turn !== gameStore.playerColor[0]
           ? SCORE_COLORS.correct
           : SCORE_COLORS.incorrect;
       return 'grey'; // draw
@@ -211,7 +202,7 @@
   );
 
   // borderFlash class for board
-  const borderFlash = $derived(/^(Puzzle|Study)$/.test(gameStore.boardMode) && flashState);
+  const borderFlash = $derived(isScoredMode && flashState);
 
   // --- REACTIVE LOGIC ---
 

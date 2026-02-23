@@ -141,6 +141,16 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
       children: [
         {
           type: 'toggle',
+          label: 'Play Both Sides',
+          tooltip: 'Enables "Study" mode which disables auto response and requires user to play both sides of PGN. Useful for learning games.',
+          checked: userConfig.opts.playBothSides,
+          onToggle: () => setConfigBoolean('playBothSides'),
+        },
+        {
+          type: 'separator',
+        },
+        {
+          type: 'toggle',
           label: 'User Text on Front',
           tooltip: 'Show textField on front side of note',
           checked: userConfig.opts.frontText,
