@@ -478,10 +478,12 @@
         linear-gradient(
           to bottom,
           var(--bar-top-color) 0%,
-          var(--bar-top-color) calc(var(--divider) - $dividerSize),
+          var(--bar-top-color) calc(var(--divider) - calc($dividerSize + 2px)),
+          grey calc(var(--divider) - calc($dividerSize + 1px)),
           var(--bar-divider-color) calc(var(--divider) - $dividerSize),
           var(--bar-divider-color) calc(var(--divider) + $dividerSize),
-          var(--bar-bottom-color) calc(var(--divider) + $dividerSize),
+          grey calc(var(--divider) + calc($dividerSize + 1px)),
+          var(--bar-bottom-color) calc(var(--divider) + calc($dividerSize + 2px)),
           var(--bar-bottom-color) 100%
         );
       background-clip: padding-box, border-box;
