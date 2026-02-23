@@ -71,6 +71,13 @@ $border-radius-global: 4px;
 body.light-theme {
 }
 
+@mixin unselectable {
+  -webkit-user-select: none; /* Safari, Chrome, Opera, iOS Safari */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* Internet Explorer/Edge */
+  user-select: none;         /* Standard syntax */
+}
+
 @mixin flex-center {
   display: flex;
   justify-content: center;

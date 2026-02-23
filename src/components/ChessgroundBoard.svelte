@@ -21,9 +21,8 @@
         if (userConfig.opts.flipBoard) {
           gameStore.next();
         }
-      } else {
-        engineStore.enabled = false;
       }
+      engineStore.stopAndClear();
       gameStore.loadCgInstance(boardContainer);
       requestAnimationFrame(() => {
         gameStore.cg?.redrawAll();

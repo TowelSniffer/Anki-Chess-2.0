@@ -461,8 +461,8 @@
 
 <style lang="scss">
   button {
-    margin: 0;
-    padding: 0;
+    /* Remove default anki styling */
+    all: unset;
   }
   /* --- Containers --- */
   .dropdown-container {
@@ -517,7 +517,8 @@
   }
 
   /* --- Menu --- */
-  .menu, .submenu {
+  .menu,
+  .submenu {
     @include menu-shadow(0.5);
   }
 
@@ -740,6 +741,8 @@
     border-radius: 4px;
     padding: 2px;
     .step-btn {
+      @include flex-center;
+      @include unselectable;
       border: none;
       color: var(--surface-primary, grey);
       background: var(--text-primary, #fff);
@@ -750,6 +753,12 @@
       font-weight: bold;
       &:hover {
         background: #e0e0e0;
+        @include border-shadow;
+
+        &:active {
+          background: #e0e0e0;
+          @include border-shadow(0.7, inset);
+        }
       }
     }
     /* --- Number Stepper Input --- */
