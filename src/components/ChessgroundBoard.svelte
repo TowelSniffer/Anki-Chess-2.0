@@ -284,7 +284,7 @@
     if (isFenUpdate && isPuzzleMode) gameStore.errorCount = 0;
   });
 
-  // Set cg config with rAF optimization
+  // Set cg config
   let rAF_id: number;
   $effect(() => {
     if (!gameStore?.cg) return;
@@ -396,7 +396,7 @@
     --bar-top-color: {mapBorderColor(barTopColor)};
     --bar-bottom-color: {mapBorderColor(barBottomColor)};
     --bar-divider-color: {mapBorderColor(barDividerColor)};
-    --divider: {timerStore.visible ? visualDivider : $dividerSpring}%;
+    --divider-scale: {(timerStore.visible ? visualDivider : $dividerSpring) / 100};
     "
   ></div>
 </div>
@@ -408,23 +408,22 @@
   /* Register properties to allow transitions */
   @property --bar-top-color {
     syntax: '<color>';
-    inherits: false;
+    inherits: true;
     initial-value: white;
   }
 
   @property --bar-bottom-color {
     syntax: '<color>';
-    inherits: false;
+    inherits: true;
     initial-value: black;
   }
 
   @keyframes borderFlash {
     0% {
-      box-shadow: 0 0 12px 6px var(--border-flash-color);
+      opacity: 1;
     }
-
     100% {
-      box-shadow: var(--shadow-grey);
+      opacity: 0;
     }
   }
 
@@ -444,10 +443,6 @@
     box-sizing: border-box;
     border-radius: var(--border-radius-global);
 
-    &.border-flash {
-      animation: borderFlash 0.5s ease-out;
-    }
-
     &.view-only {
       cursor: not-allowed;
 
@@ -463,25 +458,42 @@
       }
     }
 
+    /* GPU-Accelerated Flash */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -$board-border-width;
+      border-radius: inherit;
+      box-shadow: 0 0 12px 6px var(--border-flash-color);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    &.border-flash::after {
+      animation: borderFlash 0.5s ease-out;
+    }
+
+    /* GPU-Accelerated Eval/Timer Bar */
     &.analysisMode,
     &.timerMode {
-      border-color: transparent;
-      background-repeat: no-repeat;
-      background-image:
-        linear-gradient(var(--content-bg, white), var(--content-bg, white)),
-        linear-gradient(
-          to bottom,
-          var(--bar-top-color) 0%,
-          var(--bar-top-color) calc(var(--divider) - calc($dividerSize + 2px)),
-          grey calc(var(--divider) - calc($dividerSize + 1px)),
-          var(--bar-divider-color) calc(var(--divider) - $dividerSize),
-          var(--bar-divider-color) calc(var(--divider) + $dividerSize),
-          grey calc(var(--divider) + calc($dividerSize + 1px)),
-          var(--bar-bottom-color) calc(var(--divider) + calc($dividerSize + 2px)),
-          var(--bar-bottom-color) 100%
-        );
-      background-clip: padding-box, border-box;
-      background-origin: padding-box, border-box;
+      /* The base border becomes the bottom color */
+      border-color: var(--bar-bottom-color);
+      background-image: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: -$board-border-width;
+        border-radius: inherit;
+        border: $board-border-width solid var(--bar-top-color);
+
+        /* Masks the top color based on the spring value */
+        clip-path: inset(0 0 calc(100% - (var(--divider-scale) * 100%)) 0);
+        pointer-events: none;
+        z-index: 5;
+      }
     }
   }
 </style>
+
