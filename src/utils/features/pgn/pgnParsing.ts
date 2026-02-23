@@ -29,7 +29,6 @@ export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes): void
       sessionStorage.setItem('chess__mirrorState', mirrorState);
     } else if (savedMirrorState) {
       mirrorState = (savedMirrorState as MirrorState);
-      sessionStorage.removeItem('chess__mirrorState');
     }
   }
 

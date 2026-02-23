@@ -38,7 +38,6 @@ const mountApp = () => {
   // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
   const aiPgn = sessionStorage.getItem('chess_aiPgn');
   if (aiPgn) {
-    sessionStorage.removeItem('chess_aiPgn');
     if (boardModeFromAnki === 'Viewer') pgnContent = aiPgn;
   }
 

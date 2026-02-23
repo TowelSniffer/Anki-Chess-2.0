@@ -20,7 +20,6 @@ export interface AnalysisLine {
 }
 
 class EngineStore {
-
   /*
    * ENGINE STATE
    */
@@ -66,7 +65,9 @@ class EngineStore {
   multipv = $derived(userConfig.opts.analysisLines);
 
   thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
-  delay = userConfig.opts.animationTime ?? 200;
+
+  private _aiElo = $derived(userConfig.opts.aiElo);
+  private _aiMoveTime = $derived(userConfig.opts.aiMoveTime * 1000);
 
   // --- Computed Arrows ---
   bestMove = $derived.by(() => {
@@ -153,7 +154,11 @@ class EngineStore {
 
   // --- Public ---
 
-  async requestMove(fen: string, elo: number = 3190, moveTime: number = 1000): Promise<string> {
+  async requestMove(
+    fen: string,
+    elo: number = this._aiElo,
+    moveTime: number = this._aiMoveTime,
+  ): Promise<string> {
     this._aiRequestPending = true;
 
     if (!this._worker || this.loading) {
@@ -182,9 +187,9 @@ class EngineStore {
     if (!this._worker) {
       this.loading = true;
       try {
-        await this._initWorker();
         this.enabled = true;
-        this.loading = false;
+        await this._initWorker();
+        await this._stopAndWait();
         this.analyze(fen);
       } catch (err) {
         console.error('Engine failed to initialize', err);
@@ -193,15 +198,14 @@ class EngineStore {
       }
     } else {
       this.enabled = true;
+      await this._stopAndWait();
       this.analyze(fen);
     }
   }
 
   async analyze(fen: string) {
-    if (!this.enabled || !this._worker || this.loading) return;
+    if (!this.enabled || !this._worker || this.loading || this._aiRequestPending) return;
 
-    // Double check enabled state in case it changed during the delay
-    if (!this.enabled) return;
     // If we are already thinking about this exact FEN, do nothing
     if (this.isThinking && this._currentFen === fen && !this._pendingFen) return;
 
@@ -209,42 +213,58 @@ class EngineStore {
     await this._stopAndWait();
 
     // If the user moved again while we were waiting to stop, abort this older request
-    if (this._pendingFen !== fen) return;
+    if (this._pendingFen !== fen || this._aiRequestPending) return;
 
     this._processPending();
   }
 
   async init(fen?: string) {
     this.enabled = true;
+    // Start the worker immediately if it doesn't exist
     if (!this._worker && !this.loading) {
-      this.loading = true;
-      try {
-        await this._initWorker();
-        this.loading = false;
-        this.enabled = true;
-        if (!!fen && !this._aiRequestPending) {
-          this.analyze(fen);
-        }
-      } catch (err) {
-        console.error('Engine failed to initialize', err);
-        this.enabled = false;
-      }
-    } else if (!!fen && this._worker && !this._aiRequestPending) {
+      // We don't 'await' here if we just want to fire and forget the load
+      this._initWorker().catch((err) => console.error('Background load failed', err));
+    }
+    if (!!fen) {
+      // If a FEN was provided, we MUST await the worker before analyzing
+      await this._initWorker();
+      this.loading = false;
       this.analyze(fen);
     }
   }
 
-  stop() {
+  async stop() {
+    await this._stopAndWait();
     this._pendingFen = '';
-    this._worker?.postMessage('stop');
     this.isThinking = false;
   }
 
-  stopAndClear() {
-    this.stop();
+  async stopAndClear() {
     this.enabled = false;
-    this.analysisLines = [];
+    this._pendingFen = '';
     this._currentFen = '';
+
+    // Clear the map
+    this._lineBuffer.clear();
+
+    // Clear the timeout to prevent memory leaks across cards
+    if (this._updateTimeout) {
+      clearTimeout(this._updateTimeout);
+      this._updateTimeout = null;
+    }
+
+    this._aiRequestPending = false;
+    this._aiMoveResolver = null;
+
+    if (this.isThinking && this._worker) {
+      this._worker.postMessage('stop');
+      // DO NOT manually unlock here. We let the 'bestmove' message
+      // hit _handleEngineMessage, which will call _parseBestMove and unlock.
+    } else {
+      // Fallback: only unlock if we weren't thinking anyway
+      this._unlockEngine();
+      this.isThinking = false;
+    }
   }
 
   restart() {
@@ -279,7 +299,12 @@ class EngineStore {
     }
   }
 
-  private _performAiSearch(fen: string, elo: number, moveTime: number, resolve: (san: string) => void) {
+  private _performAiSearch(
+    fen: string,
+    elo: number,
+    moveTime: number,
+    resolve: (san: string) => void,
+  ) {
     this._aiMoveResolver = resolve; // Store the resolver for _parseBestMove to use
     /**
      * Keep elo value within default stockfish UCI_Elo min/max values
@@ -311,7 +336,11 @@ class EngineStore {
   }
 
   private _processPending() {
-    if (!this._pendingFen || !this._worker) return;
+    if (!this._worker) {
+      return;
+    }
+
+    if (!this._pendingFen) return;
 
     const fen = this._pendingFen;
     this._pendingFen = ''; // Clear queue
@@ -341,27 +370,87 @@ class EngineStore {
     // If initialization is already happening (or finished), return that exact promise.
     if (this._initPromise) return this._initPromise;
     this._initPromise = new Promise((resolve, reject) => {
-      this._worker = new Worker('/_stockfish.js');
-      this._worker.onerror = (err) => {
-        this._initPromise = null; // Reset on failure
-        reject(err);
-      };
-      this._worker.onmessage = (e) => {
-        const msg = e.data;
-        if (msg === 'uciok') this._worker?.postMessage('isready');
-        else if (msg === 'readyok') {
-          this._worker!.onmessage = (event) => this._handleEngineMessage(event);
-          resolve();
-        }
-      };
-      this._worker.postMessage('uci');
+      try {
+        this.loading = true; // Set loading state immediately
+        this._worker = new Worker('/_stockfish.js');
+
+        // Handle both initialization errors and runtime crashes
+        this._worker.onerror = (err) => {
+          console.error('Stockfish Worker Crashed:', err);
+          this._handleEngineCrash(); // Trigger recovery
+
+          // If we are still in the init phase, reject the promise
+          if (this._initPromise) {
+            this._initPromise = null;
+            reject(new Error('Worker failed: ' + err.message));
+          }
+        };
+        this._worker.onmessage = (e) => {
+          const msg = e.data;
+
+          // Catch specific "unreachable" or WASM errors sent via message if any
+          if (
+            typeof msg === 'string' &&
+            (msg.includes('RuntimeError') || msg.includes('unreachable'))
+          ) {
+            this._handleEngineCrash();
+            return;
+          }
+
+          if (msg === 'uciok') this._worker?.postMessage('isready');
+          else if (msg === 'readyok') {
+            this._worker!.onmessage = (event) => this._handleEngineMessage(event);
+            this.loading = false;
+            resolve();
+          }
+        };
+        this._worker.postMessage('uci');
+      } catch (e) {
+        this._initPromise = null;
+        reject(e);
+      }
     });
     return this._initPromise;
   }
 
+  private _handleEngineCrash() {
+    // Kill the zombie worker
+    if (this._worker) {
+      this._worker.terminate();
+      this._worker = null;
+    }
+
+    // Reset internal flags so the store knows it's no longer running
+    this._initPromise = null;
+    this.isThinking = false;
+    this._unlockEngine(); // Release any promises waiting on _idlePromise
+
+    // If an AI move was pending, reject it or handle it
+    if (this._aiMoveResolver) {
+      this._aiMoveResolver = null;
+      this._aiRequestPending = false;
+    }
+
+    // Update UI state
+    this.loading = false;
+
+    // Automatically try to restart if the engine was supposed to be enabled
+    if (this.enabled && this._currentFen) {
+      console.warn('Attempting to restart engine after crash...');
+      this.analyze(this._currentFen);
+    }
+  }
+
   private _handleEngineMessage(e: MessageEvent) {
     const msg = e.data;
-    if (typeof msg !== 'string' || !this.enabled) return;
+    if (typeof msg !== 'string') return;
+
+    if (msg.startsWith('bestmove')) {
+      this._parseBestMove(msg);
+      return;
+    }
+
+    if (!this.enabled) return;
 
     if (msg.startsWith('info') && msg.includes('pv')) {
       // Only block 'info' if we are explicitly waiting for a 'bestmove'
@@ -372,9 +461,6 @@ class EngineStore {
 
       // Schedule the reactive UI update (expensive)
       this._scheduleUpdate();
-    } else if (msg.startsWith('bestmove')) {
-      // example: bestmove e2e4 ponder e7e5
-      this._parseBestMove(msg);
     }
   }
 
@@ -515,6 +601,7 @@ class EngineStore {
       const waitTime = throttleDelay - timeSinceLast;
 
       this._updateTimeout = window.setTimeout(() => {
+        if (!this.enabled) return;
         this._flushBuffer();
       }, waitTime);
     }
@@ -523,16 +610,16 @@ class EngineStore {
   private _parseBestMove(msg?: string) {
     this._flushBuffer();
     this.isThinking = false;
-
     this._unlockEngine();
 
     // Intercept for AI Move
     if (this._aiMoveResolver && msg) {
       const parts = msg.split(' ');
       const bestMoveUci = parts[1];
-
       const resolve = this._aiMoveResolver;
-      this._aiMoveResolver = null; // Clear it
+
+      this._aiMoveResolver = null;
+      this._aiRequestPending = false;
       this._resetEngineStrength();
 
       resolve(bestMoveUci);

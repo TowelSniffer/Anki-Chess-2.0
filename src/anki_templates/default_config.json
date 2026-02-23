@@ -18,7 +18,7 @@
   "analysisLines": 1,
   "muteAudio": false,
   "frontText": false,
-  "aiMoveTime": 1000,
+  "aiMoveTime": 1,
   "aiElo": 2700,
   "aiEval": true
 }

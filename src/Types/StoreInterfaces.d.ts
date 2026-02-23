@@ -66,4 +66,5 @@ export interface IPgnGameStore {
   setPendingPromotion(from: Square, to: Square): void;
   cancelPromotion(): void;
   newChess(fen: string): Chess;
+  destroy(): void;
 }
