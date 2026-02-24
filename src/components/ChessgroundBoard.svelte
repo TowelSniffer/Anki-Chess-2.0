@@ -152,7 +152,8 @@
       if (evMatch) {
         // Custom: "EV: 27.6%"
         const winPercent = parseFloat(evMatch);
-        cachedEval = barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
+        cachedEval =
+          barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
           // Mate: #+ is White win (100%), #- is Black win (0%)
@@ -221,7 +222,7 @@
     const scale = (timerStore.visible ? visualDivider : $dividerSpring) / 100;
 
     // Calculate percentage in JS, apply directly to the node
-    evalFillNode.style.transform = `translate3d(0, ${-100 + (scale * 100)}%, 0)`;
+    evalFillNode.style.transform = `translate3d(0, ${-100 + scale * 100}%, 0)`;
   });
 
   // INITIAL LOAD
@@ -270,7 +271,7 @@
       const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
 
       // Special moves require set({ fen: ... })
-      const shouldAnimate = !/^e|p|q|k$/.test(move?.flags); // Promote/En Passant/Castle
+      const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
 
       const forwardMoveCheck =
         shouldAnimate && move?.before.split(' ')[0] === gameStore.cg.getFen();
@@ -282,7 +283,7 @@
       if (forwardMoveCheck) {
         gameStore.cg.move(move.from, move.to);
       } else if (undoMoveCheck) {
-        gameStore.cg.move(prevMove?.to, prevMove?.from);
+        gameStore.cg.move(prevMove!.to, prevMove!.from);
       }
 
       const moveType = updateBoard(gameStore, previousPath);
