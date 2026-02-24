@@ -23,9 +23,6 @@
         }
       }
       gameStore.loadCgInstance(boardContainer);
-      requestAnimationFrame(() => {
-        gameStore.cg?.redrawAll();
-      });
     }
     return () => {
       gameStore.cg?.destroy(); // Explicitly kill the cg instance
@@ -34,7 +31,6 @@
   });
 
   onDestroy(() => {
-    if (rAF_id) cancelAnimationFrame(rAF_id);
     if (viewerTimeout) clearTimeout(viewerTimeout);
     engineStore.stopAndClear();
     timerStore.reset();
@@ -136,14 +132,14 @@
     damping: 0.5,
   });
 
-  let cachedEval = 50;
+  let cachedEval: number = 50;
   const commentDiag = $derived(
     (gameStore.currentMove?.commentDiag?.eval ?? gameStore.currentMove?.commentDiag?.EV)
       ? gameStore.currentMove?.commentDiag
       : false,
   );
 
-  const visualDivider = $derived.by(() => {
+  const visualDivider: number = $derived.by(() => {
     if (timerStore.visible) {
       // A) Timer
       return timerStore.percent;
@@ -194,9 +190,9 @@
       } else {
         return 100 - cachedEval;
       }
-    } else {
-      return 50;
     }
+    // Fallback
+    return 50;
   });
 
   // analysisMode class for board
@@ -232,7 +228,8 @@
     // Only run if board exists
     if (!gameStore.cg || !boardContainer) return;
     requestAnimationFrame(() => {
-      boardContainer?.focus();
+      // Fix render issue with arrows
+      gameStore.cg?.redrawAll();
     });
   });
 
@@ -285,18 +282,14 @@
   });
 
   // Set cg config
-  let rAF_id: number;
   $effect(() => {
     if (!gameStore?.cg) return;
     const config = gameStore.boardConfig;
-    // Cancel any pending render from this frame
-    if (rAF_id) cancelAnimationFrame(rAF_id);
 
     // Schedule the render for the next paint
-    rAF_id = requestAnimationFrame(() => {
-      gameStore.cg?.set(config);
-      gameStore.cg?.playPremove();
-    });
+    gameStore.cg?.set(config);
+    gameStore.cg?.playPremove();
+    gameStore.cg?.redrawAll();
   });
 
   // Engine Analysis Trigger
@@ -378,33 +371,38 @@
     .join('; ')}"
 >
   <div
-    id="board"
-    class="tappable"
-    bind:this={boardContainer}
-    onpointerdown={handlePointerDown}
-    onwheel={isViewerMode ? handleWheel : null}
-    onanimationend={() => (flashState = null)}
+    class="board-wrapper"
     class:analysisMode
     class:timerMode={timerStore.visible}
     class:border-flash={borderFlash}
-    class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
     style="
     --border-color: {mapBorderColor(boardBorderColor)};
     --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
-
-    /* Interative Border Colors (Engine Analysis/Timer) */
     --bar-top-color: {mapBorderColor(barTopColor)};
     --bar-bottom-color: {mapBorderColor(barBottomColor)};
     --bar-divider-color: {mapBorderColor(barDividerColor)};
     --divider-scale: {(timerStore.visible ? visualDivider : $dividerSpring) / 100};
-    "
-  ></div>
+  "
+  >
+    {#if timerStore.visible || analysisMode}
+      <!-- Eval bar for border -->
+      <div class="eval-bar top"></div>
+      <div class="eval-track"><div class="eval-fill"></div></div>
+    {/if}
+
+    <div
+      id="board"
+      class="tappable"
+      bind:this={boardContainer}
+      onpointerdown={handlePointerDown}
+      onwheel={isViewerMode ? handleWheel : null}
+      onanimationend={() => (flashState = null)}
+      class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
+    ></div>
+  </div>
 </div>
 
 <style lang="scss">
-  /* halve of actual value */
-  $dividerSize: calc($board-border-width/2);
-
   /* Register properties to allow transitions */
   @property --bar-top-color {
     syntax: '<color>';
@@ -427,38 +425,17 @@
     }
   }
 
-  /*  .cg-wrap might be nedded here? */
-  #board {
-    border: $board-border-width solid var(--border-color, #c0c0c0);
-    transition:
-      border-color 0.3s ease,
-      --bar-top-color 0.3s ease,
-      --bar-bottom-color 0.3s ease;
-
-    box-shadow: var(--shadow-grey);
+  .board-wrapper {
+    position: relative;
     width: var(--board-size);
     height: var(--board-size);
-    cursor: pointer;
-
-    box-sizing: border-box;
     border-radius: var(--border-radius-global);
+    border: $board-border-width solid var(--border-color, #c0c0c0);
+    box-shadow: var(--shadow-grey);
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
 
-    &.view-only {
-      cursor: not-allowed;
-
-      :global(piece) {
-        cursor: not-allowed !important;
-        /* Optional: prevents hover effects (like green squares) if user hovers pieces */
-        pointer-events: none !important;
-      }
-
-      /* Optional: Also kill the square cursors if necessary */
-      :global(square) {
-        cursor: not-allowed !important;
-      }
-    }
-
-    /* GPU-Accelerated Flash */
+    /* Flash Animation */
     &::after {
       content: '';
       position: absolute;
@@ -469,31 +446,74 @@
       pointer-events: none;
       z-index: 10;
     }
-
     &.border-flash::after {
       animation: borderFlash 0.5s ease-out;
     }
 
-    /* GPU-Accelerated Eval/Timer Bar */
+    /* Eval/Timer Bars */
     &.analysisMode,
     &.timerMode {
-      /* The base border becomes the bottom color */
       border-color: var(--bar-bottom-color);
-      background-image: none;
 
-      &::before {
-        content: '';
+      .eval-bar.top {
         position: absolute;
-        inset: -$board-border-width;
-        border-radius: inherit;
-        border: $board-border-width solid var(--bar-top-color);
-
-        /* Masks the top color based on the spring value */
-        clip-path: inset(0 0 calc(100% - (var(--divider-scale) * 100%)) 0);
-        pointer-events: none;
+        top: -$board-border-width;
+        left: -$board-border-width;
+        right: -$board-border-width;
+        height: $board-border-width;
+        background-color: var(--bar-top-color);
+        border-radius: var(--border-radius-global) var(--border-radius-global) 0 0;
         z-index: 5;
+      }
+
+      .eval-track {
+        position: absolute;
+        top: -$board-border-width; /* Extends through the top border */
+        bottom: -$board-border-width; /* Extends through the bottom border */
+        left: -$board-border-width; /* Shifts by border width */
+        right: -$board-border-width;
+        overflow: hidden;
+        z-index: 6;
+        border-radius: var(--border-radius-global);
+
+        .eval-fill {
+          position: absolute;
+          top: $board-border-width;
+          left: 0;
+          right: 0;
+          height: calc(100% - $board-border-width);
+          background-color: var(--bar-top-color);
+          border-bottom: $board-border-width solid var(--bar-divider-color);
+          box-sizing: border-box;
+
+          /* Slide up/down on the compositor thread */
+          transform: translate3d(0, calc(-100% + (var(--divider-scale) * 100%)), 0);
+          /* performance optimization that informs the browser ahead of
+        time about which elements and properties are likely to change */
+          will-change: transform;
+        }
+      }
+    }
+  }
+
+  #board {
+    /* Chessground needs to fill the wrapper */
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    cursor: pointer;
+    position: relative; /* Required for z-index to work reliably */
+    z-index: 7;
+
+    &.view-only {
+      cursor: not-allowed;
+      :global(piece) {
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+      }
+      :global(square) {
+        cursor: not-allowed !important;
       }
     }
   }
 </style>
-
