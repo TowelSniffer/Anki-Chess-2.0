@@ -257,23 +257,42 @@
   $effect(() => {
     if (!gameStore?.cg) return;
     gameStore.errorCount = 0;
-    if (isFenUpdate) {
-      // single click move or en passant
+    if (isFenUpdate) { // Single click move or en passant
+
+      /*
+       * Here we check if cg.move can be used instead of set({ fen: ... })
+       * for smoother animations
+       */
+
+      const move = gameStore.currentMove;
+      const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
+
+      // Special moves require set({ fen: ... })
+      const shouldAnimate = !/^e|p|q|k$/.test(move?.flags); // Promote/En Passant/Castle
+
+      const forwardMoveCheck =
+        shouldAnimate && move?.before.split(' ')[0] === gameStore.cg.getFen();
+      // Special move check not needed as getCgConfig will compare fen to
+      // check for Captures/Promote/En Passant/Castle.
+      const undoMoveCheck = move?.after === prevMove?.before;
+
+      // Pre move here so getCgConfig doesn't update fen
+      if (forwardMoveCheck) {
+        gameStore.cg.move(move.from, move.to);
+      } else if (undoMoveCheck) {
+        gameStore.cg.move(prevMove.to, prevMove.from);
+      }
+
       const moveType = updateBoard(gameStore, previousPath);
       if (typeof moveType === 'string') {
         playSound(moveType);
       } else if (moveType) {
         moveAudio(moveType);
       }
-
-      previousPath = [...gameStore.pgnPath];
-    } else if (previousPath) {
-      // drag & drop or click to move
+    } else if (previousPath) { // drag & drop or click to move
       if (gameStore.currentMove) moveAudio(gameStore.currentMove);
-      previousPath = [...gameStore.pgnPath];
-    } else if (previousPath === null) {
-      previousPath = [...gameStore.pgnPath];
     }
+    previousPath = [...gameStore.pgnPath];
   });
 
   // Reset errorCount on new fen
@@ -289,7 +308,6 @@
     // Schedule the render for the next paint
     gameStore.cg?.set(config);
     gameStore.cg?.playPremove();
-    gameStore.cg?.redrawAll();
   });
 
   // Engine Analysis Trigger
