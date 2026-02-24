@@ -22,7 +22,8 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
 
   // prevent out of turn moves in Puzzle mode
-  const isNotPuzzleTurn = /^Puzzle|AI$/.test(store.boardMode) && store.turn !== store.playerColor[0];
+  const isNotPuzzleTurn =
+    /^Puzzle|AI$/.test(store.boardMode) && store.turn !== store.playerColor[0];
 
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   const isPromote = orig && dest && isPromotion(orig as Square, dest, store.fen);
@@ -158,11 +159,7 @@ export function getCgConfig(store: IPgnGameStore) {
 
   // For AI and Puzzle movable should be kept as player color
   const fixedMovable = /^(Puzzle|AI)$/.test(store.boardMode);
-  const movableColor = fixedMovable
-    ? store.playerColor
-    : store.turn === 'w'
-      ? 'white'
-      : 'black';
+  const movableColor = fixedMovable ? store.playerColor : store.turn === 'w' ? 'white' : 'black';
 
   // we will distinguish between Fen changes and other config changes
   let isFenUpdate = true;
@@ -181,15 +178,14 @@ export function getCgConfig(store: IPgnGameStore) {
     isAnimating = setTimeout(
       () => {
         isAnimating = null;
-
-        store.customAnimation = null;
+        if (!!store) store.customAnimation = null;
       },
       timer ? animationTime : 0,
     );
   } else if (isStandardFenUpdate) {
     if (store.customAnimation) {
       requestAnimationFrame(() => {
-        store.customAnimation = null;
+        if (!!store) store.customAnimation = null;
       });
     }
     if (isAnimating) {
@@ -203,9 +199,7 @@ export function getCgConfig(store: IPgnGameStore) {
   }
   if (isFenUpdate) {
     // immediately clear shapes.
-    requestAnimationFrame(() => {
-      store.cg?.setAutoShapes([]);
-    });
+    store.cg?.setAutoShapes([]);
   }
 
   return {
