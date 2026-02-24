@@ -178,6 +178,7 @@ export function getCgConfig(store: IPgnGameStore) {
     isAnimating = setTimeout(
       () => {
         isAnimating = null;
+        // Setting reactive value in asynchronous function is ok
         if (!!store) store.customAnimation = null;
       },
       timer ? animationTime : 0,
@@ -185,6 +186,7 @@ export function getCgConfig(store: IPgnGameStore) {
   } else if (isStandardFenUpdate) {
     if (store.customAnimation) {
       requestAnimationFrame(() => {
+        // Setting reactive value in asynchronous function is ok
         if (!!store) store.customAnimation = null;
       });
     }
@@ -197,13 +199,19 @@ export function getCgConfig(store: IPgnGameStore) {
     // Reacting to other config change
     isFenUpdate = false;
   }
+  let newFen;
   if (isFenUpdate) {
-    // immediately clear shapes.
-    store.cg?.setAutoShapes([]);
+    newFen = store.customAnimation?.fen ?? store.fen;
+    const shouldAnimate = store.cg?.getFen() !== newFen.split(' ')[0];
+    if (!shouldAnimate) isFenUpdate = false;
+    // immediately clear shapes for consistent shape rendering with
+    // custom animations
+    if (isFenUpdate) store.cg?.setAutoShapes([]);
   }
 
+
   return {
-    fen: store.customAnimation?.fen ?? store.fen,
+    ...(isFenUpdate && { fen: newFen }),
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
