@@ -7,9 +7,14 @@
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
   import { userConfig } from '$stores/userConfig.svelte';
   import { engineStore } from '$stores/engineStore.svelte';
+  import { RenderScan } from 'svelte-render-scan';
 
   let { pgn, boardMode, userText } = $props();
 </script>
+
+{#if import.meta.env.DEV}
+	<RenderScan />
+{/if}
 
 <GameProvider {pgn} {boardMode}>
   <div id="container">
