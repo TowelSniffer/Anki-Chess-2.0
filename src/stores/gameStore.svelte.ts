@@ -202,8 +202,6 @@ export class PgnGameStore {
     const parsed = parsePGN(rawPGN);
     mirrorPGN(parsed, this.boardMode);
 
-    if (this.boardMode === 'Viewer') sessionStorage.clear();
-
     this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
 
     this.orientation =
@@ -222,6 +220,7 @@ export class PgnGameStore {
 
     this.rootGame = parsed;
     augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
+    if (this.boardMode === 'Viewer') sessionStorage.clear();
   }
 
   /*
@@ -237,6 +236,8 @@ export class PgnGameStore {
     this.startFen = DEFAULT_POSITION;
     this.pendingPromotion = null;
     this.customAnimation = null;
+    this.rootGame = undefined;
+    this._moveMap = new Map<string, CustomPgnMove>();
     this._puzzleScore = null;
     this._hasMadeMistake = false;
   }
