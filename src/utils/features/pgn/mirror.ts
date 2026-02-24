@@ -2,22 +2,92 @@ import type { CustomPgnMove } from '$Types/ChessStructs';
 
 type NotationMap = { [key: string]: string };
 
-export type MirrorState =
-  | 'original'
-  | 'original_mirror'
-  | 'invert'
-  | 'invert_mirror';
+export type MirrorState = 'original' | 'original_mirror' | 'invert' | 'invert_mirror';
 
 export function assignMirrorState(): MirrorState {
-  const states: MirrorState[] = [
-    'original',
-    'original_mirror',
-    'invert',
-    'invert_mirror',
-  ];
+  const states: MirrorState[] = ['original', 'original_mirror', 'invert', 'invert_mirror'];
   const mirrorRandom = Math.floor(Math.random() * states.length);
   return states[mirrorRandom];
 }
+
+const notationMaps: Record<MirrorState, NotationMap> = {
+  invert_mirror: {
+    q: 'q',
+    a: 'a',
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+    f: 'f',
+    g: 'g',
+    h: 'h',
+    '1': '8',
+    '2': '7',
+    '3': '6',
+    '4': '5',
+    '5': '4',
+    '6': '3',
+    '7': '2',
+    '8': '1',
+  },
+  invert: {
+    q: 'q',
+    a: 'h',
+    b: 'g',
+    c: 'f',
+    d: 'e',
+    e: 'd',
+    f: 'c',
+    g: 'b',
+    h: 'a',
+    '1': '8',
+    '2': '7',
+    '3': '6',
+    '4': '5',
+    '5': '4',
+    '6': '3',
+    '7': '2',
+    '8': '1',
+  },
+  original_mirror: {
+    q: 'q',
+    a: 'h',
+    b: 'g',
+    c: 'f',
+    d: 'e',
+    e: 'd',
+    f: 'c',
+    g: 'b',
+    h: 'a',
+    '1': '1',
+    '2': '2',
+    '3': '3',
+    '4': '4',
+    '5': '5',
+    '6': '6',
+    '7': '7',
+    '8': '8',
+  },
+  original: {
+    q: 'q',
+    a: 'a',
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+    f: 'f',
+    g: 'g',
+    h: 'h',
+    '1': '1',
+    '2': '2',
+    '3': '3',
+    '4': '4',
+    '5': '5',
+    '6': '6',
+    '7': '7',
+    '8': '8',
+  },
+};
 
 export function checkCastleRights(fen: string): boolean {
   const fenParts = fen.split(' ');
@@ -41,23 +111,33 @@ export function mirrorFen(fullFen: string, mirrorState: MirrorState): string {
   const fenParts = fullFen.split(' ');
   const fenBoard = fenParts[0];
   const fenColor = fenParts[1];
-  const fenRest = fenParts.slice(2).join(' ');
+  const fenCastling = fenParts[2];
+  let fenEp = fenParts[3];
+  const fenCounters = fenParts.slice(4).join(' ');
+
+  // Transform the en passant square
+  if (fenEp && fenEp !== '-') {
+    const map = notationMaps[mirrorState];
+    const newFile = map[fenEp[0]] || fenEp[0];
+    const newRank = map[fenEp[1]] || fenEp[1];
+    fenEp = `${newFile}${newRank}`;
+  }
 
   const fenRows = fenBoard.split('/');
   const fenBoardInverted = swapCase(fenBoard.split('').reverse().join(''));
   const fenBoardMirrored = fenRows.map(mirrorFenRow).join('/');
-  const fenBoardMirroredInverted = swapCase(
-    fenBoardMirrored.split('').reverse().join(''),
-  );
+  const fenBoardMirroredInverted = swapCase(fenBoardMirrored.split('').reverse().join(''));
   const fenColorSwapped = fenColor === 'w' ? 'b' : 'w';
+
+  const fenRestFixed = `${fenCastling} ${fenEp} ${fenCounters}`;
 
   switch (mirrorState) {
     case 'invert_mirror':
-      return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRest}`;
+      return `${fenBoardMirroredInverted} ${fenColorSwapped} ${fenRestFixed}`;
     case 'invert':
-      return `${fenBoardInverted} ${fenColorSwapped} ${fenRest}`;
+      return `${fenBoardInverted} ${fenColorSwapped} ${fenRestFixed}`;
     case 'original_mirror':
-      return `${fenBoardMirrored} ${fenColor} ${fenRest}`;
+      return `${fenBoardMirrored} ${fenColor} ${fenRestFixed}`;
     default:
       return fullFen;
   }
@@ -66,92 +146,11 @@ export function mirrorFen(fullFen: string, mirrorState: MirrorState): string {
 function swapCase(str: string): string {
   return str
     .split('')
-    .map((ch) =>
-      ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase(),
-    )
+    .map((ch) => (ch === ch.toLowerCase() ? ch.toUpperCase() : ch.toLowerCase()))
     .join('');
 }
 
 function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
-  const notationMaps: Record<MirrorState, NotationMap> = {
-    invert_mirror: {
-      q: 'q',
-      a: 'a',
-      b: 'b',
-      c: 'c',
-      d: 'd',
-      e: 'e',
-      f: 'f',
-      g: 'g',
-      h: 'h',
-      '1': '8',
-      '2': '7',
-      '3': '6',
-      '4': '5',
-      '5': '4',
-      '6': '3',
-      '7': '2',
-      '8': '1',
-    },
-    invert: {
-      q: 'q',
-      a: 'h',
-      b: 'g',
-      c: 'f',
-      d: 'e',
-      e: 'd',
-      f: 'c',
-      g: 'b',
-      h: 'a',
-      '1': '8',
-      '2': '7',
-      '3': '6',
-      '4': '5',
-      '5': '4',
-      '6': '3',
-      '7': '2',
-      '8': '1',
-    },
-    original_mirror: {
-      q: 'q',
-      a: 'h',
-      b: 'g',
-      c: 'f',
-      d: 'e',
-      e: 'd',
-      f: 'c',
-      g: 'b',
-      h: 'a',
-      '1': '1',
-      '2': '2',
-      '3': '3',
-      '4': '4',
-      '5': '5',
-      '6': '6',
-      '7': '7',
-      '8': '8',
-    },
-    original: {
-      q: 'q',
-      a: 'a',
-      b: 'b',
-      c: 'c',
-      d: 'd',
-      e: 'e',
-      f: 'f',
-      g: 'g',
-      h: 'h',
-      '1': '1',
-      '2': '2',
-      '3': '3',
-      '4': '4',
-      '5': '5',
-      '6': '6',
-      '7': '7',
-      '8': '8',
-    },
-  };
-
   const notationMap = notationMaps[mirrorState];
 
   // --- overloads for TypeGuarding ---
@@ -171,8 +170,7 @@ function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
   move.notation.disc = move.notation.disc ?? transform(move.notation.disc);
   move.notation.col = transform(move.notation.col);
   move.notation.row = move.notation.row ?? transform(move.notation.row);
-  move.notation.notation =
-    transform(move.notation.notation) ?? move.notation.notation;
+  move.notation.notation = transform(move.notation.notation) ?? move.notation.notation;
 
   if (move.notation.notation) {
     move.san = move.notation.notation;
@@ -194,8 +192,7 @@ export function mirrorPgnTree(
     }
   }
 
-  const isInverted =
-    mirrorState === 'invert' || mirrorState === 'invert_mirror';
+  const isInverted = mirrorState === 'invert' || mirrorState === 'invert_mirror';
   if (!isInverted) {
     for (const move of moves) mirrorMove(move, mirrorState);
     return;
@@ -232,8 +229,7 @@ export function mirrorPgnTree(
         if (move.moveNumber) {
           lastValidMoveNumber = move.moveNumber;
         } else {
-          move.moveNumber =
-            index === 0 ? lastValidMoveNumber : lastValidMoveNumber + 1;
+          move.moveNumber = index === 0 ? lastValidMoveNumber : lastValidMoveNumber + 1;
           lastValidMoveNumber = move.moveNumber;
         }
       } else {
