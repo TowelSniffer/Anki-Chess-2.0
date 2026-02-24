@@ -30,9 +30,7 @@
 
   function cancelPopup() {
     gameStore.pendingPromotion = null;
-    requestAnimationFrame(() => {
-      gameStore.cg?.set({ fen: gameStore.fen, ...gameStore.boardConfig });
-    });
+    gameStore.cg?.set({ fen: gameStore.fen, ...gameStore.boardConfig });
   }
 </script>
 

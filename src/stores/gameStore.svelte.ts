@@ -125,9 +125,7 @@ export class PgnGameStore {
           timerStore.start();
         });
         if (flipPgn && this.cg) {
-          requestAnimationFrame(() => {
-            playAiMove(this, userConfig.opts.animationTime + 100);
-          });
+          playAiMove(this, userConfig.opts.animationTime + 100);
         }
       } else if (this.boardMode === 'Viewer') {
         untrack(() => {
@@ -203,6 +201,8 @@ export class PgnGameStore {
 
     const parsed = parsePGN(rawPGN);
     mirrorPGN(parsed, this.boardMode);
+
+    if (this.boardMode === 'Viewer') sessionStorage.clear();
 
     this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
 
@@ -365,6 +365,7 @@ export class PgnGameStore {
   }
 
   destroy() {
+    if (this.boardMode === 'Viewer') sessionStorage.clear();
     this._resetGameState();
     this.rootGame = undefined;
     this._moveMap = new Map<string, CustomPgnMove>();
@@ -373,6 +374,5 @@ export class PgnGameStore {
       clearTimeout(this._moveDebounce);
       this._moveDebounce = null;
     }
-    if (this.boardMode === 'Viewer') sessionStorage.clear();
   }
 }
