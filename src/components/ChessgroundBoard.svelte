@@ -154,6 +154,7 @@
         const winPercent = parseFloat(evMatch);
         cachedEval =
           barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
+        return cachedEval;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
           // Mate: #+ is White win (100%), #- is Black win (0%)
@@ -166,6 +167,8 @@
           const winPercent = 50 + 50 * Math.tanh(cp / 290);
           cachedEval = winPercent; // Save state
         }
+      } else {
+        cachedEval = 50;
       }
     } else if (engineStore.enabled) {
       // C) Engine eval
