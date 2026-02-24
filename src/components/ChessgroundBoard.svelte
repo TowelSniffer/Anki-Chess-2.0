@@ -152,18 +152,19 @@
       if (evMatch) {
         // Custom: "EV: 27.6%"
         const winPercent = parseFloat(evMatch);
-        return barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
+        cachedEval = barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
           // Mate: #+ is White win (100%), #- is Black win (0%)
           const winPercent = cpMatch.includes('-') ? 0 : 100;
-          return barBottomColor === 'white' ? 100 - winPercent : winPercent;
+          cachedEval = winPercent; // Save state
+        } else {
+          // Standard: "[%eval 0.35]"
+          // Centipawns: Convert to ~Win % using logistic curve
+          const cp = parseFloat(cpMatch) * 100;
+          const winPercent = 50 + 50 * Math.tanh(cp / 290);
+          cachedEval = winPercent; // Save state
         }
-        // Standard: "[%eval 0.35]"
-        // Centipawns: Convert to ~Win % using logistic curve
-        const cp = parseFloat(cpMatch) * 100;
-        const winPercent = 50 + 50 * Math.tanh(cp / 290);
-        return barBottomColor === 'white' ? 100 - winPercent : winPercent;
       }
     } else if (engineStore.enabled) {
       // C) Engine eval
@@ -178,21 +179,11 @@
           evalPercent = gameStore.turn === 'w' ? 0 : 100;
         }
       }
-
-      // Extract win chance (0-100 for White).
-      // If the engine is thinking, default to last score.
       cachedEval = evalPercent;
-      // Calculate based on board orientation
-      // If Top is White: Return White %.
-      // If Top is Black: Return Black % (100 - White %).
-      if (barTopColor === 'white') {
-        return cachedEval;
-      } else {
-        return 100 - cachedEval;
-      }
     }
-    // Fallback
-    return 50;
+    // Fallback: Hold the last known value while the opacity transition finishes
+    // Normalize for "white" POV
+    return barTopColor === 'white' ? cachedEval : 100 - cachedEval;
   });
 
   // analysisMode class for board
@@ -221,6 +212,16 @@
     dividerSpring.set(visualDivider, { hard: !!isInitialActivation });
 
     shouldHardSpring = isAnalysis;
+  });
+
+  // Direct DOM mutation
+  let evalFillNode: HTMLDivElement | undefined = $state();
+  $effect(() => {
+    if (!evalFillNode) return;
+    const scale = (timerStore.visible ? visualDivider : $dividerSpring) / 100;
+
+    // Calculate percentage in JS, apply directly to the node
+    evalFillNode.style.transform = `translate3d(0, ${-100 + (scale * 100)}%, 0)`;
   });
 
   // INITIAL LOAD
@@ -257,7 +258,8 @@
   $effect(() => {
     if (!gameStore?.cg) return;
     gameStore.errorCount = 0;
-    if (isFenUpdate) { // Single click move or en passant
+    if (isFenUpdate) {
+      // Single click move or en passant
 
       /*
        * Here we check if cg.move can be used instead of set({ fen: ... })
@@ -280,7 +282,7 @@
       if (forwardMoveCheck) {
         gameStore.cg.move(move.from, move.to);
       } else if (undoMoveCheck) {
-        gameStore.cg.move(prevMove.to, prevMove.from);
+        gameStore.cg.move(prevMove?.to, prevMove?.from);
       }
 
       const moveType = updateBoard(gameStore, previousPath);
@@ -289,7 +291,8 @@
       } else if (moveType) {
         moveAudio(moveType);
       }
-    } else if (previousPath) { // drag & drop or click to move
+    } else if (previousPath) {
+      // drag & drop or click to move
       if (gameStore.currentMove) moveAudio(gameStore.currentMove);
     }
     previousPath = [...gameStore.pgnPath];
@@ -386,26 +389,26 @@
 <div
   style="display: contents; {Object.entries(pieceImages)
     .map(([k, v]) => `--${k}: url('${v}')`)
-    .join('; ')}"
+    .join('; ')};
+    --border-color: {mapBorderColor(boardBorderColor)};
+    --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
+    --bar-top-color: {mapBorderColor(barTopColor)};
+    --bar-bottom-color: {mapBorderColor(barBottomColor)};
+    --bar-divider-color: {mapBorderColor(barDividerColor)};
+    "
 >
   <div
     class="board-wrapper"
     class:analysisMode
     class:timerMode={timerStore.visible}
     class:border-flash={borderFlash}
-    style="
-    --border-color: {mapBorderColor(boardBorderColor)};
-    --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
-    --bar-top-color: {mapBorderColor(barTopColor)};
-    --bar-bottom-color: {mapBorderColor(barBottomColor)};
-    --bar-divider-color: {mapBorderColor(barDividerColor)};
-    --divider-scale: {(timerStore.visible ? visualDivider : $dividerSpring) / 100};
-  "
   >
+    <!-- Eval bar for border -->
     {#if timerStore.visible || analysisMode}
-      <!-- Eval bar for border -->
       <div class="eval-bar top"></div>
-      <div class="eval-track"><div class="eval-fill"></div></div>
+      <div class="eval-track">
+        <div class="eval-fill" bind:this={evalFillNode}></div>
+      </div>
     {/if}
 
     <div
@@ -468,48 +471,53 @@
       animation: borderFlash 0.5s ease-out;
     }
 
+    .eval-bar.top {
+      position: absolute;
+      top: -$board-border-width;
+      left: -$board-border-width;
+      right: -$board-border-width;
+      height: $board-border-width;
+      background-color: var(--bar-top-color);
+      border-radius: var(--border-radius-global) var(--border-radius-global) 0 0;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .eval-track {
+      position: absolute;
+      top: -$board-border-width; /* Extends through the top border */
+      bottom: -$board-border-width; /* Extends through the bottom border */
+      left: -$board-border-width; /* Shifts by border width */
+      right: -$board-border-width;
+      overflow: hidden;
+      z-index: 6;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      border-radius: var(--border-radius-global);
+
+      .eval-fill {
+        position: absolute;
+        top: $board-border-width;
+        left: 0;
+        right: 0;
+        height: calc(100% - $board-border-width);
+        background-color: var(--bar-top-color);
+        border-bottom: $board-border-width solid var(--bar-divider-color);
+        box-sizing: border-box;
+        will-change: transform;
+      }
+    }
+
     /* Eval/Timer Bars */
     &.analysisMode,
     &.timerMode {
       border-color: var(--bar-bottom-color);
 
-      .eval-bar.top {
-        position: absolute;
-        top: -$board-border-width;
-        left: -$board-border-width;
-        right: -$board-border-width;
-        height: $board-border-width;
-        background-color: var(--bar-top-color);
-        border-radius: var(--border-radius-global) var(--border-radius-global) 0 0;
-        z-index: 5;
-      }
-
+      .eval-bar.top,
       .eval-track {
-        position: absolute;
-        top: -$board-border-width; /* Extends through the top border */
-        bottom: -$board-border-width; /* Extends through the bottom border */
-        left: -$board-border-width; /* Shifts by border width */
-        right: -$board-border-width;
-        overflow: hidden;
-        z-index: 6;
-        border-radius: var(--border-radius-global);
-
-        .eval-fill {
-          position: absolute;
-          top: $board-border-width;
-          left: 0;
-          right: 0;
-          height: calc(100% - $board-border-width);
-          background-color: var(--bar-top-color);
-          border-bottom: $board-border-width solid var(--bar-divider-color);
-          box-sizing: border-box;
-
-          /* Slide up/down on the compositor thread */
-          transform: translate3d(0, calc(-100% + (var(--divider-scale) * 100%)), 0);
-          /* performance optimization that informs the browser ahead of
-        time about which elements and properties are likely to change */
-          will-change: transform;
-        }
+        opacity: 1;
       }
     }
   }
