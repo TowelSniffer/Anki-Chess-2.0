@@ -167,6 +167,7 @@
           const winPercent = 50 + 50 * Math.tanh(cp / 290);
           cachedEval = winPercent; // Save state
         }
+        cachedEval = barTopColor === 'white' ? cachedEval : 100 - cachedEval;
       } else {
         cachedEval = 50;
       }
@@ -176,6 +177,7 @@
       const bestLine = engineStore.analysisLines.find((l) => l.id === 1);
       if (bestLine) {
         evalPercent = bestLine.winChance;
+        cachedEval = barTopColor === 'white' ? evalPercent : 100 - evalPercent;
       } else {
         if (gameStore.isDraw) {
           evalPercent = 50;
@@ -183,11 +185,10 @@
           evalPercent = gameStore.turn === 'w' ? 0 : 100;
         }
       }
-      cachedEval = evalPercent;
     }
     // Fallback: Hold the last known value while the opacity transition finishes
     // Normalize for "white" POV
-    return barTopColor === 'white' ? cachedEval : 100 - cachedEval;
+    return cachedEval;
   });
 
   // analysisMode class for board
