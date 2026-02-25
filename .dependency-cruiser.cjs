@@ -165,7 +165,8 @@ module.exports = {
         ],
         pathNot: [
           'node_modules/@types/',
-          'node_modules/svelte/'
+          'node_modules/svelte/',
+          'node_modules/svelte-render-scan/'
         ]
       }
     },
