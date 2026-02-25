@@ -23,6 +23,7 @@ export interface AnalysisLine {
 // This persists across EngineStore instantiations within the same webview
 let stockfishWorker: Worker | null = null;
 let initPromise: Promise<void> | null = null;
+let workerReady = false;
 
 export class EngineStore {
   /*
@@ -137,14 +138,14 @@ export class EngineStore {
 
   constructor() {
     $effect(() => {
-        // Register userConfig changes
-        void this.multipv;
-        void this.analysisThinkingTime;
-        untrack(() => {
-          if (!this.enabled) return; // prevent restarting on initial load
-          this.restart();
-        });
+      // Register userConfig changes
+      void this.multipv;
+      void this.analysisThinkingTime;
+      untrack(() => {
+        if (!this.enabled) return; // prevent restarting on initial load
+        this.restart();
       });
+    });
   }
 
   /*
@@ -176,30 +177,15 @@ export class EngineStore {
     });
   }
 
-  async toggle(fen: string) {
+  toggle(fen: string) {
     if (this.enabled) {
       this.enabled = false;
       this.stop();
       return;
     }
+    this.enabled = true;
 
-    if (!stockfishWorker) {
-      this.loading = true;
-      try {
-        this.enabled = true;
-        await this._initWorker();
-        await this._stopAndWait();
-        this.analyze(fen);
-      } catch (err) {
-        console.error('Engine failed to initialize', err);
-        this.loading = false;
-        this.enabled = false;
-      }
-    } else {
-      this.enabled = true;
-      await this._stopAndWait();
-      this.analyze(fen);
-    }
+    this._initWorker(fen);
   }
 
   async analyze(fen: string) {
@@ -219,17 +205,8 @@ export class EngineStore {
 
   async init(fen?: string) {
     this.enabled = true;
-    // Start the worker immediately if it doesn't exist
-    if (!stockfishWorker && !this.loading) {
-      // We don't 'await' here if we just want to fire and forget the load
-      this._initWorker().catch((err) => console.error('Background load failed', err));
-    }
-    if (!!fen) {
-      // If a FEN was provided, we MUST await the worker before analyzing
-      await this._initWorker();
-      this.loading = false;
-      this.analyze(fen);
-    }
+    await this._delay(200);
+    this._initWorker(fen);
   }
 
   async stop() {
@@ -284,7 +261,7 @@ export class EngineStore {
 
     // Detach this instance's message listener from the global worker
     if (stockfishWorker) {
-       stockfishWorker.onmessage = null;
+      stockfishWorker.onmessage = null;
     }
   }
 
@@ -377,12 +354,42 @@ export class EngineStore {
     stockfishWorker.postMessage(`go movetime ${this.analysisThinkingTime * 1000}`);
   }
 
-  private async _initWorker(): Promise<void> {
-    // If initialization is already happening (or finished), return that exact promise.
-    if (initPromise) return initPromise;
+  private _delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async _initWorker(fen?: string): Promise<void> {
+    // STATE 1: Worker is already fully loaded and ready
+    if (stockfishWorker && initPromise) {
+      stockfishWorker.onmessage = (event) => this._handleEngineMessage(event);
+      this.loading = false;
+      if (fen) this.analyze(fen);
+      return;
+    }
+
+    // STATE 2: Worker is currently loading from a previous card
+    if (initPromise && !workerReady) {
+      this.loading = true;
+      try {
+        await initPromise; // Wait for Card A's boot to finish
+        // Now that it's ready, hijack the listener for Card B
+        if (stockfishWorker) {
+          stockfishWorker.onmessage = (event) => this._handleEngineMessage(event);
+        }
+        this.loading = false;
+        if (fen) this.analyze(fen);
+      } catch (err) {
+        // If the background load failed, let the component handle it
+        throw err;
+      }
+      return;
+    }
+
+    // STATE 3: Fresh Boot
     initPromise = new Promise((resolve, reject) => {
       try {
         this.loading = true; // Set loading state immediately
+        workerReady = false;
 
         if (!stockfishWorker) {
           stockfishWorker = new Worker('/_stockfish.js');
@@ -412,10 +419,13 @@ export class EngineStore {
           }
 
           if (msg === 'uciok') stockfishWorker?.postMessage('isready');
-          else if (msg === 'readyok') { // Initial load finished
+          else if (msg === 'readyok') {
+            // Initial load finished
             // Re-bind the message handler to the CURRENT EngineStore instance
             stockfishWorker!.onmessage = (event) => this._handleEngineMessage(event);
+            workerReady = true;
             this.loading = false;
+            if (fen) this.analyze(fen);
             resolve();
           }
         };
