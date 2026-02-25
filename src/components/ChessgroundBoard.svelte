@@ -181,8 +181,9 @@
         if (gameStore.isDraw) {
           evalPercent = 50;
         } else if (gameStore.isCheckmate) {
-          evalPercent = gameStore.turn === 'w' ? 0 : 100;
+          evalPercent = gameStore.turn === gameStore.orientation[0] ? 100 : 0;
         }
+        cachedEval = evalPercent;
       }
     }
     // Fallback: Hold the last known value while the opacity transition finishes
@@ -226,7 +227,7 @@
   let evalFillNode: HTMLDivElement | undefined = $state();
   $effect(() => {
     if (!evalFillNode) return;
-    const scale = (timerStore.visible ? visualDivider : $dividerSpring) / 100;
+    let scale = (timerStore.visible ? visualDivider : $dividerSpring) / 100;
 
     // Calculate percentage in JS, apply directly to the node
     evalFillNode.style.transform = `translate3d(0, ${-100 + scale * 100}%, 0)`;
@@ -521,6 +522,17 @@
         background-color: var(--bar-top-color);
         box-sizing: border-box;
         will-change: transform;
+
+        /* Divider Element */
+        &::before {
+          content: '';
+          position: absolute;
+          top: -$board-border-width;
+          left: 0;
+          right: 0;
+          height: $board-border-width;
+          background-color: var(--bar-top-color)
+        }
 
         /* Divider Element */
         &::after {
