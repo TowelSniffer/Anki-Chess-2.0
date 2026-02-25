@@ -482,7 +482,7 @@
     border: var(--border-thin, 1px solid #ccc);
     background-color: var(--surface-primary, #fff);
     color: var(--text-primary, #333);
-    @include border-shadow;
+    @include subtle-shadow;
     width: $button-size-calc;
     height: $button-size-calc;
     @include x-margin($button-margin-calc);
@@ -493,15 +493,15 @@
     &:hover:not(:disabled, :active, .isActive) {
       background-color: var(--interactive-button-hover, #f0f0f0);
       color: var(--surface-primary);
-      @include border-shadow(0.7);
+      @include subtle-shadow(0.7);
     }
     &.isActive,
     &:active {
       background-color: var(--interactive-button-active, #e0e0e0);
       color: var(--surface-primary);
-      @include border-shadow(0.7, inset);
+      @include subtle-shadow(0.7, inset);
       &:hover:not(:active) {
-        @include border-shadow(0.7);
+        @include subtle-shadow(0.7);
       }
     }
     &:disabled {
@@ -757,11 +757,11 @@
       font-weight: bold;
       &:hover {
         background: #e0e0e0;
-        @include border-shadow;
+        @include subtle-shadow;
 
         &:active {
           background: #e0e0e0;
-          @include border-shadow(0.7, inset);
+          @include subtle-shadow(0.7, inset);
         }
       }
     }

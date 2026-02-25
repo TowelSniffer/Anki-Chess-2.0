@@ -547,7 +547,7 @@
     cursor: pointer;
     position: relative; /* Required for z-index to work reliably */
     z-index: 7;
-    box-shadow: $shadow-main;
+    @include border-shadow;
     border-radius: inherit;
 
     &.view-only {
