@@ -11,7 +11,6 @@ import type {
 
 import type { EngineStore } from './engineStore.svelte';
 import type { TimerStore } from '$stores/timerStore.svelte';
-import type { MirrorState } from '$features/pgn/mirror';
 
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
@@ -55,7 +54,6 @@ export class PgnGameStore {
 
   private _flipBoolean: boolean = $state(false); // Track if Viewer should be flipped
   private _randomBoolean: boolean = $state(false); // Track random orientation
-  private _mirrorState: MirrorState = $state('original'); // Track mirrorPGN state
 
   /*
    * DERIVED STATE
@@ -75,7 +73,7 @@ export class PgnGameStore {
   viewOnly = $derived(this._moveDebounce ? true : false);
 
   playerColor: CgColor = $derived.by(() => {
-    let color = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
+    let color: CgColor = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
     if (this._flipBoolean) color = color === 'white' ? 'black' : 'white';
 
     return color;
@@ -85,7 +83,7 @@ export class PgnGameStore {
 
   orientation: CgColor = $derived.by(() => {
     const flipPgn = this._flipBoolean;
-    let orientation =
+    let orientation: CgColor =
       getTurnFromFen(this.startFen) === 'w'
         ? flipPgn
           ? 'black'
@@ -151,23 +149,23 @@ export class PgnGameStore {
       untrack(() => {
         this._resetGameState();
         timerStore.reset();
-
+        boardMode !== 'Viewer' && this._clearGameStorage();
         if (boardMode === 'Viewer') {
-          const storedScore = this._getAndRemoveStorage('chess_puzzle_score');
-          this._randomBoolean = this._getAndRemoveStorage('chess_randomBoolean') === 'true';
-          this._flipBoolean = this._getAndRemoveStorage('chess_flipBoolean') === 'true';
+          const storedScore = sessionStorage.getItem('chess_puzzle_score');
+          this._randomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
+          this._flipBoolean = sessionStorage.getItem('chess_flipBoolean') === 'true';
           this._puzzleScore = (storedScore as PuzzleScored) ?? null;
-          // this._mirrorState = this._getAndRemoveStorage()
+          // this._mirrorState = sessionStorage.getItem()
         } else if (/^(Puzzle|Study)$/.test(boardMode)) {
           const flipPgn = boardMode === 'Puzzle' && userConfig.opts.flipBoard;
           this._flipBoolean = flipPgn;
-          sessionStorage.setItem('chess_flipBoolean', flipPgn);
+          sessionStorage.setItem('chess_flipBoolean', flipPgn.toString());
           if (flipPgn) {
             playAiMove(this, userConfig.opts.animationTime + 100);
           }
           if (userConfig.opts.randomOrientation) {
             this._randomBoolean = !Math.round(Math.random());
-            sessionStorage.setItem('chess_randomBoolean', this._randomBoolean);
+            sessionStorage.setItem('chess_randomBoolean', this._randomBoolean.toString());
           }
 
           timerStore.start();
@@ -225,7 +223,7 @@ export class PgnGameStore {
     $effect(() => {
       const isPuzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
       const puzzledScored = this._puzzleScore && isPuzzleMode;
-      if (puzzledScored) sessionStorage.setItem('chess_puzzle_score', this._puzzleScore);
+      if (puzzledScored) sessionStorage.setItem('chess_puzzle_score', this._puzzleScore!.toString());
     });
   }
 
@@ -264,10 +262,17 @@ export class PgnGameStore {
     }
   }
 
-  private _getAndRemoveStorage(key: string): null | string {
-    const storedItem = sessionStorage.getItem(key);
-    if (storedItem) sessionStorage.removeItem(key);
-    return storedItem;
+  private _clearGameStorage(): void {
+    let keysToRemove = [
+      'chess_puzzle_score',
+      'chess_randomBoolean',
+      'chess_flipBoolean',
+      'chess_mirrorState',
+    ];
+
+    keysToRemove.forEach(function (key) {
+      sessionStorage.removeItem(key);
+    });
   }
 
   // --- Navigation Helpers ---

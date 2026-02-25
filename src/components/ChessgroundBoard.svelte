@@ -34,6 +34,7 @@
 
   onDestroy(() => {
     if (viewerTimeout) clearTimeout(viewerTimeout);
+    console.log('destroy!!!!')
   });
 
   const SOFT_WHITE = '#eaeaea';
@@ -264,10 +265,10 @@
   // Move & Animation an Handler
   let previousPath: PgnPath | null = null;
   $effect(() => {
-    if (!gameStore?.cg) return;
     void isFenUpdate;
     void gameStore.pgnPath;
     untrack(() => {
+      if (!gameStore?.cg) return;
       gameStore.errorCount = 0;
       if (isFenUpdate) {
         // Single click move or en passant
