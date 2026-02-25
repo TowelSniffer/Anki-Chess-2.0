@@ -140,7 +140,7 @@
       border: var(--border-thin);
       background-color: var(--surface-primary);
       color: var(--text-primary);
-      @include border-shadow;
+      @include subtle-shadow;
       width: $button-size-calc;
       height: $button-size-calc;
       @include x-margin($button-margin-calc);
@@ -152,22 +152,22 @@
       &:hover:not(:disabled, .active-toggle) {
         background-color: var(--interactive-button-hover);
         color: var(--surface-primary);
-        @include border-shadow(0.7);
+        @include subtle-shadow(0.7);
       }
 
       &:active:not(:disabled) {
         background-color: var(--interactive-button-active);
         color: var(--surface-primary);
-        @include border-shadow(0.7, inset);
+        @include subtle-shadow(0.7, inset);
       }
 
       /* Style for when the analysis toggle button is active */
       &.active-toggle {
         background-color: var(--interactive-button-active);
-        @include border-shadow(0.7, inset);
+        @include subtle-shadow(0.7, inset);
         color: var(--surface-secondary);
         &:hover:not(:active) {
-          @include border-shadow(0.7);
+          @include subtle-shadow(0.7);
         }
       }
 
