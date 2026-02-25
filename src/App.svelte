@@ -6,7 +6,6 @@
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
   import { userConfig } from '$stores/userConfig.svelte';
-  import { engineStore } from '$stores/engineStore.svelte';
   import { RenderScan } from 'svelte-render-scan';
 
   let { pgn, boardMode, userText } = $props();
@@ -29,9 +28,7 @@
           <div id="buttons-container">
             <ButtonsContainer />
           </div>
-          {#if engineStore.enabled}
-            <EngineAnalysis />
-          {/if}
+          <EngineAnalysis />
           <div id="pgnViewer">
             <PgnViewer />
           </div>

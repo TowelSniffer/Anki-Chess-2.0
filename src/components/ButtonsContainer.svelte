@@ -11,17 +11,18 @@
   import IconFlip from '~icons/material-symbols/flip-sharp';
 
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { EngineStore } from '$stores/engineStore.svelte';
 
   import { getContext } from 'svelte';
   import Dropdown from './uiUtility/Dropdown.svelte';
-  import { engineStore } from '$stores/engineStore.svelte';
   import { playSound } from '$features/audio/audio';
   import { getMenuData } from '$configs/menu';
   import { clickToCopy } from '$utils/toolkit/copyToClipboard';
 
 
-  // Retrieve the instance created by the parent
+  // Retrieve Stores created by the parent
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const engineStore = getContext<EngineStore>('ENGINE_STORE');
 
   let isFlipped = $derived(gameStore.orientation === 'black');
   let canGoBack = $derived(gameStore.pgnPath.length);
