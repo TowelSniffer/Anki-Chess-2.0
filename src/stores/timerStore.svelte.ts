@@ -1,6 +1,6 @@
 import { userConfig } from '$stores/userConfig.svelte';
 
-class TimerStore {
+export class TimerStore {
   // --- State ---
   isRunning = $state(false);
   remainingTime = $state(userConfig.opts.timer); // in ms
@@ -122,11 +122,13 @@ class TimerStore {
   }
 
   reset() {
-    this.isRunning = false;
-    this.visible = false;
-    this.isRunning = false;
+    this.stop();
     this.remainingTime = userConfig.opts.timer;
     this.totalTime = userConfig.opts.timer;
+  }
+
+  destroy() {
+    this.stop();
   }
 
   // --- Loop Logic ---
@@ -153,5 +155,3 @@ class TimerStore {
     this.stop();
   }
 }
-
-export const timerStore = new TimerStore();

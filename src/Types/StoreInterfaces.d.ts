@@ -10,8 +10,19 @@ import type {
   PuzzleScored,
   CustomShape
 } from '$Types/ChessStructs';
+import type { EngineStore } from '$stores/engineStore.svelte';
+  import type { TimerStore } from '$stores/timerStore.svelte';
+
+/*
+ * We define a seperate Interface for gamestore to avoid
+ * circular dependecy issues with Type imports
+*/
 
 export interface IPgnGameStore {
+  // --- Stores ---
+  engineStore: EngineStore;
+  timerStore: TimerStore;
+
   // --- STATE (Variables) ---
   cg: Api | null;
   boardMode: BoardModes;

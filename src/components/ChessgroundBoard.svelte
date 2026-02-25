@@ -1,28 +1,30 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import type { PgnPath, PuzzleScored } from '$Types/ChessStructs';
-  import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import '@lichess-org/chessground/assets/chessground.base.css';
   import '$scss/_components/_chessground.scss';
+
+  import type { PgnPath, PuzzleScored } from '$Types/ChessStructs';
+
+  import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { EngineStore } from '$stores/engineStore.svelte';
+  import type { TimerStore } from '$stores/timerStore.svelte';
+
+  import { onMount, getContext, untrack, onDestroy } from 'svelte';
+  import { spring } from 'svelte/motion';
+
   import { userConfig } from '$stores/userConfig.svelte';
-  import { engineStore } from '$stores/engineStore.svelte';
-  import { timerStore } from '$stores/timerStore.svelte';
   import { updateBoard } from '$features/board/boardAnimation';
   import { moveAudio, playSound } from '$features/audio/audio';
   import { pieceImages } from '$utils/toolkit/importAssets';
-  import { getContext, untrack, onDestroy } from 'svelte';
-  import { spring } from 'svelte/motion';
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const engineStore = getContext<EngineStore>('ENGINE_STORE');
+  const timerStore = getContext<TimerStore>('TIMER_STORE');
   let boardContainer: HTMLDivElement;
   onMount(() => {
     if (boardContainer) {
-      if (isViewerMode) {
-        if (userConfig.opts.flipBoard) {
-          gameStore.next();
-        }
-      }
-      gameStore.loadCgInstance(boardContainer);
+      requestAnimationFrame(() => {
+        gameStore.loadCgInstance(boardContainer);
+      });
     }
     return () => {
       gameStore.cg?.destroy(); // Explicitly kill the cg instance
@@ -32,9 +34,6 @@
 
   onDestroy(() => {
     if (viewerTimeout) clearTimeout(viewerTimeout);
-    engineStore.stopAndClear();
-    timerStore.reset();
-    gameStore.destroy();
   });
 
   const SOFT_WHITE = '#eaeaea';
@@ -201,6 +200,10 @@
 
   // --- REACTIVE LOGIC ---
 
+  // $effect(() => {
+  //   $inspect(flashState)
+  // });
+
   // Sync the Spring to derived visualDivider
   let shouldHardSpring = false;
   $effect(() => {
@@ -262,45 +265,49 @@
   let previousPath: PgnPath | null = null;
   $effect(() => {
     if (!gameStore?.cg) return;
-    gameStore.errorCount = 0;
-    if (isFenUpdate) {
-      // Single click move or en passant
+    void isFenUpdate;
+    void gameStore.pgnPath;
+    untrack(() => {
+      gameStore.errorCount = 0;
+      if (isFenUpdate) {
+        // Single click move or en passant
 
-      /*
-       * Here we check if cg.move can be used instead of set({ fen: ... })
-       * for smoother animations
-       */
+        /*
+         * Here we check if cg.move can be used instead of set({ fen: ... })
+         * for smoother animations
+         */
 
-      const move = gameStore.currentMove;
-      const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
+        const move = gameStore.currentMove;
+        const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
 
-      // Special moves require set({ fen: ... })
-      const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
+        // Special moves require set({ fen: ... })
+        const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
 
-      const forwardMoveCheck =
-        shouldAnimate && move?.before.split(' ')[0] === gameStore.cg.getFen();
-      // Special move check not needed as getCgConfig will compare fen to
-      // check for Captures/Promote/En Passant/Castle.
-      const undoMoveCheck = move?.after === prevMove?.before;
+        const forwardMoveCheck =
+          shouldAnimate && move?.before.split(' ')[0] === gameStore.cg.getFen();
+        // Special move check not needed as getCgConfig will compare fen to
+        // check for Captures/Promote/En Passant/Castle.
+        const undoMoveCheck = prevMove && move?.after === prevMove?.before;
 
-      // Pre move here so getCgConfig doesn't update fen
-      if (forwardMoveCheck) {
-        gameStore.cg.move(move.from, move.to);
-      } else if (undoMoveCheck) {
-        gameStore.cg.move(prevMove!.to, prevMove!.from);
+        // Pre move here so getCgConfig doesn't update fen
+        if (forwardMoveCheck) {
+          gameStore.cg.move(move.from, move.to);
+        } else if (undoMoveCheck) {
+          gameStore.cg.move(prevMove.to, prevMove.from);
+        }
+
+        const moveType = updateBoard(gameStore, previousPath);
+        if (typeof moveType === 'string') {
+          playSound(moveType);
+        } else if (moveType) {
+          moveAudio(moveType);
+        }
+      } else if (previousPath) {
+        // drag & drop or click to move
+        if (gameStore.currentMove) moveAudio(gameStore.currentMove);
       }
-
-      const moveType = updateBoard(gameStore, previousPath);
-      if (typeof moveType === 'string') {
-        playSound(moveType);
-      } else if (moveType) {
-        moveAudio(moveType);
-      }
-    } else if (previousPath) {
-      // drag & drop or click to move
-      if (gameStore.currentMove) moveAudio(gameStore.currentMove);
-    }
-    previousPath = [...gameStore.pgnPath];
+      previousPath = [...gameStore.pgnPath];
+    });
   });
 
   // Reset errorCount on new fen
@@ -331,8 +338,7 @@
 
   // A) : Handle Mistakes (Flash Red)
   $effect(() => {
-    if (gameStore.errorCount) {
-      // ie > 0
+    if (gameStore.errorCount) { // ie > 0
       triggerFlash('incorrect');
     }
   });
@@ -407,6 +413,7 @@
     class:analysisMode
     class:timerMode={timerStore.visible}
     class:border-flash={borderFlash}
+    onanimationend={() => (flashState = null)}
   >
     <!-- Eval bar for border -->
     {#if timerStore.visible || analysisMode}
@@ -422,7 +429,6 @@
       bind:this={boardContainer}
       onpointerdown={handlePointerDown}
       onwheel={isViewerMode ? handleWheel : null}
-      onanimationend={() => (flashState = null)}
       class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
     ></div>
   </div>
@@ -548,7 +554,7 @@
     position: relative; /* Required for z-index to work reliably */
     z-index: 7;
     @include border-shadow;
-    border-radius: inherit;
+    border-radius: 4px;
 
     &.view-only {
       cursor: not-allowed;

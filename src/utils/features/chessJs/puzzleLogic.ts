@@ -1,12 +1,10 @@
 import type { Move, Square } from 'chess.js';
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
-import { timerStore } from '$stores/timerStore.svelte';
 import { userConfig } from '$stores/userConfig.svelte';
 import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
-import { engineStore } from '$stores/engineStore.svelte';
 
 // --- Timeout Management ---
 const activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
@@ -86,8 +84,8 @@ export async function handleUserMove(
 
     // Trigger AI Response
     try {
-      const bestMoveSan = await engineStore.requestMove(gameStore.fen);
-
+      const bestMoveSan = await gameStore.engineStore.requestMove(gameStore.fen);
+      if (gameStore.boardMode !== 'AI') return;
       // Play AI Move
       const aiMove = getLegalMove(bestMoveSan, gameStore.fen); // Validate SAN
       if (aiMove) {
@@ -105,7 +103,7 @@ export async function handleUserMove(
     if (existingPath) {
       // A) Move exists in PGN (Main line or Variation)
       gameStore.pgnPath = existingPath;
-      timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
+      gameStore.timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
       if (gameStore.boardMode === 'Puzzle') {
         playAiMove(gameStore, gameStore.aiDelayTime || 300);
       }

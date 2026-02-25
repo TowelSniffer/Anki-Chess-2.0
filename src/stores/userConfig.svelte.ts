@@ -9,7 +9,7 @@ export class UserConfig {
   isAnkiConnect = $state(false);
   hasAddon = $state(false);
 
-  lastSavedState = $state.snapshot(this.opts);
+  lastSavedState = $state($state.snapshot(this.opts));
 
   // --- Derived State ---
   saveDue: boolean = $derived(
@@ -40,7 +40,6 @@ export class UserConfig {
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
       this.lastSavedState = { ...window.USER_CONFIG };
     } else if (typeof window !== 'undefined') {
-      window.USER_CONFIG = $state.snapshot(this.opts);
       this.lastSavedState = $state.snapshot(this.opts);
     }
 
@@ -101,9 +100,6 @@ export class UserConfig {
     if (typeof window === 'undefined') return;
 
     this.lastSavedState = $state.snapshot(this.opts);
-
-    // Update window.USER_CONFIG (for consistency with external scripts)
-    window.USER_CONFIG = { ...this.lastSavedState };
 
     // --- STRATEGY 1: ankiChess companion addon ---
     if (this.hasAddon) {

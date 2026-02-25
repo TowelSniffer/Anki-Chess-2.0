@@ -19,7 +19,12 @@ export interface AnalysisLine {
   firstMove: { from: Square; to: Square; san: string } | null;
 }
 
-class EngineStore {
+// --- Global Worker Cache ---
+// This persists across EngineStore instantiations within the same webview
+let stockfishWorker: Worker | null = null;
+let initPromise: Promise<void> | null = null;
+
+export class EngineStore {
   /*
    * ENGINE STATE
    */
@@ -39,15 +44,12 @@ class EngineStore {
 
   // --- Internal State ---
 
-  private _worker: Worker | null = null;
   private _currentFen = ''; // The FEN currently being processed by the engine
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
 
   private _lineBuffer = new Map<number, AnalysisLine>(); // Buffer for incoming lines
   private _updateTimeout: number | null = null; // UI timeout reference
   private _lastInfoUpdate = 0; // Last UI update performance reference
-  // We use this to check if existing has been made.
-  private _initPromise: Promise<void> | null = null;
 
   // Track if the engine is busy and provide a way to wait for it
   private _idlePromise: Promise<void> = Promise.resolve();
@@ -134,9 +136,7 @@ class EngineStore {
   });
 
   constructor() {
-    $effect.root(() => {
-      // FIXME effect.root might make sense for handling new PGN in other stores
-      $effect(() => {
+    $effect(() => {
         // Register userConfig changes
         void this.multipv;
         void this.analysisThinkingTime;
@@ -145,7 +145,6 @@ class EngineStore {
           this.restart();
         });
       });
-    });
   }
 
   /*
@@ -161,7 +160,7 @@ class EngineStore {
   ): Promise<string> {
     this._aiRequestPending = true;
 
-    if (!this._worker || this.loading) {
+    if (!stockfishWorker || this.loading) {
       await this._initWorker();
     }
     await this._stopAndWait(); // Ensure previous analysis is dead
@@ -184,7 +183,7 @@ class EngineStore {
       return;
     }
 
-    if (!this._worker) {
+    if (!stockfishWorker) {
       this.loading = true;
       try {
         this.enabled = true;
@@ -204,7 +203,7 @@ class EngineStore {
   }
 
   async analyze(fen: string) {
-    if (!this.enabled || !this._worker || this.loading || this._aiRequestPending) return;
+    if (!this.enabled || !stockfishWorker || this.loading || this._aiRequestPending) return;
 
     // If we are already thinking about this exact FEN, do nothing
     if (this.isThinking && this._currentFen === fen && !this._pendingFen) return;
@@ -221,7 +220,7 @@ class EngineStore {
   async init(fen?: string) {
     this.enabled = true;
     // Start the worker immediately if it doesn't exist
-    if (!this._worker && !this.loading) {
+    if (!stockfishWorker && !this.loading) {
       // We don't 'await' here if we just want to fire and forget the load
       this._initWorker().catch((err) => console.error('Background load failed', err));
     }
@@ -241,6 +240,7 @@ class EngineStore {
 
   async stopAndClear() {
     this.enabled = false;
+    this.loading = false;
     this._pendingFen = '';
     this.analysisLines = [];
     this._currentFen = '';
@@ -257,8 +257,8 @@ class EngineStore {
     this._aiRequestPending = false;
     this._aiMoveResolver = null;
 
-    if (this.isThinking && this._worker) {
-      this._worker.postMessage('stop');
+    if (this.isThinking && stockfishWorker) {
+      stockfishWorker.postMessage('stop');
       // DO NOT manually unlock here. We let the 'bestmove' message
       // hit _handleEngineMessage, which will call _parseBestMove and unlock.
     } else {
@@ -275,6 +275,16 @@ class EngineStore {
       const newFen = this._currentFen;
       this._currentFen = '';
       this.analyze(newFen);
+    }
+  }
+
+  destroy() {
+    this.stopAndClear();
+    if (this._updateTimeout) clearTimeout(this._updateTimeout);
+
+    // Detach this instance's message listener from the global worker
+    if (stockfishWorker) {
+       stockfishWorker.onmessage = null;
     }
   }
 
@@ -295,7 +305,7 @@ class EngineStore {
 
   private async _stopAndWait() {
     if (this.isThinking) {
-      this._worker?.postMessage('stop');
+      stockfishWorker?.postMessage('stop');
       await this._idlePromise; // Wait until _parseBestMove unlocks it
     }
   }
@@ -321,23 +331,23 @@ class EngineStore {
     this._lockEngine();
 
     // Configure Engine for "Human" play.
-    this._worker?.postMessage(`setoption name MultiPV value 1`);
-    this._worker?.postMessage(`setoption name UCI_LimitStrength value true`);
-    this._worker?.postMessage(`setoption name UCI_Elo value ${clampedElo}`);
+    stockfishWorker?.postMessage(`setoption name MultiPV value 1`);
+    stockfishWorker?.postMessage(`setoption name UCI_LimitStrength value true`);
+    stockfishWorker?.postMessage(`setoption name UCI_Elo value ${clampedElo}`);
 
     // Start Search
-    this._worker?.postMessage(`position fen ${fen}`);
-    this._worker?.postMessage(`go movetime ${moveTime}`);
+    stockfishWorker?.postMessage(`position fen ${fen}`);
+    stockfishWorker?.postMessage(`go movetime ${moveTime}`);
   }
 
   private _resetEngineStrength() {
     // IMPORTANT: Turn off limits so normal analysis is accurate again
-    this._worker?.postMessage(`setoption name UCI_LimitStrength value false`);
-    this._worker?.postMessage(`setoption name MultiPV value ${this.multipv}`);
+    stockfishWorker?.postMessage(`setoption name UCI_LimitStrength value false`);
+    stockfishWorker?.postMessage(`setoption name MultiPV value ${this.multipv}`);
   }
 
   private _processPending() {
-    if (!this._worker) {
+    if (!stockfishWorker) {
       return;
     }
 
@@ -362,31 +372,34 @@ class EngineStore {
     this._lockEngine();
 
     // Send commands
-    this._worker.postMessage(`position fen ${fen}`);
-    this._worker.postMessage(`setoption name MultiPV value ${this.multipv}`);
-    this._worker.postMessage(`go movetime ${this.analysisThinkingTime * 1000}`);
+    stockfishWorker.postMessage(`position fen ${fen}`);
+    stockfishWorker.postMessage(`setoption name MultiPV value ${this.multipv}`);
+    stockfishWorker.postMessage(`go movetime ${this.analysisThinkingTime * 1000}`);
   }
 
-  private _initWorker(): Promise<void> {
+  private async _initWorker(): Promise<void> {
     // If initialization is already happening (or finished), return that exact promise.
-    if (this._initPromise) return this._initPromise;
-    this._initPromise = new Promise((resolve, reject) => {
+    if (initPromise) return initPromise;
+    initPromise = new Promise((resolve, reject) => {
       try {
         this.loading = true; // Set loading state immediately
-        this._worker = new Worker('/_stockfish.js');
+
+        if (!stockfishWorker) {
+          stockfishWorker = new Worker('/_stockfish.js');
+        }
 
         // Handle both initialization errors and runtime crashes
-        this._worker.onerror = (err) => {
+        stockfishWorker.onerror = (err) => {
           console.error('Stockfish Worker Crashed:', err);
           this._handleEngineCrash(); // Trigger recovery
 
           // If we are still in the init phase, reject the promise
-          if (this._initPromise) {
-            this._initPromise = null;
+          if (initPromise) {
+            initPromise = null;
             reject(new Error('Worker failed: ' + err.message));
           }
         };
-        this._worker.onmessage = (e) => {
+        stockfishWorker.onmessage = (e) => {
           const msg = e.data;
 
           // Catch specific "unreachable" or WASM errors sent via message if any
@@ -398,31 +411,32 @@ class EngineStore {
             return;
           }
 
-          if (msg === 'uciok') this._worker?.postMessage('isready');
-          else if (msg === 'readyok') {
-            this._worker!.onmessage = (event) => this._handleEngineMessage(event);
+          if (msg === 'uciok') stockfishWorker?.postMessage('isready');
+          else if (msg === 'readyok') { // Initial load finished
+            // Re-bind the message handler to the CURRENT EngineStore instance
+            stockfishWorker!.onmessage = (event) => this._handleEngineMessage(event);
             this.loading = false;
             resolve();
           }
         };
-        this._worker.postMessage('uci');
+        stockfishWorker.postMessage('uci');
       } catch (e) {
-        this._initPromise = null;
+        initPromise = null;
         reject(e);
       }
     });
-    return this._initPromise;
+    return initPromise;
   }
 
   private _handleEngineCrash() {
     // Kill the zombie worker
-    if (this._worker) {
-      this._worker.terminate();
-      this._worker = null;
+    if (stockfishWorker) {
+      stockfishWorker.terminate();
+      stockfishWorker = null;
     }
 
     // Reset internal flags so the store knows it's no longer running
-    this._initPromise = null;
+    initPromise = null;
     this.isThinking = false;
     this._unlockEngine(); // Release any promises waiting on _idlePromise
 
@@ -627,5 +641,3 @@ class EngineStore {
     }
   }
 }
-
-export const engineStore = new EngineStore();
