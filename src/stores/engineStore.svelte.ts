@@ -204,8 +204,8 @@ export class EngineStore {
   }
 
   async init(fen?: string) {
-    this.enabled = true;
     await this._delay(200);
+    this.enabled = true;
     this._initWorker(fen);
   }
 
