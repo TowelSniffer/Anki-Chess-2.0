@@ -20,6 +20,77 @@
 
   const currentPgnPathKey = $derived(gameStore.currentPathKey);
 
+  // Auto-scroll logic
+  $effect(() => {
+    // We depend on currentPgnPathKey to trigger the scroll
+    const activeKey = currentPgnPathKey;
+    requestAnimationFrame(() => {
+      const activeEl = document.querySelector(`[data-path-key="${activeKey}"]`);
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'start',
+        });
+      }
+    });
+  });
+
+  /*
+   * HELPER FUNCTIONS
+   */
+
+  function tooltipAction(node: HTMLElement, text: string | undefined) {
+    if (!text) return;
+
+    let tooltip: HTMLDivElement | null = null;
+
+    function createTooltip() {
+      tooltip = document.createElement('div');
+      tooltip.className = 'nagTooltip global';
+      tooltip.textContent = text;
+      document.body.appendChild(tooltip); // Escape parent overflow
+
+      const nodeRect = node.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+
+      // Default: Centered above the move
+      let top = nodeRect.top - tooltipRect.height - 8;
+      let left = nodeRect.left + (nodeRect.width / 2) - (tooltipRect.width / 2);
+
+      // Boundary Logic
+      if (top < 0) top = nodeRect.bottom + 8; // Flip below if off top screen
+      if (left < 8) left = 8; // Keep off left edge
+      if (left + tooltipRect.width > window.innerWidth - 8) {
+        left = window.innerWidth - tooltipRect.width - 8; // Keep off right edge
+      }
+
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+
+      // Request animation frame ensures transition fires
+      requestAnimationFrame(() => tooltip?.classList.add('visible'));
+    }
+
+    function removeTooltip() {
+      if (tooltip) {
+        tooltip.remove();
+        tooltip = null;
+      }
+    }
+
+    node.addEventListener('mouseenter', createTooltip);
+    node.addEventListener('mouseleave', removeTooltip);
+
+    return {
+      destroy() {
+        node.removeEventListener('mouseenter', createTooltip);
+        node.removeEventListener('mouseleave', removeTooltip);
+        removeTooltip();
+      }
+    };
+  }
+
   function onMoveClick(path: PgnPath) {
     gameStore.pgnPath = path;
   }
@@ -43,25 +114,9 @@
     return {
       title: nags[key]?.[0],
       symbol: nags[key]?.[1],
-      nagClass
+      nagClass,
     };
   }
-
-  // Auto-scroll logic
-  $effect(() => {
-    // We depend on currentPgnPathKey to trigger the scroll
-    const activeKey = currentPgnPathKey;
-    requestAnimationFrame(() => {
-      const activeEl = document.querySelector(`[data-path-key="${activeKey}"]`);
-      if (activeEl) {
-        activeEl.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'start'
-        });
-      }
-    });
-  });
 </script>
 
 {#snippet nullItem()}
@@ -98,17 +153,21 @@
     {@const nag = getNagDetails(move)}
 
     <span
-      class="move tappable {nag.nagClass ?? ''}"
+      class="move tappable"
       class:current={pathKey === currentPgnPathKey}
       data-path-key={pathKey}
+      use:tooltipAction={nag?.title}
       onclick={() => onMoveClick(move.pgnPath)}
       onkeydown={(e) => onKeyDown(e, move.pgnPath)}
       role="button"
       tabindex="0"
     >
-      {#if nag?.title}<span class="nagTooltip">{nag.title}</span>{/if}
       {move.notation.notation}
-      {nag.symbol ?? ''}
+      {#if nag?.symbol}
+        <span class="moveNag {nag.nagClass ?? ''}">
+          {nag?.symbol}
+        </span>
+      {/if}
     </span>
 
     {#if move.commentAfter}
@@ -137,34 +196,20 @@
       {#snippet variationLoop()}
         {#each move.variations as variationLine, v_idx (v_idx)}
           {#if !isVariation}
-            <div
-              class:variation-row={!isVariation}
-              class:separator={!isVariation && v_idx > 0}
-            >
-              <PgnViewer
-                moves={variationLine}
-                isVariation={true}
-                withBrackets={isVariation}
-              />
+            <div class:variation-row={!isVariation} class:separator={!isVariation && v_idx > 0}>
+              <PgnViewer moves={variationLine} isVariation={true} withBrackets={isVariation} />
               {#if isVariation && v_idx < move.variations.length - 1}
                 <span class="sub-var-spacing"> </span>
               {/if}
             </div>
           {:else}
-            <PgnViewer
-              moves={variationLine}
-              isVariation={true}
-              withBrackets={isVariation}
-            />
+            <PgnViewer moves={variationLine} isVariation={true} withBrackets={isVariation} />
           {/if}
         {/each}
       {/snippet}
 
       {#if !isVariation}
-        <div
-          class="altLine top-level-container"
-          class:lastContainer={i === moves.length - 1}
-        >
+        <div class="altLine top-level-container" class:lastContainer={i === moves.length - 1}>
           {@render variationLoop()}
         </div>
       {:else}
@@ -211,11 +256,6 @@
     position: relative;
     box-sizing: border-box;
 
-    /*Color move text according to nag*/
-    &.nag-error { color: indianred; }
-    &.nag-correct { color: var(--status-correct); }
-    &.nag-perfect { color: var(--status-perfect); }
-
     &:hover,
     &.current {
       background: var(--surface-hover);
@@ -225,15 +265,25 @@
       background: var(--surface-hover);
       /*       border: 1px solid var(--surface-primary); */
       box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.7);
-
-      .nagTooltip {
-        visibility: visible;
-        opacity: 1;
-      }
     }
 
     &.current {
       box-shadow: inset 0px 0px 2px rgba(0, 0, 0, 1);
+    }
+    .moveNag {
+      padding-left: 0.3em;
+      font-weight: 550;
+      color: var(--text-muted);
+      /* Color nag for good and blunder */
+      &.nag-error {
+        color: var(--status-error);
+      }
+      &.nag-correct {
+        color: var(--status-correct);
+      }
+      &.nag-perfect {
+        color: var(--status-perfect);
+      }
     }
   }
 
@@ -338,28 +388,26 @@
       margin-top: 0.2em;
     }
   }
-
-  .nagTooltip {
-    position: absolute; /* Change from fixed to absolute */
-    bottom: 100%; /* Position it right above the parent */
-    left: 50%; /* Move left edge to the horizontal middle */
-    transform: translateX(-50%); /* Shift back by half its width to center */
-
-    /* Add a small gap between text and tooltip */
-    margin-bottom: 0.4em;
-    font-size: 0.8em;
-    font-style: italic;
-    white-space: nowrap;
-    z-index: 100;
-    /* Basic styling for the tooltip */
+  :global(.nagTooltip.global) {
+    text-align: center;
+    position: fixed; /* Bound to viewport, not parent */
+    z-index: 9999;
     background: var(--surface-secondary);
     box-shadow: 0px 0px 2px 0px black;
     padding: 0.3em;
     border-radius: var(--border-radius-global);
     border: var(--border-thin);
-    /* Hide the tooltip by default */
-    visibility: hidden;
+    font-size: 0.8em;
+    font-style: italic;
+    max-width: 200px;
+    pointer-events: none; /* Prevents tooltip from blocking hover events */
+
+    /* Animation */
     opacity: 0;
-    transition: opacity 0.2s ease 0.5s;
+    transition: opacity 0.2s ease;
   }
+
+  :global(.nagTooltip.global.visible) {
+      opacity: 1 !important;
+    }
 </style>
