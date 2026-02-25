@@ -46,6 +46,7 @@
     let tooltip: HTMLDivElement | null = null;
 
     function createTooltip() {
+      if (!text) return;
       tooltip = document.createElement('div');
       tooltip.className = 'nagTooltip global';
       tooltip.textContent = text;
