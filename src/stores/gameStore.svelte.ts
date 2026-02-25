@@ -60,7 +60,9 @@ export class PgnGameStore {
    */
 
   aiDelayTime = $derived(userConfig.opts.animationTime + 100);
-  isPuzzleComplete = $derived(!!this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext);
+  isPuzzleComplete = $derived(
+    !!this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext,
+  );
 
   // caches the string key (prevents repeated .join() calls)
   currentPathKey = $derived(this.pgnPath.join(','));
@@ -169,12 +171,13 @@ export class PgnGameStore {
           }
 
           timerStore.start();
-        } else if (boardMode === 'AI') {
-          isInitialPgnLoad && this.engineStore.init(this.fen);
         }
         if (isInitialPgnLoad) {
           isInitialPgnLoad = false;
           this.loadNewGame(getPgn());
+          if (boardMode === 'AI') {
+            this.engineStore.init(this.fen);
+          }
           return;
         }
       });
@@ -223,7 +226,8 @@ export class PgnGameStore {
     $effect(() => {
       const isPuzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
       const puzzledScored = this._puzzleScore && isPuzzleMode;
-      if (puzzledScored) sessionStorage.setItem('chess_puzzle_score', this._puzzleScore!.toString());
+      if (puzzledScored)
+        sessionStorage.setItem('chess_puzzle_score', this._puzzleScore!.toString());
     });
   }
 
