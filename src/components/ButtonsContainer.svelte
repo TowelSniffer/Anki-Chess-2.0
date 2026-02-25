@@ -19,14 +19,14 @@
   import { getMenuData } from '$configs/menu';
   import { clickToCopy } from '$utils/toolkit/copyToClipboard';
 
-
   // Retrieve Stores created by the parent
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
 
-  let isFlipped = $derived(gameStore.orientation === 'black');
-  let canGoBack = $derived(gameStore.pgnPath.length);
-  let canGoForward = $derived(gameStore.hasNext);
+  let isFlipped = $state(false);
+
+  const canGoBack = $derived(gameStore.pgnPath.length);
+  const canGoForward = $derived(gameStore.hasNext);
 
   function handleKeydown(e: KeyboardEvent): void {
     switch (e.key) {
@@ -41,6 +41,12 @@
         break;
     }
   }
+
+  function flipBoard() {
+    isFlipped = !isFlipped;
+    gameStore.toggleOrientation();
+  }
+
   const isDevMenu = import.meta.env.DEV;
   const menuData = $derived(getMenuData(isDevMenu ? gameStore : undefined));
 </script>
@@ -49,30 +55,15 @@
 
 <Dropdown icon={IconSettings} items={menuData} />
 
-<button
-  class="navBtn"
-  id="resetBoard"
-  disabled={!canGoBack}
-  onclick={() => gameStore.reset()}
->
+<button class="navBtn" id="resetBoard" disabled={!canGoBack} onclick={() => gameStore.reset()}>
   <IconFirstPage />
 </button>
 
-<button
-  class="navBtn"
-  id="navBackward"
-  disabled={!canGoBack}
-  onclick={() => gameStore.prev()}
->
+<button class="navBtn" id="navBackward" disabled={!canGoBack} onclick={() => gameStore.prev()}>
   <IconArrowLeft />
 </button>
 
-<button
-  class="navBtn"
-  id="navForward"
-  disabled={!canGoForward}
-  onclick={() => gameStore.next()}
->
+<button class="navBtn" id="navForward" disabled={!canGoForward} onclick={() => gameStore.next()}>
   <IconArrowRight />
 </button>
 
@@ -101,14 +92,11 @@
   {/if}
 </button>
 
-<button class="navBtn" onclick={() => gameStore.toggleOrientation()}>
-  <span class="flipBoardIcon md-small" class:flipped={isFlipped}
-    ><IconFlip /></span
-  >
+<button class="navBtn" onclick={flipBoard}>
+  <span class="flipBoardIcon md-small" class:flipped={isFlipped}><IconFlip /></span>
 </button>
 
 <style lang="scss">
-
   /* Animation for when the analysis toggle button is loading */
   @keyframes spin {
     from {
