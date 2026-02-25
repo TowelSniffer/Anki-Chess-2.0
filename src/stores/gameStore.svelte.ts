@@ -60,7 +60,7 @@ export class PgnGameStore {
    */
 
   aiDelayTime = $derived(userConfig.opts.animationTime + 100);
-  isPuzzleComplete = $derived(/^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext);
+  isPuzzleComplete = $derived(!!this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext);
 
   // caches the string key (prevents repeated .join() calls)
   currentPathKey = $derived(this.pgnPath.join(','));

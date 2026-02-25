@@ -34,7 +34,6 @@
 
   onDestroy(() => {
     if (viewerTimeout) clearTimeout(viewerTimeout);
-    console.log('destroy!!!!')
   });
 
   const SOFT_WHITE = '#eaeaea';
@@ -255,7 +254,9 @@
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
   let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
-    if (gameStore.isPuzzleComplete) {
+    if(!gameStore.cg) return;
+    const pullComplete = gameStore.isPuzzleComplete;
+    if (pullComplete) {
       gameStore.cg?.cancelMove();
       timerStore.stop();
       viewerTimeout = setTimeout(showViewer, 300);
