@@ -8,9 +8,11 @@ $palette-gray-25: #404040;
 
 $palette-green-500: #557d38;
 $palette-moss-green: #a5d6a7;
-$palette-limegreen: #32cd32;
 
-$palette-red-500: #b31010;
+$palette-correct: #32cd32;
+$palette-incorrect: #b31010;
+$palette-perfect: cyan;
+
 
 /* sizing */
 $board-border-width: 8px;
@@ -57,9 +59,9 @@ $border-radius-global: 4px;
   /* Interaction  Game State */
   --interactive-button-active: #{$palette-moss-green};
   --interactive-button-hover: #{$palette-green-500};
-  --status-error: #{$palette-red-500};
-  --status-correct: #{$palette-limegreen};
-  --status-perfect: cyan;
+  --status-error: #{$palette-incorrect};
+  --status-correct: #{$palette-correct};
+  --status-perfect: #{$palette-perfect};
 
   /* Board Specifics */
   --board-border: #{$board-border};
