@@ -159,6 +159,9 @@ export class PgnGameStore {
           this._puzzleScore = (storedScore as PuzzleScored) ?? null;
           // this._mirrorState = sessionStorage.getItem()
         } else if (/^(Puzzle|Study)$/.test(boardMode)) {
+          this.engineStore.enabled = false;
+          this.engineStore.stop();
+
           const flipPgn = boardMode === 'Puzzle' && userConfig.opts.flipBoard;
           this._flipBoolean = flipPgn;
           sessionStorage.setItem('chess_flipBoolean', flipPgn.toString());
@@ -171,14 +174,16 @@ export class PgnGameStore {
           }
 
           timerStore.start();
+        } else if (boardMode === 'AI') {
+          this._flipBoolean = false;
         }
+
         if (isInitialPgnLoad) {
           isInitialPgnLoad = false;
           this.loadNewGame(getPgn());
-          if (boardMode === 'AI') {
-            this.engineStore.init(this.fen);
-          }
-          return;
+        }
+        if (boardMode === 'AI') {
+          this.engineStore.init(this.fen);
         }
       });
     });
