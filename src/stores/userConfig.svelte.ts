@@ -4,7 +4,6 @@ import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect'
 import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
 
 export class UserConfig {
-
   opts = $state<UserConfigOpts>(this._readConfigFromWindow());
 
   isAnkiConnect = $state(false);
@@ -13,7 +12,9 @@ export class UserConfig {
   lastSavedState = $state.snapshot(this.opts);
 
   // --- Derived State ---
-  saveDue: boolean = $derived(JSON.stringify($state.snapshot(this.opts)) !== JSON.stringify(this.lastSavedState));
+  saveDue: boolean = $derived(
+    JSON.stringify($state.snapshot(this.opts)) !== JSON.stringify(this.lastSavedState),
+  );
 
   constructor() {
     $effect.root(() => {
@@ -21,7 +22,8 @@ export class UserConfig {
       $effect(() => {
         // Loop through options and update sessionStorage
         for (const [key, value] of Object.entries(this.opts)) {
-          const getPrefixedKey = (key: string) => `${window.CARD_CONFIG?.modelName ?? ''}${key}`;
+          const getPrefixedKey = (key: string) =>
+            `${window.CARD_CONFIG?.modelName ?? ''}_${window.CARD_CONFIG?.cardName ?? ''}_${key}`;
           sessionStorage.setItem(getPrefixedKey(key), String(value));
         }
       });
@@ -60,11 +62,13 @@ export class UserConfig {
   }
 
   private _getConfigValue<K extends keyof UserConfigOpts>(key: K): UserConfigOpts[K] {
-
-    const prefix = typeof window !== 'undefined' ? (window.CARD_CONFIG?.modelName ?? '') : '';
+    const model = window.CARD_CONFIG?.modelName ?? '';
+    const card = window.CARD_CONFIG?.cardName ?? '';
+    const prefix = typeof window !== 'undefined' ? `${model}_${card}_` : '';
     const storageKey = `${prefix}${key}`;
 
-    const stored = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(storageKey) : null;
+    const stored =
+      typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(storageKey) : null;
 
     // Prioritise session storage
     if (stored !== null) {
@@ -78,14 +82,14 @@ export class UserConfig {
 
   async _checkConnections() {
     // Check for specific Add-on Marker
-    if (typeof pycmd !== "undefined") {
-      pycmd("ankiChess:handshake");
+    if (typeof pycmd !== 'undefined') {
+      pycmd('ankiChess:handshake');
 
       // Wait a tiny bit for Python to execute the eval
-      await new Promise(r => setTimeout(r, 50));
+      await new Promise((r) => setTimeout(r, 50));
 
       if ((window as any).ANKI_CHESS_ADDON_INSTALLED === true) {
-         this.hasAddon = true;
+        this.hasAddon = true;
       }
     }
 
@@ -104,23 +108,26 @@ export class UserConfig {
     // --- STRATEGY 1: ankiChess companion addon ---
     if (this.hasAddon) {
       // We send just the config. Python can figure out the current model.
-      const payload = JSON.stringify(this.lastSavedState);
+      const payload = JSON.stringify({
+        config: this.lastSavedState,
+        cardName: window.CARD_CONFIG?.cardName
+      });
       pycmd(`ankiChess:saveConfig:${payload}`);
       return;
     }
 
     // --- STRATEGY 2: AnkiConnect (Fallback) ---
     if (window.CARD_CONFIG && this.isAnkiConnect) {
-       updateAnkiChessTemplate(
-          window.CARD_CONFIG['modelName'],
-          window.CARD_CONFIG['cardName'],
-          this.lastSavedState
-        );
-       return;
+      updateAnkiChessTemplate(
+        window.CARD_CONFIG['modelName'],
+        window.CARD_CONFIG['cardName'],
+        this.lastSavedState,
+      );
+      return;
     }
 
     // --- STRATEGY 3: Clipboard (Mobile/Manual) ---
-    console.warn("No connection found. Settings copied to clipboard.");
+    console.warn('No connection found. Settings copied to clipboard.');
     const clipboardString = `window.USER_CONFIG = ${JSON.stringify({ ...this.lastSavedState }, null, 2)};`;
     copyToClipboard(clipboardString);
   }
