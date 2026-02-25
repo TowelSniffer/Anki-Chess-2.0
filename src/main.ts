@@ -58,7 +58,8 @@ const mountApp = () => {
   } else if (pgnContent) {
     const chess = new Chess();
     try {
-      chess.loadPgn(pgnContent);
+      const cleanedPgn = pgnContent.replace(/}\s*{/g, " "); // merge adjacent comments
+      chess.loadPgn(cleanedPgn);
       // PGN is valid and loaded
     } catch (e) {
       // Invalid PGN
