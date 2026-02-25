@@ -39,7 +39,6 @@ $border-radius-global: 4px;
   /* shadows */
   --shadow-main: #{$shadow-main};
   --shadow-strong: #{$shadow-strong};
-  --shadow-grey: #{$shadow-grey};
 
   /* shadows */
   --border-thin: #{$border-thin};
@@ -60,7 +59,7 @@ $border-radius-global: 4px;
   --interactive-button-hover: #{$palette-green-500};
   --status-error: #{$palette-red-500};
   --status-correct: #{$palette-limegreen};
-  --status-perfect: #7df9ff;
+  --status-perfect: cyan;
 
   /* Board Specifics */
   --board-border: #{$board-border};
