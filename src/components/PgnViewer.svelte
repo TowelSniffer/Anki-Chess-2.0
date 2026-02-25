@@ -4,6 +4,7 @@
   import { getContext } from 'svelte';
   import PgnViewer from './PgnViewer.svelte';
   import { nags, isNagKey } from '$features/pgn/nags';
+  import { blunderNags } from '$features/board/arrows';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
@@ -32,7 +33,18 @@
 
   function getNagDetails(move: CustomPgnMove) {
     const key = move.nag?.find(isNagKey);
-    return key ? { title: nags[key]?.[0], symbol: nags[key]?.[1] } : {};
+    if (!key) return {};
+
+    let nagClass = '';
+    if (blunderNags.includes(key)) nagClass = 'nag-error';
+    else if (key === '$1') nagClass = 'nag-correct';
+    else if (key === '$3') nagClass = 'nag-perfect';
+
+    return {
+      title: nags[key]?.[0],
+      symbol: nags[key]?.[1],
+      nagClass
+    };
   }
 
   // Auto-scroll logic
@@ -86,7 +98,7 @@
     {@const nag = getNagDetails(move)}
 
     <span
-      class="move tappable"
+      class="move tappable {nag.nagClass ?? ''}"
       class:current={pathKey === currentPgnPathKey}
       data-path-key={pathKey}
       onclick={() => onMoveClick(move.pgnPath)}
@@ -198,6 +210,11 @@
     cursor: pointer;
     position: relative;
     box-sizing: border-box;
+
+    /*Color move text according to nag*/
+    &.nag-error { color: indianred; }
+    &.nag-correct { color: var(--status-correct); }
+    &.nag-perfect { color: var(--status-perfect); }
 
     &:hover,
     &.current {
@@ -343,6 +360,6 @@
     /* Hide the tooltip by default */
     visibility: hidden;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
   }
 </style>
