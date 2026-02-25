@@ -83,7 +83,7 @@
 
       &:hover {
         background-color: var(--interactive-button-hover);
-        box-shadow: var(--shadow-grey);
+        box-shadow: $shadow-grey;
       }
 
       &:active {

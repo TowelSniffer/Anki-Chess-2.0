@@ -457,8 +457,9 @@
     height: var(--board-size);
     border-radius: var(--border-radius-global);
     border: $board-border-width solid var(--border-color, #c0c0c0);
-    box-shadow: var(--shadow-grey);
+    box-shadow: $shadow-grey;
     box-sizing: border-box;
+    background-color: var(--border-color, #c0c0c0);
     transition: border-color 0.3s ease;
 
     /* Flash Animation */
@@ -495,6 +496,7 @@
       bottom: -$board-border-width; /* Extends through the bottom border */
       left: -$board-border-width; /* Shifts by border width */
       right: -$board-border-width;
+      background-color: var(--bar-bottom-color);
       overflow: hidden;
       z-index: 6;
       pointer-events: none;
@@ -509,9 +511,20 @@
         right: 0;
         height: calc(100% - $board-border-width);
         background-color: var(--bar-top-color);
-        border-bottom: $board-border-width solid var(--bar-divider-color);
         box-sizing: border-box;
         will-change: transform;
+
+        /* Divider Element */
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: $board-border-width;
+          background-color: var(--bar-divider-color); /*  */
+          box-shadow: inset $shadow-main;
+        }
       }
     }
 
@@ -531,10 +544,11 @@
     /* Chessground needs to fill the wrapper */
     width: 100%;
     height: 100%;
-    border-radius: inherit;
     cursor: pointer;
     position: relative; /* Required for z-index to work reliably */
     z-index: 7;
+    box-shadow: $shadow-main;
+    border-radius: inherit;
 
     &.view-only {
       cursor: not-allowed;
