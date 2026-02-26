@@ -143,48 +143,25 @@ export class PgnGameStore {
     this.boardMode = getBoardMode();
 
     // We differentiate between initial load and boarMode changes
-    let isInitialPgnLoad = true;
+    let isInitialEffectRun = true;
+
+    // --- SYNCHRONOUS INITIALIZATION ---
+    // We perform the initial setup immediately rather than waiting for Svelte's 
+    // $effect to trigger after the first render. This prevents a 1-frame flicker 
+    // (e.g., border flashing white) before the Svelte effect populates the correct state.
+    untrack(() => {
+      this._applyBoardModeState(this.boardMode, true, getPgn());
+    });
 
     $effect(() => {
       const boardMode = this.boardMode;
 
       untrack(() => {
-        this._resetGameState();
-        timerStore.reset();
-        boardMode !== 'Viewer' && this._clearGameStorage();
-        if (boardMode === 'Viewer') {
-          const storedScore = sessionStorage.getItem('chess_puzzle_score');
-          this._randomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
-          this._flipBoolean = sessionStorage.getItem('chess_flipBoolean') === 'true';
-          this._puzzleScore = (storedScore as PuzzleScored) ?? null;
-          // this._mirrorState = sessionStorage.getItem()
-        } else if (/^(Puzzle|Study)$/.test(boardMode)) {
-          this.engineStore.enabled = false;
-          this.engineStore.stop();
-
-          const flipPgn = boardMode === 'Puzzle' && userConfig.opts.flipBoard;
-          this._flipBoolean = flipPgn;
-          sessionStorage.setItem('chess_flipBoolean', flipPgn.toString());
-          if (flipPgn) {
-            playAiMove(this, userConfig.opts.animationTime + 100);
-          }
-          if (userConfig.opts.randomOrientation) {
-            this._randomBoolean = !Math.round(Math.random());
-            sessionStorage.setItem('chess_randomBoolean', this._randomBoolean.toString());
-          }
-
-          timerStore.start();
-        } else if (boardMode === 'AI') {
-          this._flipBoolean = false;
+        if (isInitialEffectRun) {
+          isInitialEffectRun = false;
+          return; // Skip the first reactive run as we handled it synchronously
         }
-
-        if (isInitialPgnLoad) {
-          isInitialPgnLoad = false;
-          this.loadNewGame(getPgn());
-        }
-        if (boardMode === 'AI') {
-          this.engineStore.init(this.fen);
-        }
+        this._applyBoardModeState(boardMode, false, getPgn());
       });
     });
 
@@ -296,6 +273,46 @@ export class PgnGameStore {
    */
 
   // --- Internal ---
+
+  private _applyBoardModeState(boardMode: BoardModes, isInitialLoad: boolean, pgnStr: string) {
+    this._resetGameState();
+    this.timerStore.reset();
+    boardMode !== 'Viewer' && this._clearGameStorage();
+
+    if (boardMode === 'Viewer') {
+      const storedScore = sessionStorage.getItem('chess_puzzle_score');
+      this._randomBoolean = sessionStorage.getItem('chess_randomBoolean') === 'true';
+      this._flipBoolean = sessionStorage.getItem('chess_flipBoolean') === 'true';
+      this._puzzleScore = (storedScore as PuzzleScored) ?? null;
+      // this._mirrorState = sessionStorage.getItem()
+    } else if (/^(Puzzle|Study)$/.test(boardMode)) {
+      this.engineStore.enabled = false;
+      this.engineStore.stop();
+
+      const flipPgn = boardMode === 'Puzzle' && userConfig.opts.flipBoard;
+      this._flipBoolean = flipPgn;
+      sessionStorage.setItem('chess_flipBoolean', flipPgn.toString());
+      if (flipPgn) {
+        playAiMove(this, userConfig.opts.animationTime + 100);
+      }
+      if (userConfig.opts.randomOrientation) {
+        this._randomBoolean = !Math.round(Math.random());
+        sessionStorage.setItem('chess_randomBoolean', this._randomBoolean.toString());
+      }
+
+      this.timerStore.start();
+    } else if (boardMode === 'AI') {
+      this._flipBoolean = false;
+    }
+
+    if (isInitialLoad) {
+      this.loadNewGame(pgnStr);
+    }
+
+    if (boardMode === 'AI') {
+      this.engineStore.init(this.fen);
+    }
+  }
 
   private _resetGameState() {
     this.pgnPath = [];
