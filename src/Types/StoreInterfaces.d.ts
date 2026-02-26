@@ -10,29 +10,40 @@ import type {
   PuzzleScored,
   CustomShape
 } from '$Types/ChessStructs';
+import type { EngineStore } from '$stores/engineStore.svelte';
+  import type { TimerStore } from '$stores/timerStore.svelte';
+
+/*
+ * We define a seperate Interface for gamestore to avoid
+ * circular dependecy issues with Type imports
+*/
 
 export interface IPgnGameStore {
+  // --- Stores ---
+  engineStore: EngineStore;
+  timerStore: TimerStore;
+
   // --- STATE (Variables) ---
   cg: Api | null;
   boardMode: BoardModes;
-  aiDelayTime: number;
   rootGame: CustomPgnGame | undefined;
   pgnPath: PgnPath;
   orientation: CgColor;
   errorCount: number;
   selectedPiece: Square | undefined;
+  pendingPromotion: { from: Square; to: Square } | null;
+  customAnimation: { fen: string; animate: boolean } | null;
   startFen: string;
   playerColor: CgColor;
   opponentColor: CgColor;
-  pendingPromotion: { from: Square; to: Square } | null;
-  customAnimation: { fen: string; animate: boolean } | null;
-  viewOnly: boolean;
 
   // --- DERIVED (Getters) ---
+  readonly aiDelayTime: number;
   readonly isPuzzleComplete: boolean;
   readonly currentPathKey: string;
   readonly currentMove: CustomPgnMove | null;
   readonly fen: string;
+  readonly viewOnly: boolean;
   readonly turn: Color;
   readonly boardConfig: any;
   readonly hasNext: boolean;
@@ -50,11 +61,11 @@ export interface IPgnGameStore {
   readonly prevPath: PgnPath | null;
 
   // --- METHODS ---
+  loadNewGame(rawPGN: string): void;
   setMoveDebounce(): void;
   next(): void;
   prev(): void;
   reset(): void;
-  replayHistory(): Chess;
 
   // Note: loadCgInstance depends on an HTML element
   loadCgInstance(boardContainer: HTMLDivElement): void;
@@ -66,4 +77,5 @@ export interface IPgnGameStore {
   setPendingPromotion(from: Square, to: Square): void;
   cancelPromotion(): void;
   newChess(fen: string): Chess;
+  destroy(): void;
 }

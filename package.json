@@ -1,7 +1,7 @@
 {
   "name": "ankichess",
   "private": true,
-  "version": "1.1.031",
+  "version": "1.2.04",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -32,6 +32,7 @@
     "sass": "^1.93.3",
     "svelte": "^5.39.6",
     "svelte-check": "^4.3.2",
+    "svelte-render-scan": "^1.1.0",
     "typescript": "~5.9.3",
     "typescript-svelte-plugin": "^0.3.50",
     "unplugin-icons": "^23.0.1",

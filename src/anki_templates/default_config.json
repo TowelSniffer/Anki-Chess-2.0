@@ -1,20 +1,24 @@
 {
-  "flipBoard": true,
+  "flipBoard": false,
   "mirror": false,
   "showDests": true,
   "disableArrows": false,
   "singleClickMove": true,
   "animationTime": 200,
-  "handicap": 2,
+  "handicap": 1,
   "autoAdvance": false,
   "timerAdvance": false,
   "strictScoring": false,
   "acceptVariations": true,
+  "playBothSides": false,
   "timer": 10000,
   "increment": 1000,
   "randomOrientation": false,
   "analysisTime": 10,
   "analysisLines": 1,
   "muteAudio": false,
-  "frontText": false
+  "frontText": false,
+  "aiMoveTime": 1,
+  "aiElo": 2700,
+  "aiEval": true
 }

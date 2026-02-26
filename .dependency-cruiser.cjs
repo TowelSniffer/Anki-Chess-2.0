@@ -165,7 +165,8 @@ module.exports = {
         ],
         pathNot: [
           'node_modules/@types/',
-          'node_modules/svelte/'
+          'node_modules/svelte/',
+          'node_modules/svelte-render-scan/'
         ]
       }
     },
@@ -208,10 +209,9 @@ module.exports = {
     },
 
     /* Which modules to exclude */
-    // exclude : {
-    //   /* path: an array of regular expressions in strings to match against */
-    //   path: '',
-    // },
+    exclude: {
+      path: '^~icons/',
+    },
 
     /* Which modules to exclusively include (array of regular expressions in strings)
        dependency-cruiser will skip everything not matching this pattern

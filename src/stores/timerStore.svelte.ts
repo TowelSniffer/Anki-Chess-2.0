@@ -1,9 +1,9 @@
 import { userConfig } from '$stores/userConfig.svelte';
 
-class TimerStore {
+export class TimerStore {
   // --- State ---
   isRunning = $state(false);
-  remainingTime = $state(0); // in ms
+  remainingTime = $state(userConfig.opts.timer); // in ms
   totalTime = $state(userConfig.opts.timer); // in ms (initial duration)
 
   // Controls if the board shows the timer gradient
@@ -40,7 +40,7 @@ class TimerStore {
     this.visible = true;
     this.isRunning = true;
 
-    this.animationFrameId = requestAnimationFrame((t) => this.loop(t));
+    this.animationFrameId = requestAnimationFrame((t) => this._loop(t));
   }
 
   stop() {
@@ -66,7 +66,7 @@ class TimerStore {
   resume() {
     if (this.remainingTime > 0 && !this.isRunning) {
       this.isRunning = true;
-      this.animationFrameId = requestAnimationFrame((t) => this.loop(t));
+      this.animationFrameId = requestAnimationFrame((t) => this._loop(t));
     }
   }
 
@@ -121,8 +121,18 @@ class TimerStore {
     this.animationFrameId = requestAnimationFrame(animate);
   }
 
+  reset() {
+    this.stop();
+    this.remainingTime = userConfig.opts.timer;
+    this.totalTime = userConfig.opts.timer;
+  }
+
+  destroy() {
+    this.stop();
+  }
+
   // --- Loop Logic ---
-  private loop(timestamp: number) {
+  private _loop(timestamp: number) {
     if (!this.isRunning) return;
 
     if (!this.lastTickTimestamp) {
@@ -135,15 +145,13 @@ class TimerStore {
     this.remainingTime = Math.max(0, this.remainingTime - deltaTime);
 
     if (this.remainingTime === 0) {
-      this.handleOutOfTime();
+      this._handleOutOfTime();
     } else {
-      this.animationFrameId = requestAnimationFrame((t) => this.loop(t));
+      this.animationFrameId = requestAnimationFrame((t) => this._loop(t));
     }
   }
 
-  private handleOutOfTime() {
+  private _handleOutOfTime() {
     this.stop();
   }
 }
-
-export const timerStore = new TimerStore();

@@ -23,7 +23,8 @@ export enum ShapeFilter {
 export const shapePriority: CustomShapeBrushes[] = [
   'stockfish', // Draw this first (Bottom Layer)
   'stockfishAlt',
-  'mainLine', // Draw this second
+  'goodLine',
+  'mainLine',
   'altLine',
   'blunderLine', // Draw this last (Top Layer)
 ];
@@ -117,10 +118,11 @@ export function getSystemShapes(
   boardMode: BoardModes,
 ): CustomShape[] {
   const shapes: CustomShape[] = [];
+  const puzzleMode = /^(Puzzle|Study)$/.test(boardMode);
 
-  const nextPath = boardMode !== 'Puzzle' ? navigateNextMove(currentPath) : currentPath;
+  const nextPath = boardMode === 'Viewer' ? navigateNextMove(currentPath) : currentPath;
 
-  const nextMoveKey = boardMode !== 'Puzzle' ? nextPath.join(',') : getParentMove(nextPath).join(',');
+  const nextMoveKey = boardMode === 'Viewer' ? nextPath.join(',') : getParentMove(nextPath).join(',');
   const mainMove = moveMap.get(nextMoveKey);
   if (!mainMove) return shapes;
   const currentMove = moveMap.get(currentPath.join(',')) ?? null
@@ -130,7 +132,7 @@ export function getSystemShapes(
       const varMove = variationLine[0];
       const nags = varMove.nag || [];
 
-      const shouldPushAlt = !(boardMode === 'Puzzle' && areMovesEqual(varMove, currentMove))
+      const shouldPushAlt = !(puzzleMode && areMovesEqual(varMove, currentMove))
       const brush = shouldPushAlt ? getNagType(nags) : 'nagOnly';
 
       shapes.push(createShape(varMove, brush ?? 'altLine'));
@@ -140,7 +142,7 @@ export function getSystemShapes(
   // Main Line
   const nags = mainMove.nag || [];
 
-  const shouldPushMain = !(boardMode === 'Puzzle' && areMovesEqual(mainMove, currentMove))
+  const shouldPushMain = !(puzzleMode && areMovesEqual(mainMove, currentMove))
   const brush = shouldPushMain ? getNagType(nags) : 'nagOnly';
 
   shapes.push(

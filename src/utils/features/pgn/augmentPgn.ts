@@ -35,7 +35,7 @@ export function augmentPgnTree(
       promotion:
         (moveResult.promotion?.toUpperCase() as SanPromotions) ?? undefined,
 
-      history: chess.history(),
+      history: chess.pgn(),
       isCheck: chess.inCheck(),
       isCheckmate: chess.isCheckmate(),
       isStalemate: chess.isStalemate(),
@@ -121,7 +121,7 @@ export function addMoveToPgn(
     nag: [],
     pgnPath: nextMovePath,
 
-    history: chess.history(),
+    history: chess.pgn(),
     isCheck: chess.inCheck(),
     isCheckmate: chess.isCheckmate(),
     isStalemate: chess.isStalemate(),

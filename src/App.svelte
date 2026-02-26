@@ -6,50 +6,41 @@
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
   import { userConfig } from '$stores/userConfig.svelte';
-  import { engineStore } from '$stores/engineStore.svelte';
-  import { timerStore } from '$stores/timerStore.svelte';
-  import { onDestroy } from 'svelte';
-
-  onDestroy(() => {
-    engineStore.stopAndClear();
-    timerStore.stop();
-  });
+  import { RenderScan } from 'svelte-render-scan';
 
   let { pgn, boardMode, userText } = $props();
 </script>
 
-{#key pgn}
-  <GameProvider {pgn} {boardMode}>
-    <div id="container">
-      {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
-        <div id="commentBox">
-          {#if userText}
-            <div id="userTextContainer">
-              <div id="textField">{@html userText}</div>
-            </div>
-          {/if}
-          {#if boardMode === 'Viewer'}
-            <div id="buttons-container">
-              <ButtonsContainer />
-            </div>
-            {#if engineStore.enabled}
-              <EngineAnalysis />
-            {/if}
-            <div id="pgnViewer">
-              <PgnViewer />
-            </div>
-          {/if}
-        </div>
-      {/if}
-      <div id="board-container">
-        {#key userConfig.boardKey}
-          <ChessgroundBoard />
-        {/key}
-        <PromotePopup />
+{#if import.meta.env.DEV}
+	<RenderScan />
+{/if}
+
+<GameProvider {pgn} {boardMode}>
+  <div id="container">
+    {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
+      <div id="commentBox">
+        {#if userText}
+          <div id="userTextContainer">
+            <div id="textField">{@html userText}</div>
+          </div>
+        {/if}
+        {#if boardMode === 'Viewer'}
+          <div id="buttons-container">
+            <ButtonsContainer />
+          </div>
+          <EngineAnalysis />
+          <div id="pgnViewer">
+            <PgnViewer />
+          </div>
+        {/if}
       </div>
+    {/if}
+    <div id="board-container">
+      <ChessgroundBoard />
+      <PromotePopup />
     </div>
-  </GameProvider>
-{/key}
+  </div>
+</GameProvider>
 
 <style lang="scss">
   $max-width: min(100vw, 1000px);

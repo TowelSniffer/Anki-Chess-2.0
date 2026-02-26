@@ -22,14 +22,16 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
   const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
 
   // prevent out of turn moves in Puzzle mode
-  const isNotPuzzleTurn = store.boardMode === 'Puzzle' && store.turn !== store.playerColor[0];
+  const isNotPuzzleTurn =
+    /^Puzzle|AI$/.test(store.boardMode) && store.turn !== store.playerColor[0];
 
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   const isPromote = orig && dest && isPromotion(orig as Square, dest, store.fen);
 
   if (isPromote || isNotPuzzleTurn) return;
 
-  const legalMoveCheck = orig && dest &&  getLegalMove({ from: orig as Square, to: dest }, store.fen);
+  const legalMoveCheck =
+    orig && dest && getLegalMove({ from: orig as Square, to: dest }, store.fen);
   if (orig && dest && legalMoveCheck) {
     /**
      * Checks if user makes a standard click to move
@@ -155,6 +157,10 @@ export function getCgConfig(store: IPgnGameStore) {
    * Svelte reactions.
    */
 
+  // For AI and Puzzle movable should be kept as player color
+  const fixedMovable = /^(Puzzle|AI)$/.test(store.boardMode);
+  const movableColor = fixedMovable ? store.playerColor : store.turn === 'w' ? 'white' : 'black';
+
   // we will distinguish between Fen changes and other config changes
   let isFenUpdate = true;
 
@@ -172,15 +178,16 @@ export function getCgConfig(store: IPgnGameStore) {
     isAnimating = setTimeout(
       () => {
         isAnimating = null;
-
-        store.customAnimation = null;
+        // Setting reactive value in asynchronous function is ok
+        if (!!store) store.customAnimation = null;
       },
       timer ? animationTime : 0,
     );
   } else if (isStandardFenUpdate) {
     if (store.customAnimation) {
       requestAnimationFrame(() => {
-        store.customAnimation = null;
+        // Setting reactive value in asynchronous function is ok
+        if (!!store) store.customAnimation = null;
       });
     }
     if (isAnimating) {
@@ -192,19 +199,23 @@ export function getCgConfig(store: IPgnGameStore) {
     // Reacting to other config change
     isFenUpdate = false;
   }
+  let newFen;
   if (isFenUpdate) {
-    // immediately clear shapes.
-    requestAnimationFrame(() => {
-      store.cg?.setAutoShapes([]);
-    });
+    newFen = store.customAnimation?.fen ?? store.fen;
+    const shouldAnimate = store.cg?.getFen() !== newFen.split(' ')[0];
+    if (!shouldAnimate) isFenUpdate = false;
+    // immediately clear shapes for consistent shape rendering with
+    // custom animations
+    if (isFenUpdate) store.cg?.setAutoShapes([]);
   }
 
+
   return {
-    fen: store.customAnimation?.fen ?? store.fen,
+    ...(isFenUpdate && { fen: newFen }),
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
-    viewOnly: store.isPuzzleComplete || store.viewOnly,
+    viewOnly: store.isPuzzleComplete || store.viewOnly || store.isGameOver,
     turnColor: (store.turn === 'w' ? 'white' : 'black') as CgColor,
     premovable: {
       enabled: true,
@@ -230,8 +241,7 @@ export function getCgConfig(store: IPgnGameStore) {
     movable: {
       free: false,
       showDests: userConfig.opts.showDests,
-      color:
-        store.boardMode === 'Puzzle' ? store.playerColor : store.turn === 'w' ? 'white' : 'black',
+      color: movableColor,
       dests: store.dests,
       events: {
         after: (orig: Key, dest: Key) => {
