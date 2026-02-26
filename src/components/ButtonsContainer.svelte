@@ -11,21 +11,22 @@
   import IconFlip from '~icons/material-symbols/flip-sharp';
 
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { EngineStore } from '$stores/engineStore.svelte';
 
   import { getContext } from 'svelte';
   import Dropdown from './uiUtility/Dropdown.svelte';
-  import { engineStore } from '$stores/engineStore.svelte';
   import { playSound } from '$features/audio/audio';
   import { getMenuData } from '$configs/menu';
   import { clickToCopy } from '$utils/toolkit/copyToClipboard';
 
-
-  // Retrieve the instance created by the parent
+  // Retrieve Stores created by the parent
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const engineStore = getContext<EngineStore>('ENGINE_STORE');
 
-  let isFlipped = $derived(gameStore.orientation === 'black');
-  let canGoBack = $derived(gameStore.pgnPath.length);
-  let canGoForward = $derived(gameStore.hasNext);
+  let isFlipped = $state(false);
+
+  const canGoBack = $derived(gameStore.pgnPath.length);
+  const canGoForward = $derived(gameStore.hasNext);
 
   function handleKeydown(e: KeyboardEvent): void {
     switch (e.key) {
@@ -41,37 +42,28 @@
     }
   }
 
-  const menuData = $derived(getMenuData());
+  function flipBoard() {
+    isFlipped = !isFlipped;
+    gameStore.toggleOrientation();
+  }
+
+  const isDevMenu = import.meta.env.DEV;
+  const menuData = $derived(getMenuData(isDevMenu ? gameStore : undefined));
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 <Dropdown icon={IconSettings} items={menuData} />
 
-<button
-  class="navBtn"
-  id="resetBoard"
-  disabled={!canGoBack}
-  onclick={() => gameStore.reset()}
->
+<button class="navBtn" id="resetBoard" disabled={!canGoBack} onclick={() => gameStore.reset()}>
   <IconFirstPage />
 </button>
 
-<button
-  class="navBtn"
-  id="navBackward"
-  disabled={!canGoBack}
-  onclick={() => gameStore.prev()}
->
+<button class="navBtn" id="navBackward" disabled={!canGoBack} onclick={() => gameStore.prev()}>
   <IconArrowLeft />
 </button>
 
-<button
-  class="navBtn"
-  id="navForward"
-  disabled={!canGoForward}
-  onclick={() => gameStore.next()}
->
+<button class="navBtn" id="navForward" disabled={!canGoForward} onclick={() => gameStore.next()}>
   <IconArrowRight />
 </button>
 
@@ -100,10 +92,8 @@
   {/if}
 </button>
 
-<button class="navBtn" onclick={() => gameStore.toggleOrientation()}>
-  <span class="flipBoardIcon md-small" class:flipped={isFlipped}
-    ><IconFlip /></span
-  >
+<button class="navBtn" onclick={flipBoard}>
+  <span class="flipBoardIcon md-small" class:flipped={isFlipped}><IconFlip /></span>
 </button>
 
 <style lang="scss">
@@ -132,7 +122,6 @@
     }
 
     &.navBtn {
-      padding: 0;
       @include flex-center;
       z-index: 20;
       flex-direction: row;
@@ -140,33 +129,35 @@
       border: var(--border-thin);
       background-color: var(--surface-primary);
       color: var(--text-primary);
-      box-shadow: $shadow-main;
-      height: calc(var(--board-size) * 0.12);
-      width: calc(var(--board-size) * 0.12);
-      max-width: 45px;
-      max-height: 45px;
-      margin: 3px;
+      @include subtle-shadow;
+      width: $button-size-calc;
+      height: $button-size-calc;
+      @include x-margin($button-margin-calc);
       cursor: pointer;
       box-sizing: border-box;
       transition: background 0.2s;
       font-size: 1.65rem;
 
-      &:hover:not(:disabled) {
+      &:hover:not(:disabled, .active-toggle) {
         background-color: var(--interactive-button-hover);
         color: var(--surface-primary);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 1);
+        @include subtle-shadow(0.7);
       }
 
       &:active:not(:disabled) {
         background-color: var(--interactive-button-active);
         color: var(--surface-primary);
+        @include subtle-shadow(0.7, inset);
       }
 
       /* Style for when the analysis toggle button is active */
       &.active-toggle {
         background-color: var(--interactive-button-active);
-        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+        @include subtle-shadow(0.7, inset);
         color: var(--surface-secondary);
+        &:hover:not(:active) {
+          @include subtle-shadow(0.7);
+        }
       }
 
       &:focus {

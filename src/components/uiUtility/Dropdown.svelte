@@ -131,12 +131,16 @@
 
   function toggle() {
     isOpen = !isOpen;
-    if (!isOpen) activeSelectorIndex = null;
+    if (!isOpen) {
+      activeSelectorIndex = null;
+      activeTooltips = new Set();
+    }
   }
 
   function close() {
     isOpen = false;
     activeSelectorIndex = null;
+    activeTooltips = new Set();
   }
 
   function handleAction(item: MenuItem) {
@@ -185,10 +189,10 @@
       return;
     }
 
-    // Block non-numeric keys (Allow only positive whole numbers)
+    // Block non-numeric keys (Allow only positive whole numbers and decimal)
     // Allow navigation/editing keys (Backspace, Arrows, etc.)
     if (
-      ['Backspace', 'Delete', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key) ||
+      ['Backspace', 'Delete', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', '.'].includes(e.key) ||
       e.ctrlKey ||
       e.metaKey
     ) {
@@ -461,8 +465,8 @@
 
 <style lang="scss">
   button {
-    margin: 0;
-    padding: 0;
+    /* Remove default anki styling */
+    all: unset;
   }
   /* --- Containers --- */
   .dropdown-container {
@@ -478,28 +482,27 @@
     border: var(--border-thin, 1px solid #ccc);
     background-color: var(--surface-primary, #fff);
     color: var(--text-primary, #333);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    height: calc(var(--board-size) * 0.12);
-    width: calc(var(--board-size) * 0.12);
-    max-width: 45px;
-    max-height: 45px;
-    margin: 3px;
+    @include subtle-shadow;
+    width: $button-size-calc;
+    height: $button-size-calc;
+    @include x-margin($button-margin-calc);
     cursor: pointer;
     box-sizing: border-box;
     transition: background 0.2s;
 
-    &:hover:not(:disabled, :active) {
+    &:hover:not(:disabled, :active, .isActive) {
       background-color: var(--interactive-button-hover, #f0f0f0);
       color: var(--surface-primary);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 1);
+      @include subtle-shadow(0.7);
     }
     &.isActive,
     &:active {
-      background-color: var(--interactive-button-hover, #e0e0e0);
+      background-color: var(--interactive-button-active, #e0e0e0);
       color: var(--surface-primary);
-    }
-    &:active {
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 1);
+      @include subtle-shadow(0.7, inset);
+      &:hover:not(:active) {
+        @include subtle-shadow(0.7);
+      }
     }
     &:disabled {
       opacity: 0.5;
@@ -511,9 +514,19 @@
     }
   }
 
+  @mixin menu-shadow($opacity) {
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, $opacity),
+      0 10px 15px -3px rgba(0, 0, 0, $opacity);
+  }
+
   /* --- Menu --- */
+  .menu,
+  .submenu {
+    @include menu-shadow(0.5);
+  }
+
   .menu {
-    all: unset;
     box-sizing: border-box;
     position: fixed;
     z-index: 9999;
@@ -521,7 +534,6 @@
     background-color: var(--surface-primary, #fff);
     color: var(--text-primary, #333);
     border: 1px solid #ccc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-radius: 6px;
     padding: 0.3rem 0;
     animation: fade-in 0.1s ease-out;
@@ -543,7 +555,6 @@
     background: var(--surface-primary, #fff);
     border: 1px solid #ccc;
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 0.3rem 0;
 
     /* GRACE PERIOD (Default / Mouse Leave) */
@@ -552,7 +563,7 @@
     /* Keep visibility 'visible' until the fade finishes (0.3s + 0.2s = 0.5s) */
     transition-property: opacity, visibility;
     transition-duration: 0.2s, 0s;
-    transition-delay: 0.3s, 0.5s;
+    transition-delay: 0.2s, 0.4s;
   }
 
   /* OPENING (Mouse Enter Self OR Focus Inside) */
@@ -593,8 +604,8 @@
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.8rem;
+    gap: 0.3rem;
+    padding: 0.4rem 0.6rem;
     font-size: 0.85rem;
     cursor: pointer;
     &:hover:not(.disabled) {
@@ -633,8 +644,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.4rem 0.8rem;
-    gap: 1rem;
+    padding: 0.4rem 0.6rem;
+    gap: 0.3rem;
     &.select-container {
       padding: 0.4rem 0.5rem;
       justify-content: center;
@@ -652,7 +663,8 @@
   .label-content {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    font-size: 0.85rem;
+    gap: 0.3rem;
 
     &.has-tooltip {
       cursor: help;
@@ -669,7 +681,7 @@
     font-size: 0.75rem;
     color: var(--surface-secondary, #666);
     background: var(--text-primary, #333);
-    padding: 4px 8px;
+    padding: 4px;
     border-radius: 4px;
     margin-top: 4px;
     border-left: 2px solid #2196f3;
@@ -733,6 +745,8 @@
     border-radius: 4px;
     padding: 2px;
     .step-btn {
+      @include flex-center;
+      @include unselectable;
       border: none;
       color: var(--surface-primary, grey);
       background: var(--text-primary, #fff);
@@ -743,6 +757,12 @@
       font-weight: bold;
       &:hover {
         background: #e0e0e0;
+        @include subtle-shadow;
+
+        &:active {
+          background: #e0e0e0;
+          @include subtle-shadow(0.7, inset);
+        }
       }
     }
     /* --- Number Stepper Input --- */
@@ -783,9 +803,9 @@
   .sel-label {
     padding: 0.3rem 0.5rem;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 400;
     background: var(--surface-primary, #eaeaea);
-    color: var(--surface-primary, #555);
+    color: var(--text-primary, #555);
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
   }
@@ -794,6 +814,7 @@
     background: #ccc;
   }
   .sel-value-section {
+    color: var(--surface-primary, #fff);
     flex: 1;
     position: relative;
   }
@@ -809,7 +830,7 @@
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
-    gap: 0.5rem;
+    gap: 0.3rem;
     &:hover {
       background: #f0f0f0;
     }
@@ -823,6 +844,7 @@
   }
   /* Inner Dropdown for Selector */
   .sel-dropdown {
+    color: var(--surface-primary, #fff);
     position: absolute;
     top: calc(100% + 2px);
     left: -1px;
@@ -844,7 +866,7 @@
     text-align: center;
     cursor: pointer;
     &:hover {
-      background: var(--surface-primary, #f0f0f0);
+      background: var(--text-muted, #f0f0f0);
     }
     &.selected {
       background: #e8f5e9;
@@ -870,4 +892,3 @@
     }
   }
 </style>
-

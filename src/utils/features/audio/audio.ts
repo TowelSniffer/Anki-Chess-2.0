@@ -1,36 +1,7 @@
 import type { CustomPgnMove } from '$Types/ChessStructs';
+import type { Sounds, MoveEvent, SoundPriorityRule } from '$Types/Audio';
 import { userConfig } from '$stores/userConfig.svelte';
-
-// Explicitly import the audio files.
-import moveSound from '$assets/audio/_move.mp3';
-import checkmateSound from '$assets/audio/_checkmate.mp3';
-import checkSound from '$assets/audio/_check.mp3';
-import captureSound from '$assets/audio/_capture.mp3';
-import castleSound from '$assets/audio/_castle.mp3';
-import promoteSound from '$assets/audio/_promote.mp3';
-import errorSound from '$assets/audio/_error.mp3';
-
-export type Sounds =
-  | 'move'
-  | 'checkmate'
-  | 'check'
-  | 'capture'
-  | 'castle'
-  | 'promote'
-  | 'error'
-
-type MoveEvent =
-  | 'checkmate'
-  | 'promote'
-  | 'castle'
-  | 'capture'
-  | 'check'
-  | 'move';
-
-interface SoundPriorityRule {
-  event: MoveEvent;
-  condition: (san: string, flags: string) => boolean;
-}
+import { soundAssets } from '$utils/toolkit/importAssets';
 
 const moveSoundMap: Record<MoveEvent, MoveEvent> = {
   checkmate: 'checkmate',
@@ -59,16 +30,6 @@ const moveSoundPriority: SoundPriorityRule[] = [
       flags.includes('c') || flags.includes('e'),
   },
 ];
-
-const soundAssets: Record<Sounds, string> = {
-  'move': moveSound,
-  'checkmate': checkmateSound,
-  'check': checkSound,
-  'capture': captureSound,
-  'castle': castleSound,
-  'promote': promoteSound,
-  'error': errorSound,
-};
 
 function initAudio(): Map<Sounds, HTMLAudioElement> {
   const audioMap: Map<Sounds, HTMLAudioElement> = new Map();

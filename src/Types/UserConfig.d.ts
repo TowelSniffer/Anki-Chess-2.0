@@ -10,6 +10,7 @@ export interface UserConfigOpts {
   timerAdvance: boolean;
   strictScoring: boolean;
   acceptVariations: boolean;
+  playBothSides: boolean;
   timer: number;
   increment: number;
   randomOrientation: boolean;
@@ -17,4 +18,7 @@ export interface UserConfigOpts {
   analysisLines: number;
   muteAudio: boolean;
   frontText: boolean;
+  aiMoveTime: number;
+  aiElo: number;
+  aiEval: boolean
 }
