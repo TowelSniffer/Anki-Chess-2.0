@@ -1,5 +1,8 @@
 import type { CustomPgnMove } from '$Types/ChessStructs';
 import type { Sounds, MoveEvent, SoundPriorityRule } from '$Types/Audio';
+
+import { untrack } from 'svelte';
+
 import { userConfig } from '$stores/userConfig.svelte';
 import { soundAssets } from '$utils/toolkit/importAssets';
 
@@ -53,7 +56,8 @@ function initAudio(): Map<Sounds, HTMLAudioElement> {
 const audioMap: Map<Sounds, HTMLAudioElement> = initAudio();
 
 export function playSound(soundName: Sounds | 'click'): void {
-  if (userConfig.opts.muteAudio) return;
+  const muteAudio = untrack(() => userConfig.opts.muteAudio);
+  if (muteAudio) return;
 
   if (soundName === 'click') {
     playSyntheticClick();
@@ -77,7 +81,8 @@ export function playSound(soundName: Sounds | 'click'): void {
 }
 
 export function moveAudio(move: CustomPgnMove): void {
-  if (userConfig.opts.muteAudio) return;
+  const muteAudio = untrack(() => userConfig.opts.muteAudio);
+  if (muteAudio) return;
 
   const moveType = moveSoundPriority.find((p) =>
     p.condition(move.san, move.flags),
