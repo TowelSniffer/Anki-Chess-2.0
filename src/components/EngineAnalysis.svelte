@@ -45,9 +45,6 @@
         onChange={(val: number) => (userConfig.opts.analysisTime = val)}
       />
     </div>
-    {#if engineStore.loading}
-      <span>Starting...</span>
-    {/if}
     {#if engineStore.analysisLines.length > 0 || engineStore.enabled}
       <div class="lines">
         {#each Array(engineStore.multipv) as _, i}
@@ -67,8 +64,9 @@
                 {gameStore.turn === 'b' ? 'White ' : 'Black '}Checkmates
               </div>
             {:else}
+            {@const loadingText = engineStore.loading && i === 0 ? 'Starting...' : ` `}
               <div class="eval">&nbsp;</div>
-              <div class="moves">&nbsp;</div>
+              <div class="moves">{loadingText}</div>
             {/if}
           </div>
         {/each}
