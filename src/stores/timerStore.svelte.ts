@@ -15,6 +15,9 @@ export class TimerStore {
   private animationFrameId: number | null = null;
   private lastTickTimestamp: number | null = null;
 
+  private _internalRemaining = userConfig.opts.timer;
+  private _lastStateUpdate = 0;
+
   // --- Derived ---
 
   // Calculates the percentage (0% to 100%) for the CSS gradient
@@ -128,23 +131,28 @@ export class TimerStore {
   }
 
   destroy() {
-    this.stop();
+    this.reset();
   }
 
   // --- Loop Logic ---
   private _loop(timestamp: number) {
     if (!this.isRunning) return;
-
-    if (!this.lastTickTimestamp) {
-      this.lastTickTimestamp = timestamp;
-    }
+    if (!this.lastTickTimestamp) this.lastTickTimestamp = timestamp;
 
     const deltaTime = timestamp - this.lastTickTimestamp;
     this.lastTickTimestamp = timestamp;
 
-    this.remainingTime = Math.max(0, this.remainingTime - deltaTime);
+    // Internal Tracking
+    this._internalRemaining = Math.max(0, this._internalRemaining - deltaTime);
 
-    if (this.remainingTime === 0) {
+    // Throttle Svelte reactivity updates to ~30fps (every 33ms)
+    if (timestamp - this._lastStateUpdate > 33) {
+      this.remainingTime = this._internalRemaining;
+      this._lastStateUpdate = timestamp;
+    }
+
+    if (this._internalRemaining === 0) {
+      this.remainingTime = 0; // Force exact final state
       this._handleOutOfTime();
     } else {
       this.animationFrameId = requestAnimationFrame((t) => this._loop(t));
