@@ -77,7 +77,7 @@ export class EngineStore {
     // We only show the arrow if the analysis actually matches the visual board FEN
     // (Checked loosely via evalFen, but the UI should handle the precise sync)
     const bestLine = this.analysisLines.find((l) => l.id === 1);
-    if (!bestLine || !bestLine.firstMove) return null;
+    if (!bestLine?.firstMove) return null;
     return { ...bestLine.firstMove, fen: this.evalFen };
   });
 
@@ -88,7 +88,6 @@ export class EngineStore {
 
     // Create a copy and reverse it so the Best Move (ID 1) is drawn last (on top)
     const linesToDraw = [...this.analysisLines].reverse();
-
     return linesToDraw
       .map((line) => {
         if (!line.firstMove) return null;
@@ -605,8 +604,13 @@ export class EngineStore {
     // If an update is already queued, we just wait for it to fire.
     if (this._updateTimeout) return;
 
-    // Wait for all MultiPV lines before pushing first update
-    if (this.analysisLines.length === 0 && this._lineBuffer.size < this.multipv) {
+    // --- Calculate legal moves ---
+    const tempChess = new Chess(this._currentFen);
+    const legalMovesCount = tempChess.moves().length;
+    const targetLines = Math.min(this.multipv, legalMovesCount || 1);
+
+    // Wait for all expected lines before pushing first update
+    if (!this.analysisLines.length && this._lineBuffer.size < targetLines) {
       return;
     }
 
