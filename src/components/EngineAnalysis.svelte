@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import type { EngineStore } from '$stores/engineStore.svelte';
+  import { slide } from 'svelte/transition';
   import { userConfig } from '$stores/userConfig.svelte';
   import CustomSelector from './uiUtility/CustomSelector.svelte';
   import { getContext } from 'svelte';
@@ -26,7 +27,7 @@
 </script>
 
 {#if engineStore?.enabled}
-  <div class="engine-container">
+  <div class="engine-container" transition:slide={{ duration: 300 }}>
     <div class="controls">
       <CustomSelector
         label="Lines:"

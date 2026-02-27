@@ -26,11 +26,11 @@
         {/if}
         {#if boardMode === 'Viewer'}
           <div id="sticky-container">
-            <div id="analysis-container">
-              <EngineAnalysis />
-            </div>
             <div id="buttons-container">
               <ButtonsContainer />
+            </div>
+            <div id="analysis-container">
+              <EngineAnalysis />
             </div>
           </div>
           <div id="pgnViewer">
