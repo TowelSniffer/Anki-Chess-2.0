@@ -25,8 +25,28 @@
 
   let isFlipped = $state(false);
 
+  /*
+   *  DERIVED VARIABLES
+   */
+
   const canGoBack = $derived(gameStore.pgnPath.length);
   const canGoForward = $derived(gameStore.hasNext);
+
+  /*
+   *  EFFECTS
+   */
+
+  // Engine Analysis Trigger
+  $effect(() => {
+    // Only auto-analyze if we are NOT in AI mode
+    if (engineStore.enabled && gameStore.boardMode !== 'AI') {
+      engineStore.analyze(gameStore.fen);
+    }
+  });
+
+  /*
+   *  HELPERS
+   */
 
   function handleKeydown(e: KeyboardEvent): void {
     switch (e.key) {

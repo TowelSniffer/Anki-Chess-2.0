@@ -42,6 +42,7 @@ export class PgnGameStore {
   cg = $state.raw<Api | null>(null);
   boardMode = $state<BoardModes>('Viewer');
   rootGame = $state<CustomPgnGame | undefined>(undefined);
+  // Core tracker for board and PGN updates
   pgnPath = $state<PgnPath>([]);
   errorCount = $state<number>(0);
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
