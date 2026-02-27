@@ -3,7 +3,6 @@
   import '$scss/_components/_chessground.scss';
 
   import type { PgnPath, PuzzleScored } from '$Types/ChessStructs';
-
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import type { EngineStore } from '$stores/engineStore.svelte';
   import type { TimerStore } from '$stores/timerStore.svelte';
@@ -16,9 +15,11 @@
   import { moveAudio, playSound } from '$features/audio/audio';
   import { pieceImages } from '$utils/toolkit/importAssets';
 
+  // Global Stores
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
   const timerStore = getContext<TimerStore>('TIMER_STORE');
+
   let boardContainer: HTMLDivElement;
   onMount(() => {
     if (boardContainer) {
@@ -37,26 +38,21 @@
     if (viewerTimeout) clearTimeout(viewerTimeout);
   });
 
-  const SOFT_WHITE = '#eaeaea';
-  const SOFT_BLACK = '#0f0f0f';
-  const SOFT_GREY = '#c0c0c0';
-  const DEFAULT_DIVIDER_COLOR = 'lightslategray';
-
-  // Maps logical strings to visual hex codes
-  const mapBorderColor = (color: string) => {
-    const themes: Record<string, string> = {
-      white: SOFT_WHITE,
-      black: SOFT_BLACK,
-      grey: SOFT_GREY,
-      divider: DEFAULT_DIVIDER_COLOR,
-    };
-    return themes[color] || color;
-  };
-
-  const SCORE_COLORS = {
+  // Map logical strings for border, divider and flash
+  const THEME_COLORS: Record<string, string> = {
+    white: '#eaeaea',
+    black: '#0f0f0f',
+    draw: '#c0c0c0',
+    divider: '#778899', // lightslategray
     incorrect: 'var(--status-error)',
     correct: 'var(--status-correct)',
     perfect: 'var(--status-perfect)',
+    transparent: 'transparent',
+  };
+
+  const mapColor = (colorKey: PuzzleScored | string | undefined) => {
+    if (!colorKey) return 'transparent';
+    return THEME_COLORS[colorKey] || colorKey;
   };
 
   // BORDER FLASH FIXME type for flash colours
@@ -91,40 +87,43 @@
   // --- Border Color ---
 
   const boardBorderColor = $derived.by(() => {
-    // If we are in Puzzle mode and it's NOT done, keep it neutral/player color
-    if (puzzleInProgress) {
-      return isRandomPuzzle ? 'grey' : gameStore.playerColor;
-    } else if (puzzleCompleteAndScored) {
-      return SCORE_COLORS[gameStore.puzzleScore!];
-    } else if (isStudyMode) {
-      return gameStore.turn === 'w' ? 'white' : 'black';
-    } else if (isAIGameOver) {
+    let color = gameStore.puzzleScore ? gameStore.puzzleScore : gameStore.playerColor;
+
+    if (puzzleInProgress) color = isRandomPuzzle ? 'draw' : gameStore.playerColor;
+    else if (puzzleCompleteAndScored) color = gameStore.puzzleScore!;
+    else if (isStudyMode) color = gameStore.turn === 'w' ? 'white' : 'black';
+    else if (isAIGameOver) {
       if (gameStore.isCheckmate)
-        return gameStore.turn !== gameStore.playerColor[0]
-          ? SCORE_COLORS.correct
-          : SCORE_COLORS.incorrect;
-      return 'grey'; // draw
-    } else {
-      return !!gameStore.puzzleScore ? SCORE_COLORS[gameStore.puzzleScore] : gameStore.playerColor;
+        color = gameStore.turn !== gameStore.playerColor[0] ? 'correct' : 'incorrect';
+      else color = 'draw';
     }
+
+    return mapColor(color);
   });
 
   // --- Interactive Border ---
 
   const barBottomColor = $derived.by(() => {
-    if (isRandomPuzzle) return 'grey';
-    if (isStudyMode) return gameStore.turn === 'w' ? 'white' : 'black';
-    return gameStore.orientation;
+    let color: string = gameStore.orientation;
+    if (isRandomPuzzle) color = 'draw';
+    else if (isStudyMode) color = gameStore.turn === 'w' ? 'white' : 'black';
+
+    return mapColor(color);
   });
 
   const barTopColor = $derived.by(() => {
-    if (isRandomPuzzle) return 'var(--status-error)';
-    return barBottomColor === 'white' ? 'black' : 'white';
+    if (isRandomPuzzle) return mapColor('incorrect');
+    const color = barBottomColor === 'white' ? 'black' : 'white';
+    return mapColor(color);
   });
 
   const barDividerColor = $derived.by(() => {
-    if (!isViewerMode) return 'divider';
-    return !!gameStore.puzzleScore ? SCORE_COLORS[gameStore.puzzleScore] : 'divider';
+    const color = !isViewerMode
+      ? 'divider'
+      : gameStore.puzzleScore
+        ? gameStore.puzzleScore
+        : 'divider';
+    return mapColor(color);
   });
 
   const dividerSpring = spring(50, {
@@ -321,7 +320,6 @@
     if (!gameStore?.cg) return;
     const config = gameStore.boardConfig;
 
-    // Schedule the render for the next paint
     gameStore.cg?.set(config);
     gameStore.cg?.playPremove();
   });
@@ -366,16 +364,20 @@
   function triggerFlash(type: PuzzleScored) {
     flashState = null; // reset to force reflow if needed
     requestAnimationFrame(() => {
-      flashState = type;
+      flashState = mapColor(type) as PuzzleScored;
     });
   }
 
   function handlePointerDown(): void {
+    /*
+     * We must track selected piece so our single click move logic can compare it
+     * to the against the new value in select:
+     */
+
     if (!gameStore || !gameStore.cg) return;
-    if (gameStore.cg.state.selected !== 'a0') {
-      // Type Check For Extra CG a0 key
-      gameStore.selectedPiece = gameStore.cg.state.selected;
-    }
+    const cgStateSelected = gameStore.cg.state.selected;
+
+    gameStore.lastSelected = cgStateSelected;
   }
 
   function handleWheel(e: WheelEvent): void {
@@ -401,18 +403,17 @@
 
 <div
   style="display: contents;
-    --border-color: {mapBorderColor(boardBorderColor)};
-    --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
-    --bar-top-color: {mapBorderColor(barTopColor)};
-    --bar-bottom-color: {mapBorderColor(barBottomColor)};
-    --bar-divider-color: {mapBorderColor(barDividerColor)};
+    --border-color: {boardBorderColor};
+    --border-flash-color: {flashState ? flashState : 'transparent'};
+    --bar-top-color: {barTopColor};
+    --bar-bottom-color: {barBottomColor};
+    --bar-divider-color: {barDividerColor};
     "
 >
-
   <div
     style="{Object.entries(pieceImages)
-    .map(([k, v]) => `--${k}: url('${v}')`)
-    .join('; ')};"
+      .map(([k, v]) => `--${k}: url('${v}')`)
+      .join('; ')};"
     class="board-wrapper"
     class:analysisMode
     class:timerMode={timerStore.visible}

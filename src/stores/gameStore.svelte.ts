@@ -1,4 +1,4 @@
-import type { Color as CgColor } from '@lichess-org/chessground/types';
+import type { Color as CgColor, Key } from '@lichess-org/chessground/types';
 import type { Api } from '@lichess-org/chessground/api';
 import type { Square, Move, Color } from 'chess.js';
 import type {
@@ -35,13 +35,15 @@ export class PgnGameStore {
   engineStore: EngineStore;
   timerStore: TimerStore;
 
+  // --- Trackers ---
+  lastSelected: Key | undefined = undefined;
+
   // --- State variables ---
   cg = $state.raw<Api | null>(null);
   boardMode = $state<BoardModes>('Viewer');
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   pgnPath = $state<PgnPath>([]);
   errorCount = $state<number>(0);
-  selectedPiece = $state<Square | undefined>(undefined);
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
   customAnimation = $state(null);
   startFen = $state(DEFAULT_POSITION);
@@ -259,7 +261,7 @@ export class PgnGameStore {
   private _resetGameState() {
     this.pgnPath = [];
     this.errorCount = 0;
-    this.selectedPiece = undefined;
+    this.lastSelected = undefined;
     this.pendingPromotion = null;
     this.customAnimation = null;
     this._puzzleScore = null;

@@ -18,7 +18,7 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
 export function handleSelect(key: Key, store: IPgnGameStore) {
   if (!store.cg) return;
   // type assertion as clicked square cannot be 'a0'
-  const orig = store.selectedPiece; // Logged synchronously in ChessgroundBoard.svelte
+  const orig = store.lastSelected; // Logged synchronously in ChessgroundBoard.svelte
   const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
 
   // prevent out of turn moves in Puzzle mode

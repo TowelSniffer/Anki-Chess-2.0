@@ -2,7 +2,8 @@ import type { Square } from 'chess.js';
 import type { DrawShape } from '@lichess-org/chessground/draw';
 import type { PgnMove, GameComment, PgnGame } from '@mliebelt/pgn-types';
 
-export type PuzzleScored = 'perfect' | 'correct' | 'incorrect' | null;
+export type PuzzleScored = 'perfect' | 'correct' | 'incorrect' | 'draw' | null;
+
 /**
  * Mlieberts promotion is uppercase. Gotten from san (ie dxc8=N)
  * chess.js promotion is lower case
