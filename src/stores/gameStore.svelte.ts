@@ -150,10 +150,9 @@ export class PgnGameStore {
 
     $effect(() => {
       const boardMode = this.boardMode;
-
       untrack(() => {
-        this._resetGameState();
         timerStore.reset();
+        this._resetGameState();
         boardMode !== 'Viewer' && this._clearGameStorage();
         if (boardMode === 'Viewer') {
           const storedScore = sessionStorage.getItem('chess_puzzle_score');
