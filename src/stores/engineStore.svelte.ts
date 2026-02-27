@@ -623,7 +623,7 @@ export class EngineStore {
 
     const now = performance.now();
     const timeSinceLast = now - this._lastInfoUpdate;
-    const throttleDelay = 200; // ms
+    const throttleDelay = 300; // ms
 
     if (timeSinceLast > throttleDelay) {
       // --- LEADING EDGE: Update Immediately ---
