@@ -64,10 +64,6 @@
 
   // --- Board State ---
 
-  // True: When our custom puzzle logic handles new moves
-  // False: When Chessground 'after' move logic updates board
-  const isFenUpdate = $derived(gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen());
-
   // Board Modes
   const isPuzzleMode = $derived(gameStore.boardMode === 'Puzzle');
   const isStudyMode = $derived(gameStore.boardMode === 'Study');
@@ -107,13 +103,12 @@
     let color: string = gameStore.orientation;
     if (isRandomPuzzle) color = 'draw';
     else if (isStudyMode) color = gameStore.turn === 'w' ? 'white' : 'black';
-
     return mapColor(color);
   });
 
   const barTopColor = $derived.by(() => {
     if (isRandomPuzzle) return mapColor('incorrect');
-    const color = barBottomColor === 'white' ? 'black' : 'white';
+    const color = barBottomColor === mapColor('white') ? 'black' : 'white';
     return mapColor(color);
   });
 
@@ -261,78 +256,64 @@
     }
   });
 
-  // Move & Animation an Handler
+  // Move & Custom Animation an Handler
   let previousPath: PgnPath | null = null;
   $effect(() => {
-    void isFenUpdate;
-    void gameStore.pgnPath;
-    untrack(() => {
-      if (!gameStore?.cg) return;
-      gameStore.errorCount = 0;
-      if (isFenUpdate) {
-        // Single click move or en passant
+    if (!gameStore?.cg) return;
 
-        /*
-         * Here we check if cg.move can be used instead of set({ fen: ... })
-         * for smoother animations
-         */
+    const cg = gameStore.cg;
+    const pgnPath = gameStore.pgnPath;
+    const fen = gameStore.fen;
+    const move = gameStore.currentMove;
 
-        const move = gameStore.currentMove;
-        const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
+    const isSingleClickMove = fen.split(' ')[0] !== cg.getFen();
 
-        // Special moves require set({ fen: ... })
-        const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
+    // Reset errorCount on new fen
+    gameStore.errorCount = 0;
 
-        const forwardMoveCheck =
-          shouldAnimate && move?.before.split(' ')[0] === gameStore.cg.getFen();
-        // Special move check not needed as getCgConfig will compare fen to
-        // check for Captures/Promote/En Passant/Castle.
-        const undoMoveCheck = prevMove && move?.after === prevMove?.before;
+    if (isSingleClickMove) {
+      /*
+       * Single click move or en passant
+       * Here we check if cg.move can be used instead of set({ fen: ... })
+       * for smoother animations
+       */
 
-        // Pre move here so getCgConfig doesn't update fen
-        if (forwardMoveCheck) {
-          gameStore.cg.move(move.from, move.to);
-        } else if (undoMoveCheck) {
-          gameStore.cg.move(prevMove.to, prevMove.from);
-        }
+      const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
 
-        const moveType = updateBoard(gameStore, previousPath);
-        if (typeof moveType === 'string') {
-          playSound(moveType);
-        } else if (moveType) {
-          moveAudio(moveType);
-        }
-      } else if (previousPath) {
-        // drag & drop or click to move
-        if (gameStore.currentMove) moveAudio(gameStore.currentMove);
+      // Special moves require set({ fen: ... })
+      const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
+
+      const forwardMoveCheck =
+        shouldAnimate && move?.before.split(' ')[0] === cg.getFen();
+      // Special move check not needed as getCgConfig will compare fen to
+      // check for Captures/Promote/En Passant/Castle.
+      const undoMoveCheck = prevMove && move?.after === prevMove?.before;
+
+      // Pre move here so getCgConfig doesn't update fen (more efficient)
+      if (forwardMoveCheck) {
+        cg.move(move.from, move.to);
+      } else if (undoMoveCheck) {
+        cg.move(prevMove.to, prevMove.from);
       }
-      previousPath = [...gameStore.pgnPath];
-    });
-  });
 
-  // Reset errorCount on new fen
-  $effect(() => {
-    if (isFenUpdate && isPuzzleMode) gameStore.errorCount = 0;
+      const moveType = updateBoard(gameStore, previousPath);
+      if (typeof moveType === 'string') {
+        playSound(moveType);
+      } else if (moveType) {
+        moveAudio(moveType);
+      }
+    } else if (previousPath) {
+      // drag & drop or click to move
+      if (move) moveAudio(move);
+    }
+    previousPath = [...pgnPath];
   });
 
   // Set cg config
   $effect(() => {
-    if (!gameStore?.cg) return;
     const config = gameStore.boardConfig;
-
     gameStore.cg?.set(config);
     gameStore.cg?.playPremove();
-  });
-
-  // Engine Analysis Trigger
-  $effect(() => {
-    // Only auto-analyze if we are NOT in AI mode
-    if (engineStore.enabled && !isAiMode) {
-      void gameStore.fen;
-      untrack(() => {
-        engineStore.analyze(gameStore.fen);
-      });
-    }
   });
 
   // A) : Handle Mistakes (Flash Red)
@@ -344,9 +325,11 @@
   });
   // B) : Handle Timeout (Flash Red)
   $effect(() => {
-    if (timerStore.isOutOfTime) {
+    const timerFlash = timerStore.isOutOfTime;
+    const timerAdvance = untrack(() => userConfig.opts.timerAdvance);
+    if (timerFlash) {
       triggerFlash('incorrect');
-      if (userConfig.opts.timerAdvance) showViewer();
+      if (timerAdvance) showViewer();
     }
   });
   // C) : Handle Puzzle Complete flash
@@ -405,8 +388,8 @@
   style="display: contents;
     --border-color: {boardBorderColor};
     --border-flash-color: {flashState ? flashState : 'transparent'};
-    --bar-top-color: {barTopColor};
     --bar-bottom-color: {barBottomColor};
+    --bar-top-color: {barTopColor};
     --bar-divider-color: {barDividerColor};
     "
 >
