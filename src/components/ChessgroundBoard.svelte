@@ -33,6 +33,7 @@
   });
 
   onDestroy(() => {
+    if (flashState) flashState = null;
     if (viewerTimeout) clearTimeout(viewerTimeout);
   });
 
@@ -252,7 +253,7 @@
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
   let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
-    if(!gameStore.cg) return;
+    if (!gameStore.cg) return;
     const pullComplete = gameStore.isPuzzleComplete;
     if (pullComplete) {
       gameStore.cg?.cancelMove();
@@ -338,7 +339,8 @@
 
   // A) : Handle Mistakes (Flash Red)
   $effect(() => {
-    if (gameStore.errorCount) { // ie > 0
+    if (gameStore.errorCount) {
+      // ie > 0
       triggerFlash('incorrect');
     }
   });
@@ -398,9 +400,7 @@
 </script>
 
 <div
-  style="display: contents; {Object.entries(pieceImages)
-    .map(([k, v]) => `--${k}: url('${v}')`)
-    .join('; ')};
+  style="display: contents;
     --border-color: {mapBorderColor(boardBorderColor)};
     --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
     --bar-top-color: {mapBorderColor(barTopColor)};
@@ -408,7 +408,11 @@
     --bar-divider-color: {mapBorderColor(barDividerColor)};
     "
 >
+
   <div
+    style="{Object.entries(pieceImages)
+    .map(([k, v]) => `--${k}: url('${v}')`)
+    .join('; ')};"
     class="board-wrapper"
     class:analysisMode
     class:timerMode={timerStore.visible}
@@ -528,7 +532,7 @@
           left: 0;
           right: 0;
           height: $board-border-width;
-          background-color: var(--bar-top-color)
+          background-color: var(--bar-top-color);
         }
 
         /* Divider Element */
@@ -553,6 +557,11 @@
       .eval-bar.top,
       .eval-track {
         opacity: 1;
+      }
+
+      .eval-fill {
+        /* Smoothing for custom timer animation */
+        transition: transform 33ms linear;
       }
     }
   }
