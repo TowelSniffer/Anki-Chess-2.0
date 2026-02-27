@@ -2,10 +2,9 @@ import { userConfig } from '$stores/userConfig.svelte';
 
 export class TimerStore {
   // --- State ---
-  isRunning = $state(false);
+  isRunning = false;
+  totalTime = userConfig.opts.timer; // in ms (initial duration)
   remainingTime = $state(userConfig.opts.timer); // in ms
-  totalTime = $state(userConfig.opts.timer); // in ms (initial duration)
-
   // Controls if the board shows the timer gradient
   visible = $state(false);
 
@@ -128,6 +127,7 @@ export class TimerStore {
     this.stop();
     this.remainingTime = userConfig.opts.timer;
     this.totalTime = userConfig.opts.timer;
+    this._internalRemaining = userConfig.opts.timer;
   }
 
   destroy() {
