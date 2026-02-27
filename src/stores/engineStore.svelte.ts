@@ -46,6 +46,7 @@ export class EngineStore {
   // --- Internal State ---
 
   private _currentFen = ''; // The FEN currently being processed by the engine
+  private _currentFenLegalMoves = 1;
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
 
   private _lineBuffer = new Map<number, AnalysisLine>(); // Buffer for incoming lines
@@ -334,6 +335,9 @@ export class EngineStore {
 
     this._currentFen = fen;
     this.evalFen = fen;
+    const tempChess = new Chess(fen);
+    this._currentFenLegalMoves = tempChess.moves().length || 1;
+
     this.analysisLines = []; // Clear old lines
     this._lineBuffer.clear(); // Clear buffer
     // Reset the throttle timer.
@@ -531,37 +535,10 @@ export class EngineStore {
       // Parse PV (Moves)
       const pvIdx = parts.indexOf('pv');
       let pvRaw = '';
-      let pvSan = '';
-      let firstMoveData = null;
 
       if (pvIdx > -1) {
         const rawMoves = parts.slice(pvIdx + 1);
         pvRaw = rawMoves.join(' ');
-
-        const sanMoves: string[] = [];
-        const tempChess = new Chess(this._currentFen);
-
-        for (const uci of rawMoves) {
-          if (uci.length < 4) break;
-          const from = uci.substring(0, 2) as Square;
-          const to = uci.substring(2, 4) as Square;
-          const promotion = uci.length > 4 ? uci.substring(4, 5) : undefined;
-
-          try {
-            const m = tempChess.move({ from, to, promotion });
-
-            if (m) {
-              sanMoves.push(m.san);
-              if (!firstMoveData) {
-                firstMoveData = { from, to, san: m.san };
-              }
-            }
-          } catch (err) {
-            // Stop parsing this line if we hit an illegal move/error.
-            break;
-          }
-        }
-        pvSan = sanMoves.join(' ');
       }
 
       // Update Analysis Line
@@ -572,8 +549,8 @@ export class EngineStore {
         isMate,
         winChance,
         pvRaw,
-        pvSan,
-        firstMove: firstMoveData,
+        pvSan: '', // Defer parsing
+        firstMove: null, // Defer parsing
       };
 
       // GUARD: mid-parse race conditions
@@ -592,6 +569,39 @@ export class EngineStore {
     untrack(() => {
       // Convert Map values to array and sort by ID
       const lines = Array.from(this._lineBuffer.values()).sort((a, b) => a.id - b.id);
+
+      // --- Perform expensive SAN conversion only on flushed lines ---
+      for (const line of lines) {
+        if (!line.pvRaw || line.pvSan) continue; // Skip if empty or already parsed
+        console.log("here")
+        const sanMoves: string[] = [];
+        const tempChess = new Chess(this._currentFen);
+        const rawMoves = line.pvRaw.split(' ');
+        let firstMoveData = null;
+
+        for (const uci of rawMoves) {
+          if (uci.length < 4) break;
+          const from = uci.substring(0, 2) as Square;
+          const to = uci.substring(2, 4) as Square;
+          const promotion = uci.length > 4 ? uci.substring(4, 5) : undefined;
+
+          try {
+            const m = tempChess.move({ from, to, promotion });
+            if (m) {
+              sanMoves.push(m.san);
+              if (!firstMoveData) {
+                firstMoveData = { from, to, san: m.san };
+              }
+            }
+          } catch (err) {
+            break;
+          }
+        }
+        line.pvSan = sanMoves.join(' ');
+        line.firstMove = firstMoveData;
+      }
+      // ------------------------------------------------------------------
+
       this.analysisLines = lines;
 
       // Mark the time and clear the timeout handle
@@ -604,10 +614,7 @@ export class EngineStore {
     // If an update is already queued, we just wait for it to fire.
     if (this._updateTimeout) return;
 
-    // --- Calculate legal moves ---
-    const tempChess = new Chess(this._currentFen);
-    const legalMovesCount = tempChess.moves().length;
-    const targetLines = Math.min(this.multipv, legalMovesCount || 1);
+    const targetLines = Math.min(this.multipv, this._currentFenLegalMoves);
 
     // Wait for all expected lines before pushing first update
     if (!this.analysisLines.length && this._lineBuffer.size < targetLines) {
