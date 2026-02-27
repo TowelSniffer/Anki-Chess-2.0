@@ -210,11 +210,8 @@
   $effect(() => {
     if (typeof visualDivider !== 'number') return;
 
-    // Timer handles its own animation; keep spring in sync instantly without physics
-    if (timerStore.visible) {
-      dividerSpring.set(visualDivider, { hard: true });
-      return;
-    }
+    // Timer handles its own animation
+    if (timerStore.visible) return;
 
     const isAnalysis = engineStore.enabled || !!commentDiag || isAiEval;
     const isInitialActivation = isAnalysis && !shouldHardSpring;
