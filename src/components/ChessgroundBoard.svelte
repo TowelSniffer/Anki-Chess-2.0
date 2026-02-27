@@ -108,7 +108,7 @@
 
   const barTopColor = $derived.by(() => {
     if (isRandomPuzzle) return mapColor('incorrect');
-    const color = barBottomColor === mapColor('white') ? 'black' : 'white';
+    const color = gameStore.orientation === 'white' ? 'black' : 'white';
     return mapColor(color);
   });
 
@@ -146,8 +146,10 @@
       if (evMatch) {
         // Custom: "EV: 27.6%"
         const winPercent = parseFloat(evMatch);
+
+        // Normalise to perspective of board rotation
         cachedEval =
-          barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
+          gameStore.orientation[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
         return cachedEval;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
@@ -161,7 +163,7 @@
           const winPercent = 50 + 50 * Math.tanh(cp / 290);
           cachedEval = winPercent; // Save state
         }
-        cachedEval = barTopColor === 'white' ? cachedEval : 100 - cachedEval;
+        cachedEval = gameStore.orientation === 'black' ? cachedEval : 100 - cachedEval;
       } else {
         cachedEval = 50;
       }
@@ -171,7 +173,7 @@
       const bestLine = engineStore.analysisLines.find((l) => l.id === 1);
       if (bestLine) {
         evalPercent = bestLine.winChance;
-        cachedEval = barTopColor === 'white' ? evalPercent : 100 - evalPercent;
+        cachedEval = gameStore.orientation === 'black' ? evalPercent : 100 - evalPercent;
       } else {
         if (gameStore.isDraw) {
           evalPercent = 50;
