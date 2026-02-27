@@ -351,7 +351,7 @@
     });
   }
 
-  function handlePointerDown(): void {
+  function trackSlectedPiece(): void {
     /*
      * We must track selected piece so our single click move logic can compare it
      * to the against the new value in select:
@@ -415,7 +415,7 @@
       id="board"
       class="tappable"
       bind:this={boardContainer}
-      onpointerdown={handlePointerDown}
+      onpointerdown={trackSlectedPiece}
       onwheel={isViewerMode ? handleWheel : null}
       class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
     ></div>

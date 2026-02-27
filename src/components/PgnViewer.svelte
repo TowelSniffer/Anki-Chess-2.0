@@ -93,6 +93,7 @@
   }
 
   function onMoveClick(path: PgnPath) {
+    if (path.join(',') === currentPgnPathKey) return;
     gameStore.pgnPath = path;
   }
 
@@ -252,6 +253,7 @@
   }
 
   .move {
+    @include unselectable;
     scroll-margin-top: calc($button-size-calc + 9px);
     cursor: pointer;
     position: relative;
@@ -270,6 +272,7 @@
 
     &.current {
       box-shadow: inset 0px 0px 2px rgba(0, 0, 0, 1);
+      cursor: default;
     }
     .moveNag {
       padding-left: 0.3em;
