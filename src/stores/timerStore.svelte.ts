@@ -83,8 +83,8 @@ export class TimerStore {
 
     this.pause();
 
-    // define Start and End values
-    const startRemaining = this.remainingTime;
+    // Base the math on the precise internal state, not the throttled UI state
+    const startRemaining = this._internalRemaining;
     const startTotal = this.totalTime;
 
     const targetRemaining = startRemaining + ms;
@@ -103,19 +103,27 @@ export class TimerStore {
       // Apply Easing (Cubic Ease Out)
       const progress = 1 - Math.pow(1 - rawProgress, 3);
 
-      this.remainingTime = startRemaining + (targetRemaining - startRemaining) * progress;
+      // Update the internal tracker
+      this._internalRemaining = startRemaining + (targetRemaining - startRemaining) * progress;
       this.totalTime = startTotal + (targetTotal - startTotal) * progress;
+
+      // Apply the same throttle logic from _loop
+      if (now - this._lastStateUpdate > 33) {
+        this.remainingTime = this._internalRemaining;
+        this._lastStateUpdate = now;
+      }
 
       if (rawProgress < 1) {
         // Check rawProgress for completion
         this.animationFrameId = requestAnimationFrame(animate);
       } else {
-        // Animation Complete: Ensure exact values
+        // Animation Complete: Ensure both internal and UI states sync exactly at the end
+        this._internalRemaining = targetRemaining;
         this.remainingTime = targetRemaining;
         this.totalTime = targetTotal;
         this.animationFrameId = null;
 
-        // Resume immediately? could handle elsewhere...
+        // Resume immediately? FIXME could handle elsewhere...
         this.resume();
       }
     };
@@ -128,6 +136,7 @@ export class TimerStore {
     this.remainingTime = userConfig.opts.timer;
     this.totalTime = userConfig.opts.timer;
     this._internalRemaining = userConfig.opts.timer;
+    this._lastStateUpdate = 0;
   }
 
   destroy() {
