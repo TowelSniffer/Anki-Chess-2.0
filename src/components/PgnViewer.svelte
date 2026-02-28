@@ -11,12 +11,12 @@
 
   let {
     moves: passedMoves = undefined,
-    gameComment = gameStore.rootGame?.gameComment?.comment,
     isVariation = false,
     withBrackets = false,
   } = $props();
 
   let moves = $derived(passedMoves ?? gameStore.rootMoves);
+  let gameComment = $derived(gameStore.rootGame?.gameComment?.comment);
 
   const currentPgnPathKey = $derived(gameStore.currentPathKey);
 
@@ -119,6 +119,7 @@
       nagClass,
     };
   }
+  console.log($state.snapshot(gameStore.rootGame), gameStore.rootGame?.gameComment?.comment)
 </script>
 
 {#snippet nullItem()}
@@ -131,7 +132,7 @@
   </span>
 {/snippet}
 
-{#if gameComment}
+{#if gameComment && !isVariation}
   <span class="comment"> {gameComment} </span>
 {/if}
 
