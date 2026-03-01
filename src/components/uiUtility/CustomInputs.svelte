@@ -129,7 +129,7 @@
         <!-- A ghost element to help keep sizing uniform -->
         <div class="ghost-sizer" aria-hidden="true">
           {#each options as opt}
-            <div class="ghost-opt">{opt} ▼</div>
+            <div class="ghost-opt">{opt} <span class="arrow">▼</span></div>
           {/each}
         </div>
         <button
@@ -308,6 +308,8 @@
     grid-area: 1 / 1;
     visibility: hidden;
     pointer-events: none;
+    padding: 0 0.5rem;
+    width: 100%;
     height: 0;
   }
   .sel-trigger {
