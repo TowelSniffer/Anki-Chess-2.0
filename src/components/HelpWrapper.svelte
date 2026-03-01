@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { BoardModes } from '$Types/ChessStructs';
 
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import ChessgroundBoard from '$components/ChessgroundBoard.svelte';
@@ -7,7 +7,6 @@
   import CustomInputs from '$components/uiUtility/CustomInputs.svelte';
   import IconInfo from '~icons/material-symbols/info';
   import IconSync from '~icons/material-symbols/sync-sharp';
-  import { getContext, type Snippet } from 'svelte';
   import { mdDocs } from '$utils/toolkit/importAssets';
 
   let { isHelpOpen = $bindable(false) } = $props();
@@ -37,7 +36,7 @@ of 164k]}) *
       description:
         'This uses a 10 Second timer with a 1 second increment. Timer can be disabled by ',
       pgn: puzzlePgn,
-      boardMode: 'Puzzle',
+      boardMode: 'Puzzle' as BoardModes,
       configOverride: { flipBoard: false, timer: 10000 },
     },
     {
@@ -45,7 +44,7 @@ of 164k]}) *
       subtitle: 'Maintain advantage',
       description: 'This utilises the "Flip PGN" option under "Anki Template" options',
       pgn: flippedPuzzlePgn,
-      boardMode: 'Puzzle',
+      boardMode: 'Puzzle' as BoardModes,
       configOverride: { flipBoard: true, timer: 0 },
     },
     {
@@ -53,7 +52,7 @@ of 164k]}) *
       subtitle: 'Bishop and Knight Mate',
       description: 'Engine cards can be made by pasting a FEN instead of a PGN into the PGN field',
       pgn: '8/8/8/8/8/8/KB1k4/N7 w - - 0 1',
-      boardMode: 'Puzzle',
+      boardMode: 'Puzzle' as BoardModes,
       configOverride: undefined,
     },
   ];

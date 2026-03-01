@@ -3,10 +3,10 @@
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
   import { pieceImages } from '$utils/toolkit/importAssets';
   import { getContext } from 'svelte';
-  import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { GameStore } from '$stores/gameStore.svelte';
 
   // Retrieve the instance created by the parent
-  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const gameStore = getContext<GameStore>('GAME_STORE');
 
   let turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
   let orientaion = $derived(gameStore.orientation[0]);

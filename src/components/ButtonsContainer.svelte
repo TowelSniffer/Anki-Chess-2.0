@@ -10,7 +10,7 @@
   import IconDevBoardOff from '~icons/material-symbols/developer-board-off-sharp';
   import IconFlip from '~icons/material-symbols/flip-sharp';
 
-  import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { GameStore } from '$stores/gameStore.svelte';
   import type { EngineStore } from '$stores/engineStore.svelte';
 
   import { getContext } from 'svelte';
@@ -22,7 +22,7 @@
   let { isHelpOpen = $bindable(false) } = $props();
 
   // Retrieve Stores created by the parent
-  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const gameStore = getContext<GameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
 
   let isFlipped = $state(false);

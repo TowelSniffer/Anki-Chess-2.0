@@ -11,6 +11,8 @@ import {
 } from '$features/pgn/mirror';
 
 export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes, savedMirrorState?: MirrorState): void {
+  if (savedMirrorState === 'original') return;
+
   let pgnBaseFen = parsedPGN.tags?.FEN ?? DEFAULT_POSITION;
   let mirrorState: MirrorState = 'original';
   const isValidMirrorFen = !checkCastleRights(pgnBaseFen);
