@@ -9,8 +9,6 @@
 
   import { onMount, getContext, untrack, onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
-
-  import { userConfig } from '$stores/userConfig.svelte';
   import { updateBoard } from '$features/board/boardAnimation';
   import { moveAudio, playSound } from '$features/audio/audio';
   import { pieceImages } from '$utils/toolkit/importAssets';
@@ -64,6 +62,8 @@
 
   // --- Board State ---
 
+  const config = $derived(gameStore.config);
+
   // Board Modes
   const isPuzzleMode = $derived(gameStore.boardMode === 'Puzzle');
   const isStudyMode = $derived(gameStore.boardMode === 'Study');
@@ -74,10 +74,10 @@
   // Puzzle state
   const puzzleInProgress = $derived(isPuzzleMode && !gameStore.isPuzzleComplete);
   const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && !!gameStore.puzzleScore);
-  const isRandomPuzzle = $derived(userConfig.opts.randomOrientation && isPuzzleMode);
+  const isRandomPuzzle = $derived(config.randomOrientation && isPuzzleMode);
 
   // AI mode and checkmate/draw
-  const isAiEval = $derived(isAiMode && userConfig.opts.aiEval && !gameStore.isGameOver);
+  const isAiEval = $derived(isAiMode && config.aiEval && !gameStore.isGameOver);
   const isAIGameOver = $derived(isAiMode && gameStore.isGameOver);
 
   // --- Border Color ---
@@ -328,7 +328,7 @@
   // B) : Handle Timeout (Flash Red)
   $effect(() => {
     const timerFlash = timerStore.isOutOfTime;
-    const timerAdvance = untrack(() => userConfig.opts.timerAdvance);
+    const timerAdvance = untrack(() => config.timerAdvance);
     if (timerFlash) {
       triggerFlash('incorrect');
       if (timerAdvance) showViewer();
@@ -377,7 +377,7 @@
   }
 
   function showViewer(): void {
-    if (!userConfig.opts.autoAdvance || isViewerMode) return;
+    if (!config.autoAdvance || isViewerMode) return;
     if (typeof pycmd !== 'undefined') {
       pycmd('ans');
     } else if (typeof AnkiDroidJS !== 'undefined') {

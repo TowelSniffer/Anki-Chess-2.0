@@ -11,12 +11,13 @@ import type {
 
 import type { EngineStore } from './engineStore.svelte';
 import type { TimerStore } from '$stores/timerStore.svelte';
+import type { UserConfigOpts } from '$Types/UserConfig';
 
 import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
 import { untrack } from 'svelte';
 
-import { userConfig } from '$stores/userConfig.svelte';
+import defaultConfig from '$anki/default_config.json';
 import { playAiMove, destroyPuzzleTimeouts } from '$features/chessJs/puzzleLogic';
 import { getCgConfig } from '$features/board/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
@@ -57,12 +58,13 @@ export class PgnGameStore {
 
   private _flipBoolean: boolean = $state(false); // Track if Viewer should be flipped
   private _randomBoolean: boolean = $state(false); // Track random orientation
+  private config;
 
   /*
    * DERIVED STATE
    */
 
-  aiDelayTime = $derived(userConfig.opts.animationTime + 100);
+  aiDelayTime = $derived(this.config.animationTime + 100);
   isPuzzleComplete = $derived(
     !!this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext,
   );
@@ -115,9 +117,9 @@ export class PgnGameStore {
   // The "Raw" Calculation (Always calculates the freshest shapes)
   systemShapes = $derived.by(() => {
     const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
-    if (this.boardMode === 'AI' || (puzzleMode && userConfig.opts.disableArrows)) return [];
+    if (this.boardMode === 'AI' || (puzzleMode && this.config.disableArrows)) return [];
     const prevMovePath = navigatePrevMove(this.pgnPath);
-    const flipPgn = userConfig.opts.flipBoard && this.boardMode === 'Puzzle';
+    const flipPgn = this.config.flipBoard && this.boardMode === 'Puzzle';
     const isStartOfPuzzle =
       puzzleMode && (!this.pgnPath.length || (flipPgn && !prevMovePath.length));
     if (isStartOfPuzzle) return [];
@@ -138,15 +140,27 @@ export class PgnGameStore {
   constructor(
     getPgn: () => string,
     getBoardMode: () => BoardModes,
+    getConfig: UserConfigOpts,
     engineStore: EngineStore,
-    timerStore: TimerStore,
+    timerStore: TimerStore
   ) {
+    this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
     this.boardMode = getBoardMode();
 
     // We differentiate between initial load and boarMode changes
     let isInitialPgnLoad = true;
+
+    // Track the external prop so we only update when Anki/App actually changes it
+    let externalModeTrack = getBoardMode();
+    $effect(() => {
+      const externalMode = getBoardMode();
+      if (externalModeTrack !== externalMode) {
+        this.boardMode = externalMode;
+        externalModeTrack = externalMode;
+      }
+    });
 
     $effect(() => {
       const boardMode = this.boardMode;
@@ -164,13 +178,13 @@ export class PgnGameStore {
           this.engineStore.enabled = false;
           this.engineStore.stop();
 
-          const flipPgn = boardMode === 'Puzzle' && userConfig.opts.flipBoard;
+          const flipPgn = boardMode === 'Puzzle' && this.config.flipBoard;
           this._flipBoolean = flipPgn;
           sessionStorage.setItem('chess_flipBoolean', flipPgn.toString());
           if (flipPgn) {
-            playAiMove(this, userConfig.opts.animationTime + 100);
+            playAiMove(this, this.config.animationTime + 100);
           }
-          if (userConfig.opts.randomOrientation) {
+          if (this.config.randomOrientation) {
             this._randomBoolean = !Math.round(Math.random());
             sessionStorage.setItem('chess_randomBoolean', this._randomBoolean.toString());
           }
@@ -205,7 +219,7 @@ export class PgnGameStore {
         this._hasMadeMistake = true;
     });
     $effect(() => {
-      if (this.errorCount > userConfig.opts.handicap) {
+      if (this.errorCount > this.config.handicap) {
         this.errorCount = 0;
         this._puzzleScore = 'incorrect';
       }
@@ -218,14 +232,14 @@ export class PgnGameStore {
           (this.boardMode === 'Puzzle' &&
             currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
             currentMove?.turn === this.playerColor[0]) ||
-          (this._hasMadeMistake && userConfig.opts.strictScoring)
+          (this._hasMadeMistake && this.config.strictScoring)
         ) {
           this._puzzleScore = 'incorrect';
         } else if (this.isPuzzleComplete) {
           const isPerfectScore =
-            (userConfig.opts.timer || userConfig.opts.handicap) &&
+            (this.config.timer || this.config.handicap) &&
             !this._hasMadeMistake &&
-            !userConfig.opts.strictScoring;
+            !this.config.strictScoring;
           this._puzzleScore = isPerfectScore ? 'perfect' : 'correct';
         }
       });
@@ -317,7 +331,7 @@ export class PgnGameStore {
   }
 
   // Prevent rapid move attempts
-  setMoveDebounce(time = userConfig.opts.animationTime) {
+  setMoveDebounce(time = this.config.animationTime) {
     const timerStore = this.timerStore;
     timerStore.pause();
     this._moveDebounce = setTimeout(() => {
@@ -419,3 +433,4 @@ export class PgnGameStore {
     return navigatePrevMove(this.pgnPath);
   }
 }
+

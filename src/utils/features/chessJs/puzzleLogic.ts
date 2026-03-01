@@ -1,7 +1,6 @@
 import type { Move, Square } from 'chess.js';
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
-import { userConfig } from '$stores/userConfig.svelte';
 import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
@@ -33,10 +32,10 @@ function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
   );
 }
 
-function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath | null {
-  const nextMainPath = navigateNextMove(gameStore.pgnPath);
+function findMatchingPath(store: IPgnGameStore, playedMove: Move): PgnPath | null {
+  const nextMainPath = navigateNextMove(store.pgnPath);
 
-  const nextMainMove = gameStore.getMoveByPath(nextMainPath);
+  const nextMainMove = store.getMoveByPath(nextMainPath);
   if (!nextMainMove) return null;
 
   // A) Check Main Line
@@ -44,8 +43,8 @@ function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath |
 
   // B) Check Variation Lines
   const isVariations = nextMainMove.variations?.length;
-  const isPuzzle = /^(Puzzle|Study)$/.test(gameStore.boardMode);
-  const rejectVariations = isPuzzle && !userConfig.opts.acceptVariations;
+  const isPuzzle = /^(Puzzle|Study)$/.test(store.boardMode);
+  const rejectVariations = isPuzzle && !store.config.acceptVariations;
   // acceptVariations?
   if (rejectVariations || !isVariations) return null;
 
@@ -60,7 +59,7 @@ function findMatchingPath(gameStore: IPgnGameStore, playedMove: Move): PgnPath |
 // --- Main Handler ---
 
 export async function handleUserMove(
-  gameStore: IPgnGameStore,
+  store: IPgnGameStore,
   orig: Square,
   dest: Square,
   san?: string,
@@ -70,66 +69,66 @@ export async function handleUserMove(
   moveObject = promotionRole
     ? { from: orig, to: dest, promotion: promotionRole }
     : { from: orig, to: dest };
-  const move = getLegalMove(san ?? moveObject, gameStore.fen);
+  const move = getLegalMove(san ?? moveObject, store.fen);
 
   if (!move) {
-    gameStore.pgnPath = [...gameStore.pgnPath]; // Trigger re-render to snap piece back
+    store.pgnPath = [...store.pgnPath]; // Trigger re-render to snap piece back
     return;
   }
 
-  if (gameStore.boardMode === 'AI') {
-    gameStore.addMove(move);
+  if (store.boardMode === 'AI') {
+    store.addMove(move);
 
-    if (gameStore.isGameOver) return;
+    if (store.isGameOver) return;
 
     // Trigger AI Response
     try {
-      const bestMoveSan = await gameStore.engineStore.requestMove(gameStore.fen);
-      if (gameStore.boardMode !== 'AI') return;
+      const bestMoveSan = await store.engineStore.requestMove(store.fen);
+      if (store.boardMode !== 'AI') return;
       // Play AI Move
-      const aiMove = getLegalMove(bestMoveSan, gameStore.fen); // Validate SAN
+      const aiMove = getLegalMove(bestMoveSan, store.fen); // Validate SAN
       if (aiMove) {
         setTrackedTimeout(() => {
-          !!getLegalMove(bestMoveSan, gameStore.fen) && gameStore.addMove(aiMove);
-        }, gameStore.aiDelayTime || 300);
+          !!getLegalMove(bestMoveSan, store.fen) && store.addMove(aiMove);
+        }, store.aiDelayTime || 300);
       }
     } catch (e) {
       console.error('AI failed to move', e);
     }
   } else {
     // logic: Existing Path vs New Move
-    const existingPath = findMatchingPath(gameStore, move);
+    const existingPath = findMatchingPath(store, move);
 
     if (existingPath) {
       // A) Move exists in PGN (Main line or Variation)
-      gameStore.pgnPath = existingPath;
-      gameStore.timerStore.extend(userConfig.opts.increment, gameStore.aiDelayTime);
-      if (gameStore.boardMode === 'Puzzle') {
-        playAiMove(gameStore, gameStore.aiDelayTime || 300);
+      store.pgnPath = existingPath;
+      store.timerStore.extend(store.config.increment, store.aiDelayTime);
+      if (store.boardMode === 'Puzzle') {
+        playAiMove(store, store.aiDelayTime || 300);
       }
     } else {
       // B) Move does not exist in PGN
-      if (gameStore.boardMode === 'Viewer') {
-        gameStore.addMove(move); // Add to PGN
+      if (store.boardMode === 'Viewer') {
+        store.addMove(move); // Add to PGN
       } else {
         // Wrong move in Puzzle mode
-        handleWrongMove(gameStore, move);
+        handleWrongMove(store, move);
       }
     }
   }
 }
 
-export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
+export function playAiMove(store: IPgnGameStore, delay: number): void {
   setTrackedTimeout(() => {
-    const nextMovePathCheck = navigateNextMove(gameStore.pgnPath);
-    const nextMove = gameStore.getMoveByPath(nextMovePathCheck);
+    const nextMovePathCheck = navigateNextMove(store.pgnPath);
+    const nextMove = store.getMoveByPath(nextMovePathCheck);
 
     // Only play if it's the opponent's turn
-    if (nextMove && nextMove.turn === gameStore.opponentColor[0]) {
+    if (nextMove && nextMove.turn === store.opponentColor[0]) {
       const candidates: PgnPath[] = [nextMovePathCheck];
 
       // If variations exist, add them to candidates
-      if (userConfig.opts.acceptVariations && nextMove.variations) {
+      if (store.config.acceptVariations && nextMove.variations) {
         nextMove.variations.forEach((variation: CustomPgnMove[]) => {
           candidates.push(variation[0].pgnPath);
         });
@@ -137,32 +136,32 @@ export function playAiMove(gameStore: IPgnGameStore, delay: number): void {
 
       // Pick random continuation
       const randomIndex = Math.floor(Math.random() * candidates.length);
-      gameStore.pgnPath = candidates[randomIndex];
+      store.pgnPath = candidates[randomIndex];
     }
   }, delay);
 }
 
-function playUserCorrectMove(gameStore: IPgnGameStore, delay: number): void {
+function playUserCorrectMove(store: IPgnGameStore, delay: number): void {
   // disable interaction until player move is made
-  gameStore.setMoveDebounce();
+  store.setMoveDebounce();
   setTrackedTimeout(() => {
     // Make the move without the AI's variation-selection logic
-    const nextMovePath = navigateNextMove(gameStore.pgnPath);
-    gameStore.pgnPath = nextMovePath;
-    if (gameStore.boardMode === 'Puzzle') {
-      playAiMove(gameStore, delay); // then play the AI's response
+    const nextMovePath = navigateNextMove(store.pgnPath);
+    store.pgnPath = nextMovePath;
+    if (store.boardMode === 'Puzzle') {
+      playAiMove(store, delay); // then play the AI's response
     }
   }, delay);
 }
 
-function handleWrongMove(gameStore: IPgnGameStore, move: Move): void {
-  if (!gameStore.cg) return;
-  gameStore.errorCount++;
-  gameStore.customAnimation = { fen: move.after, animate: true };
+function handleWrongMove(store: IPgnGameStore, move: Move): void {
+  if (!store.cg) return;
+  store.errorCount++;
+  store.customAnimation = { fen: move.after, animate: true };
   playSound('error');
-  const isFailed = gameStore.errorCount > userConfig.opts.handicap;
+  const isFailed = store.errorCount > store.config.handicap;
 
   if (isFailed) {
-    playUserCorrectMove(gameStore, userConfig.opts.animationTime * 2); // show the correct user move
+    playUserCorrectMove(store, store.config.animationTime * 2); // show the correct user move
   }
 }

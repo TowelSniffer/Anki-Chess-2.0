@@ -137,6 +137,7 @@ export class EngineStore {
   });
 
   constructor() {
+    this.stop();
     $effect(() => {
       // Register userConfig changes
       void this.multipv;
@@ -573,7 +574,6 @@ export class EngineStore {
       // --- Perform expensive SAN conversion only on flushed lines ---
       for (const line of lines) {
         if (!line.pvRaw || line.pvSan) continue; // Skip if empty or already parsed
-        console.log("here")
         const sanMoves: string[] = [];
         const tempChess = new Chess(this._currentFen);
         const rawMoves = line.pvRaw.split(' ');

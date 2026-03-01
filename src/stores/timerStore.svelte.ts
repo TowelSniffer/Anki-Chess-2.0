@@ -1,21 +1,20 @@
-import { userConfig } from '$stores/userConfig.svelte';
-
 export class TimerStore {
   // --- State ---
   isRunning = false;
-  totalTime = userConfig.opts.timer; // in ms (initial duration)
-  remainingTime = $state(userConfig.opts.timer); // in ms
+  totalTime // in ms (initial duration)
+  remainingTime; // in ms
   // Controls if the board shows the timer gradient
   visible = $state(false);
 
-  isOutOfTime = $derived(userConfig.opts.timer && this.remainingTime === 0);
+  isOutOfTime = $derived(this._config.timer && this.remainingTime === 0);
 
   // --- Internal ---
   private animationFrameId: number | null = null;
   private lastTickTimestamp: number | null = null;
 
-  private _internalRemaining = userConfig.opts.timer;
+  private _internalRemaining;
   private _lastStateUpdate = 0;
+  private _config;
 
   // --- Derived ---
 
@@ -26,13 +25,21 @@ export class TimerStore {
     return Math.min(Math.max(p, 0), 100);
   });
 
+  constructor( getConfig: UserConfigOpts ) {
+    this._config = getConfig();
+    this.totalTime = this._config.timer;
+    this.remainingTime = $state(this._config.timer);
+    this._internalRemaining = this._config.timer;
+
+  }
+
   // --- Actions ---
 
   /**
    * Initialize and start the timer
    * @param durationMs - Duration in milliseconds
    */
-  start(durationMs: number = userConfig.opts.timer) {
+  start(durationMs: number = this._config.timer) {
     this.stop();
 
     // Reset totalTime to the initial duration requested
@@ -76,8 +83,8 @@ export class TimerStore {
    * Smoothly adds time to the clock over (gameStore.aiDelayTime)
    */
   extend(
-    ms: number = userConfig.opts.increment,
-    duration: number = userConfig.opts.animationTime + 100,
+    ms: number = this._config.increment,
+    duration: number = this._config.animationTime + 100,
   ) {
     if (!this.visible) return;
 
@@ -133,9 +140,9 @@ export class TimerStore {
 
   reset() {
     this.stop();
-    this.remainingTime = userConfig.opts.timer;
-    this.totalTime = userConfig.opts.timer;
-    this._internalRemaining = userConfig.opts.timer;
+    this.remainingTime = this._config.timer;
+    this.totalTime = this._config.timer;
+    this._internalRemaining = this._config.timer;
     this._lastStateUpdate = 0;
   }
 

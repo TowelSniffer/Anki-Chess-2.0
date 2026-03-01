@@ -119,7 +119,6 @@
       nagClass,
     };
   }
-  console.log($state.snapshot(gameStore.rootGame), gameStore.rootGame?.gameComment?.comment)
 </script>
 
 {#snippet nullItem()}

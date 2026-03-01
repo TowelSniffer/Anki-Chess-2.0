@@ -1,10 +1,8 @@
 import type { BoardModes } from '$Types/ChessStructs';
 import { mount, unmount } from 'svelte';
 import App from './App.svelte';
-import { Chess, validateFen, DEFAULT_POSITION } from 'chess.js';
 import '$scss/app.scss';
 import { devPgn, devBoardMode, devText } from '$configs/defaults';
-import { userConfig } from '$stores/userConfig.svelte';
 
 // Track the current instance so we can destroy it before re-mounting
 let appInstance: any = null;
@@ -31,49 +29,7 @@ const mountApp = () => {
   let boardModeFromAnki: BoardModes =
     (target.getAttribute('data-boardMode') as BoardModes) || devBoardMode;
 
-  /*
-   * Detect FEN vs PGN for AI mode
-   */
-
-  // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
-  const aiPgn = sessionStorage.getItem('chess_aiPgn');
-  if (aiPgn) {
-    sessionStorage.removeItem('chess_aiPgn');
-    if (boardModeFromAnki === 'Viewer') pgnContent = aiPgn;
-  }
-
-  const isFen = /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(
-    pgnContent || '',
-  );
-
-  if (isFen && pgnContent) {
-    // Wrap raw FEN in a minimal PGN structure
-    // SetUp "1" is crucial for PGN parsers to respect the FEN tag
-    const { ok, error } = validateFen(pgnContent);
-    error && console.warn(error);
-    const fen = ok ? pgnContent : DEFAULT_POSITION;
-    pgnContent = `[Event "AI Practice"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n*`;
-    if (boardModeFromAnki !== 'Viewer') {
-      boardModeFromAnki = 'AI';
-    }
-  } else if (pgnContent) {
-    const chess = new Chess();
-    try {
-      const cleanedPgn = pgnContent.replace(/}\s*{/g, " "); // merge adjacent comments
-      chess.loadPgn(cleanedPgn);
-      // PGN is valid and loaded
-    } catch (e) {
-      // Invalid PGN
-      const message = e instanceof Error ? e.message : 'Unknown error';
-      console.error('PGN Validation Failed:', message);
-      pgnContent = `[Event "AI Practice"]\n[FEN "${DEFAULT_POSITION}"]\n[SetUp "1"]\n\n*`;
-    }
-  }
-
   const userTextFromAnki = import.meta.env.DEV ? devText : (textDiv?.innerHTML ?? '');
-
-  // Refresh config from the new Window context
-  userConfig.refresh();
 
   // If an app already exists, unmount it to prevent memory leaks
   if (appInstance) {

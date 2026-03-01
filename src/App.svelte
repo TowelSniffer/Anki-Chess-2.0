@@ -5,8 +5,10 @@
   import PgnViewer from '$components/PgnViewer.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
-  import { userConfig } from '$stores/userConfig.svelte';
+  import SettingsWrapper from '$components/SettingsWrapper.svelte';
+
   import { RenderScan } from 'svelte-render-scan';
+  import { userConfig } from '$stores/userConfig.svelte';
 
   let { pgn, boardMode, userText } = $props();
 </script>
@@ -25,6 +27,7 @@
           </div>
         {/if}
         {#if boardMode === 'Viewer'}
+          <SettingsWrapper/>
           <div id="sticky-container">
             <div id="buttons-container">
               <ButtonsContainer />
