@@ -13,10 +13,6 @@
   let { pgn, boardMode, userText } = $props();
 
   let isHelpOpen = $state(false);
-
-  $effect(() => {
-   $inspect(isHelpOpen)
-  })
 </script>
 
 {#if import.meta.env.DEV}

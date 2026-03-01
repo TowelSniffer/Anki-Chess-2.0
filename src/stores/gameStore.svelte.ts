@@ -20,6 +20,7 @@ import { untrack } from 'svelte';
 
 import { GameStorage } from '$utils/GameStorage';
 import { getCgConfig } from '$features/board/cgInstance';
+import { assignMirrorState } from '$features/pgn/mirror';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
 import { playAiMove, destroyPuzzleTimeouts } from '$features/chessJs/puzzleLogic';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
@@ -76,9 +77,9 @@ export class GameStore {
     this.timerStore = timerStore;
     this.boardMode = getBoardMode();
 
-    $effect(() => {
-      $inspect(this.hasNext, this.isPuzzleComplete);
-    });
+    // $effect(() => {
+    //   $inspect(this.hasNext, this.isPuzzleComplete);
+    // });
 
     // Track the external props so we only update when Anki/App actually changes it
     let externalModeTrack = getBoardMode();
@@ -97,20 +98,50 @@ export class GameStore {
     $effect(() => {
       const boardMode = this.boardMode;
       let PGN = getPgn();
-
+      let mirrorState: MirrorState = 'original';
       // --- Saved State (aiPgn) ---
       if (boardMode === 'Viewer') {
         const aiPgn = this._storage.get('chess_aiPgn');
         if (aiPgn && boardMode === 'Viewer') PGN = aiPgn;
+
+        const storedMirror = this._storage.get('chess_mirrorState');
+        if (storedMirror && this.config.mirror) mirrorState = storedMirror as MirrorState;
+      } else this.timerStore.reset();
+
+      if (/^(Puzzle|Study)$/.test(boardMode)) {
+        this.engineStore.enabled = false;
+        this.engineStore.stop();
+        if (boardMode === 'Puzzle') {
+          const flipPgn = this.config.flipBoard;
+          this._flipBoolean = flipPgn;
+          this._storage.set('chess_flipBoolean', flipPgn.toString());
+
+          if (flipPgn) {
+            playAiMove(this, this.config.animationTime + 100);
+          }
+          if (this.config.mirror) {
+            mirrorState = assignMirrorState();
+            this._storage.set('chess_mirrorState', `${mirrorState}`);
+          }
+        }
+
+        if (this.config.randomOrientation) {
+          this._randOrientBool = !Math.round(Math.random());
+          this._storage.set('chess_randOrientBool', this._randOrientBool.toString());
+        }
+
+        this.timerStore.start();
+      } else if (boardMode === 'AI') {
+        this._flipBoolean = false;
+        this.engineStore.init(this.fen);
       }
       const newPgnCheck = pgnTrack !== PGN;
       if (newPgnCheck) {
         pgnTrack = PGN;
       }
+      const reloadCheck = newPgnCheck || (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
       untrack(() => {
-        this._applyBoardState(boardMode);
-        const reloadCheck = newPgnCheck || (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
-        reloadCheck && this.loadNewGame(PGN);
+        reloadCheck && this.loadNewGame(PGN, mirrorState);
       });
     });
 
@@ -310,14 +341,16 @@ export class GameStore {
    * METHODS
    */
 
-  loadNewGame(rawPGN: string) {
+  loadNewGame(
+    rawPGN: string,
+    mirrorState: MirrorState
+  ) {
     this.rootGame = undefined;
     this._moveMap = new Map<string, CustomPgnMove>();
 
     const parsed = parsePGN(rawPGN);
 
-    const storedMirror = this._storage.get('chess_mirrorState');
-    mirrorPGN(parsed, this.boardMode, (storedMirror as MirrorState) ?? undefined);
+    mirrorPGN(parsed, mirrorState);
 
     this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
 
@@ -331,8 +364,12 @@ export class GameStore {
       this._flipBoolean = this._storage.get('chess_flipBoolean') === 'true';
 
       const storedPathStr = this._storage.get('chess_pgnPath');
-      const storedPath = storedPathStr ? (storedPathStr.split(',') as PgnPath) : [];
-      // FIXME should add a check to make sure its from the same PGN
+      // Map over the string array and convert numeric strings to actual numbers
+      const storedPath = storedPathStr
+        ? (storedPathStr
+            .split(',')
+            .map((step) => (isNaN(Number(step)) ? step : Number(step))) as PgnPath)
+        : [];
       const isValidPath = !!this.getMoveByPath(storedPath);
       if (isValidPath) this.pgnPath = storedPath;
 
@@ -344,39 +381,6 @@ export class GameStore {
   }
 
   // --- Internal ---
-
-  private _applyBoardState(boardMode: BoardModes) {
-    // FIXME Figure out a guard to make should storage items are valid (ie from current card)
-    this.timerStore.reset();
-
-    if (boardMode !== 'Viewer') {
-      this._resetGameState();
-      // Always clear storage before non 'Viewer' load
-      this._storage.clearGame();
-    }
-
-    if (/^(Puzzle|Study)$/.test(boardMode)) {
-      this.engineStore.enabled = false;
-      this.engineStore.stop();
-
-      const flipPgn = boardMode === 'Puzzle' && this.config.flipBoard;
-      this._flipBoolean = flipPgn;
-      this._storage.set('chess_flipBoolean', flipPgn.toString());
-
-      if (flipPgn) {
-        playAiMove(this, this.config.animationTime + 100);
-      }
-      if (this.config.randomOrientation) {
-        this._randOrientBool = !Math.round(Math.random());
-        this._storage.set('chess_randOrientBool', this._randOrientBool.toString());
-      }
-
-      this.timerStore.start();
-    } else if (boardMode === 'AI') {
-      this._flipBoolean = false;
-    }
-    boardMode === 'AI' && this.engineStore.init(this.fen);
-  }
 
   private _resetGameState() {
     this.pgnPath = [];

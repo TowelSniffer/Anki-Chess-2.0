@@ -1,30 +1,22 @@
-import type { CustomPgnGame, BoardModes } from '$Types/ChessStructs';
+import type { CustomPgnGame } from '$Types/ChessStructs';
 import type { Tags } from '@mliebelt/pgn-types';
 import { DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
 import {
   checkCastleRights,
-  assignMirrorState,
   mirrorFen,
   mirrorPgnTree,
   type MirrorState,
 } from '$features/pgn/mirror';
 
-export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes, savedMirrorState?: MirrorState): void {
-  if (savedMirrorState === 'original') return;
-
+export function mirrorPGN(
+  parsedPGN: CustomPgnGame,
+  mirrorState: MirrorState,
+): void {
   let pgnBaseFen = parsedPGN.tags?.FEN ?? DEFAULT_POSITION;
-  let mirrorState: MirrorState = 'original';
   const isValidMirrorFen = !checkCastleRights(pgnBaseFen);
-  if (!savedMirrorState && isValidMirrorFen) {
-
-    if (/^(Puzzle|Study)$/.test(boardMode)) {
-      mirrorState = assignMirrorState();
-    } else if (savedMirrorState) {
-      mirrorState = savedMirrorState as MirrorState;
-    }
-  }
-
+  if (mirrorState === 'original' || !isValidMirrorFen) return;
+  mirrorState = mirrorState as MirrorState;
   if (mirrorState !== 'original') {
     parsedPGN.tags ??= {} as Tags;
     parsedPGN.tags.FEN = mirrorFen(pgnBaseFen, mirrorState);
