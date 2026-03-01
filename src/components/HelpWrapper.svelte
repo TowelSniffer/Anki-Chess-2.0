@@ -21,7 +21,7 @@
 {[%EV 0.0]} 3. Bb7+ {[%EV 100.0]} Ka7 {[%EV 0.0]} 4. Nb5# {[%EV 100.0]}) (2. Nb6?!
 {[%EV 50.0]}) (2. Bb7?! {[%EV 50.0]}) Ka8 {[%EV 0.0]} 3. Bb7+ {[%EV 100.0]} Ka7 {EV:
 0.0]} 4. Nc6# {[%EV 100.0]} 1-0
-`
+`;
 
   const flippedPuzzlePgn = `
 [FEN "8/7p/p7/1pN1kb2/1P4p1/P1K1P1P1/7P/8 b - - 7 39"]
@@ -29,12 +29,13 @@
 
 39... Bc8 40. e4 {[%EV 98.6] [%N 49.62% of 164k]} (40. Kd3 {[%EV 98.2] [%N 40.69%
 of 164k]}) *
-`// Define the preset examples
+`; // Define the preset examples
   const demoOptions = [
     {
       label: 'Timed',
       subtitle: 'Mate in 3',
-      description: 'This uses a 10 Second timer with a 1 second increment. Timer can be disabled by ',
+      description:
+        'This uses a 10 Second timer with a 1 second increment. Timer can be disabled by ',
       pgn: puzzlePgn,
       boardMode: 'Puzzle',
       configOverride: { flipBoard: false, timer: 10000 },
@@ -107,6 +108,7 @@ of 164k]}) *
         pgn={activeDemo.pgn}
         boardMode={activeDemo.boardMode}
         configOverride={activeDemo.configOverride}
+        persist={false}
       >
         <div
           style="--board-size: 300px; width: var(--board-size); height: var(--board-size); position: relative; margin: 0 auto;"

@@ -73,7 +73,7 @@
 
   // Puzzle state
   const puzzleInProgress = $derived(isPuzzleMode && !gameStore.isPuzzleComplete);
-  const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && !!gameStore.puzzleScore);
+  const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && gameStore.puzzleScore);
   const isRandomPuzzle = $derived(config.randomOrientation && isPuzzleMode);
 
   // AI mode and checkmate/draw
@@ -237,15 +237,6 @@
     });
   });
 
-  // Store AI pgn
-  $effect(() => {
-    if (!isAiMode) return;
-    const aiPgn = gameStore.currentMove?.history;
-    if (aiPgn) {
-      sessionStorage.setItem('chess_aiPgn', `${aiPgn}`);
-    }
-  });
-
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
   let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
@@ -335,9 +326,18 @@
     }
   });
   // C) : Handle Puzzle Complete flash
+  let prevScore: PuzzleScored = null;
   $effect(() => {
-    if (puzzleCompleteAndScored) {
-      triggerFlash(gameStore.puzzleScore);
+    const currentScore = gameStore.puzzleScore;
+    // Only flash if we transitioned from no score to a valid score
+    // to ensure we only flash once per game
+    if (puzzleCompleteAndScored && currentScore && !prevScore) {
+      triggerFlash(currentScore)
+      // Limit Score flash to once for puzzle
+      prevScore = currentScore;
+    } else if (puzzleCompleteAndScored && currentScore && prevScore) {
+      // Fix race condition with new boardMode
+      prevScore = null;
     }
   });
 
@@ -347,7 +347,6 @@
 
   // trigger CSS animation replay
   function triggerFlash(type: PuzzleScored) {
-    flashState = null; // reset to force reflow if needed
     requestAnimationFrame(() => {
       flashState = mapColor(type) as PuzzleScored;
     });

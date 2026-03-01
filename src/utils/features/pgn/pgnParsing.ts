@@ -10,15 +10,14 @@ import {
   type MirrorState,
 } from '$features/pgn/mirror';
 
-export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes, setMirror?: mirrorState): void {
+export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes, savedMirrorState?: MirrorState): void {
   let pgnBaseFen = parsedPGN.tags?.FEN ?? DEFAULT_POSITION;
   let mirrorState: MirrorState = 'original';
-  if (setMirror && !checkCastleRights(pgnBaseFen)) {
-    const savedMirrorState = sessionStorage.getItem('chess_mirrorState');
+  const isValidMirrorFen = !checkCastleRights(pgnBaseFen);
+  if (!savedMirrorState && isValidMirrorFen) {
 
     if (/^(Puzzle|Study)$/.test(boardMode)) {
       mirrorState = assignMirrorState();
-      sessionStorage.setItem('chess_mirrorState', mirrorState);
     } else if (savedMirrorState) {
       mirrorState = savedMirrorState as MirrorState;
     }
