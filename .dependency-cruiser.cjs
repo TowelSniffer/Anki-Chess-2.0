@@ -9,7 +9,10 @@ module.exports = {
         'your solution (i.e. use dependency inversion, make sure the modules have a single responsibility) ',
       from: {},
       to: {
-        circular: true
+        circular: true,
+        viaOnly: {
+          dependencyTypesNot: ['type-only']
+        }
       }
     },
     {
