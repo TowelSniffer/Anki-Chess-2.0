@@ -153,4 +153,8 @@ body.light-theme {
     color: var(--surface-primary);
     @include subtle-shadow(0.7, inset);
   }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
