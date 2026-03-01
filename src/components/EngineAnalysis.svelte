@@ -2,7 +2,7 @@
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import type { EngineStore } from '$stores/engineStore.svelte';
   import { slide } from 'svelte/transition';
-  import CustomSelector from './uiUtility/CustomSelector.svelte';
+  import CustomInputs from './uiUtility/CustomInputs.svelte';
   import { getContext } from 'svelte';
   import IconArrowSplit from '~icons/material-symbols/arrow-split';
   import IconSearchGear from '~icons/material-symbols/search-gear';
@@ -30,18 +30,22 @@
 {#if engineStore?.enabled}
   <div class="engine-container" transition:slide={{ duration: 300 }}>
     <div class="controls">
-      <CustomSelector
-        label="Lines:"
+      <CustomInputs
+        type="number"
+        label="Lines"
         value={config.analysisLines}
-        options={engineStore.multipvOptions}
+        min=1
+        max=5
         icon={IconArrowSplit}
         onChange={(val: number) => (config.analysisLines = val)}
       />
 
-      <CustomSelector
-        label="Thinking Time (s):"
+      <CustomInputs
+        type="number"
+        label="Time"
         value={config.analysisTime}
-        options={engineStore.thinkingTimeOptions}
+        min=1
+        max=10
         icon={IconSearchGear}
         onChange={(val: number) => (config.analysisTime = val)}
       />
@@ -65,7 +69,7 @@
                 {gameStore.turn === 'b' ? 'White ' : 'Black '}Checkmates
               </div>
             {:else}
-            {@const loadingText = engineStore.loading && i === 0 ? 'Starting...' : ` `}
+              {@const loadingText = engineStore.loading && i === 0 ? 'Starting...' : ` `}
               <div class="eval">&nbsp;</div>
               <div class="moves">{loadingText}</div>
             {/if}
@@ -89,7 +93,7 @@
   }
 
   .controls {
-    @include flex-center;
+    @include justify-space-evenly;
     gap: 0.2rem;
     margin-bottom: 0.2rem;
     font-size: 0.9em;
