@@ -1,7 +1,6 @@
 <script module lang="ts">
   import type { Component, Snippet } from 'svelte';
   import type { MenuItem } from './Dropdown.svelte';
-  import { marked } from 'marked';
 
   export type SettingsSection = {
     id: string;
@@ -18,8 +17,10 @@
 </script>
 
 <script lang="ts">
+  import { marked } from 'marked';
   import { clickOutside } from '$utils/toolkit/clickOutside';
   import IconClose from '~icons/material-symbols/close';
+  import IconMenu from '~icons/material-symbols/menu';
 
   type Props = {
     isOpen: boolean;
@@ -31,6 +32,7 @@
   let { isOpen, title = 'Info', sections, onClose }: Props = $props();
 
   let activeTabId = $state(sections[0]?.id);
+  let isSidebarCollapsed = $state(false);
   let activeSection = $derived(sections.find(s => s.id === activeTabId) || sections[0]);
 
   // Action to append modal to body
@@ -62,19 +64,24 @@
       </div>
 
       <div class="modal-body">
-        <nav class="modal-sidebar">
+        <nav class="modal-sidebar" class:collapsed={isSidebarCollapsed}>
+          <button class="collapse-btn" onclick={() => isSidebarCollapsed = !isSidebarCollapsed} aria-label="Toggle Sidebar">
+            <IconMenu />
+          </button>
+
           {#each sections as section}
             <button
               class="tab-btn"
               class:active={activeTabId === section.id}
               onclick={() => activeTabId = section.id}
+              title={isSidebarCollapsed ? section.label : ''}
             >
               {#if typeof section.icon === 'string'}
                 <span class="material-symbols-sharp">{section.icon}</span>
               {:else if section.icon}
                 <section.icon />
               {/if}
-              {section.label}
+              <span class="tab-label">{section.label}</span>
             </button>
           {/each}
         </nav>
@@ -134,6 +141,8 @@
 {/if}
 
 <style lang="scss">
+  $sidebar-width: 200px;
+
   .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -184,20 +193,44 @@
   }
 
   .modal-sidebar {
-    width: 200px;
+    width: $sidebar-width;
+    transition: width 0.2s ease-in-out;
     background: var(--surface-secondary);
     border-right: 1px solid var(--surface-hover);
-    padding: 0.5rem 0;
+    padding: 0.3rem 0;
     overflow-y: auto;
+    overflow-x: hidden; /* Important for clean collapse */
+
+    &.collapsed {
+      width: 50px;
+
+      .tab-label {
+        opacity: 0;
+      }
+    }
+
+    .collapse-btn {
+      all: unset;
+      box-sizing: border-box;
+      width: $sidebar-width;
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: var(--text-primary);
+
+      &:hover { background: var(--surface-hover); }
+    }
 
     .tab-btn {
       all: unset;
       box-sizing: border-box;
-      width: 100%;
-      padding: 0.8rem 1rem;
+      width: $sidebar-width;
+      padding: 0.8rem 1rem; /* Better icon alignment */
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.8rem;
       cursor: pointer;
       font-size: 0.9rem;
 
@@ -206,6 +239,12 @@
         background: var(--surface-primary);
         border-left: 3px solid var(--status-correct);
         font-weight: bold;
+        padding-left: calc(1rem - 3px); /* Stops layout shift from border */
+      }
+
+      .tab-label {
+        transition: opacity 0.2s ease-in-out;
+        opacity: 1;
       }
     }
   }
