@@ -282,7 +282,7 @@ export function getMenuData(setHelpOpen: (val: boolean) => void, gameStore?: Gam
                 label: 'Paste PGN',
                 action: () => {
                   const newPgn = prompt('Paste new PGN string:');
-                  if (newPgn) gameStore.loadNewGame(newPgn);
+                  if (newPgn) gameStore.loadNewGame(newPgn, 'original');
                 },
               },
             ],

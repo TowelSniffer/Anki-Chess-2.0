@@ -69,7 +69,7 @@ function animateBackwardPromotion(gameStore: GameStore, currentMove: CustomPgnMo
  */
 export function updateBoard(
   gameStore: GameStore,
-  previousPath: PgnPath | null,
+  previousPath: PgnPath,
 ): Sounds | CustomPgnMove {
   const currentPath = gameStore.pgnPath;
   const currentMove = gameStore.currentMove;
