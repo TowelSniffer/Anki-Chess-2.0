@@ -41,7 +41,6 @@ export class EngineStore {
   // --- Non-reactive variables ---
 
   isThinking = false;
-  multipvOptions = [1, 2, 3, 4, 5];
 
   // --- Internal State ---
 
@@ -67,8 +66,6 @@ export class EngineStore {
   // --- User Config ---
   analysisThinkingTime = $derived(userConfig.opts.analysisTime);
   multipv = $derived(userConfig.opts.analysisLines);
-
-  thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
 
   private _aiElo = $derived(userConfig.opts.aiElo);
   private _aiMoveTime = $derived(userConfig.opts.aiMoveTime * 1000);
@@ -139,12 +136,16 @@ export class EngineStore {
   constructor() {
     this.stop();
     $effect(() => {
-      // Register userConfig changes
+      // Restart Engine on userConfig changes
       void this.multipv;
       void this.analysisThinkingTime;
       untrack(() => {
-        if (!this.enabled) return; // prevent restarting on initial load
-        this.restart();
+        if (!this.enabled || !this.evalFen || this._aiRequestPending) return;
+
+        // Pre-fill _pendingFen to bypass the "already thinking about this FEN"
+        // early return inside `analyze()`, keeping `_currentFen` intact for `_flushBuffer`.
+        this._pendingFen = this.evalFen
+        this.analyze(this.evalFen);
       });
     });
   }
@@ -243,16 +244,6 @@ export class EngineStore {
       // Fallback: only unlock if we weren't thinking anyway
       this._unlockEngine();
       this.isThinking = false;
-    }
-  }
-
-  restart() {
-    // Restart analysis if active
-    if (this.enabled && this._currentFen) {
-      // We force a re-analysis by acting like the FEN changed
-      const newFen = this._currentFen;
-      this._currentFen = '';
-      this.analyze(newFen);
     }
   }
 
@@ -573,7 +564,7 @@ export class EngineStore {
 
       // --- Perform expensive SAN conversion only on flushed lines ---
       for (const line of lines) {
-        if (!line.pvRaw || line.pvSan) continue; // Skip if empty or already parsed
+        if (!line.pvRaw || line.pvSan || !this._currentFen) continue; // Skip if empty or already parsed
         const sanMoves: string[] = [];
         const tempChess = new Chess(this._currentFen);
         const rawMoves = line.pvRaw.split(' ');
