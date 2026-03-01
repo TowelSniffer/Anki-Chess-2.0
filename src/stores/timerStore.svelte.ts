@@ -1,3 +1,5 @@
+import type { UserConfigOpts } from '$Types/UserConfig';
+
 export class TimerStore {
   // --- State ---
   isRunning = false;
@@ -12,9 +14,9 @@ export class TimerStore {
 
   private _internalRemaining;
   private _lastStateUpdate = 0;
-  private _config;
+  private _config: UserConfigOpts;
 
-  constructor(getConfig: UserConfigOpts) {
+  constructor(getConfig: () => UserConfigOpts) {
     this._config = getConfig();
     this.totalTime = this._config.timer;
     this.remainingTime = $state(this._config.timer);

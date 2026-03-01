@@ -1,6 +1,6 @@
 import type { Move, Square } from 'chess.js';
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
-import type { IPgnGameStore } from '$Types/StoreInterfaces';
+import type { GameStore } from '$stores/gameStore.svelte';
 import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
@@ -32,7 +32,7 @@ function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
   );
 }
 
-function findMatchingPath(store: IPgnGameStore, playedMove: Move): PgnPath | null {
+function findMatchingPath(store: GameStore, playedMove: Move): PgnPath | null {
   const nextMainPath = navigateNextMove(store.pgnPath);
 
   const nextMainMove = store.getMoveByPath(nextMainPath);
@@ -59,7 +59,7 @@ function findMatchingPath(store: IPgnGameStore, playedMove: Move): PgnPath | nul
 // --- Main Handler ---
 
 export async function handleUserMove(
-  store: IPgnGameStore,
+  store: GameStore,
   orig: Square,
   dest: Square,
   san?: string,
@@ -118,7 +118,7 @@ export async function handleUserMove(
   }
 }
 
-export function playAiMove(store: IPgnGameStore, delay: number): void {
+export function playAiMove(store: GameStore, delay: number): void {
   setTrackedTimeout(() => {
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
     const nextMove = store.getMoveByPath(nextMovePathCheck);
@@ -141,7 +141,7 @@ export function playAiMove(store: IPgnGameStore, delay: number): void {
   }, delay);
 }
 
-function playUserCorrectMove(store: IPgnGameStore, delay: number): void {
+function playUserCorrectMove(store: GameStore, delay: number): void {
   // disable interaction until player move is made
   store.setMoveDebounce();
   setTrackedTimeout(() => {
@@ -154,7 +154,7 @@ function playUserCorrectMove(store: IPgnGameStore, delay: number): void {
   }, delay);
 }
 
-function handleWrongMove(store: IPgnGameStore, move: Move): void {
+function handleWrongMove(store: GameStore, move: Move): void {
   if (!store.cg) return;
   store.errorCount++;
   store.customAnimation = { fen: move.after, animate: true };

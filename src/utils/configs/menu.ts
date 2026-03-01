@@ -10,7 +10,7 @@ import IconRobot from '~icons/material-symbols/robot-2';
 import IconInfo from '~icons/material-symbols/info';
 
 import { userConfig } from '$stores/userConfig.svelte';
-import type { IPgnGameStore } from '$Types/StoreInterfaces';
+import type { GameStore } from '$stores/gameStore.svelte';
 import type { UserConfigOpts } from '$Types/UserConfig';
 import type { MenuItem } from '$components/uiUtility/Dropdown.svelte';
 
@@ -22,7 +22,7 @@ function setConfigBoolean(key: BooleanKeys<UserConfigOpts>) {
   userConfig.opts[key] = !userConfig.opts[key];
 }
 
-export function getMenuData(setHelpOpen: (val: boolean) => void, gameStore?: IPgnGameStore): MenuItem[] {
+export function getMenuData(setHelpOpen: (val: boolean) => void, gameStore?: GameStore): MenuItem[] {
   return [
     {
       label: 'Stockfish',

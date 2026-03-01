@@ -1,7 +1,7 @@
 import type { CustomShape } from '$Types/ChessStructs';
+import type { UserConfigOpts } from '$Types/UserConfig';
 import { untrack } from 'svelte';
 import { Chess, type Square } from 'chess.js';
-import { userConfig } from './userConfig.svelte';
 
 function convertCpToWinPercentage(cp: number): number {
   const probability = 1 / (1 + Math.pow(10, -cp / 400));
@@ -44,6 +44,7 @@ export class EngineStore {
 
   // --- Internal State ---
 
+  private _config: UserConfigOpts;
   private _currentFen = ''; // The FEN currently being processed by the engine
   private _currentFenLegalMoves = 1;
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
@@ -59,8 +60,9 @@ export class EngineStore {
   private _aiRequestPending = false;
   private _aiMoveResolver: ((san: string) => void) | null = null;
 
-  constructor() {
+  constructor(getConfig: () => UserConfigOpts) {
     this.stop();
+    this._config = getConfig();
     $effect(() => {
       // Restart Engine on userConfig changes
       void this.multipv;
@@ -82,19 +84,19 @@ export class EngineStore {
 
   // --- User Config ---
   get analysisThinkingTime() {
-    return userConfig.opts.analysisTime;
+    return this._config.analysisTime;
   }
 
   get multipv() {
-    return userConfig.opts.analysisLines;
+    return this._config.analysisLines;
   }
 
   private get _aiElo() {
-    return userConfig.opts.aiElo;
+    return this._config.aiElo;
   }
 
   private get _aiMoveTime() {
-    return userConfig.opts.aiMoveTime * 1000;
+    return this._config.aiMoveTime * 1000;
   }
 
   // --- Computed Arrows ---

@@ -8,6 +8,7 @@ import type {
   BoardModes,
   PuzzleScored,
 } from '$Types/ChessStructs';
+import type { MirrorState } from '$features/pgn/mirror';
 
 import type { EngineStore } from './engineStore.svelte';
 import type { TimerStore } from '$stores/timerStore.svelte';
@@ -17,7 +18,6 @@ import { Chess, DEFAULT_POSITION } from 'chess.js';
 import { Chessground } from '@lichess-org/chessground';
 import { untrack } from 'svelte';
 
-import defaultConfig from '$anki/default_config.json';
 import { GameStorage } from '$utils/GameStorage';
 import { getCgConfig } from '$features/board/cgInstance';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
@@ -28,7 +28,7 @@ import { getSystemShapes, blunderNags, parseCal, parseCsl } from '$features/boar
 import { playSound } from '$features/audio/audio';
 import { parsePGN, mirrorPGN } from '$features/pgn/pgnParsing';
 
-export class PgnGameStore {
+export class GameStore {
   /*
    * GAME STATE
    */
@@ -49,7 +49,7 @@ export class PgnGameStore {
   pgnPath = $state<PgnPath>([]);
   errorCount = $state<number>(0);
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
-  customAnimation = $state(null);
+  customAnimation = $state<{ fen: string; animate: boolean } | null>(null);
   startFen = $state(DEFAULT_POSITION);
 
   // --- Internal State ---
@@ -65,22 +65,20 @@ export class PgnGameStore {
   constructor(
     getPgn: () => string,
     getBoardMode: () => BoardModes,
-    getConfig: UserConfigOpts,
+    getConfig: () => UserConfigOpts,
     engineStore: EngineStore,
     timerStore: TimerStore,
-    persist: boolean,
+    getPersist: () => boolean,
   ) {
-    this._storage = new GameStorage(persist);
+    this._storage = new GameStorage(getPersist());
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
     this.boardMode = getBoardMode();
 
-
-
     $effect(() => {
-      $inspect(this.hasNext, this.isPuzzleComplete)
-    })
+      $inspect(this.hasNext, this.isPuzzleComplete);
+    });
 
     // Track the external props so we only update when Anki/App actually changes it
     let externalModeTrack = getBoardMode();
@@ -98,16 +96,21 @@ export class PgnGameStore {
     // Handle boardMode and Pgn updates
     $effect(() => {
       const boardMode = this.boardMode;
-      const PGN = getPgn();
+      let PGN = getPgn();
+
+      // --- Saved State (aiPgn) ---
+      if (boardMode === 'Viewer') {
+        const aiPgn = this._storage.get('chess_aiPgn');
+        if (aiPgn && boardMode === 'Viewer') PGN = aiPgn;
+      }
       const newPgnCheck = pgnTrack !== PGN;
       if (newPgnCheck) {
         pgnTrack = PGN;
       }
       untrack(() => {
-        this._applyBoardState(boardMode, getPgn());
-        const reloadCheck =
-          newPgnCheck || (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
-        reloadCheck && this.loadNewGame(getPgn());
+        this._applyBoardState(boardMode);
+        const reloadCheck = newPgnCheck || (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
+        reloadCheck && this.loadNewGame(PGN);
       });
     });
 
@@ -303,7 +306,6 @@ export class PgnGameStore {
     return navigatePrevMove(this.pgnPath);
   }
 
-
   /*
    * METHODS
    */
@@ -313,7 +315,9 @@ export class PgnGameStore {
     this._moveMap = new Map<string, CustomPgnMove>();
 
     const parsed = parsePGN(rawPGN);
-    mirrorPGN(parsed, this.boardMode, this._storage.get('chess_mirrorState'));
+
+    const storedMirror = this._storage.get('chess_mirrorState');
+    mirrorPGN(parsed, this.boardMode, (storedMirror as MirrorState) ?? undefined);
 
     this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
 
@@ -327,7 +331,7 @@ export class PgnGameStore {
       this._flipBoolean = this._storage.get('chess_flipBoolean') === 'true';
 
       const storedPathStr = this._storage.get('chess_pgnPath');
-      const storedPath = storedPathStr ? storedPathStr.split(',') : [];
+      const storedPath = storedPathStr ? (storedPathStr.split(',') as PgnPath) : [];
       // FIXME should add a check to make sure its from the same PGN
       const isValidPath = !!this.getMoveByPath(storedPath);
       if (isValidPath) this.pgnPath = storedPath;
@@ -340,8 +344,8 @@ export class PgnGameStore {
 
   // --- Internal ---
 
-  private _applyBoardState(boardMode: BoardModes, pgnStr: string) {
-    // FIXME use pgnStr as a guard to make should storage items are valid
+  private _applyBoardState(boardMode: BoardModes) {
+    // FIXME Figure out a guard to make should storage items are valid (ie from current card)
     this.timerStore.reset();
 
     if (boardMode !== 'Viewer') {
@@ -349,11 +353,7 @@ export class PgnGameStore {
       this._storage.clearGame();
     }
 
-    if (boardMode === 'Viewer') {
-      const aiPgn = this._storage.get('chess_aiPgn');
-      if (aiPgn && boardMode === 'Viewer') PGN = aiPgn;
-
-    } else if (/^(Puzzle|Study)$/.test(boardMode)) {
+    if (/^(Puzzle|Study)$/.test(boardMode)) {
       this.engineStore.enabled = false;
       this.engineStore.stop();
 

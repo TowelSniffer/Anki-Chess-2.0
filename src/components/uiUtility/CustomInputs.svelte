@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, type Component } from 'svelte';
 
   type Props = {
     type: 'toggle' | 'number' | 'select';
     label?: string;
+    icon?: Component | string;
     value?: any;
     onChange?: (val: any) => void;
 
@@ -19,6 +20,7 @@
   let {
     type,
     label,
+    icon,
     value,
     onChange,
     min = -Infinity,
@@ -84,10 +86,21 @@
   }
 </script>
 
+{#snippet itemIcon()}
+  {#if typeof icon === 'string'}
+    <span class="material-symbols-sharp icon">{icon}</span>
+  {:else if icon}
+    {@const Icon = icon}
+    <span class="material-symbols-sharp icon">
+      <Icon />
+    </span>
+  {/if}
+{/snippet}
 <div class="custom-input-container">
   {#if type === 'toggle'}
     <div class="control-item">
       {#if label}<span class="label">{label}</span>{/if}
+      {@render itemIcon()}
       <label class="switch">
         <input
           type="checkbox"
@@ -100,6 +113,7 @@
   {:else if type === 'number'}
     <div class="control-item">
       {#if label}<span class="label">{label}</span>{/if}
+      {@render itemIcon()}
       <div class="number-stepper">
         <button class="step-btn" onclick={() => onChange?.(Math.max(min, Number(value) - step))}
           >-</button
@@ -125,6 +139,7 @@
         <div class="sel-label">{label}</div>
         <div class="sel-divider"></div>
       {/if}
+      {@render itemIcon()}
       <div class="sel-value-section">
         <!-- A ghost element to help keep sizing uniform -->
         <div class="ghost-sizer" aria-hidden="true">
@@ -175,14 +190,28 @@
   .control-item {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     width: 100%;
     gap: 0.5rem;
+    /* Removed justify-content: space-between */
   }
 
   .label {
     font-size: 0.85rem;
-    color: var(--text-primary, #333);
+    font-weight: 500;
+    color: var(--text-secondary, #555);
+    flex: 1; /* Pushes everything else to the right */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .icon {
+    @include flex-center;
+    font-size: 1.1rem;
+    width: 1.5rem; /* Downsized slightly for better inline fit */
+    height: 1.5rem;
+    color: var(--text-muted, #888); /* Removed the red */
+    flex-shrink: 0;
   }
 
   /* --- Toggle Switch --- */

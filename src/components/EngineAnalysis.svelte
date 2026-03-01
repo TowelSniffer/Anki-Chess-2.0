@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { GameStore } from '$stores/gameStore.svelte';
   import type { EngineStore } from '$stores/engineStore.svelte';
   import { slide } from 'svelte/transition';
   import CustomInputs from './uiUtility/CustomInputs.svelte';
@@ -7,7 +7,7 @@
   import IconArrowSplit from '~icons/material-symbols/arrow-split';
   import IconSearchGear from '~icons/material-symbols/search-gear';
 
-  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const gameStore = getContext<GameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
 
   const config = $derived(gameStore.config);
@@ -33,20 +33,20 @@
       <CustomInputs
         type="number"
         label="Lines"
-        value={config.analysisLines}
-        min=1
-        max=5
         icon={IconArrowSplit}
+        value={config.analysisLines}
+        min={1}
+        max={5}
         onChange={(val: number) => (config.analysisLines = val)}
       />
 
       <CustomInputs
         type="number"
         label="Time"
-        value={config.analysisTime}
-        min=1
-        max=10
         icon={IconSearchGear}
+        value={config.analysisTime}
+        min={1}
+        max={10}
         onChange={(val: number) => (config.analysisTime = val)}
       />
     </div>

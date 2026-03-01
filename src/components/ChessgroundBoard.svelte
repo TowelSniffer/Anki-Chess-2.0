@@ -3,7 +3,7 @@
   import '$scss/_components/_chessground.scss';
 
   import type { PgnPath, PuzzleScored } from '$Types/ChessStructs';
-  import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { GameStore } from '$stores/gameStore.svelte';
   import type { EngineStore } from '$stores/engineStore.svelte';
   import type { TimerStore } from '$stores/timerStore.svelte';
 
@@ -14,7 +14,7 @@
   import { pieceImages } from '$utils/toolkit/importAssets';
 
   // Global Stores
-  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const gameStore = getContext<GameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
   const timerStore = getContext<TimerStore>('TIMER_STORE');
 
@@ -414,6 +414,8 @@
 
     <div
       id="board"
+      role="application"
+      aria-label="Chess Board"
       class="tappable"
       bind:this={boardContainer}
       onpointerdown={trackSlectedPiece}

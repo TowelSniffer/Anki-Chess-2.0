@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { IPgnGameStore } from '$Types/StoreInterfaces';
+  import type { GameStore } from '$stores/gameStore.svelte';
   import type { PgnPath, CustomPgnMove } from '$Types/ChessStructs';
   import { getContext } from 'svelte';
   import PgnViewer from './PgnViewer.svelte';
@@ -7,7 +7,7 @@
   import { blunderNags } from '$features/board/arrows';
 
   // Retrieve the instance created by the parent
-  const gameStore = getContext<IPgnGameStore>('GAME_STORE');
+  const gameStore = getContext<GameStore>('GAME_STORE');
 
   let {
     moves: passedMoves = undefined,

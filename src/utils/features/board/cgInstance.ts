@@ -1,6 +1,6 @@
 import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
-import type { IPgnGameStore } from '$Types/StoreInterfaces';
+import type { GameStore } from '$stores/gameStore.svelte';
 import type { CustomShape } from '$Types/ChessStructs';
 import { getLegalMove, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
@@ -14,7 +14,7 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
  * 1. Smart Moves (Clicking an arrow destination)
  * 2. Manual Click-to-Move handling (if needed)
  */
-export function handleSelect(key: Key, store: IPgnGameStore) {
+export function handleSelect(key: Key, store: GameStore) {
   if (!store.cg) return;
   // type assertion as clicked square cannot be 'a0'
   const orig = store.lastSelected; // Logged synchronously in ChessgroundBoard.svelte
@@ -82,7 +82,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
 /**
  * Handles the 'after' event (Drag and Drop completion).
  */
-export function handleMove(orig: Key, dest: Key, store: IPgnGameStore) {
+export function handleMove(orig: Key, dest: Key, store: GameStore) {
   if (!store.cg) return;
   const from = orig as Square;
   const to = dest as Square;
@@ -152,7 +152,7 @@ const customBrushes = {
 
 // track existing custom animations
 let isAnimating: ReturnType<typeof setTimeout> | null;
-export function getCgConfig(store: IPgnGameStore) {
+export function getCgConfig(store: GameStore) {
   /*
    * Here we define a derived config to auto apply board updates with
    * Svelte reactions.

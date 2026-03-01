@@ -31,7 +31,8 @@
 
   let { isOpen, title = 'Info', sections, onClose }: Props = $props();
 
-  let activeTabId = $state(sections[0]?.id);
+  const getSections = () => sections;
+  let activeTabId = $state(getSections()[0]?.id);
   let isSidebarCollapsed = $state(false);
   let activeSection = $derived(sections.find(s => s.id === activeTabId) || sections[0]);
 
@@ -299,7 +300,4 @@
   input:checked + .slider { background-color: #2196f3; }
   input:checked + .slider:before { transform: translateX(16px); }
 
-  .html-content {
-    /* markdown/html styling rules... */
-  }
 </style>

@@ -1,4 +1,4 @@
-type GameStorageKey = 'chess_puzzle_score' | 'chess_flipBoolean' | 'chess_randOrientBool' | 'chess_mirrorState' | 'chess_pgnPath'
+export type GameStorageKey = 'chess_puzzle_score' | 'chess_flipBoolean' | 'chess_randOrientBool' | 'chess_mirrorState' | 'chess_pgnPath' | 'chess_aiPgn'
 
 export class GameStorage {
   enabled: boolean;
@@ -24,7 +24,7 @@ export class GameStorage {
 
   clearGame() {
     if (!this.enabled) return null;
-    ['chess_puzzle_score', 'chess_randOrientBool', 'chess_flipBoolean', 'chess_mirrorState', 'chess_pgnPath'].forEach(
+    ['chess_puzzle_score', 'chess_randOrientBool', 'chess_flipBoolean', 'chess_mirrorState', 'chess_pgnPath', 'chess_aiPgn'].forEach(
       (k) => this.remove(k)
     );
   }

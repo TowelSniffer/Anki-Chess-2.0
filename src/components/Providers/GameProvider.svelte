@@ -1,72 +1,84 @@
 <script lang="ts">
+  import type { UserConfigOpts } from '$Types/UserConfig';
+  import type { BoardModes } from '$Types/ChessStructs';
+
   import { setContext, onDestroy } from 'svelte';
   import { Chess, validateFen, DEFAULT_POSITION } from 'chess.js';
 
-  import { PgnGameStore } from '$stores/gameStore.svelte';
+  import { GameStore } from '$stores/gameStore.svelte';
   import { EngineStore } from '$stores/engineStore.svelte';
   import { TimerStore } from '$stores/timerStore.svelte';
   import { userConfig } from '$stores/userConfig.svelte';
   import defaultConfig from '$anki/default_config.json';
 
-  let { pgn, boardMode, configOverride = null, persist = true, children } = $props();
+  let {
+    pgn,
+    boardMode,
+    configOverride = null,
+    persist = true,
+    children,
+  }: {
+    pgn: string;
+    boardMode: BoardModes; // Or your BoardModes type
+    configOverride?: Partial<UserConfigOpts> | null;
+    persist?: boolean;
+    children: any;
+  } = $props();
 
   /*
    * Set Board Modes
    */
 
-  // --- Study mode ---
-  const isStudy = boardMode === 'puzzle' && userConfig.opts.playBothSides;
-  if (isStudy) boardMode = 'Study';
+  const parsedData = $derived.by(() => {
+    let currentMode = boardMode;
+    let currentPgn = pgn;
 
-  // --- AI mode (Detect FEN vs PGN) ---
+    // --- Study mode ---
+    const isStudy = currentMode === 'Puzzle' && userConfig.opts.playBothSides;
+    if (isStudy) currentMode = 'Study';
 
-  // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
-  const isFen = /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(pgn || '');
+    // --- AI mode (Detect FEN vs PGN) ---
+    const isFen = /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(currentPgn || '');
 
-  /*
-   * FEN and PGN valiadation
-   * FIXME we need to include a ui message to show the error to the user
-   */
-  if (isFen) {
-    // Wrap raw FEN in a minimal PGN structure
-    // SetUp "1" is technically needed for custom staring FEN
-    const { ok, error } = validateFen(pgn);
-    error && console.warn(error);
-    const fen = ok ? pgn : DEFAULT_POSITION;
-    pgn = `[Event "AI Practice"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n*`;
-    if (boardMode !== 'Viewer') {
-      boardMode = 'AI';
+    if (isFen) {
+      const { ok, error } = validateFen(currentPgn);
+      error && console.warn(error);
+      const fen = ok ? currentPgn : DEFAULT_POSITION;
+      currentPgn = `[Event "AI Practice"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n*`;
+      if (currentMode !== 'Viewer') {
+        currentMode = 'AI';
+      }
+    } else if (currentPgn) {
+      const chess = new Chess();
+      try {
+        const cleanedPgn = currentPgn.replace(/}\s*{/g, ' ');
+        chess.loadPgn(cleanedPgn);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        console.error('PGN Validation Failed:', message);
+        currentPgn = `[Event "AI Practice"]\n[FEN "${DEFAULT_POSITION}"]\n[SetUp "1"]\n\n*`;
+      }
     }
-  } else if (pgn) {
-    const chess = new Chess();
-    try {
-      const cleanedPgn = pgn.replace(/}\s*{/g, ' '); // merge adjacent comments
-      chess.loadPgn(cleanedPgn);
-      // PGN is valid and loaded
-    } catch (e) {
-      // Invalid PGN
-      const message = e instanceof Error ? e.message : 'Unknown error';
-      console.error('PGN Validation Failed:', message);
-      pgn = `[Event "AI Practice"]\n[FEN "${DEFAULT_POSITION}"]\n[SetUp "1"]\n\n*`;
-    }
-  }
+
+    return { pgn: currentPgn, boardMode: currentMode };
+  });
 
   const config = $derived.by(() => {
     if (!configOverride) return userConfig.opts;
     // Merge default userConfig with specific overrides
-    return { ...defaultConfig, ...configOverride };
+    return { ...defaultConfig, ...configOverride } as UserConfigOpts;
   });
 
   // Instantiate the stores
   const engineStore = new EngineStore(() => config);
   const timerStore = new TimerStore(() => config);
-  const gameStore = new PgnGameStore(
-    () => pgn,
-    () => boardMode,
+  const gameStore = new GameStore(
+    () => parsedData.pgn,
+    () => parsedData.boardMode,
     () => config,
     engineStore,
     timerStore,
-    persist
+    () => persist,
   );
 
   // Set Stores in context so child components can access them

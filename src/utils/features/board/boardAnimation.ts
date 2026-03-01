@@ -1,5 +1,5 @@
 import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
-import type { IPgnGameStore } from '$Types/StoreInterfaces';
+import type { GameStore } from '$stores/gameStore.svelte';
 import type { Sounds } from '$Types/Audio';
 import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 
@@ -45,7 +45,7 @@ function injectPiece(fen: string, square: string, replacement: string): string {
   return [rows.join('/'), ...rest].join(' ');
 }
 
-function animateForwardPromotion(gameStore: IPgnGameStore, move: CustomPgnMove) {
+function animateForwardPromotion(gameStore: GameStore, move: CustomPgnMove) {
   if (!gameStore.cg) return;
   const pieceCheck = gameStore.cg.state.pieces.get(move.to);
   if (pieceCheck?.role === 'pawn') {
@@ -57,7 +57,7 @@ function animateForwardPromotion(gameStore: IPgnGameStore, move: CustomPgnMove) 
   gameStore.customAnimation = { fen: pawnMovedFen, animate: true };
 }
 
-function animateBackwardPromotion(gameStore: IPgnGameStore, currentMove: CustomPgnMove) {
+function animateBackwardPromotion(gameStore: GameStore, currentMove: CustomPgnMove) {
   const pawnSymbol = currentMove.turn === 'w' ? 'P' : 'p';
   const pawnMovedFen = injectPiece(currentMove.after, currentMove.to, pawnSymbol);
   gameStore.customAnimation = { fen: pawnMovedFen, animate: false };
@@ -68,7 +68,7 @@ function animateBackwardPromotion(gameStore: IPgnGameStore, currentMove: CustomP
  * Determines if we should Animate (Undo/Promotion) or Snap (Jump/Load).
  */
 export function updateBoard(
-  gameStore: IPgnGameStore,
+  gameStore: GameStore,
   previousPath: PgnPath | null,
 ): Sounds | CustomPgnMove {
   const currentPath = gameStore.pgnPath;
