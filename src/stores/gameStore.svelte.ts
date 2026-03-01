@@ -337,9 +337,10 @@ export class GameStore {
       if (isValidPath) this.pgnPath = storedPath;
 
       this._puzzleScore = (storedScore as PuzzleScored) ?? null;
+
+      // Always clear storage after 'Viewer' load
+      this._storage.clearGame();
     }
-    // Always clear storage after load
-    this._storage.clearGame();
   }
 
   // --- Internal ---
@@ -350,6 +351,7 @@ export class GameStore {
 
     if (boardMode !== 'Viewer') {
       this._resetGameState();
+      // Always clear storage before non 'Viewer' load
       this._storage.clearGame();
     }
 
