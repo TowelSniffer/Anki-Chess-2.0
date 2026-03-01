@@ -5,18 +5,24 @@
   import PgnViewer from '$components/PgnViewer.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
-  import SettingsWrapper from '$components/SettingsWrapper.svelte';
+  import HelpWrapper from '$components/HelpWrapper.svelte';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
 
   let { pgn, boardMode, userText } = $props();
+
+  let isHelpOpen = $state(false);
+
+  $effect(() => {
+   $inspect(isHelpOpen)
+  })
 </script>
 
 {#if import.meta.env.DEV}
   <RenderScan />
 {/if}
-
+<HelpWrapper bind:isHelpOpen/>
 <GameProvider {pgn} {boardMode}>
   <div id="container">
     {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
@@ -27,10 +33,9 @@
           </div>
         {/if}
         {#if boardMode === 'Viewer'}
-          <SettingsWrapper/>
           <div id="sticky-container">
             <div id="buttons-container">
-              <ButtonsContainer />
+              <ButtonsContainer bind:isHelpOpen/>
             </div>
             <div id="analysis-container">
               <EngineAnalysis />
