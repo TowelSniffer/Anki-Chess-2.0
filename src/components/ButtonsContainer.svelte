@@ -19,6 +19,8 @@
   import { getMenuData } from '$configs/menu';
   import { clickToCopy } from '$utils/toolkit/copyToClipboard';
 
+  let { isHelpOpen = $bindable(false) } = $props();
+
   // Retrieve Stores created by the parent
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
@@ -68,7 +70,7 @@
   }
 
   const isDevMenu = import.meta.env.DEV;
-  const menuData = $derived(getMenuData(isDevMenu ? gameStore : undefined));
+  const menuData = $derived(getMenuData((val) => isHelpOpen = val, isDevMenu ? gameStore : undefined));
 </script>
 
 <svelte:window onkeydown={handleKeydown} />

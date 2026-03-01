@@ -3,11 +3,11 @@
   import { getContext, type Snippet } from 'svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import ChessgroundBoard from '$components/ChessgroundBoard.svelte';
-  import SettingsModal, { type SettingsSection } from '$components/SettingsModal.svelte';
+  import HelpModal, { type SettingsSection } from '$components/uiUtility/HelpModal.svelte';
   import { mdDocs } from '$utils/toolkit/importAssets';
   import IconInfo from '~icons/material-symbols/info';
 
-  let isSettingsOpen = $state(false);
+  let { isHelpOpen = $bindable(false) } = $props();
 
   // Dynamically create a section for each imported markdown file
   const markdownSections: SettingsSection[] = Object.entries(mdDocs).map(([key, content]) => ({
@@ -57,26 +57,11 @@
   </div>
 {/snippet}
 
-<button class="settings-trigger" onclick={() => isSettingsOpen = true}>
-  Open Settings
-</button>
-
-<SettingsModal
-  isOpen={isSettingsOpen}
+<HelpModal
+  isOpen={isHelpOpen}
   sections={settingsConfig}
-  onClose={() => isSettingsOpen = false}
+  onClose={() => isHelpOpen = false}
 />
 
 <style lang="scss">
-  .settings-trigger {
-    background: var(--surface-hover);
-    color: var(--text-primary);
-    border: var(--border-thin);
-    padding: 0.4rem 0.8rem;
-    border-radius: var(--border-radius-global);
-    cursor: pointer;
-    margin: 0.5rem;
-
-    &:hover { background: var(--interactive-button-hover); }
-  }
 </style>
