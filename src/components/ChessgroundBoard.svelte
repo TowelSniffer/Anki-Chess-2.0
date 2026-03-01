@@ -259,6 +259,12 @@
     const fen = gameStore.fen;
     const move = gameStore.currentMove;
 
+    // Prevent animation and sounds on initial mount or when a new game/PGN is loaded
+    if (previousPath === null) {
+      previousPath = [...pgnPath];
+      return;
+    }
+
     const isSingleClickMove = fen.split(' ')[0] !== cg.getFen();
 
     // Reset errorCount on new fen
@@ -544,11 +550,6 @@
       .eval-bar.top,
       .eval-track {
         opacity: 1;
-      }
-
-      .eval-fill {
-        /* Smoothing for custom timer animation */
-        transition: transform 33ms linear;
       }
     }
   }
