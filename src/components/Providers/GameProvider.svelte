@@ -8,7 +8,7 @@
   import { userConfig } from '$stores/userConfig.svelte';
   import defaultConfig from '$anki/default_config.json';
 
-  let { pgn, boardMode, configOverride = null, children } = $props();
+  let { pgn, boardMode, configOverride = null, persist = true, children } = $props();
 
   /*
    * Set Board Modes
@@ -21,17 +21,15 @@
   // --- AI mode (Detect FEN vs PGN) ---
 
   // Simple check: Does it look like a FEN? (start with piece/number, contains slashes)
-
-  if (boardMode === 'Viewer' && !configOverride) {
-    const aiPgn = sessionStorage.getItem('chess_aiPgn');
-    aiPgn && sessionStorage.removeItem('chess_aiPgn');
-    if (aiPgn && boardMode === 'Viewer') pgn = aiPgn;
-  }
   const isFen = /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(pgn || '');
 
-  if (isFen && pgn) {
+  /*
+   * FEN and PGN valiadation
+   * FIXME we need to include a ui message to show the error to the user
+   */
+  if (isFen) {
     // Wrap raw FEN in a minimal PGN structure
-    // SetUp "1" is crucial for PGN parsers to respect the FEN tag
+    // SetUp "1" is technically needed for custom staring FEN
     const { ok, error } = validateFen(pgn);
     error && console.warn(error);
     const fen = ok ? pgn : DEFAULT_POSITION;
@@ -68,6 +66,7 @@
     () => config,
     engineStore,
     timerStore,
+    persist
   );
 
   // Set Stores in context so child components can access them
