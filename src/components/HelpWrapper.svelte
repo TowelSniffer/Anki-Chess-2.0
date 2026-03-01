@@ -32,7 +32,7 @@ of 164k]}) *
 `// Define the preset examples
   const demoOptions = [
     {
-      label: 'Timed Puzzle',
+      label: 'Timed',
       subtitle: 'Mate in 3',
       description: 'This uses a 10 Second timer with a 1 second increment. Timer can be disabled by ',
       pgn: puzzlePgn,
@@ -40,7 +40,7 @@ of 164k]}) *
       configOverride: { flipBoard: false, timer: 10000 },
     },
     {
-      label: 'Flipped Puzzle',
+      label: 'Flipped',
       subtitle: 'Maintain advantage',
       description: 'This utilises the "Flip PGN" option under "Anki Template" options',
       pgn: flippedPuzzlePgn,
