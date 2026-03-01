@@ -117,7 +117,7 @@ export class TimerStore {
       this.totalTime = startTotal + (targetTotal - startTotal) * progress;
 
       // Apply the same throttle logic from _loop
-      if (now - this._lastStateUpdate > 33) {
+      if (now - this._lastStateUpdate > 16) {
         this.remainingTime = this._internalRemaining;
         this._lastStateUpdate = now;
       }
@@ -163,8 +163,8 @@ export class TimerStore {
     // Internal Tracking
     this._internalRemaining = Math.max(0, this._internalRemaining - deltaTime);
 
-    // Throttle Svelte reactivity updates to ~30fps (every 33ms)
-    if (timestamp - this._lastStateUpdate > 33) {
+    // Throttle Svelte reactivity updates to ~60fps (every 16ms)
+    if (timestamp - this._lastStateUpdate > 16) {
       this.remainingTime = this._internalRemaining;
       this._lastStateUpdate = timestamp;
     }
