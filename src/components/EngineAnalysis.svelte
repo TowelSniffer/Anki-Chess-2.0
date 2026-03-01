@@ -1,14 +1,16 @@
 <script lang="ts">
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import type { EngineStore } from '$stores/engineStore.svelte';
-  import { userConfig } from '$stores/userConfig.svelte';
-  import CustomSelector from './uiUtility/CustomSelector.svelte';
+  import { slide } from 'svelte/transition';
+  import CustomInputs from './uiUtility/CustomInputs.svelte';
   import { getContext } from 'svelte';
   import IconArrowSplit from '~icons/material-symbols/arrow-split';
   import IconSearchGear from '~icons/material-symbols/search-gear';
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
+
+  const config = $derived(gameStore.config);
 
   const whiteAdv = $derived(
     engineStore.analysisLines[0]?.winChance > 50 ||
@@ -26,27 +28,28 @@
 </script>
 
 {#if engineStore?.enabled}
-  <div class="engine-container">
+  <div class="engine-container" transition:slide={{ duration: 300 }}>
     <div class="controls">
-      <CustomSelector
-        label="Lines:"
-        value={userConfig.opts.analysisLines}
-        options={engineStore.multipvOptions}
+      <CustomInputs
+        type="number"
+        label="Lines"
+        value={config.analysisLines}
+        min=1
+        max=5
         icon={IconArrowSplit}
-        onChange={(val: number) => (userConfig.opts.analysisLines = val)}
+        onChange={(val: number) => (config.analysisLines = val)}
       />
 
-      <CustomSelector
-        label="Thinking Time (s):"
-        value={userConfig.opts.analysisTime}
-        options={engineStore.thinkingTimeOptions}
+      <CustomInputs
+        type="number"
+        label="Time"
+        value={config.analysisTime}
+        min=1
+        max=10
         icon={IconSearchGear}
-        onChange={(val: number) => (userConfig.opts.analysisTime = val)}
+        onChange={(val: number) => (config.analysisTime = val)}
       />
     </div>
-    {#if engineStore.loading}
-      <span>Starting...</span>
-    {/if}
     {#if engineStore.analysisLines.length > 0 || engineStore.enabled}
       <div class="lines">
         {#each Array(engineStore.multipv) as _, i}
@@ -66,8 +69,9 @@
                 {gameStore.turn === 'b' ? 'White ' : 'Black '}Checkmates
               </div>
             {:else}
+              {@const loadingText = engineStore.loading && i === 0 ? 'Starting...' : ` `}
               <div class="eval">&nbsp;</div>
-              <div class="moves">&nbsp;</div>
+              <div class="moves">{loadingText}</div>
             {/if}
           </div>
         {/each}
@@ -89,7 +93,7 @@
   }
 
   .controls {
-    @include flex-center;
+    @include justify-space-evenly;
     gap: 0.2rem;
     margin-bottom: 0.2rem;
     font-size: 0.9em;

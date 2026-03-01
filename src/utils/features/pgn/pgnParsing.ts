@@ -2,7 +2,6 @@ import type { CustomPgnGame, BoardModes } from '$Types/ChessStructs';
 import type { Tags } from '@mliebelt/pgn-types';
 import { DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
-import { userConfig } from '$stores/userConfig.svelte';
 import {
   checkCastleRights,
   assignMirrorState,
@@ -11,10 +10,10 @@ import {
   type MirrorState,
 } from '$features/pgn/mirror';
 
-export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes): void {
+export function mirrorPGN(parsedPGN: CustomPgnGame, boardMode: BoardModes, setMirror?: mirrorState): void {
   let pgnBaseFen = parsedPGN.tags?.FEN ?? DEFAULT_POSITION;
   let mirrorState: MirrorState = 'original';
-  if (userConfig.opts.mirror && !checkCastleRights(pgnBaseFen)) {
+  if (setMirror && !checkCastleRights(pgnBaseFen)) {
     const savedMirrorState = sessionStorage.getItem('chess_mirrorState');
 
     if (/^(Puzzle|Study)$/.test(boardMode)) {

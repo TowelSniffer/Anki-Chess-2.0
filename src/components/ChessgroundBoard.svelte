@@ -3,22 +3,21 @@
   import '$scss/_components/_chessground.scss';
 
   import type { PgnPath, PuzzleScored } from '$Types/ChessStructs';
-
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import type { EngineStore } from '$stores/engineStore.svelte';
   import type { TimerStore } from '$stores/timerStore.svelte';
 
   import { onMount, getContext, untrack, onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
-
-  import { userConfig } from '$stores/userConfig.svelte';
   import { updateBoard } from '$features/board/boardAnimation';
   import { moveAudio, playSound } from '$features/audio/audio';
   import { pieceImages } from '$utils/toolkit/importAssets';
 
+  // Global Stores
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
   const timerStore = getContext<TimerStore>('TIMER_STORE');
+
   let boardContainer: HTMLDivElement;
   onMount(() => {
     if (boardContainer) {
@@ -33,29 +32,25 @@
   });
 
   onDestroy(() => {
+    if (flashState) flashState = null;
     if (viewerTimeout) clearTimeout(viewerTimeout);
   });
 
-  const SOFT_WHITE = '#eaeaea';
-  const SOFT_BLACK = '#0f0f0f';
-  const SOFT_GREY = '#c0c0c0';
-  const DEFAULT_DIVIDER_COLOR = 'lightslategray';
-
-  // Maps logical strings to visual hex codes
-  const mapBorderColor = (color: string) => {
-    const themes: Record<string, string> = {
-      white: SOFT_WHITE,
-      black: SOFT_BLACK,
-      grey: SOFT_GREY,
-      divider: DEFAULT_DIVIDER_COLOR,
-    };
-    return themes[color] || color;
-  };
-
-  const SCORE_COLORS = {
+  // Map logical strings for border, divider and flash
+  const THEME_COLORS: Record<string, string> = {
+    white: '#eaeaea',
+    black: '#0f0f0f',
+    draw: '#c0c0c0',
+    divider: '#778899', // lightslategray
     incorrect: 'var(--status-error)',
     correct: 'var(--status-correct)',
     perfect: 'var(--status-perfect)',
+    transparent: 'transparent',
+  };
+
+  const mapColor = (colorKey: PuzzleScored | string | undefined) => {
+    if (!colorKey) return 'transparent';
+    return THEME_COLORS[colorKey] || colorKey;
   };
 
   // BORDER FLASH FIXME type for flash colours
@@ -67,9 +62,7 @@
 
   // --- Board State ---
 
-  // True: When our custom puzzle logic handles new moves
-  // False: When Chessground 'after' move logic updates board
-  const isFenUpdate = $derived(gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen());
+  const config = $derived(gameStore.config);
 
   // Board Modes
   const isPuzzleMode = $derived(gameStore.boardMode === 'Puzzle');
@@ -81,49 +74,51 @@
   // Puzzle state
   const puzzleInProgress = $derived(isPuzzleMode && !gameStore.isPuzzleComplete);
   const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && !!gameStore.puzzleScore);
-  const isRandomPuzzle = $derived(userConfig.opts.randomOrientation && isPuzzleMode);
+  const isRandomPuzzle = $derived(config.randomOrientation && isPuzzleMode);
 
   // AI mode and checkmate/draw
-  const isAiEval = $derived(isAiMode && userConfig.opts.aiEval && !gameStore.isGameOver);
+  const isAiEval = $derived(isAiMode && config.aiEval && !gameStore.isGameOver);
   const isAIGameOver = $derived(isAiMode && gameStore.isGameOver);
 
   // --- Border Color ---
 
   const boardBorderColor = $derived.by(() => {
-    // If we are in Puzzle mode and it's NOT done, keep it neutral/player color
-    if (puzzleInProgress) {
-      return isRandomPuzzle ? 'grey' : gameStore.playerColor;
-    } else if (puzzleCompleteAndScored) {
-      return SCORE_COLORS[gameStore.puzzleScore!];
-    } else if (isStudyMode) {
-      return gameStore.turn === 'w' ? 'white' : 'black';
-    } else if (isAIGameOver) {
+    let color = gameStore.puzzleScore ? gameStore.puzzleScore : gameStore.playerColor;
+
+    if (puzzleInProgress) color = isRandomPuzzle ? 'draw' : gameStore.playerColor;
+    else if (puzzleCompleteAndScored) color = gameStore.puzzleScore!;
+    else if (isStudyMode) color = gameStore.turn === 'w' ? 'white' : 'black';
+    else if (isAIGameOver) {
       if (gameStore.isCheckmate)
-        return gameStore.turn !== gameStore.playerColor[0]
-          ? SCORE_COLORS.correct
-          : SCORE_COLORS.incorrect;
-      return 'grey'; // draw
-    } else {
-      return !!gameStore.puzzleScore ? SCORE_COLORS[gameStore.puzzleScore] : gameStore.playerColor;
+        color = gameStore.turn !== gameStore.playerColor[0] ? 'correct' : 'incorrect';
+      else color = 'draw';
     }
+
+    return mapColor(color);
   });
 
   // --- Interactive Border ---
 
   const barBottomColor = $derived.by(() => {
-    if (isRandomPuzzle) return 'grey';
-    if (isStudyMode) return gameStore.turn === 'w' ? 'white' : 'black';
-    return gameStore.orientation;
+    let color: string = gameStore.orientation;
+    if (isRandomPuzzle) color = 'draw';
+    else if (isStudyMode) color = gameStore.turn === 'w' ? 'white' : 'black';
+    return mapColor(color);
   });
 
   const barTopColor = $derived.by(() => {
-    if (isRandomPuzzle) return 'var(--status-error)';
-    return barBottomColor === 'white' ? 'black' : 'white';
+    if (isRandomPuzzle) return mapColor('incorrect');
+    const color = gameStore.orientation === 'white' ? 'black' : 'white';
+    return mapColor(color);
   });
 
   const barDividerColor = $derived.by(() => {
-    if (!isViewerMode) return 'divider';
-    return !!gameStore.puzzleScore ? SCORE_COLORS[gameStore.puzzleScore] : 'divider';
+    const color = !isViewerMode
+      ? 'divider'
+      : gameStore.puzzleScore
+        ? gameStore.puzzleScore
+        : 'divider';
+    return mapColor(color);
   });
 
   const dividerSpring = spring(50, {
@@ -151,8 +146,10 @@
       if (evMatch) {
         // Custom: "EV: 27.6%"
         const winPercent = parseFloat(evMatch);
+
+        // Normalise to perspective of board rotation
         cachedEval =
-          barBottomColor[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
+          gameStore.orientation[0] === gameStore.currentMove?.turn ? 100 - winPercent : winPercent;
         return cachedEval;
       } else if (cpMatch) {
         if (cpMatch[0] === '#') {
@@ -166,7 +163,7 @@
           const winPercent = 50 + 50 * Math.tanh(cp / 290);
           cachedEval = winPercent; // Save state
         }
-        cachedEval = barTopColor === 'white' ? cachedEval : 100 - cachedEval;
+        cachedEval = gameStore.orientation === 'black' ? cachedEval : 100 - cachedEval;
       } else {
         cachedEval = 50;
       }
@@ -176,7 +173,7 @@
       const bestLine = engineStore.analysisLines.find((l) => l.id === 1);
       if (bestLine) {
         evalPercent = bestLine.winChance;
-        cachedEval = barTopColor === 'white' ? evalPercent : 100 - evalPercent;
+        cachedEval = gameStore.orientation === 'black' ? evalPercent : 100 - evalPercent;
       } else {
         if (gameStore.isDraw) {
           evalPercent = 50;
@@ -210,11 +207,8 @@
   $effect(() => {
     if (typeof visualDivider !== 'number') return;
 
-    // Timer handles its own animation; keep spring in sync instantly without physics
-    if (timerStore.visible) {
-      dividerSpring.set(visualDivider, { hard: true });
-      return;
-    }
+    // Timer handles its own animation
+    if (timerStore.visible) return;
 
     const isAnalysis = engineStore.enabled || !!commentDiag || isAiEval;
     const isInitialActivation = isAnalysis && !shouldHardSpring;
@@ -255,7 +249,7 @@
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
   let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
-    if(!gameStore.cg) return;
+    if (!gameStore.cg) return;
     const pullComplete = gameStore.isPuzzleComplete;
     if (pullComplete) {
       gameStore.cg?.cancelMove();
@@ -264,92 +258,80 @@
     }
   });
 
-  // Move & Animation an Handler
+  // Move & Custom Animation an Handler
   let previousPath: PgnPath | null = null;
   $effect(() => {
-    void isFenUpdate;
-    void gameStore.pgnPath;
-    untrack(() => {
-      if (!gameStore?.cg) return;
-      gameStore.errorCount = 0;
-      if (isFenUpdate) {
-        // Single click move or en passant
+    if (!gameStore?.cg) return;
 
-        /*
-         * Here we check if cg.move can be used instead of set({ fen: ... })
-         * for smoother animations
-         */
+    const cg = gameStore.cg;
+    const pgnPath = gameStore.pgnPath;
+    const fen = gameStore.fen;
+    const move = gameStore.currentMove;
 
-        const move = gameStore.currentMove;
-        const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
+    const isSingleClickMove = fen.split(' ')[0] !== cg.getFen();
 
-        // Special moves require set({ fen: ... })
-        const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
+    // Reset errorCount on new fen
+    gameStore.errorCount = 0;
 
-        const forwardMoveCheck =
-          shouldAnimate && move?.before.split(' ')[0] === gameStore.cg.getFen();
-        // Special move check not needed as getCgConfig will compare fen to
-        // check for Captures/Promote/En Passant/Castle.
-        const undoMoveCheck = prevMove && move?.after === prevMove?.before;
+    if (isSingleClickMove) {
+      /*
+       * Single click move or en passant
+       * Here we check if cg.move can be used instead of set({ fen: ... })
+       * for smoother animations
+       */
 
-        // Pre move here so getCgConfig doesn't update fen
-        if (forwardMoveCheck) {
-          gameStore.cg.move(move.from, move.to);
-        } else if (undoMoveCheck) {
-          gameStore.cg.move(prevMove.to, prevMove.from);
-        }
+      const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
 
-        const moveType = updateBoard(gameStore, previousPath);
-        if (typeof moveType === 'string') {
-          playSound(moveType);
-        } else if (moveType) {
-          moveAudio(moveType);
-        }
-      } else if (previousPath) {
-        // drag & drop or click to move
-        if (gameStore.currentMove) moveAudio(gameStore.currentMove);
+      // Special moves require set({ fen: ... })
+      const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
+
+      const forwardMoveCheck =
+        shouldAnimate && move?.before.split(' ')[0] === cg.getFen();
+      // Special move check not needed as getCgConfig will compare fen to
+      // check for Captures/Promote/En Passant/Castle.
+      const undoMoveCheck = prevMove && move?.after === prevMove?.before;
+
+      // Pre move here so getCgConfig doesn't update fen (more efficient)
+      if (forwardMoveCheck) {
+        cg.move(move.from, move.to);
+      } else if (undoMoveCheck) {
+        cg.move(prevMove.to, prevMove.from);
       }
-      previousPath = [...gameStore.pgnPath];
-    });
-  });
 
-  // Reset errorCount on new fen
-  $effect(() => {
-    if (isFenUpdate && isPuzzleMode) gameStore.errorCount = 0;
+      const moveType = updateBoard(gameStore, previousPath);
+      if (typeof moveType === 'string') {
+        playSound(moveType);
+      } else if (moveType) {
+        moveAudio(moveType);
+      }
+    } else if (previousPath) {
+      // drag & drop or click to move
+      if (move) moveAudio(move);
+    }
+    previousPath = [...pgnPath];
   });
 
   // Set cg config
   $effect(() => {
-    if (!gameStore?.cg) return;
     const config = gameStore.boardConfig;
-
-    // Schedule the render for the next paint
     gameStore.cg?.set(config);
     gameStore.cg?.playPremove();
   });
 
-  // Engine Analysis Trigger
-  $effect(() => {
-    // Only auto-analyze if we are NOT in AI mode
-    if (engineStore.enabled && !isAiMode) {
-      void gameStore.fen;
-      untrack(() => {
-        engineStore.analyze(gameStore.fen);
-      });
-    }
-  });
-
   // A) : Handle Mistakes (Flash Red)
   $effect(() => {
-    if (gameStore.errorCount) { // ie > 0
+    if (gameStore.errorCount) {
+      // ie > 0
       triggerFlash('incorrect');
     }
   });
   // B) : Handle Timeout (Flash Red)
   $effect(() => {
-    if (timerStore.isOutOfTime) {
+    const timerFlash = timerStore.isOutOfTime;
+    const timerAdvance = untrack(() => config.timerAdvance);
+    if (timerFlash) {
       triggerFlash('incorrect');
-      if (userConfig.opts.timerAdvance) showViewer();
+      if (timerAdvance) showViewer();
     }
   });
   // C) : Handle Puzzle Complete flash
@@ -367,16 +349,20 @@
   function triggerFlash(type: PuzzleScored) {
     flashState = null; // reset to force reflow if needed
     requestAnimationFrame(() => {
-      flashState = type;
+      flashState = mapColor(type) as PuzzleScored;
     });
   }
 
-  function handlePointerDown(): void {
+  function trackSlectedPiece(): void {
+    /*
+     * We must track selected piece so our single click move logic can compare it
+     * to the against the new value in select:
+     */
+
     if (!gameStore || !gameStore.cg) return;
-    if (gameStore.cg.state.selected !== 'a0') {
-      // Type Check For Extra CG a0 key
-      gameStore.selectedPiece = gameStore.cg.state.selected;
-    }
+    const cgStateSelected = gameStore.cg.state.selected;
+
+    gameStore.lastSelected = cgStateSelected;
   }
 
   function handleWheel(e: WheelEvent): void {
@@ -391,7 +377,7 @@
   }
 
   function showViewer(): void {
-    if (!userConfig.opts.autoAdvance || isViewerMode) return;
+    if (!config.autoAdvance || isViewerMode) return;
     if (typeof pycmd !== 'undefined') {
       pycmd('ans');
     } else if (typeof AnkiDroidJS !== 'undefined') {
@@ -401,17 +387,18 @@
 </script>
 
 <div
-  style="display: contents; {Object.entries(pieceImages)
-    .map(([k, v]) => `--${k}: url('${v}')`)
-    .join('; ')};
-    --border-color: {mapBorderColor(boardBorderColor)};
-    --border-flash-color: {flashState ? SCORE_COLORS[flashState] : 'transparent'};
-    --bar-top-color: {mapBorderColor(barTopColor)};
-    --bar-bottom-color: {mapBorderColor(barBottomColor)};
-    --bar-divider-color: {mapBorderColor(barDividerColor)};
+  style="display: contents;
+    --border-color: {boardBorderColor};
+    --border-flash-color: {flashState ? flashState : 'transparent'};
+    --bar-bottom-color: {barBottomColor};
+    --bar-top-color: {barTopColor};
+    --bar-divider-color: {barDividerColor};
     "
 >
   <div
+    style="{Object.entries(pieceImages)
+      .map(([k, v]) => `--${k}: url('${v}')`)
+      .join('; ')};"
     class="board-wrapper"
     class:analysisMode
     class:timerMode={timerStore.visible}
@@ -430,7 +417,7 @@
       id="board"
       class="tappable"
       bind:this={boardContainer}
-      onpointerdown={handlePointerDown}
+      onpointerdown={trackSlectedPiece}
       onwheel={isViewerMode ? handleWheel : null}
       class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
     ></div>
@@ -531,7 +518,7 @@
           left: 0;
           right: 0;
           height: $board-border-width;
-          background-color: var(--bar-top-color)
+          background-color: var(--bar-top-color);
         }
 
         /* Divider Element */
@@ -556,6 +543,11 @@
       .eval-bar.top,
       .eval-track {
         opacity: 1;
+      }
+
+      .eval-fill {
+        /* Smoothing for custom timer animation */
+        transition: transform 33ms linear;
       }
     }
   }

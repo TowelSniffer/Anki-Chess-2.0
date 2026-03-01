@@ -31,6 +31,9 @@
   import IconHelp from '~icons/material-symbols/help';
   import IconArrowRight from '~icons/material-symbols/keyboard-arrow-right';
 
+  // Import the new CustomInputs component
+  import CustomInputs from './CustomInputs.svelte';
+
   type Props = {
     label?: string;
     icon?: Component | string;
@@ -41,37 +44,26 @@
   let { label = '', icon = '', items, position = 'bottom-left' }: Props = $props();
 
   let isOpen = $state(false);
-  let activeSelectorIndex = $state<number | null>(null);
   let activeTooltips = $state(new Set<MenuItem>());
   let triggerRef: HTMLButtonElement | undefined = $state();
   let menuRef: HTMLDivElement | undefined = $state();
 
   // --- Logic ---
 
-  /**
-   * Re-calculates the position of a submenu attached to the given LI.
-   * Ensures it stays within the viewport boundaries.
-   */
   function repositionSubmenu(li: HTMLElement) {
     const submenu = li.querySelector('.submenu') as HTMLElement;
     if (!submenu) return;
 
-    // Reset transform to measure natural position
     submenu.style.transform = 'none';
-
-    // Measure and shift
     requestAnimationFrame(() => {
       const rect = submenu.getBoundingClientRect();
       const padding = 10;
       let shiftX = 0;
       let shiftY = 0;
 
-      // Horizontal Shift (Right Edge)
       if (rect.right > window.innerWidth) {
         shiftX = window.innerWidth - rect.right - padding;
       }
-
-      // Vertical Shift (Bottom Edge)
       if (rect.bottom > window.innerHeight) {
         shiftY = window.innerHeight - rect.bottom - padding;
       }
@@ -82,16 +74,12 @@
     });
   }
 
-  // Called on MouseEnter (existing logic)
   function adjustSubmenuPosition(e: MouseEvent) {
     repositionSubmenu(e.currentTarget as HTMLElement);
   }
 
-  // Called on Tooltip Click (New logic)
   async function toggleTooltip(e: Event, item: MenuItem) {
     e.stopPropagation();
-
-    // Update State
     const next = new Set(activeTooltips);
     if (next.has(item)) {
       next.delete(item);
@@ -100,20 +88,14 @@
     }
     activeTooltips = next;
 
-    // Wait for DOM to render the tooltip text
     await tick();
-
-    // Find relevant containers and update positions
     const target = e.target as HTMLElement;
-
-    // A: If this item has its OWN submenu (it's a parent), update that submenu
     const myWrapper = target.closest('.menu-item-wrapper') as HTMLElement;
+
     if (myWrapper) {
       repositionSubmenu(myWrapper);
     }
 
-    // B: If this item is INSIDE a submenu, update the container submenu
-    // (Because the container just grew/shrank)
     const containerSubmenu = target.closest('.submenu');
     if (containerSubmenu && containerSubmenu.parentElement) {
       repositionSubmenu(containerSubmenu.parentElement as HTMLElement);
@@ -132,14 +114,12 @@
   function toggle() {
     isOpen = !isOpen;
     if (!isOpen) {
-      activeSelectorIndex = null;
       activeTooltips = new Set();
     }
   }
 
   function close() {
     isOpen = false;
-    activeSelectorIndex = null;
     activeTooltips = new Set();
   }
 
@@ -156,53 +136,6 @@
 
   function stopProp(e: Event) {
     e.stopPropagation();
-  }
-
-  function handleInput(e: Event, item: MenuItem) {
-    const target = e.currentTarget as HTMLInputElement;
-    const val = parseFloat(target?.value);
-
-    if (!isNaN(val)) {
-      // Calculate clamped value
-      const constrained = Math.min(item.max ?? Infinity, Math.max(item.min ?? -Infinity, val));
-
-      // Update parent state
-      item.onChange?.(constrained);
-
-      // Force visual reset if the value was clamped
-      // (We do this manually here because if the value clamps from 99 -> 10,
-      // and the previous value was already 10, Svelte won't trigger the action update)
-      if (constrained !== val) {
-        target.textContent = String(constrained);
-      }
-    } else {
-      // Reset to old value if input was garbage (NaN)
-      target.textContent = String(item.value);
-    }
-  }
-
-  function handleKeydown(e: KeyboardEvent) {
-    // Handle Enter to save/blur
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      (e.currentTarget as HTMLElement).blur();
-      return;
-    }
-
-    // Block non-numeric keys (Allow only positive whole numbers and decimal)
-    // Allow navigation/editing keys (Backspace, Arrows, etc.)
-    if (
-      ['Backspace', 'Delete', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', '.'].includes(e.key) ||
-      e.ctrlKey ||
-      e.metaKey
-    ) {
-      return;
-    }
-
-    // Block anything that isn't a number 0-9
-    if (!/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-    }
   }
 
   // --- Reactive Logic ---
@@ -236,9 +169,7 @@
     if (isOpen) {
       const onEvent = () => close();
 
-      // Close on scroll (capture phase to catch scrolling in sub-elements)
       window.addEventListener('scroll', onEvent, true);
-      // Close on resize (standard bubble phase is fine)
       window.addEventListener('resize', onEvent);
 
       return () => {
@@ -290,7 +221,7 @@
       <div class="label-content">
         {#if typeof item.icon === 'string'}
           <span class="material-symbols-sharp icon">{item.icon}</span>
-        {:else}
+        {:else if item.icon}
           <span class="icon">
             <item.icon />
           </span>
@@ -329,7 +260,6 @@
       </div>
     {/if}
     {#if activeTooltips.has(item)}
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <div class="tooltip-text" role="note" tabindex="-1" onclick={stopProp} onkeydown={stopProp}>
         {item.tooltip}
       </div>
@@ -339,102 +269,39 @@
 
 {#snippet menuList(listItems: MenuItem[])}
   <ul class="menu-list">
-    {#each listItems as item, idx}
+    {#each listItems as item}
       {#if item.type === 'separator'}
         <li class="separator"></li>
-      {:else if item.type === 'toggle'}
+
+      {:else if item.type === 'toggle' || item.type === 'number'}
         <li>
-          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
           <div class="control-item" role="group" onclick={stopProp} onkeydown={stopProp}>
             {@render itemLabel(item)}
-            <label class="switch">
-              <input
-                type="checkbox"
-                checked={item.checked}
-                onchange={(e) => item.onToggle?.(e.currentTarget.checked)}
-              />
-              <span class="slider round"></span>
-            </label>
+
+            <CustomInputs
+              type={item.type}
+              value={item.type === 'toggle' ? item.checked : item.value}
+              onChange={item.type === 'toggle' ? item.onToggle : item.onChange}
+              min={item.min}
+              max={item.max}
+              step={item.step}
+            />
           </div>
         </li>
-      {:else if item.type === 'number'}
-        <li>
-          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-          <div class="control-item" role="group" onclick={stopProp} onkeydown={stopProp}>
-            {@render itemLabel(item)}
-            <div class="number-stepper">
-              <button
-                class="step-btn"
-                onclick={() =>
-                  item.onChange?.(
-                    Math.max(item.min ?? -Infinity, Number(item.value) - (item.step || 1)),
-                  )}>-</button
-              >
-              <input
-                type="number"
-                class="step-input"
-                value={item.value}
-                inputmode="decimal"
-                enterkeyhint="done"
-                onblur={(e) => handleInput(e, item)}
-                onkeydown={handleKeydown}
-                onclick={(e) => {
-                  e.stopPropagation(); // Prevent menu closing
-                  e.currentTarget.select();
-                }}
-              />
-              <button
-                class="step-btn"
-                onclick={() =>
-                  item.onChange?.(
-                    Math.min(item.max ?? Infinity, Number(item.value) + (item.step || 1)),
-                  )}>+</button
-              >
-            </div>
-          </div>
-        </li>
+
       {:else if item.type === 'select'}
         <li>
-          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-          <div
-            class="control-item select-container"
-            role="group"
-            onclick={stopProp}
-            onkeydown={stopProp}
-          >
-            <div class="selector-wrapper">
-              <div class="sel-label">{item.label}</div>
-              <div class="sel-divider"></div>
-              <div class="sel-value-section">
-                <button
-                  class="sel-trigger"
-                  class:isActive={activeSelectorIndex === idx}
-                  onclick={() => (activeSelectorIndex = activeSelectorIndex === idx ? null : idx)}
-                >
-                  <span class="curr-val">{item.value}</span>
-                  <span class="arrow" class:open={activeSelectorIndex === idx}>▼</span>
-                </button>
-
-                {#if activeSelectorIndex === idx}
-                  <div class="sel-dropdown">
-                    {#each item.options || [] as opt}
-                      <button
-                        class="sel-option"
-                        class:selected={opt === item.value}
-                        onclick={() => {
-                          item.onChange?.(opt);
-                          activeSelectorIndex = null;
-                        }}
-                      >
-                        {opt}
-                      </button>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            </div>
+          <div class="control-item select-container" role="group" onclick={stopProp} onkeydown={stopProp}>
+            <CustomInputs
+              type="select"
+              label={item.label}
+              value={item.value}
+              onChange={item.onChange}
+              options={item.options}
+            />
           </div>
         </li>
+
       {:else if item}
         <li class="menu-item-wrapper" onmouseenter={adjustSubmenuPosition}>
           <div
@@ -465,7 +332,6 @@
 
 <style lang="scss">
   button {
-    /* Remove default anki styling */
     all: unset;
   }
   /* --- Containers --- */
@@ -541,32 +407,23 @@
 
   /* --- Submenu --- */
   .submenu {
-    display: block; /* Always layout so we can measure, but hide visually */
+    display: block;
     visibility: hidden;
     opacity: 0;
-
     position: absolute;
     left: 100%;
     top: -0.3rem;
     min-width: 200px;
     z-index: 10001;
-
-    /* ... (Your other styling: background, border, shadow, etc.) ... */
     background: var(--surface-primary, #fff);
     border: 1px solid #ccc;
     border-radius: 6px;
     padding: 0.3rem 0;
-
-    /* GRACE PERIOD (Default / Mouse Leave) */
-    /* Wait 0.3s before doing anything. */
-    /* Then fade out opacity over 0.2s. */
-    /* Keep visibility 'visible' until the fade finishes (0.3s + 0.2s = 0.5s) */
     transition-property: opacity, visibility;
     transition-duration: 0.2s, 0s;
     transition-delay: 0.2s, 0.4s;
   }
 
-  /* OPENING (Mouse Enter Self OR Focus Inside) */
   .menu-item-wrapper:hover > .submenu,
   .menu-item-wrapper:focus-within > .submenu {
     visibility: visible;
@@ -574,14 +431,9 @@
     transition-delay: 0s, 0s;
   }
 
-  /* SIBLING SWITCH (Immediate Hide Logic) */
-  /* If the parent list is hovered, BUT this specific item is NOT hovered... */
   .menu-list:hover > .menu-item-wrapper:not(:hover) > .submenu {
-    /* FORCE HIDE: Overrides :focus-within if we are hovering a sibling */
     visibility: hidden;
     opacity: 0;
-
-    /* Kill the delay so it vanishes immediately */
     transition-delay: 0s, 0s;
     transition-duration: 0.1s, 0s;
   }
@@ -597,9 +449,9 @@
   /* --- Standard Items --- */
   .menu-item-wrapper {
     position: relative;
+    width: 100%;
   }
   .menu-item {
-    all: unset;
     box-sizing: border-box;
     width: 100%;
     display: flex;
@@ -639,7 +491,7 @@
     }
   }
 
-  /* --- Controls (Toggle/Number/Select) --- */
+  /* --- Controls (Toggle/Number/Select wrappers) --- */
   .control-item {
     display: flex;
     align-items: center;
@@ -657,7 +509,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    flex: 1; /* Ensure it takes available space */
+    flex: 1;
   }
 
   .label-content {
@@ -668,11 +520,9 @@
 
     &.has-tooltip {
       cursor: help;
-      /* The cursor you requested */
 
       &:hover .text {
         text-decoration: underline dotted;
-        /* Optional visual hint */
       }
     }
   }
@@ -695,184 +545,6 @@
   .info-hint {
     font-size: 0.9rem;
     opacity: 0.5;
-  }
-
-  /* --- Toggle Switch --- */
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 34px;
-    height: 18px;
-    input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-  }
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 34px;
-    &:before {
-      position: absolute;
-      content: '';
-      height: 12px;
-      width: 12px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-  }
-  input:checked + .slider {
-    background-color: #2196f3;
-  }
-  input:checked + .slider:before {
-    transform: translateX(16px);
-  }
-
-  /* --- Number Stepper --- */
-  .number-stepper {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: var(--text-primary, grey);
-    background: var(--surface-hover, #f0f0f0);
-    border-radius: 4px;
-    padding: 2px;
-    .step-btn {
-      @include flex-center;
-      @include unselectable;
-      border: none;
-      color: var(--surface-primary, grey);
-      background: var(--text-primary, #fff);
-      cursor: pointer;
-      width: 20px;
-      height: 20px;
-      border-radius: 3px;
-      font-weight: bold;
-      &:hover {
-        background: #e0e0e0;
-        @include subtle-shadow;
-
-        &:active {
-          background: #e0e0e0;
-          @include subtle-shadow(0.7, inset);
-        }
-      }
-    }
-    /* --- Number Stepper Input --- */
-    .step-input {
-      /* Reset all default input styles */
-      all: unset;
-      font-size: 0.8rem;
-      min-width: 20px;
-      max-width: 40px; /* prevents layout shift */
-      text-align: center;
-      color: inherit;
-      background: transparent;
-      cursor: text;
-
-      /* Hide the Up/Down spinners in WebKit (Chrome/Safari/Android) */
-      &::-webkit-outer-spin-button,
-      &::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-
-      /* Hide spinners in Firefox */
-      appearance: textfield;
-      -moz-appearance: textfield;
-    }
-  }
-
-  /* --- Integrated Custom Selector --- */
-  .selector-wrapper {
-    display: flex;
-    align-items: stretch;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #f9f9f9;
-    width: 100%;
-    position: relative;
-  }
-  .sel-label {
-    padding: 0.3rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 400;
-    background: var(--surface-primary, #eaeaea);
-    color: var(--text-primary, #555);
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-  }
-  .sel-divider {
-    width: 1px;
-    background: #ccc;
-  }
-  .sel-value-section {
-    color: var(--surface-primary, #fff);
-    flex: 1;
-    position: relative;
-  }
-  .sel-trigger {
-    all: unset;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    height: 100%;
-    padding: 0 0.5rem;
-    box-sizing: border-box;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    gap: 0.3rem;
-    &:hover {
-      background: #f0f0f0;
-    }
-    .arrow {
-      font-size: 0.6rem;
-      transition: transform 0.2s;
-    }
-    .arrow.open {
-      transform: rotate(180deg);
-    }
-  }
-  /* Inner Dropdown for Selector */
-  .sel-dropdown {
-    color: var(--surface-primary, #fff);
-    position: absolute;
-    top: calc(100% + 2px);
-    left: -1px;
-    right: -1px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    z-index: 10001;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    max-height: 150px;
-    overflow-y: auto;
-  }
-  .sel-option {
-    all: unset;
-    padding: 0.4rem;
-    font-size: 0.85rem;
-    text-align: center;
-    cursor: pointer;
-    &:hover {
-      background: var(--text-muted, #f0f0f0);
-    }
-    &.selected {
-      background: #e8f5e9;
-      color: #2e7d32;
-      font-weight: bold;
-    }
   }
 
   .separator {

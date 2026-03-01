@@ -43,6 +43,7 @@
     "@lichess-org/chessground": "^9.8.5",
     "@mliebelt/pgn-parser": "^1.4.19",
     "chess.js": "^1.4.0",
+    "marked": "^17.0.3",
     "material-symbols": "^0.40.2",
     "stockfish": "^17.1.0"
   }

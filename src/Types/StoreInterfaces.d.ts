@@ -1,5 +1,5 @@
 // src/Types/StoreInterfaces.ts
-import type { Color as CgColor } from '@lichess-org/chessground/types';
+import type { Color as CgColor, Key } from '@lichess-org/chessground/types';
 import type { Api } from '@lichess-org/chessground/api';
 import type { Square, Chess, Move, Color } from 'chess.js';
 import type {
@@ -23,6 +23,9 @@ export interface IPgnGameStore {
   engineStore: EngineStore;
   timerStore: TimerStore;
 
+  // TRACKERS
+  lastSelected: Key | undefined;
+
   // --- STATE (Variables) ---
   cg: Api | null;
   boardMode: BoardModes;
@@ -30,7 +33,6 @@ export interface IPgnGameStore {
   pgnPath: PgnPath;
   orientation: CgColor;
   errorCount: number;
-  selectedPiece: Square | undefined;
   pendingPromotion: { from: Square; to: Square } | null;
   customAnimation: { fen: string; animate: boolean } | null;
   startFen: string;

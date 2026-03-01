@@ -2,7 +2,6 @@ import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
 import type { CustomShape } from '$Types/ChessStructs';
-import { userConfig } from '$stores/userConfig.svelte';
 import { getLegalMove, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
 import { handleUserMove } from '$features/chessJs/puzzleLogic';
@@ -18,7 +17,7 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
 export function handleSelect(key: Key, store: IPgnGameStore) {
   if (!store.cg) return;
   // type assertion as clicked square cannot be 'a0'
-  const orig = store.selectedPiece; // Logged synchronously in ChessgroundBoard.svelte
+  const orig = store.lastSelected; // Logged synchronously in ChessgroundBoard.svelte
   const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
 
   // prevent out of turn moves in Puzzle mode
@@ -63,7 +62,7 @@ export function handleSelect(key: Key, store: IPgnGameStore) {
         moveCheck = tempChess.move(matchingArrow.san);
       }
     }
-  } else if (userConfig.opts.singleClickMove) {
+  } else if (store.config.singleClickMove) {
     // Case 2: Clicked a square with only ONE legal move reaching it (Ambiguity check)
     // useful for rapid clicking in viewer
     const allMoves = tempChess.moves({ verbose: true });
@@ -170,7 +169,7 @@ export function getCgConfig(store: IPgnGameStore) {
 
   if (isCustomAnimation) {
     const timer = store.customAnimation?.animate;
-    const animationTime = userConfig.opts.animationTime;
+    const animationTime = store.config.animationTime;
     if (isAnimating) {
       clearTimeout(isAnimating);
       isAnimating = null;
@@ -226,7 +225,7 @@ export function getCgConfig(store: IPgnGameStore) {
     },
     animation: {
       enabled: store.customAnimation ? store.customAnimation.animate : true,
-      duration: userConfig.opts.animationTime,
+      duration: store.config.animationTime,
     },
     drawable: {
       enabled: true,
@@ -240,7 +239,7 @@ export function getCgConfig(store: IPgnGameStore) {
     },
     movable: {
       free: false,
-      showDests: userConfig.opts.showDests,
+      showDests: store.config.showDests,
       color: movableColor,
       dests: store.dests,
       events: {
