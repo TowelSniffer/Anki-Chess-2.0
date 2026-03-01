@@ -335,7 +335,7 @@
       triggerFlash(currentScore)
       // Limit Score flash to once for puzzle
       prevScore = currentScore;
-    } else if (puzzleCompleteAndScored && currentScore && prevScore) {
+    } else if (!isViewerMode) {
       // Fix race condition with new boardMode
       prevScore = null;
     }
