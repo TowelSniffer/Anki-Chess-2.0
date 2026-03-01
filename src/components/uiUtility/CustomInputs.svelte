@@ -24,7 +24,7 @@
     min = -Infinity,
     max = Infinity,
     step = 1,
-    options = []
+    options = [],
   }: Props = $props();
 
   // --- Select Logic ---
@@ -97,15 +97,13 @@
         <span class="slider round"></span>
       </label>
     </div>
-
   {:else if type === 'number'}
     <div class="control-item">
       {#if label}<span class="label">{label}</span>{/if}
       <div class="number-stepper">
-        <button
-          class="step-btn"
-          onclick={() => onChange?.(Math.max(min, Number(value) - step))}
-        >-</button>
+        <button class="step-btn" onclick={() => onChange?.(Math.max(min, Number(value) - step))}
+          >-</button
+        >
         <input
           type="number"
           class="step-input"
@@ -116,13 +114,11 @@
           onkeydown={handleNumberKeydown}
           onclick={(e) => e.currentTarget.select()}
         />
-        <button
-          class="step-btn"
-          onclick={() => onChange?.(Math.min(max, Number(value) + step))}
-        >+</button>
+        <button class="step-btn" onclick={() => onChange?.(Math.min(max, Number(value) + step))}
+          >+</button
+        >
       </div>
     </div>
-
   {:else if type === 'select'}
     <div class="selector-wrapper" bind:this={selectRef}>
       {#if label}
@@ -130,6 +126,12 @@
         <div class="sel-divider"></div>
       {/if}
       <div class="sel-value-section">
+        <!-- A ghost element to help keep sizing uniform -->
+        <div class="ghost-sizer" aria-hidden="true">
+          {#each options as opt}
+            <div class="ghost-opt">{opt} ▼</div>
+          {/each}
+        </div>
         <button
           class="sel-trigger"
           class:isActive={isSelectOpen}
@@ -302,6 +304,12 @@
     position: relative;
     min-width: 60px;
   }
+  .ghost-sizer {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    pointer-events: none;
+    height: 0;
+  }
   .sel-trigger {
     display: flex;
     align-items: center;
@@ -346,7 +354,6 @@
   .sel-option {
     padding: 0.4rem;
     font-size: 0.85rem;
-    text-align: center;
     cursor: pointer;
     color: var(--surface-secondary, #333);
     &:hover {
