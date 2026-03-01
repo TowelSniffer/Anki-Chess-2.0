@@ -16,6 +16,12 @@
   let isOpen = $state(false);
   let valueTriggerRef: HTMLDivElement; // Reference to the right-side container
 
+  // Find the length of the longest option to enforce a uniform width
+  const maxTextLength = $derived(Math.max(...options.map(opt => String(opt).length)));
+
+  // Conditionally add extra width for the icon, or just enough for the arrow + padding
+  const extraSpacing = $derived(icon ? '2.5rem' : '1rem');
+
   function toggle() {
     isOpen = !isOpen;
   }
@@ -47,13 +53,12 @@
   <div class="divider"></div>
 
   <!-- Right Side: Interactive Value (Dropdown Anchor) -->
-  <div class="value-section" bind:this={valueTriggerRef}>
-    <button
-      class="trigger-btn"
-      class:isActive={isOpen}
-      onclick={toggle}
-      type="button"
-    >
+  <div
+    class="value-section"
+    bind:this={valueTriggerRef}
+    style="width: calc({maxTextLength}ch + {extraSpacing}); max-width: 200px;"
+  >
+    <button class="trigger-btn" class:isActive={isOpen} onclick={toggle} type="button">
       <span class="current-value">{value}</span>
       {#if icon}
         {#if typeof icon === 'string'}
@@ -130,6 +135,7 @@
   .trigger-btn {
     flex: 1;
     @include flex-center;
+    justify-content: space-between; /* Pushes the text left and arrow right */
     gap: 0.3rem;
     padding: 0.2rem 0.4rem;
     border: none;
@@ -143,6 +149,14 @@
     transition: background 0.2s;
   }
 
+  .current-value {
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .trigger-btn:hover:not(.isActive) {
     background-color: var(--text-muted, #f9f9f9);
   }
@@ -151,7 +165,7 @@
     box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 1);
   }
 
-  /* 5. The Dropdown Popup */
+  /* The Dropdown Popup */
   .dropdown-list {
     position: absolute;
     top: calc(100% + 4px); /* Pushes it down slightly */
@@ -178,13 +192,12 @@
   }
 
   .option-item {
-    padding: 0.2rem;
+    padding: 0.3rem 0.5rem;
     background: var(--text-primary, none);
     color: var(--surface-primary, none);
     border: none;
     cursor: pointer;
     font-size: 0.9rem;
-    text-align: center;
   }
   .option-item:hover {
     background-color: var(--text-muted, #f0f0f0);

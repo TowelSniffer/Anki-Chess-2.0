@@ -77,20 +77,20 @@
 
 <Dropdown icon={IconSettings} items={menuData} />
 
-<button class="navBtn" id="resetBoard" disabled={!canGoBack} onclick={() => gameStore.reset()}>
+<button class="iconBtn" id="resetBoard" disabled={!canGoBack} onclick={() => gameStore.reset()}>
   <IconFirstPage />
 </button>
 
-<button class="navBtn" id="navBackward" disabled={!canGoBack} onclick={() => gameStore.prev()}>
+<button class="iconBtn" id="navBackward" disabled={!canGoBack} onclick={() => gameStore.prev()}>
   <IconArrowLeft />
 </button>
 
-<button class="navBtn" id="navForward" disabled={!canGoForward} onclick={() => gameStore.next()}>
+<button class="iconBtn" id="navForward" disabled={!canGoForward} onclick={() => gameStore.next()}>
   <IconArrowRight />
 </button>
 
 <button
-  class="navBtn tooltip-btn"
+  class="iconBtn tooltip-btn"
   title="Copy FEN to clipboard"
   use:clickToCopy={{ text: gameStore.fen, message: 'FEN Copied!' }}
   onclick={() => playSound('click')}
@@ -99,7 +99,7 @@
 </button>
 
 <button
-  class="navBtn"
+  class="iconBtn"
   class:active-toggle={engineStore.enabled}
   disabled={engineStore.loading}
   title={engineStore.enabled ? 'Turn Stockfish Off' : 'Turn Stockfish On'}
@@ -114,7 +114,7 @@
   {/if}
 </button>
 
-<button class="navBtn" onclick={flipBoard}>
+<button class="iconBtn" onclick={flipBoard}>
   <span class="flipBoardIcon md-small" class:flipped={isFlipped}><IconFlip /></span>
 </button>
 
@@ -130,50 +130,12 @@
   }
 
   button {
-    /* remove default button styling */
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    font: inherit;
-    color: inherit;
-    cursor: pointer;
+    @include icon-btn;
 
-    &:focus-visible {
-      outline: 1px solid blue; /* Or any style you prefer */
-    }
-
-    &.navBtn {
-      @include flex-center;
-      z-index: 20;
-      flex-direction: row;
-      border-radius: var(--border-radius-global);
-      border: var(--border-thin);
-      background-color: var(--surface-primary);
-      color: var(--text-primary);
-      @include subtle-shadow;
-      width: $button-size-calc;
-      height: $button-size-calc;
-      @include x-margin($button-margin-calc);
-      cursor: pointer;
-      box-sizing: border-box;
-      transition: background 0.2s;
-      font-size: 1.65rem;
-
-      &:hover:not(:disabled, .active-toggle) {
-        background-color: var(--interactive-button-hover);
-        color: var(--surface-primary);
-        @include subtle-shadow(0.7);
-      }
-
-      &:active:not(:disabled) {
-        background-color: var(--interactive-button-active);
-        color: var(--surface-primary);
-        @include subtle-shadow(0.7, inset);
-      }
+    &.iconBtn {
 
       /* Style for when the analysis toggle button is active */
-      &.active-toggle {
+      &.active-toggle:not(:disabled) {
         background-color: var(--interactive-button-active);
         @include subtle-shadow(0.7, inset);
         color: var(--surface-secondary);
@@ -182,14 +144,7 @@
         }
       }
 
-      &:focus {
-        outline: 0;
-      }
 
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
 
       span {
         &.icon-spin {
