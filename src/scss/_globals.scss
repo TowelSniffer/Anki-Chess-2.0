@@ -10,10 +10,9 @@ $palette-green-500: #557d38;
 $palette-moss-green: #a5d6a7;
 
 /* CG Board palette */
-$palette-correct: #2AA146;
-$palette-incorrect: #D64C4C;
-$palette-perfect: #DF4096;
-
+$palette-correct: #2aa146;
+$palette-incorrect: #d64c4c;
+$palette-perfect: #df4096;
 
 /* sizing */
 $board-border-width: 8px;
@@ -75,9 +74,9 @@ body.light-theme {
 
 @mixin unselectable {
   -webkit-user-select: none; /* Safari, Chrome, Opera, iOS Safari */
-  -moz-user-select: none;    /* Firefox */
-  -ms-user-select: none;     /* Internet Explorer/Edge */
-  user-select: none;         /* Standard syntax */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Standard syntax */
 }
 
 @mixin flex-center {
@@ -109,3 +108,58 @@ body.light-theme {
   margin-right: $val;
 }
 
+@mixin icon-btn($size: $button-size-calc) {
+  /* remove default button styling */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 1px solid blue; /* Or any style you prefer */
+  }
+
+  &.iconBtn {
+    /* remove default button styling */
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    @include flex-center;
+    z-index: 20;
+    flex-direction: row;
+    border-radius: var(--border-radius-global);
+    border: var(--border-thin);
+    background-color: var(--surface-primary);
+    color: var(--text-primary);
+    @include subtle-shadow;
+
+    width: $size;
+    height: $size;
+    @include x-margin($button-margin-calc);
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.2s;
+    font-size: 1.65rem;
+
+    &:focus-visible {
+      outline: 1px solid blue;
+    }
+
+    &:hover:not(:disabled, .active-toggle) {
+      background-color: var(--interactive-button-hover);
+      color: var(--surface-primary);
+      @include subtle-shadow(0.7);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--interactive-button-active);
+      color: var(--surface-primary);
+      @include subtle-shadow(0.7, inset);
+    }
+  }
+}
