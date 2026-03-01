@@ -59,27 +59,52 @@ export class EngineStore {
   private _aiRequestPending = false;
   private _aiMoveResolver: ((san: string) => void) | null = null;
 
+  constructor() {
+    this.stop();
+    $effect(() => {
+      // Restart Engine on userConfig changes
+      void this.multipv;
+      void this.analysisThinkingTime;
+      untrack(() => {
+        if (!this.enabled || !this.evalFen || this._aiRequestPending) return;
+
+        // Pre-fill _pendingFen to bypass the "already thinking about this FEN"
+        // early return inside `analyze()`, keeping `_currentFen` intact for `_flushBuffer`.
+        this._pendingFen = this.evalFen;
+        this.analyze(this.evalFen);
+      });
+    });
+  }
+
   /*
-   * DERIVED STATE
+   * Getters
    */
 
   // --- User Config ---
-  analysisThinkingTime = $derived(userConfig.opts.analysisTime);
-  multipv = $derived(userConfig.opts.analysisLines);
+  get analysisThinkingTime() {
+    return userConfig.opts.analysisTime;
+  }
 
-  private _aiElo = $derived(userConfig.opts.aiElo);
-  private _aiMoveTime = $derived(userConfig.opts.aiMoveTime * 1000);
+  get multipv() {
+    return userConfig.opts.analysisLines;
+  }
+
+  private get _aiElo() {
+    return userConfig.opts.aiElo;
+  }
+
+  private get _aiMoveTime() {
+    return userConfig.opts.aiMoveTime * 1000;
+  }
 
   // --- Computed Arrows ---
-  bestMove = $derived.by(() => {
-    // We only show the arrow if the analysis actually matches the visual board FEN
-    // (Checked loosely via evalFen, but the UI should handle the precise sync)
+  get bestMove() {
     const bestLine = this.analysisLines.find((l) => l.id === 1);
     if (!bestLine?.firstMove) return null;
     return { ...bestLine.firstMove, fen: this.evalFen };
-  });
+  }
 
-  shapes = $derived.by((): CustomShape[] => {
+  get shapes(): CustomShape[] {
     if (!this.enabled) return [];
 
     const turn = this.evalFen.split(' ')[1]; // 'w' or 'b'
@@ -131,23 +156,6 @@ export class EngineStore {
         };
       })
       .filter((s) => s !== null) as CustomShape[];
-  });
-
-  constructor() {
-    this.stop();
-    $effect(() => {
-      // Restart Engine on userConfig changes
-      void this.multipv;
-      void this.analysisThinkingTime;
-      untrack(() => {
-        if (!this.enabled || !this.evalFen || this._aiRequestPending) return;
-
-        // Pre-fill _pendingFen to bypass the "already thinking about this FEN"
-        // early return inside `analyze()`, keeping `_currentFen` intact for `_flushBuffer`.
-        this._pendingFen = this.evalFen
-        this.analyze(this.evalFen);
-      });
-    });
   }
 
   /*
