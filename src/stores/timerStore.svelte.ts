@@ -1,19 +1,20 @@
-import { userConfig } from '$stores/userConfig.svelte';
-
 export class TimerStore {
   // --- State ---
-  isRunning = $state(false);
-  remainingTime = $state(userConfig.opts.timer); // in ms
-  totalTime = $state(userConfig.opts.timer); // in ms (initial duration)
-
+  isRunning = false;
+  totalTime // in ms (initial duration)
+  remainingTime; // in ms
   // Controls if the board shows the timer gradient
   visible = $state(false);
 
-  isOutOfTime = $derived(userConfig.opts.timer && this.remainingTime === 0);
+  isOutOfTime = $derived(this._config.timer && this.remainingTime === 0);
 
   // --- Internal ---
   private animationFrameId: number | null = null;
   private lastTickTimestamp: number | null = null;
+
+  private _internalRemaining;
+  private _lastStateUpdate = 0;
+  private _config;
 
   // --- Derived ---
 
@@ -24,13 +25,21 @@ export class TimerStore {
     return Math.min(Math.max(p, 0), 100);
   });
 
+  constructor( getConfig: UserConfigOpts ) {
+    this._config = getConfig();
+    this.totalTime = this._config.timer;
+    this.remainingTime = $state(this._config.timer);
+    this._internalRemaining = this._config.timer;
+
+  }
+
   // --- Actions ---
 
   /**
    * Initialize and start the timer
    * @param durationMs - Duration in milliseconds
    */
-  start(durationMs: number = userConfig.opts.timer) {
+  start(durationMs: number = this._config.timer) {
     this.stop();
 
     // Reset totalTime to the initial duration requested
@@ -74,15 +83,15 @@ export class TimerStore {
    * Smoothly adds time to the clock over (gameStore.aiDelayTime)
    */
   extend(
-    ms: number = userConfig.opts.increment,
-    duration: number = userConfig.opts.animationTime + 100,
+    ms: number = this._config.increment,
+    duration: number = this._config.animationTime + 100,
   ) {
     if (!this.visible) return;
 
     this.pause();
 
-    // define Start and End values
-    const startRemaining = this.remainingTime;
+    // Base the math on the precise internal state, not the throttled UI state
+    const startRemaining = this._internalRemaining;
     const startTotal = this.totalTime;
 
     const targetRemaining = startRemaining + ms;
@@ -101,19 +110,27 @@ export class TimerStore {
       // Apply Easing (Cubic Ease Out)
       const progress = 1 - Math.pow(1 - rawProgress, 3);
 
-      this.remainingTime = startRemaining + (targetRemaining - startRemaining) * progress;
+      // Update the internal tracker
+      this._internalRemaining = startRemaining + (targetRemaining - startRemaining) * progress;
       this.totalTime = startTotal + (targetTotal - startTotal) * progress;
+
+      // Apply the same throttle logic from _loop
+      if (now - this._lastStateUpdate > 33) {
+        this.remainingTime = this._internalRemaining;
+        this._lastStateUpdate = now;
+      }
 
       if (rawProgress < 1) {
         // Check rawProgress for completion
         this.animationFrameId = requestAnimationFrame(animate);
       } else {
-        // Animation Complete: Ensure exact values
+        // Animation Complete: Ensure both internal and UI states sync exactly at the end
+        this._internalRemaining = targetRemaining;
         this.remainingTime = targetRemaining;
         this.totalTime = targetTotal;
         this.animationFrameId = null;
 
-        // Resume immediately? could handle elsewhere...
+        // Resume immediately? FIXME could handle elsewhere...
         this.resume();
       }
     };
@@ -123,28 +140,35 @@ export class TimerStore {
 
   reset() {
     this.stop();
-    this.remainingTime = userConfig.opts.timer;
-    this.totalTime = userConfig.opts.timer;
+    this.remainingTime = this._config.timer;
+    this.totalTime = this._config.timer;
+    this._internalRemaining = this._config.timer;
+    this._lastStateUpdate = 0;
   }
 
   destroy() {
-    this.stop();
+    this.reset();
   }
 
   // --- Loop Logic ---
   private _loop(timestamp: number) {
     if (!this.isRunning) return;
-
-    if (!this.lastTickTimestamp) {
-      this.lastTickTimestamp = timestamp;
-    }
+    if (!this.lastTickTimestamp) this.lastTickTimestamp = timestamp;
 
     const deltaTime = timestamp - this.lastTickTimestamp;
     this.lastTickTimestamp = timestamp;
 
-    this.remainingTime = Math.max(0, this.remainingTime - deltaTime);
+    // Internal Tracking
+    this._internalRemaining = Math.max(0, this._internalRemaining - deltaTime);
 
-    if (this.remainingTime === 0) {
+    // Throttle Svelte reactivity updates to ~30fps (every 33ms)
+    if (timestamp - this._lastStateUpdate > 33) {
+      this.remainingTime = this._internalRemaining;
+      this._lastStateUpdate = timestamp;
+    }
+
+    if (this._internalRemaining === 0) {
+      this.remainingTime = 0; // Force exact final state
       this._handleOutOfTime();
     } else {
       this.animationFrameId = requestAnimationFrame((t) => this._loop(t));

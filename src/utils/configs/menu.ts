@@ -7,6 +7,7 @@ import IconBackgroundGridSmall from '~icons/material-symbols/background-grid-sma
 import IconBugReport from '~icons/material-symbols/bug-report';
 import IconDelete from '~icons/material-symbols/delete';
 import IconRobot from '~icons/material-symbols/robot-2';
+import IconInfo from '~icons/material-symbols/info';
 
 import { userConfig } from '$stores/userConfig.svelte';
 import type { IPgnGameStore } from '$Types/StoreInterfaces';
@@ -21,7 +22,7 @@ function setConfigBoolean(key: BooleanKeys<UserConfigOpts>) {
   userConfig.opts[key] = !userConfig.opts[key];
 }
 
-export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
+export function getMenuData(setHelpOpen: (val: boolean) => void, gameStore?: IPgnGameStore): MenuItem[] {
   return [
     {
       label: 'Stockfish',
@@ -171,12 +172,11 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
         {
           type: 'toggle',
           label: 'Show Eval',
-          tooltip:
-            'Toggle whether to show AI evaluation for AI mode.',
+          tooltip: 'Toggle whether to show AI evaluation for AI mode.',
           checked: userConfig.opts.aiEval,
           onToggle: () => setConfigBoolean('aiEval'),
-        }
-      ]
+        },
+      ],
     },
     {
       label: 'Anki Template',
@@ -289,7 +289,14 @@ export function getMenuData(gameStore?: IPgnGameStore): MenuItem[] {
           } as MenuItem,
         ]
       : []),
-
+    {
+      type: 'action',
+      icon: IconInfo,
+      label: 'Help Menu',
+      action: () => {
+        setHelpOpen(true);
+      },
+    },
     // Save/Copy button
     ...getSaveMenuItemData(),
   ].filter((item): item is MenuItem => !!item);

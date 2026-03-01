@@ -41,11 +41,11 @@ export class EngineStore {
   // --- Non-reactive variables ---
 
   isThinking = false;
-  multipvOptions = [1, 2, 3, 4, 5];
 
   // --- Internal State ---
 
   private _currentFen = ''; // The FEN currently being processed by the engine
+  private _currentFenLegalMoves = 1;
   private _pendingFen: string = ''; // A queued FEN waiting for the engine to stop
 
   private _lineBuffer = new Map<number, AnalysisLine>(); // Buffer for incoming lines
@@ -67,8 +67,6 @@ export class EngineStore {
   analysisThinkingTime = $derived(userConfig.opts.analysisTime);
   multipv = $derived(userConfig.opts.analysisLines);
 
-  thinkingTimeOptions = [1, 5, 10, 30, 60, 300];
-
   private _aiElo = $derived(userConfig.opts.aiElo);
   private _aiMoveTime = $derived(userConfig.opts.aiMoveTime * 1000);
 
@@ -77,7 +75,7 @@ export class EngineStore {
     // We only show the arrow if the analysis actually matches the visual board FEN
     // (Checked loosely via evalFen, but the UI should handle the precise sync)
     const bestLine = this.analysisLines.find((l) => l.id === 1);
-    if (!bestLine || !bestLine.firstMove) return null;
+    if (!bestLine?.firstMove) return null;
     return { ...bestLine.firstMove, fen: this.evalFen };
   });
 
@@ -88,7 +86,6 @@ export class EngineStore {
 
     // Create a copy and reverse it so the Best Move (ID 1) is drawn last (on top)
     const linesToDraw = [...this.analysisLines].reverse();
-
     return linesToDraw
       .map((line) => {
         if (!line.firstMove) return null;
@@ -137,13 +134,18 @@ export class EngineStore {
   });
 
   constructor() {
+    this.stop();
     $effect(() => {
-      // Register userConfig changes
+      // Restart Engine on userConfig changes
       void this.multipv;
       void this.analysisThinkingTime;
       untrack(() => {
-        if (!this.enabled) return; // prevent restarting on initial load
-        this.restart();
+        if (!this.enabled || !this.evalFen || this._aiRequestPending) return;
+
+        // Pre-fill _pendingFen to bypass the "already thinking about this FEN"
+        // early return inside `analyze()`, keeping `_currentFen` intact for `_flushBuffer`.
+        this._pendingFen = this.evalFen
+        this.analyze(this.evalFen);
       });
     });
   }
@@ -245,16 +247,6 @@ export class EngineStore {
     }
   }
 
-  restart() {
-    // Restart analysis if active
-    if (this.enabled && this._currentFen) {
-      // We force a re-analysis by acting like the FEN changed
-      const newFen = this._currentFen;
-      this._currentFen = '';
-      this.analyze(newFen);
-    }
-  }
-
   destroy() {
     this.stopAndClear();
     if (this._updateTimeout) clearTimeout(this._updateTimeout);
@@ -335,6 +327,9 @@ export class EngineStore {
 
     this._currentFen = fen;
     this.evalFen = fen;
+    const tempChess = new Chess(fen);
+    this._currentFenLegalMoves = tempChess.moves().length || 1;
+
     this.analysisLines = []; // Clear old lines
     this._lineBuffer.clear(); // Clear buffer
     // Reset the throttle timer.
@@ -532,37 +527,10 @@ export class EngineStore {
       // Parse PV (Moves)
       const pvIdx = parts.indexOf('pv');
       let pvRaw = '';
-      let pvSan = '';
-      let firstMoveData = null;
 
       if (pvIdx > -1) {
         const rawMoves = parts.slice(pvIdx + 1);
         pvRaw = rawMoves.join(' ');
-
-        const sanMoves: string[] = [];
-        const tempChess = new Chess(this._currentFen);
-
-        for (const uci of rawMoves) {
-          if (uci.length < 4) break;
-          const from = uci.substring(0, 2) as Square;
-          const to = uci.substring(2, 4) as Square;
-          const promotion = uci.length > 4 ? uci.substring(4, 5) : undefined;
-
-          try {
-            const m = tempChess.move({ from, to, promotion });
-
-            if (m) {
-              sanMoves.push(m.san);
-              if (!firstMoveData) {
-                firstMoveData = { from, to, san: m.san };
-              }
-            }
-          } catch (err) {
-            // Stop parsing this line if we hit an illegal move/error.
-            break;
-          }
-        }
-        pvSan = sanMoves.join(' ');
       }
 
       // Update Analysis Line
@@ -573,8 +541,8 @@ export class EngineStore {
         isMate,
         winChance,
         pvRaw,
-        pvSan,
-        firstMove: firstMoveData,
+        pvSan: '', // Defer parsing
+        firstMove: null, // Defer parsing
       };
 
       // GUARD: mid-parse race conditions
@@ -593,6 +561,38 @@ export class EngineStore {
     untrack(() => {
       // Convert Map values to array and sort by ID
       const lines = Array.from(this._lineBuffer.values()).sort((a, b) => a.id - b.id);
+
+      // --- Perform expensive SAN conversion only on flushed lines ---
+      for (const line of lines) {
+        if (!line.pvRaw || line.pvSan || !this._currentFen) continue; // Skip if empty or already parsed
+        const sanMoves: string[] = [];
+        const tempChess = new Chess(this._currentFen);
+        const rawMoves = line.pvRaw.split(' ');
+        let firstMoveData = null;
+
+        for (const uci of rawMoves) {
+          if (uci.length < 4) break;
+          const from = uci.substring(0, 2) as Square;
+          const to = uci.substring(2, 4) as Square;
+          const promotion = uci.length > 4 ? uci.substring(4, 5) : undefined;
+
+          try {
+            const m = tempChess.move({ from, to, promotion });
+            if (m) {
+              sanMoves.push(m.san);
+              if (!firstMoveData) {
+                firstMoveData = { from, to, san: m.san };
+              }
+            }
+          } catch (err) {
+            break;
+          }
+        }
+        line.pvSan = sanMoves.join(' ');
+        line.firstMove = firstMoveData;
+      }
+      // ------------------------------------------------------------------
+
       this.analysisLines = lines;
 
       // Mark the time and clear the timeout handle
@@ -605,14 +605,16 @@ export class EngineStore {
     // If an update is already queued, we just wait for it to fire.
     if (this._updateTimeout) return;
 
-    // Wait for all MultiPV lines before pushing first update
-    if (this.analysisLines.length === 0 && this._lineBuffer.size < this.multipv) {
+    const targetLines = Math.min(this.multipv, this._currentFenLegalMoves);
+
+    // Wait for all expected lines before pushing first update
+    if (!this.analysisLines.length && this._lineBuffer.size < targetLines) {
       return;
     }
 
     const now = performance.now();
     const timeSinceLast = now - this._lastInfoUpdate;
-    const throttleDelay = 200; // ms
+    const throttleDelay = 300; // ms
 
     if (timeSinceLast > throttleDelay) {
       // --- LEADING EDGE: Update Immediately ---

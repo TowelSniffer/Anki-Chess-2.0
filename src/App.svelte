@@ -5,16 +5,24 @@
   import PgnViewer from '$components/PgnViewer.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components//EngineAnalysis.svelte';
-  import { userConfig } from '$stores/userConfig.svelte';
+  import HelpWrapper from '$components/HelpWrapper.svelte';
+
   import { RenderScan } from 'svelte-render-scan';
+  import { userConfig } from '$stores/userConfig.svelte';
 
   let { pgn, boardMode, userText } = $props();
+
+  let isHelpOpen = $state(false);
+
+  $effect(() => {
+   $inspect(isHelpOpen)
+  })
 </script>
 
 {#if import.meta.env.DEV}
-	<RenderScan />
+  <RenderScan />
 {/if}
-
+<HelpWrapper bind:isHelpOpen/>
 <GameProvider {pgn} {boardMode}>
   <div id="container">
     {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
@@ -25,10 +33,14 @@
           </div>
         {/if}
         {#if boardMode === 'Viewer'}
-          <div id="buttons-container">
-            <ButtonsContainer />
+          <div id="sticky-container">
+            <div id="buttons-container">
+              <ButtonsContainer bind:isHelpOpen/>
+            </div>
+            <div id="analysis-container">
+              <EngineAnalysis />
+            </div>
           </div>
-          <EngineAnalysis />
           <div id="pgnViewer">
             <PgnViewer />
           </div>
@@ -44,9 +56,7 @@
 
 <style lang="scss">
   $max-width: min(100vw, 1000px);
-  $comment-box-width-calc: calc(
-    $max-width - var(--board-size) - calc($max-width * 0.03)
-  );
+  $comment-box-width-calc: calc($max-width - var(--board-size) - calc($max-width * 0.03));
 
   #container {
     margin: 0;
@@ -85,14 +95,16 @@
         }
       }
 
-      #buttons-container {
-        @include flex-center;
-        border-bottom: var(--border-thin);
-        background: var(--surface-secondary);
+      #sticky-container {
         position: sticky;
         top: 0; /* Sticks to the top of the container when you scroll */
         z-index: 25;
-        padding: 4px;
+        #buttons-container {
+          @include flex-center;
+          border-bottom: var(--border-thin);
+          background: var(--surface-secondary);
+          padding: 4px;
+        }
       }
 
       #pgnViewer {
