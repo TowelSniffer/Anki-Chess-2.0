@@ -28,27 +28,27 @@ cg-container {
   }
 
   coords {
-    position: absolute;
+    position: relative;
     left: 0 !important;
     top: 0 !important;
     pointer-events: none;
 
     coord {
-      font-size: calc($board-size-calc * 0.025);
+      font-size: calc(var(--board-size) * 0.025);
       font-weight: bold;
       flex: 1 1 auto;
     }
 
     &.files {
       position: relative;
-      left: calc($board-size-calc * 0.045) !important;
-      top: calc($board-size-calc * -0.035) !important;
+      left: calc(var(--board-size) * 0.045) !important;
+      top: calc(var(--board-size) * -0.035) !important;
     }
 
     &.ranks {
       position: relative;
-      left: calc($board-size-calc * 0.01) !important;
-      top: calc($board-size-calc * -0.045) !important;
+      left: calc(var(--board-size) * 0.01) !important;
+      top: calc(var(--board-size) * -0.045) !important;
     }
 
   }

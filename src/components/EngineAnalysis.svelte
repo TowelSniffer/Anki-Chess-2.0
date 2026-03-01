@@ -2,7 +2,6 @@
   import type { IPgnGameStore } from '$Types/StoreInterfaces';
   import type { EngineStore } from '$stores/engineStore.svelte';
   import { slide } from 'svelte/transition';
-  import { userConfig } from '$stores/userConfig.svelte';
   import CustomSelector from './uiUtility/CustomSelector.svelte';
   import { getContext } from 'svelte';
   import IconArrowSplit from '~icons/material-symbols/arrow-split';
@@ -10,6 +9,8 @@
 
   const gameStore = getContext<IPgnGameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
+
+  const config = $derived(gameStore.config);
 
   const whiteAdv = $derived(
     engineStore.analysisLines[0]?.winChance > 50 ||
@@ -31,18 +32,18 @@
     <div class="controls">
       <CustomSelector
         label="Lines:"
-        value={userConfig.opts.analysisLines}
+        value={config.analysisLines}
         options={engineStore.multipvOptions}
         icon={IconArrowSplit}
-        onChange={(val: number) => (userConfig.opts.analysisLines = val)}
+        onChange={(val: number) => (config.analysisLines = val)}
       />
 
       <CustomSelector
         label="Thinking Time (s):"
-        value={userConfig.opts.analysisTime}
+        value={config.analysisTime}
         options={engineStore.thinkingTimeOptions}
         icon={IconSearchGear}
-        onChange={(val: number) => (userConfig.opts.analysisTime = val)}
+        onChange={(val: number) => (config.analysisTime = val)}
       />
     </div>
     {#if engineStore.analysisLines.length > 0 || engineStore.enabled}
