@@ -1,12 +1,10 @@
 export class TimerStore {
   // --- State ---
   isRunning = false;
-  totalTime // in ms (initial duration)
+  totalTime; // in ms (initial duration)
   remainingTime; // in ms
   // Controls if the board shows the timer gradient
   visible = $state(false);
-
-  isOutOfTime = $derived(this._config.timer && this.remainingTime === 0);
 
   // --- Internal ---
   private animationFrameId: number | null = null;
@@ -16,21 +14,26 @@ export class TimerStore {
   private _lastStateUpdate = 0;
   private _config;
 
-  // --- Derived ---
-
-  // Calculates the percentage (0% to 100%) for the CSS gradient
-  percent = $derived.by(() => {
-    if (this.totalTime === 0) return 0;
-    const p = 100 - (this.remainingTime / this.totalTime) * 100;
-    return Math.min(Math.max(p, 0), 100);
-  });
-
-  constructor( getConfig: UserConfigOpts ) {
+  constructor(getConfig: UserConfigOpts) {
     this._config = getConfig();
     this.totalTime = this._config.timer;
     this.remainingTime = $state(this._config.timer);
     this._internalRemaining = this._config.timer;
+  }
 
+  /*
+   * GETTERS
+   */
+
+  // Calculates the percentage (0% to 100%) for the CSS gradient
+  get percent() {
+    if (this.totalTime === 0) return 0;
+    const p = 100 - (this.remainingTime / this.totalTime) * 100;
+    return Math.min(Math.max(p, 0), 100);
+  }
+
+  get isOutOfTime() {
+    return this._config?.timer && this.remainingTime === 0;
   }
 
   // --- Actions ---
@@ -82,10 +85,7 @@ export class TimerStore {
   /**
    * Smoothly adds time to the clock over (gameStore.aiDelayTime)
    */
-  extend(
-    ms: number = this._config.increment,
-    duration: number = this._config.animationTime + 100,
-  ) {
+  extend(ms: number = this._config.increment, duration: number = this._config.animationTime + 100) {
     if (!this.visible) return;
 
     this.pause();

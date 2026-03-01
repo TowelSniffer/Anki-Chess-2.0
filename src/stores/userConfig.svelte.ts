@@ -12,9 +12,6 @@ export class UserConfig {
   lastSavedState = $state($state.snapshot(this.opts));
 
   // --- Derived State ---
-  saveDue: boolean = $derived(
-    JSON.stringify($state.snapshot(this.opts)) !== JSON.stringify(this.lastSavedState),
-  );
 
   constructor() {
     $effect.root(() => {
@@ -28,6 +25,14 @@ export class UserConfig {
         }
       });
     });
+  }
+
+  /*
+   * GETTERS
+   */
+
+  get saveDue(): boolean {
+    return JSON.stringify($state.snapshot(this.opts)) !== JSON.stringify(this.lastSavedState);
   }
 
   // --- METHODS ---
@@ -106,7 +111,7 @@ export class UserConfig {
       // We send just the config. Python can figure out the current model.
       const payload = JSON.stringify({
         config: this.lastSavedState,
-        cardName: window.CARD_CONFIG?.cardName
+        cardName: window.CARD_CONFIG?.cardName,
       });
       pycmd(`ankiChess:saveConfig:${payload}`);
       return;

@@ -62,83 +62,6 @@ export class PgnGameStore {
   private _randOrientBool: boolean = $state(false); // Track random orientation
   private _storage: GameStorage;
 
-  /*
-   * DERIVED STATE
-   */
-
-  aiDelayTime = $derived(this.config.animationTime + 100);
-  isPuzzleComplete = $derived(
-    this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext,
-  );
-
-  // caches the string key (prevents repeated .join() calls)
-  currentPathKey = $derived(this.pgnPath.join(','));
-
-  // caches the Map lookup
-  currentMove = $derived(this._moveMap.get(this.currentPathKey) || null);
-
-  // depends on cached currentMove
-  fen = $derived(this.currentMove?.after ?? this.startFen);
-  viewOnly = $derived(this._moveDebounce ? true : false);
-
-  playerColor: CgColor = $derived.by(() => {
-    let color: CgColor = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
-    if (this._flipBoolean) color = color === 'white' ? 'black' : 'white';
-
-    return color;
-  });
-
-  opponentColor: CgColor = $derived(this.playerColor === 'white' ? 'black' : 'white');
-
-  orientation: CgColor = $derived.by(() => {
-    const flipPgn = this._flipBoolean;
-    let orientation: CgColor =
-      getTurnFromFen(this.startFen) === 'w'
-        ? flipPgn
-          ? 'black'
-          : 'white'
-        : flipPgn
-          ? 'white'
-          : 'black';
-
-    if (this._randOrientBool) orientation = orientation === 'white' ? 'black' : 'white';
-
-    return orientation;
-  });
-
-  // depends on cached currentMove
-  turn: Color = $derived.by(() => {
-    if (!this.currentMove) {
-      // Ensure rootGame is loaded before accessing tags
-      if (!this.rootGame) return 'w';
-      return getTurnFromFen(this.startFen);
-    }
-    return this.currentMove.turn === 'w' ? 'b' : 'w';
-  });
-
-  // The "Raw" Calculation (Always calculates the freshest shapes)
-  systemShapes = $derived.by(() => {
-    const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
-    if (this.boardMode === 'AI' || (puzzleMode && this.config.disableArrows)) return [];
-    const prevMovePath = navigatePrevMove(this.pgnPath);
-    const flipPgn = this.config.flipBoard && this.boardMode === 'Puzzle';
-    const isStartOfPuzzle =
-      puzzleMode && (!this.pgnPath.length || (flipPgn && !prevMovePath.length));
-    if (isStartOfPuzzle) return [];
-    const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
-    const pgnPath = redrawCachedShapes ? prevMovePath : this.pgnPath;
-    const engineStore = this.engineStore;
-    return [
-      // Only spread engine shapes if the engine's eval matches our visual FEN
-      ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
-      ...getSystemShapes(pgnPath, this._moveMap, this.boardMode),
-      ...parseCal(puzzleMode ? [] : this.currentMove?.commentDiag?.colorArrows),
-      ...parseCsl(puzzleMode ? [] : this.currentMove?.commentDiag?.colorFields),
-    ];
-  });
-
-  boardConfig = $derived(getCgConfig(this));
-
   constructor(
     getPgn: () => string,
     getBoardMode: () => BoardModes,
@@ -412,6 +335,95 @@ export class PgnGameStore {
   /*
    * GETTERS
    */
+
+  get aiDelayTime() {
+    return this.config.animationTime + 100;
+  }
+
+  get isPuzzleComplete() {
+    return this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext;
+  }
+
+  // caches the string key (prevents repeated .join() calls)
+  get currentPathKey() {
+    return this.pgnPath.join(',');
+  }
+
+  // caches the Map lookup
+  get currentMove() {
+    return this._moveMap.get(this.currentPathKey) || null;
+  }
+
+  // depends on cached currentMove
+  get fen() {
+    return this.currentMove?.after ?? this.startFen;
+  }
+
+  get viewOnly() {
+    return this._moveDebounce ? true : false;
+  }
+
+  get playerColor(): CgColor {
+    let color: CgColor = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
+    if (this._flipBoolean) color = color === 'white' ? 'black' : 'white';
+
+    return color;
+  }
+
+  get opponentColor(): CgColor {
+    return this.playerColor === 'white' ? 'black' : 'white';
+  }
+
+  get orientation(): CgColor {
+    const flipPgn = this._flipBoolean;
+    let orientation: CgColor =
+      getTurnFromFen(this.startFen) === 'w'
+        ? flipPgn
+          ? 'black'
+          : 'white'
+        : flipPgn
+          ? 'white'
+          : 'black';
+
+    if (this._randOrientBool) orientation = orientation === 'white' ? 'black' : 'white';
+
+    return orientation;
+  }
+
+  // depends on cached currentMove
+  get turn(): Color {
+    if (!this.currentMove) {
+      // Ensure rootGame is loaded before accessing tags
+      if (!this.rootGame) return 'w';
+      return getTurnFromFen(this.startFen);
+    }
+    return this.currentMove.turn === 'w' ? 'b' : 'w';
+  }
+
+  // The "Raw" Calculation (Always calculates the freshest shapes)
+  get systemShapes() {
+    const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
+    if (this.boardMode === 'AI' || (puzzleMode && this.config.disableArrows)) return [];
+    const prevMovePath = navigatePrevMove(this.pgnPath);
+    const flipPgn = this.config.flipBoard && this.boardMode === 'Puzzle';
+    const isStartOfPuzzle =
+      puzzleMode && (!this.pgnPath.length || (flipPgn && !prevMovePath.length));
+    if (isStartOfPuzzle) return [];
+    const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
+    const pgnPath = redrawCachedShapes ? prevMovePath : this.pgnPath;
+    const engineStore = this.engineStore;
+    return [
+      // Only spread engine shapes if the engine's eval matches our visual FEN
+      ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
+      ...getSystemShapes(pgnPath, this._moveMap, this.boardMode),
+      ...parseCal(puzzleMode ? [] : this.currentMove?.commentDiag?.colorArrows),
+      ...parseCsl(puzzleMode ? [] : this.currentMove?.commentDiag?.colorFields),
+    ];
+  }
+
+  get boardConfig() {
+    return getCgConfig(this);
+  }
 
   get hasNext() {
     // generate what the "next" path would be
