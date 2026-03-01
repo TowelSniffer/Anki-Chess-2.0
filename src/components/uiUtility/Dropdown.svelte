@@ -222,7 +222,7 @@
         {#if typeof item.icon === 'string'}
           <span class="material-symbols-sharp icon">{item.icon}</span>
         {:else if item.icon}
-          <span class="icon">
+          <span class="material-symbols-sharp icon">
             <item.icon />
           </span>
         {/if}
@@ -253,13 +253,16 @@
         {#if item.icon}
           <span class="material-symbols-sharp icon">{item.icon}</span>
         {/if}
-        <span class="text">{item.label}</span>
-        {#if item.tooltip}
-          <span class="info-hint material-symbols-sharp"><IconHelp /></span>
-        {/if}
+        <span class="text-container">
+          <span class="text">{item.label}</span>
+          {#if item.tooltip}
+            <span class="info-hint material-symbols-sharp"><IconHelp /></span>
+          {/if}
+        </span>
       </div>
     {/if}
     {#if activeTooltips.has(item)}
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <div class="tooltip-text" role="note" tabindex="-1" onclick={stopProp} onkeydown={stopProp}>
         {item.tooltip}
       </div>
@@ -272,9 +275,9 @@
     {#each listItems as item}
       {#if item.type === 'separator'}
         <li class="separator"></li>
-
       {:else if item.type === 'toggle' || item.type === 'number'}
         <li>
+          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
           <div class="control-item" role="group" onclick={stopProp} onkeydown={stopProp}>
             {@render itemLabel(item)}
 
@@ -288,10 +291,15 @@
             />
           </div>
         </li>
-
       {:else if item.type === 'select'}
         <li>
-          <div class="control-item select-container" role="group" onclick={stopProp} onkeydown={stopProp}>
+          <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+          <div
+            class="control-item select-container"
+            role="group"
+            onclick={stopProp}
+            onkeydown={stopProp}
+          >
             <CustomInputs
               type="select"
               label={item.label}
@@ -301,7 +309,6 @@
             />
           </div>
         </li>
-
       {:else if item}
         <li class="menu-item-wrapper" onmouseenter={adjustSubmenuPosition}>
           <div
@@ -510,19 +517,29 @@
     flex-direction: column;
     align-items: flex-start;
     flex: 1;
-  }
 
-  .label-content {
-    display: flex;
-    align-items: center;
-    font-size: 0.85rem;
-    gap: 0.3rem;
+    .label-content {
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+      gap: 0.3rem;
 
-    &.has-tooltip {
-      cursor: help;
+      .text-container {
+        @include flex-center;
+        gap: 0.3rem;
 
-      &:hover .text {
-        text-decoration: underline dotted;
+        .text {
+          white-space: nowrap;
+          width: min-content;
+        }
+      }
+
+      &.has-tooltip {
+        cursor: help;
+
+        &:hover .text {
+          text-decoration: underline dotted;
+        }
       }
     }
   }
