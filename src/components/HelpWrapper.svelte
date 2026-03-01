@@ -4,7 +4,7 @@
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import ChessgroundBoard from '$components/ChessgroundBoard.svelte';
   import HelpModal, { type SettingsSection } from '$components/uiUtility/HelpModal.svelte';
-  import CustomSelector from '$components/uiUtility/CustomSelector.svelte';
+  import CustomInputs from '$components/uiUtility/CustomInputs.svelte';
   import IconInfo from '~icons/material-symbols/info';
   import IconSync from '~icons/material-symbols/sync-sharp';
   import { getContext, type Snippet } from 'svelte';
@@ -88,7 +88,8 @@ of 164k]}) *
     <h2>Try Tome Example Presets</h2>
 
     <div style="display:flex; gap: 1rem; justify-content: space-evenly; margin-bottom: 1rem;">
-      <CustomSelector
+      <CustomInputs
+        type="select"
         label="Example"
         options={demoOptions.map((d) => d.label)}
         value={selectedDemoLabel}

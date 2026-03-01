@@ -85,6 +85,12 @@ body.light-theme {
   align-items: center;
 }
 
+@mixin justify-space-evenly {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
 @mixin board-square-size {
   height: $board-square-calc;
   width: $board-square-calc;
@@ -114,52 +120,37 @@ body.light-theme {
   border: none;
   padding: 0;
   margin: 0;
-  font: inherit;
-  color: inherit;
   cursor: pointer;
 
+  @include flex-center;
+  z-index: 20;
+  flex-direction: row;
+  border-radius: var(--border-radius-global);
+  border: var(--border-thin);
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  @include subtle-shadow;
+
+  width: $size;
+  height: $size;
+  @include x-margin($button-margin-calc);
+  box-sizing: border-box;
+  transition: background 0.2s;
+  font-size: 1.65rem;
+
   &:focus-visible {
-    outline: 1px solid blue; /* Or any style you prefer */
+    outline: 1px solid blue;
   }
 
-  &.iconBtn {
-    /* remove default button styling */
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
+  &:hover:not(:disabled, .active-toggle) {
+    background-color: var(--interactive-button-hover);
+    color: var(--surface-primary);
+    @include subtle-shadow(0.7);
+  }
 
-    @include flex-center;
-    z-index: 20;
-    flex-direction: row;
-    border-radius: var(--border-radius-global);
-    border: var(--border-thin);
-    background-color: var(--surface-primary);
-    color: var(--text-primary);
-    @include subtle-shadow;
-
-    width: $size;
-    height: $size;
-    @include x-margin($button-margin-calc);
-    cursor: pointer;
-    box-sizing: border-box;
-    transition: background 0.2s;
-    font-size: 1.65rem;
-
-    &:focus-visible {
-      outline: 1px solid blue;
-    }
-
-    &:hover:not(:disabled, .active-toggle) {
-      background-color: var(--interactive-button-hover);
-      color: var(--surface-primary);
-      @include subtle-shadow(0.7);
-    }
-
-    &:active:not(:disabled) {
-      background-color: var(--interactive-button-active);
-      color: var(--surface-primary);
-      @include subtle-shadow(0.7, inset);
-    }
+  &:active:not(:disabled) {
+    background-color: var(--interactive-button-active);
+    color: var(--surface-primary);
+    @include subtle-shadow(0.7, inset);
   }
 }
