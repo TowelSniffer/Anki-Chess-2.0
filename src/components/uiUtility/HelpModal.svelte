@@ -183,7 +183,7 @@
       cursor: pointer;
       font-size: 1.5rem;
       padding: 0.2rem;
-      &:hover { color: var(--status-error); }
+      &:hover { color: var(--status-fail); }
     }
   }
 
@@ -238,7 +238,7 @@
       &:hover { background: var(--surface-hover); }
       &.active {
         background: var(--surface-primary);
-        border-left: 3px solid var(--status-correct);
+        border-left: 3px solid var(--status-pass);
         font-weight: bold;
         padding-left: calc(1rem - 3px); /* Stops layout shift from border */
       }

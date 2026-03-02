@@ -10,8 +10,8 @@ $palette-green-500: #557d38;
 $palette-moss-green: #a5d6a7;
 
 /* CG Board palette */
-$palette-correct: #2aa146;
-$palette-incorrect: #d64c4c;
+$palette-pass: #2aa146;
+$palette-fail: #d64c4c;
 $palette-perfect: #df4096;
 
 /* sizing */
@@ -59,8 +59,8 @@ $border-radius-global: 4px;
   /* Interaction  Game State */
   --interactive-button-active: #{$palette-moss-green};
   --interactive-button-hover: #{$palette-green-500};
-  --status-error: #{$palette-incorrect};
-  --status-correct: #{$palette-correct};
+  --status-fail: #{$palette-fail};
+  --status-pass: #{$palette-pass};
   --status-perfect: #{$palette-perfect};
 
   /* Board Specifics */

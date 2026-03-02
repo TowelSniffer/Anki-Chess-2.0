@@ -133,7 +133,7 @@ const customBrushes = {
   },
   blunderLine: {
     key: 'blunderLine',
-    color: 'var(--status-error)',
+    color: 'var(--status-fail)',
     opacity: 1,
     lineWidth: 7,
   },

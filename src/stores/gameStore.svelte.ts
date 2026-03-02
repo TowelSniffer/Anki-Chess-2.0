@@ -167,28 +167,47 @@ export class GameStore {
     $effect(() => {
       if (this.errorCount > this.config.handicap) {
         this.errorCount = 0;
-        this._puzzleScore = 'incorrect';
+        this._puzzleScore = 'fail';
       }
     });
+
+    // --- PUZZLE SCORING ---
     $effect(() => {
-      if (this._puzzleScore || this.boardMode === 'Viewer') return;
+      /*
+       * We track mistakes and blunders in puzzle and Study mode and Scores Puzzle.
+       * Mistakes: wrong moves played; Timer is 0
+       * Fail: if strictScoring, any mistake; Blunder move played in puzzle
+       * mode; errorCount > handicap
+       * puzzleScores: if strictScoring [ pass, fail ]
+       * else  [ perfect, pass, fail ]
+       */
+
+      const isPuzzle = /^(Puzzle|Study)$/.test(this.boardMode);
+      const score = this._puzzleScore;
+
+      // We only score once per puzzle
+      if (score || !isPuzzle) return;
+
       const currentMove = this.currentMove;
-      untrack(() => {
-        if (
-          (this.boardMode === 'Puzzle' &&
-            currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
-            currentMove?.turn === this.playerColor[0]) ||
-          (this._hasMadeMistake && this.config.strictScoring)
-        ) {
-          this._puzzleScore = 'incorrect';
-        } else if (this.isPuzzleComplete) {
-          const isPerfectScore =
-            (this.config.timer || this.config.handicap) &&
-            !this._hasMadeMistake &&
-            !this.config.strictScoring;
-          this._puzzleScore = isPerfectScore ? 'perfect' : 'correct';
-        }
-      });
+
+      // We mark blunder lines as fail if played in Puzzle
+      const isNagBlunder =
+        this.boardMode === 'Puzzle' &&
+        currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
+        currentMove?.turn === this.playerColor[0];
+      // Any mistake is a fail if strictScoring
+      const isStrictMistake = this._hasMadeMistake && this.config.strictScoring;
+
+      if (isNagBlunder || isStrictMistake) { // if Fail
+        this._puzzleScore = 'fail';
+      } else if (this.isPuzzleComplete) {
+        // Grade on puzzle completion
+        const isPerfectScore =
+          (this.config.timer || this.config.handicap) &&
+          !this._hasMadeMistake &&
+          !this.config.strictScoring;
+        this._puzzleScore = isPerfectScore ? 'perfect' : 'pass';
+      }
     });
     $effect(() => {
       const isPuzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
@@ -341,10 +360,7 @@ export class GameStore {
    * METHODS
    */
 
-  loadNewGame(
-    rawPGN: string,
-    mirrorState: MirrorState
-  ) {
+  loadNewGame(rawPGN: string, mirrorState: MirrorState) {
     this.rootGame = undefined;
     this._moveMap = new Map<string, CustomPgnMove>();
 

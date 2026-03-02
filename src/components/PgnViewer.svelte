@@ -109,8 +109,8 @@
     if (!key) return {};
 
     let nagClass = '';
-    if (blunderNags.includes(key)) nagClass = 'nag-error';
-    else if (key === '$1') nagClass = 'nag-correct';
+    if (blunderNags.includes(key)) nagClass = 'nag-fail';
+    else if (key === '$1') nagClass = 'nag-pass';
     else if (key === '$3') nagClass = 'nag-perfect';
 
     return {
@@ -279,11 +279,11 @@
       font-weight: 550;
       color: var(--text-muted);
       /* Color nag for good and blunder */
-      &.nag-error {
-        color: var(--status-error);
+      &.nag-fail {
+        color: var(--status-fail);
       }
-      &.nag-correct {
-        color: var(--status-correct);
+      &.nag-pass {
+        color: var(--status-pass);
       }
       &.nag-perfect {
         color: var(--status-perfect);
