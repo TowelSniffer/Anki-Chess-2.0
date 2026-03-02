@@ -4,14 +4,12 @@ import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect'
 import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
 
 export class UserConfig {
-  opts = $state<UserConfigOpts>(this._readConfigFromWindow());
+  opts = $state<UserConfigOpts>(this.#readConfigFromWindow());
 
   isAnkiConnect = $state(false);
   hasAddon = $state(false);
 
   lastSavedState = $state($state.snapshot(this.opts));
-
-  // --- Derived State ---
 
   constructor() {
     $effect.root(() => {
@@ -39,7 +37,7 @@ export class UserConfig {
 
   refresh() {
     // Force a re-read of window.USER_CONFIG and window.CARD_CONFIG
-    this.opts = this._readConfigFromWindow();
+    this.opts = this.#readConfigFromWindow();
 
     // Update legacy state tracking
     if (typeof window !== 'undefined' && window.USER_CONFIG) {
@@ -48,24 +46,24 @@ export class UserConfig {
       this.lastSavedState = $state.snapshot(this.opts);
     }
 
-    this._checkConnections();
+    this.#checkConnections();
   }
 
   // --- PRIVATE METHODS ---
 
   // --- Centralized Config Reader ---
-  private _readConfigFromWindow(): UserConfigOpts {
+  #readConfigFromWindow(): UserConfigOpts {
     const newOpts: Partial<UserConfigOpts> = {};
 
     // We iterate over the default keys to ensure we grab everything
     (Object.keys(defaultConfig) as Array<keyof UserConfigOpts>).forEach((key) => {
-      (newOpts as any)[key] = this._getConfigValue(key);
+      (newOpts as any)[key] = this.#getConfigValue(key);
     });
 
     return newOpts as UserConfigOpts;
   }
 
-  private _getConfigValue<K extends keyof UserConfigOpts>(key: K): UserConfigOpts[K] {
+  #getConfigValue<K extends keyof UserConfigOpts>(key: K): UserConfigOpts[K] {
     const model = window.CARD_CONFIG?.modelName ?? '';
     const card = window.CARD_CONFIG?.cardName ?? '';
     const prefix = typeof window !== 'undefined' ? `${model}_${card}_` : '';
@@ -84,7 +82,7 @@ export class UserConfig {
     return (window.USER_CONFIG?.[key] ?? defaultConfig[key]) as UserConfigOpts[K];
   }
 
-  async _checkConnections() {
+  async #checkConnections() {
     // Check for specific Add-on Marker
     if (typeof pycmd !== 'undefined') {
       pycmd('ankiChess:handshake');

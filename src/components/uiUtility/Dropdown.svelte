@@ -138,10 +138,15 @@
     e.stopPropagation();
   }
 
-  // --- Reactive Logic ---
+  /*
+   * EFFECTS (Reactive Logic)
+   */
 
+  // Position and resize menu to fit display
   $effect(() => {
-    if (isOpen && triggerRef && menuRef) {
+    if (!(triggerRef && menuRef)) return;
+
+    if (isOpen) {
       const rect = triggerRef.getBoundingClientRect();
       let top = rect.bottom + 5;
       let left = rect.left;
@@ -165,6 +170,7 @@
     }
   });
 
+  // Add/remove event listeners
   $effect(() => {
     if (isOpen) {
       const onEvent = () => close();

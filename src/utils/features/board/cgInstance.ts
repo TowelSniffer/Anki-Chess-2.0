@@ -1,10 +1,12 @@
-import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
+import type { Piece, Key, Color as CgColor, Elements } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
+import { untrack } from 'svelte';
 import type { GameStore } from '$stores/gameStore.svelte';
 import type { CustomShape } from '$Types/ChessStructs';
 import { getLegalMove, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
-import { handleUserMove } from '$features/chessJs/puzzleLogic';
+import { moveAudio, playSound } from '$features/audio/audio';
+import { playAiMove, handleUserMove } from '$features/chessJs/puzzleLogic';
 
 // --- Logic Handlers ---
 
@@ -15,7 +17,6 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
  * 2. Manual Click-to-Move handling (if needed)
  */
 export function handleSelect(key: Key, store: GameStore) {
-  if (!store.cg) return;
   // type assertion as clicked square cannot be 'a0'
   const orig = store.lastSelected; // Logged synchronously in ChessgroundBoard.svelte
   const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
@@ -23,9 +24,13 @@ export function handleSelect(key: Key, store: GameStore) {
   // prevent out of turn moves in Puzzle mode
   const isNotPuzzleTurn =
     /^Puzzle|AI$/.test(store.boardMode) && store.turn !== store.playerColor[0];
+  if (isNotPuzzleTurn) return;
 
   // A. Check for Promotion via Click-to-Move (Piece already selected -> Click destination)
   const isPromote = orig && dest && isPromotion(orig as Square, dest, store.fen);
+  if (isPromote) {
+    return;
+  }
 
   if (isPromote || isNotPuzzleTurn) return;
 
@@ -34,14 +39,9 @@ export function handleSelect(key: Key, store: GameStore) {
   if (orig && dest && legalMoveCheck) {
     /**
      * Checks if user makes a standard click to move
-     * NOTE: we defer to default click to move here as after: event will be called after select event
-     * Setting Fen here without animation solves inconsistent animations for certain moves (en passant, promotion)
+     * NOTE: we defer to default click to move here as move: event will be called after select event
      */
 
-    if (legalMoveCheck.flags?.includes('e')) {
-      // fix broken animation for en passent click to move.
-      store.customAnimation = { fen: store.fen, animate: false };
-    }
     return;
   }
 
@@ -73,29 +73,50 @@ export function handleSelect(key: Key, store: GameStore) {
       moveCheck = movesToSquare[0];
     }
   }
-
-  if (moveCheck) {
+  if (moveCheck?.promotion) {
+    console.log('here')
     handleUserMove(store, moveCheck.from, moveCheck.to, moveCheck.san);
+  } else if (moveCheck) {
+    store.cg.move(moveCheck.from, moveCheck.to);
   }
 }
 
 /**
  * Handles the 'after' event (Drag and Drop completion).
  */
-export function handleMove(orig: Key, dest: Key, store: GameStore) {
-  if (!store.cg) return;
+function handleAfter(orig: Key, dest: Key, store: GameStore) {
   const from = orig as Square;
   const to = dest as Square;
 
+  const isSpecialMove = store.fen.split(' ')[0] !== store.cg.getFen();
+  console.log('after', isSpecialMove);
+}
+
+function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStore) {
   // Check Promotion
-  if (isPromotion(from, to, store.fen)) {
-    store.cg.move(from, to);
-    store.setPendingPromotion(from, to);
+  const isDragAndDrop = !store.cg.state.animation.current;
+  const isSpeciallMove = !isDragAndDrop && store.fen.split(' ')[0] !== store.cg.getFen();
+  console.log('move', isSpeciallMove);
+
+  if (isPromotion(orig, dest, store.fen)) {
+    store.setPendingPromotion(orig, dest);
     return;
   }
 
-  // Standard Move
-  handleUserMove(store, from, to);
+  const tempChess = store.newChess(store.fen);
+  const moveCheck = orig && dest && getLegalMove({ from: orig as Square, to: dest }, store.fen);
+
+  if (moveCheck?.flags.includes('e')) {
+    // store.cg.set({ fen: moveCheck.before });
+    store.customAnimation({ fen: moveCheck.after, animate: false });
+  }
+  moveCheck && handleUserMove(store, orig, dest);
+  const move = store.currentMove;
+  const isForward = move && move.from === orig && move.to === dest;
+
+  isForward && moveAudio(move);
+  // isCglMove && store.cg.set({ fen: store.fen })
+  store.cg.playPremove();
 }
 
 // --- Configuration ---
@@ -151,68 +172,23 @@ const customBrushes = {
 };
 
 // track existing custom animations
-let isAnimating: ReturnType<typeof setTimeout> | null;
 export function getCgConfig(store: GameStore) {
   /*
-   * Here we define a derived config to auto apply board updates with
-   * Svelte reactions.
+   * --- Reactive CG Config ---
+   * Here we define a derived config to auto apply board updates with Svelte reactions.
    */
-
   // For AI and Puzzle movable should be kept as player color
+
+    /*
+   * Here we compare newFen with current cg fen to check if fen need to be set.
+   * Ie if we capture a piece with en passent, we need to apply fen after cg.move
+   * to make sure the captured piece disappears.
+   * Also controlling this is useful for custom Promotion animations
+   */
   const fixedMovable = /^(Puzzle|AI)$/.test(store.boardMode);
   const movableColor = fixedMovable ? store.playerColor : store.turn === 'w' ? 'white' : 'black';
 
-  // we will distinguish between Fen changes and other config changes
-  let isFenUpdate = true;
-
-  const isCustomAnimation =
-    store.customAnimation && store.customAnimation?.fen.split(' ')[0] !== store.cg?.getFen();
-  const isStandardFenUpdate = store.fen.split(' ')[0] !== store.cg?.getFen();
-
-  if (isCustomAnimation) {
-    const timer = store.customAnimation?.animate;
-    const animationTime = store.config.animationTime;
-    if (isAnimating) {
-      clearTimeout(isAnimating);
-      isAnimating = null;
-    }
-    isAnimating = setTimeout(
-      () => {
-        isAnimating = null;
-        // Setting reactive value in asynchronous function is ok
-        if (!!store) store.customAnimation = null;
-      },
-      timer ? animationTime : 0,
-    );
-  } else if (isStandardFenUpdate) {
-    if (store.customAnimation) {
-      requestAnimationFrame(() => {
-        // Setting reactive value in asynchronous function is ok
-        if (!!store) store.customAnimation = null;
-      });
-    }
-    if (isAnimating) {
-      clearTimeout(isAnimating);
-      isAnimating = null;
-    }
-  } else {
-    // No Fen change
-    // Reacting to other config change
-    isFenUpdate = false;
-  }
-  let newFen;
-  if (isFenUpdate) {
-    newFen = store.customAnimation?.fen ?? store.fen;
-    const shouldAnimate = store.cg?.getFen() !== newFen.split(' ')[0];
-    if (!shouldAnimate) isFenUpdate = false;
-    // immediately clear shapes for consistent shape rendering with
-    // custom animations
-    if (isFenUpdate) store.cg?.setAutoShapes([]);
-  }
-
-
   return {
-    ...(isFenUpdate && { fen: newFen }),
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
@@ -226,7 +202,7 @@ export function getCgConfig(store: GameStore) {
       currentMove: true,
     },
     animation: {
-      enabled: store.customAnimation ? store.customAnimation.animate : true,
+      enabled: true,
       duration: store.config.animationTime,
     },
     drawable: {
@@ -236,7 +212,13 @@ export function getCgConfig(store: GameStore) {
     },
     events: {
       select: (key: Key) => {
-        handleSelect(key, store);
+        untrack(() => handleSelect(key, store));
+      },
+      move: (orig: Key, dest: Key, capturedPiece?: Piece) => {
+        untrack(() => handleMove(orig, dest, capturedPiece, store));
+      },
+      dropNewPiece: (piece, key) => {
+        console.log('dropNewPiece');
       },
     },
     movable: {
@@ -246,7 +228,7 @@ export function getCgConfig(store: GameStore) {
       dests: store.dests,
       events: {
         after: (orig: Key, dest: Key) => {
-          handleMove(orig, dest, store);
+          untrack(() => handleAfter(orig, dest, store));
         },
       },
     },

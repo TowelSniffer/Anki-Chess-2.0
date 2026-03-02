@@ -7,29 +7,15 @@
   import type { EngineStore } from '$stores/engineStore.svelte';
   import type { TimerStore } from '$stores/timerStore.svelte';
 
-  import { onMount, getContext, untrack, onDestroy } from 'svelte';
+  import { getContext, untrack, onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
   import { updateBoard } from '$features/board/boardAnimation';
-  import { moveAudio, playSound } from '$features/audio/audio';
   import { pieceImages } from '$utils/toolkit/importAssets';
 
   // Global Stores
   const gameStore = getContext<GameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
   const timerStore = getContext<TimerStore>('TIMER_STORE');
-
-  let boardContainer: HTMLDivElement;
-  onMount(() => {
-    if (boardContainer) {
-      requestAnimationFrame(() => {
-        gameStore.loadCgInstance(boardContainer);
-      });
-    }
-    return () => {
-      gameStore.cg?.destroy(); // Explicitly kill the cg instance
-      gameStore.cg = null;
-    };
-  });
 
   onDestroy(() => {
     if (flashState) flashState = null;
@@ -83,7 +69,7 @@
   // --- Border Color ---
 
   const boardBorderColor = $derived.by(() => {
-    let color = gameStore.puzzleScore ? gameStore.puzzleScore : gameStore.playerColor;
+    let color = gameStore.puzzleScore ?? gameStore.playerColor;
 
     if (puzzleInProgress) color = isRandomPuzzle ? 'draw' : gameStore.playerColor;
     else if (puzzleCompleteAndScored) color = gameStore.puzzleScore!;
@@ -227,92 +213,32 @@
     evalFillNode.style.transform = `translate3d(0, ${-100 + scale * 100}%, 0)`;
   });
 
-  // INITIAL LOAD
-  $effect(() => {
-    // Only run if board exists
-    if (!gameStore.cg || !boardContainer) return;
-    requestAnimationFrame(() => {
-      // Fix render issue with arrows
-      gameStore.cg?.redrawAll();
-    });
-  });
-
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
   let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
-    if (!gameStore.cg) return;
     const pullComplete = gameStore.isPuzzleComplete;
+
     if (pullComplete) {
-      gameStore.cg?.cancelMove();
+      gameStore.cg.stop();
       timerStore.stop();
       viewerTimeout = setTimeout(showViewer, 300);
     }
   });
 
   // Move & Custom Animation an Handler
-  let previousPath: PgnPath | null = null;
   $effect(() => {
-    if (!gameStore?.cg) return;
-
-    const cg = gameStore.cg;
-    const pgnPath = gameStore.pgnPath;
-    const fen = gameStore.fen;
     const move = gameStore.currentMove;
-
-    // Prevent animation and sounds on initial mount or when a new game/PGN is loaded
-    if (previousPath === null) {
-      previousPath = [...pgnPath];
-      return;
+    if (gameStore.animationTimeout) {
+      gameStore.customAnimation({ fen: gameStore.fen, animate: false });
     }
-
-    const isSingleClickMove = fen.split(' ')[0] !== cg.getFen();
-
-    // Reset errorCount on new fen
-    gameStore.errorCount = 0;
-
-    if (isSingleClickMove) {
-      /*
-       * Single click move or en passant
-       * Here we check if cg.move can be used instead of set({ fen: ... })
-       * for smoother animations
-       */
-
-      const prevMove = previousPath && gameStore.getMoveByPath(previousPath);
-
-      // Special moves require set({ fen: ... })
-      const shouldAnimate = move?.flags && !/^e|p|q|k$/.test(move.flags); // Promote/En Passant/Castle
-
-      const forwardMoveCheck =
-        shouldAnimate && move?.before.split(' ')[0] === cg.getFen();
-      // Special move check not needed as getCgConfig will compare fen to
-      // check for Captures/Promote/En Passant/Castle.
-      const undoMoveCheck = prevMove && move?.after === prevMove?.before;
-
-      // Pre move here so getCgConfig doesn't update fen (more efficient)
-      if (forwardMoveCheck) {
-        cg.move(move.from, move.to);
-      } else if (undoMoveCheck) {
-        cg.move(prevMove.to, prevMove.from);
-      }
-
-      const moveType = updateBoard(gameStore, previousPath);
-      if (typeof moveType === 'string') {
-        playSound(moveType);
-      } else if (moveType) {
-        moveAudio(moveType);
-      }
-    } else if (previousPath) {
-      // drag & drop or click to move
-      if (move) moveAudio(move);
-    }
-    previousPath = [...pgnPath];
+    const shouldHandleMove = gameStore.fen.split(' ')[0] !== gameStore.cg.getFen();
+    shouldHandleMove && updateBoard(gameStore);
   });
 
   // Set cg config
   $effect(() => {
     const config = gameStore.boardConfig;
-    gameStore.cg?.set(config);
-    gameStore.cg?.playPremove();
+    gameStore.cg.set(config);
   });
 
   // A) : Handle Mistakes (Flash Red)
@@ -338,7 +264,7 @@
     // Only flash if we transitioned from no score to a valid score
     // to ensure we only flash once per game
     if (puzzleCompleteAndScored && currentScore && !prevScore) {
-      triggerFlash(currentScore)
+      triggerFlash(currentScore);
       // Limit Score flash to once for puzzle
       prevScore = currentScore;
     } else if (!isViewerMode) {
@@ -363,8 +289,6 @@
      * We must track selected piece so our single click move logic can compare it
      * to the against the new value in select:
      */
-
-    if (!gameStore || !gameStore.cg) return;
     const cgStateSelected = gameStore.cg.state.selected;
 
     gameStore.lastSelected = cgStateSelected;
@@ -423,7 +347,7 @@
       role="application"
       aria-label="Chess Board"
       class="tappable"
-      bind:this={boardContainer}
+      use:gameStore.loadCgInstance
       onpointerdown={trackSlectedPiece}
       onwheel={isViewerMode ? handleWheel : null}
       class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
