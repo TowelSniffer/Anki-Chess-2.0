@@ -22,7 +22,10 @@ function setConfigBoolean(key: BooleanKeys<UserConfigOpts>) {
   userConfig.opts[key] = !userConfig.opts[key];
 }
 
-export function getMenuData(setHelpOpen: (val: boolean) => void, gameStore?: GameStore): MenuItem[] {
+export function getMenuData(
+  setHelpOpen: (val: boolean) => void,
+  gameStore?: GameStore,
+): MenuItem[] {
   return [
     {
       label: 'Stockfish',
@@ -270,11 +273,21 @@ export function getMenuData(setHelpOpen: (val: boolean) => void, gameStore?: Gam
                 action: () => sessionStorage.clear(),
               },
               {
+                type: 'action',
+                label: 'log gameStore.cg',
+                action: () => console.log(gameStore.cg),
+              },
+              {
+                type: 'action',
+                label: 'cg.stop',
+                action: () => gameStore.cg.newPiece({ role: 'pawn', color: 'black' }, 'h8'),
+              },
+              {
                 type: 'select',
                 label: 'Board Mode',
                 options: ['Viewer', 'Puzzle', 'AI', 'Study'],
                 value: gameStore.boardMode,
-                onChange: (val: any) => (gameStore.boardMode = val),
+                onChange: (val: any) => gameStore.setBoardMode(val),
               },
               {
                 type: 'action',

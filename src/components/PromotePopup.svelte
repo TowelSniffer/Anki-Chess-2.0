@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { ChessJsPromotions } from '$Types/ChessStructs';
+  import type { GameStore } from '$stores/gameStore.svelte';
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
   import { pieceImages } from '$utils/toolkit/importAssets';
   import { getContext } from 'svelte';
-  import type { GameStore } from '$stores/gameStore.svelte';
+  import { moveAudio } from '$features/audio/audio';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<GameStore>('GAME_STORE');
@@ -24,13 +25,14 @@
     const { from, to } = gameStore.pendingPromotion;
 
     handleUserMove(gameStore, from, to, undefined, role);
-
+    gameStore.customAnimation({ fen: gameStore.fen, animate: true });
+    if (gameStore.currentMove?.from === from && gameStore.currentMove?.to === to)
+      moveAudio(gameStore.currentMove);
     gameStore.pendingPromotion = null;
   }
 
   function cancelPopup() {
-    gameStore.pendingPromotion = null;
-    gameStore.cg?.set({ fen: gameStore.fen, ...gameStore.boardConfig });
+    gameStore.cancelPromotion();
   }
 </script>
 

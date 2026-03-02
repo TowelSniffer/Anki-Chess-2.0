@@ -40,10 +40,12 @@
 
   // Engine Analysis Trigger
   $effect(() => {
-    // Only auto-analyze if we are NOT in AI mode
-    if (engineStore.enabled && gameStore.boardMode !== 'AI') {
-      engineStore.analyze(gameStore.fen);
-    }
+    const shouldAutoAnalyse = engineStore.enabled && gameStore.boardMode !== 'AI';
+    if (!shouldAutoAnalyse) return;
+
+    // We auto analyse on any new fen
+    const fen = gameStore.fen;
+    engineStore.analyze(fen);
   });
 
   /*

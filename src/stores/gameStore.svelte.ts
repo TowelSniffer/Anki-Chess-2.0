@@ -22,7 +22,7 @@ import { GameStorage } from '$utils/GameStorage';
 import { getCgConfig } from '$features/board/cgInstance';
 import { assignMirrorState } from '$features/pgn/mirror';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
-import { playAiMove, destroyPuzzleTimeouts } from '$features/chessJs/puzzleLogic';
+import { destroyPuzzleTimeouts } from '$features/chessJs/puzzleLogic';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
 import { getSystemShapes, blunderNags, parseCal, parseCsl } from '$features/board/arrows';
@@ -41,27 +41,34 @@ export class GameStore {
 
   // --- Trackers ---
   lastSelected: Key | undefined = undefined;
+  errorCount = 0;
+  puzzleScore: PuzzleScored = null;
+  animationTimeout: number | null = null;
+
+  // --- Board State ---
+  startFen: string;
+  cg: Api;
 
   // --- State variables ---
-  cg = $state.raw<Api | null>(null);
-  boardMode = $state<BoardModes>('Viewer');
+
+  boardMode: BoardModes;
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   // Core tracker for board and PGN updates
-  pgnPath = $state<PgnPath>([]);
-  errorCount = $state<number>(0);
+  pgnPath: PgnPath;
+  // Call PromotePopup
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
-  customAnimation = $state<{ fen: string; animate: boolean } | null>(null);
-  startFen = $state(DEFAULT_POSITION);
 
-  // --- Internal State ---
-  private _puzzleScore: PuzzleScored = $state(null);
-  private _hasMadeMistake: boolean = $state(false);
-  private _moveMap = new Map<string, CustomPgnMove>();
-  private _moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
+  // --- Private State ---
 
-  private _flipBoolean: boolean = $state(false); // Track if Viewer should be flipped
-  private _randOrientBool: boolean = $state(false); // Track random orientation
-  private _storage: GameStorage;
+  #trackedPathKey: PgnPath | undefined;
+  #hasMadeMistake: boolean = $state(false);
+  #moveMap = new Map<string, CustomPgnMove>();
+  #moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
+
+
+  #flipBoolean: boolean = false; // If Viewer should be flipped
+  #randOrientBool: boolean = false; // Track randomOrientation boolean
+  #storage: GameStorage;
 
   constructor(
     getPgn: () => string,
@@ -71,25 +78,47 @@ export class GameStore {
     timerStore: TimerStore,
     getPersist: () => boolean,
   ) {
-    this._storage = new GameStorage(getPersist());
+    this.#storage = new GameStorage(getPersist());
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
-    this.boardMode = getBoardMode();
+    this.boardMode = $state(getBoardMode());
+    this.setBoardMode(this.boardMode);
+
+    const storedPathStr = this.#storage.get('chess_pgnPath');
+    // Map over the string array and convert numeric strings to actual numbers
+    const storedPath = storedPathStr
+      ? (storedPathStr
+          .split(',')
+          .map((step) => (isNaN(Number(step)) ? step : Number(step))) as PgnPath)
+      : [];
+    const isValidPath = !!this.getMoveByPath(storedPath);
+    const pgnPath = isValidPath ? storedPath : [];
+    this.pgnPath = $state(pgnPath);
 
     // $effect(() => {
     //   $inspect(this.hasNext, this.isPuzzleComplete);
     // });
 
+    $effect(() => {
+      const path = this.pgnPath;
+      this.#trackedPathKey = path.join(',');
+    });
+
+
     // Track the external props so we only update when Anki/App actually changes it
     let externalModeTrack = getBoardMode();
-    let pgnTrack = '';
+    let pgnTrack = getPgn();
+
+    this.loadNewGame(pgnTrack);
 
     // Track External BoardMode changes (New Card)
     $effect(() => {
       const externalMode = getBoardMode();
       if (externalModeTrack !== externalMode) {
-        this.boardMode = externalMode;
+        untrack(() => {
+          this.setBoardMode(externalMode);
+        });
         externalModeTrack = externalMode;
       }
     });
@@ -97,51 +126,14 @@ export class GameStore {
     // Handle boardMode and Pgn updates
     $effect(() => {
       const boardMode = this.boardMode;
+
       let PGN = getPgn();
-      let mirrorState: MirrorState = 'original';
-      // --- Saved State (aiPgn) ---
-      if (boardMode === 'Viewer') {
-        const aiPgn = this._storage.get('chess_aiPgn');
-        if (aiPgn && boardMode === 'Viewer') PGN = aiPgn;
-
-        const storedMirror = this._storage.get('chess_mirrorState');
-        if (storedMirror && this.config.mirror) mirrorState = storedMirror as MirrorState;
-      } else this.timerStore.reset();
-
-      if (/^(Puzzle|Study)$/.test(boardMode)) {
-        this.engineStore.enabled = false;
-        this.engineStore.stop();
-        if (boardMode === 'Puzzle') {
-          const flipPgn = this.config.flipBoard;
-          this._flipBoolean = flipPgn;
-          this._storage.set('chess_flipBoolean', flipPgn.toString());
-
-          if (flipPgn) {
-            playAiMove(this, this.config.animationTime + 100);
-          }
-          if (this.config.mirror) {
-            mirrorState = assignMirrorState();
-            this._storage.set('chess_mirrorState', `${mirrorState}`);
-          }
-        }
-
-        if (this.config.randomOrientation) {
-          this._randOrientBool = !Math.round(Math.random());
-          this._storage.set('chess_randOrientBool', this._randOrientBool.toString());
-        }
-
-        this.timerStore.start();
-      } else if (boardMode === 'AI') {
-        this._flipBoolean = false;
-        this.engineStore.init(this.fen);
-      }
       const newPgnCheck = pgnTrack !== PGN;
-      if (newPgnCheck) {
-        pgnTrack = PGN;
-      }
+      if (newPgnCheck) pgnTrack = PGN;
+
       const reloadCheck = newPgnCheck || (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
       untrack(() => {
-        reloadCheck && this.loadNewGame(PGN, mirrorState);
+        reloadCheck && this.loadNewGame(PGN);
       });
     });
 
@@ -152,23 +144,17 @@ export class GameStore {
 
       // Log PgnPath
       const logPgnPath = this.boardMode !== 'Viewer';
-      logPgnPath && this._storage.set('chess_pgnPath', `${newMove.pgnPath}`);
+      logPgnPath && this.#storage.set('chess_pgnPath', `${newMove.pgnPath}`);
 
       // Log Ai PGN
       const aiPgn = newMove.history;
       const logAiHistory = this.boardMode === 'AI' && aiPgn;
-      logAiHistory && this._storage.set('chess_aiPgn', `${aiPgn}`);
+      logAiHistory && this.#storage.set('chess_aiPgn', `${aiPgn}`);
     });
 
     $effect(() => {
-      if (!this._hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
-        this._hasMadeMistake = true;
-    });
-    $effect(() => {
-      if (this.errorCount > this.config.handicap) {
-        this.errorCount = 0;
-        this._puzzleScore = 'fail';
-      }
+      if (!this.#hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
+        this.#hasMadeMistake = true;
     });
 
     // --- PUZZLE SCORING ---
@@ -183,11 +169,10 @@ export class GameStore {
        */
 
       const isPuzzle = /^(Puzzle|Study)$/.test(this.boardMode);
-      const score = this._puzzleScore;
-
       // We only score once per puzzle
-      if (score || !isPuzzle) return;
+      if (!isPuzzle || this.puzzleScore) return;
 
+      // We check score on new currentMove
       const currentMove = this.currentMove;
 
       // We mark blunder lines as fail if played in Puzzle
@@ -195,24 +180,29 @@ export class GameStore {
         this.boardMode === 'Puzzle' &&
         currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
         currentMove?.turn === this.playerColor[0];
-      // Any mistake is a fail if strictScoring
-      const isStrictMistake = this._hasMadeMistake && this.config.strictScoring;
 
-      if (isNagBlunder || isStrictMistake) { // if Fail
-        this._puzzleScore = 'fail';
+      // Any mistake is a fail if strictScoring
+      const isStrictMistake = this.#hasMadeMistake && this.config.strictScoring;
+
+      const isHandicapFail = this.errorCount > this.config.handicap;
+
+      if (isNagBlunder || isStrictMistake || isHandicapFail) {
+        // if Fail
+        this.puzzleScore = 'fail';
       } else if (this.isPuzzleComplete) {
         // Grade on puzzle completion
         const isPerfectScore =
           (this.config.timer || this.config.handicap) &&
-          !this._hasMadeMistake &&
+          !this.#hasMadeMistake &&
           !this.config.strictScoring;
-        this._puzzleScore = isPerfectScore ? 'perfect' : 'pass';
+        this.puzzleScore = isPerfectScore ? 'perfect' : 'pass';
       }
     });
+
     $effect(() => {
       const isPuzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
-      const puzzledScored = this._puzzleScore && isPuzzleMode;
-      if (puzzledScored) this._storage.set('chess_puzzle_score', this._puzzleScore!.toString());
+      const puzzledScored = this.puzzleScore && isPuzzleMode;
+      if (puzzledScored) this.#storage.set('chess_puzzle_score', this.puzzleScore!.toString());
     });
   }
 
@@ -235,7 +225,13 @@ export class GameStore {
 
   // caches the Map lookup
   get currentMove() {
-    return this._moveMap.get(this.currentPathKey) || null;
+    return this.#moveMap.get(this.currentPathKey) || null;
+  }
+
+  get trackedMove() {
+    // We track moves for undo logic
+    const path = untrack(() => this.#trackedPathKey);
+    return this.#moveMap.get(path) || null;
   }
 
   // depends on cached currentMove
@@ -244,12 +240,12 @@ export class GameStore {
   }
 
   get viewOnly() {
-    return this._moveDebounce ? true : false;
+    return this.#moveDebounce ? true : false;
   }
 
   get playerColor(): CgColor {
     let color: CgColor = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
-    if (this._flipBoolean) color = color === 'white' ? 'black' : 'white';
+    if (this.#flipBoolean) color = color === 'white' ? 'black' : 'white';
 
     return color;
   }
@@ -259,7 +255,7 @@ export class GameStore {
   }
 
   get orientation(): CgColor {
-    const flipPgn = this._flipBoolean;
+    const flipPgn = this.#flipBoolean;
     let orientation: CgColor =
       getTurnFromFen(this.startFen) === 'w'
         ? flipPgn
@@ -269,7 +265,7 @@ export class GameStore {
           ? 'white'
           : 'black';
 
-    if (this._randOrientBool) orientation = orientation === 'white' ? 'black' : 'white';
+    if (this.#randOrientBool) orientation = orientation === 'white' ? 'black' : 'white';
 
     return orientation;
   }
@@ -299,7 +295,7 @@ export class GameStore {
     return [
       // Only spread engine shapes if the engine's eval matches our visual FEN
       ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
-      ...getSystemShapes(pgnPath, this._moveMap, this.boardMode),
+      ...getSystemShapes(pgnPath, this.#moveMap, this.boardMode),
       ...parseCal(puzzleMode ? [] : this.currentMove?.commentDiag?.colorArrows),
       ...parseCsl(puzzleMode ? [] : this.currentMove?.commentDiag?.colorFields),
     ];
@@ -313,15 +309,11 @@ export class GameStore {
     // generate what the "next" path would be
     const nextPath = navigateNextMove(this.pgnPath);
     // check if that key exists in our map
-    return this._moveMap.has(nextPath.join(','));
-  }
-
-  get puzzleScore() {
-    return this._puzzleScore;
+    return this.#moveMap.has(nextPath.join(','));
   }
 
   get rootMoves() {
-    return this.rootGame?.moves;
+    return this.rootGame.moves;
   }
 
   get dests() {
@@ -360,56 +352,112 @@ export class GameStore {
    * METHODS
    */
 
-  loadNewGame(rawPGN: string, mirrorState: MirrorState) {
-    this.rootGame = undefined;
-    this._moveMap = new Map<string, CustomPgnMove>();
+  setBoardMode(boardMode: BoardModes) {
+    this.timerStore.reset();
+    if (/^(Puzzle|Study)$/.test(boardMode)) {
+      this.engineStore.enabled = false;
+      this.engineStore.stop();
+      this.timerStore.start();
+    } else if (boardMode === 'AI') {
+      this.engineStore.init(this.fen);
+    }
 
-    const parsed = parsePGN(rawPGN);
+    this.boardMode = boardMode;
+  }
+
+  loadNewGame(rawPGN: string) {
+    let PGN = rawPGN;
+    let mirrorState: MirrorState = 'original';
+
+    // --- State Persistence (Card Flip) ---
+
+    if (this.boardMode === 'Viewer') {
+      const storedScore = this.#storage.get('chess_puzzle_score');
+      this.#randOrientBool = this.#storage.get('chess_randOrientBool') === 'true';
+      this.#flipBoolean = this.#storage.get('chess_flipBoolean') === 'true';
+
+      this.puzzleScore = (storedScore as PuzzleScored) ?? null;
+
+      const aiPgn = this.#storage.get('chess_aiPgn');
+      if (aiPgn && this.boardMode === 'Viewer') PGN = aiPgn;
+
+      const storedMirror = this.#storage.get('chess_mirrorState');
+      if (storedMirror && this.config.mirror) mirrorState = storedMirror as MirrorState;
+      // Clear storage after 'Viewer' load
+      this.#storage.clearGame();
+    } else if (/^(Puzzle|Study)$/.test(this.boardMode)) {
+      if (this.boardMode === 'Puzzle') {
+        const flipPgn = this.config.flipBoard;
+        this.#flipBoolean = flipPgn;
+        this.#storage.set('chess_flipBoolean', flipPgn.toString());
+
+        if (this.config.mirror) {
+          mirrorState = assignMirrorState();
+          this.#storage.set('chess_mirrorState', `${mirrorState}`);
+        }
+      }
+
+      if (this.config.randomOrientation) {
+        this.#randOrientBool = !Math.round(Math.random());
+        this.#storage.set('chess_randOrientBool', this.#randOrientBool.toString());
+      }
+    } else if (this.boardMode === 'AI') {
+      this.#flipBoolean = false;
+    }
+
+    this.rootGame = undefined;
+    this.#moveMap = new Map<string, CustomPgnMove>();
+
+    const parsed = parsePGN(PGN);
 
     mirrorPGN(parsed, mirrorState);
 
     this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
 
     this.rootGame = parsed;
-    augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this._moveMap);
+    augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this.#moveMap);
+  }
 
-    // --- State Persistence (Card Flip) ---
-    if (this.boardMode === 'Viewer') {
-      const storedScore = this._storage.get('chess_puzzle_score');
-      this._randOrientBool = this._storage.get('chess_randOrientBool') === 'true';
-      this._flipBoolean = this._storage.get('chess_flipBoolean') === 'true';
+  customAnimation(animation: { fen: string; animate: boolean; postAnimateFen?: string }): void {
+    /*
+     * --- Control Chessground animations ---
+     * Eg. default promotion isn't good so with this we can pass a fen with the pawn
+     * moved and animate that, then with postAnimateFen we can change the pawn to
+     * promotion choice with timeout
+     */
+    if (this.animationTimeout) {
+      clearTimeout(this.animationTimeout)
+      this.animationTimeout = null;
+    };
+    this.cg.set({
+      fen: animation.fen,
+      animation: {
+        enabled: animation.animate
+      },
+    });
 
-      const storedPathStr = this._storage.get('chess_pgnPath');
-      // Map over the string array and convert numeric strings to actual numbers
-      const storedPath = storedPathStr
-        ? (storedPathStr
-            .split(',')
-            .map((step) => (isNaN(Number(step)) ? step : Number(step))) as PgnPath)
-        : [];
-      const isValidPath = !!this.getMoveByPath(storedPath);
-      if (isValidPath) this.pgnPath = storedPath;
-
-      this._puzzleScore = (storedScore as PuzzleScored) ?? null;
-
-      // Always clear storage after 'Viewer' load
-      this._storage.clearGame();
+    if (animation.postAnimateFen) {
+      this.animationTimeout = setTimeout(() => {
+        const isSamePosition = this.fen === animation.postAnimateFen;
+        if (isSamePosition) this.cg.set({ fen: animation.postAnimateFen });
+        this.animationTimeout = null;
+      }, this.config.animationTime);
     }
   }
 
   // --- Internal ---
 
-  private _resetGameState() {
+  #resetGameState() {
     this.pgnPath = [];
     this.errorCount = 0;
     this.lastSelected = undefined;
     this.pendingPromotion = null;
-    this.customAnimation = null;
-    this._hasMadeMistake = false;
-    this._puzzleScore = null;
+    this.#hasMadeMistake = false;
+    this.puzzleScore = null;
     destroyPuzzleTimeouts();
-    if (this._moveDebounce) {
-      clearTimeout(this._moveDebounce);
-      this._moveDebounce = null;
+    if (this.#moveDebounce) {
+      clearTimeout(this.#moveDebounce);
+      this.#moveDebounce = null;
     }
   }
 
@@ -433,29 +481,35 @@ export class GameStore {
 
   getMoveByPath(path: PgnPath): CustomPgnMove | null {
     const pathKey = path.join(',');
-    return this._moveMap.get(pathKey) || null;
+    return this.#moveMap.get(pathKey) || null;
   }
 
   // --- CG Board ---
 
-  loadCgInstance(boardContainer: HTMLDivElement) {
-    if (!boardContainer) return;
-    this.cg = Chessground(boardContainer, this.boardConfig);
-  }
+  loadCgInstance = (node: HTMLDivElement) => {
+    if (!node) return;
+    this.cg = Chessground(node, { fen: this.startFen });
+
+    return {
+      destroy: () => {
+        this.cg.destroy();
+      },
+    };
+  };
 
   // Prevent rapid move attempts
   setMoveDebounce(time = this.config.animationTime) {
     const timerStore = this.timerStore;
     timerStore.pause();
-    this._moveDebounce = setTimeout(() => {
-      this._moveDebounce = null;
+    this.#moveDebounce = setTimeout(() => {
+      this.#moveDebounce = null;
       if (!this.isPuzzleComplete) timerStore.resume();
     }, time);
   }
 
   // toggle orientation helper
   toggleOrientation() {
-    this._flipBoolean = !this._flipBoolean;
+    this.#flipBoolean = !this.#flipBoolean;
     playSound('castle');
   }
 
@@ -467,7 +521,7 @@ export class GameStore {
     } else {
       chess.load(this.startFen);
     }
-    const newPath = addMoveToPgn(move, this.pgnPath, this._moveMap, this.rootGame.moves, chess);
+    const newPath = addMoveToPgn(move, this.pgnPath, this.#moveMap, this.rootGame.moves, chess);
     // update local state
     this.pgnPath = newPath;
   }
@@ -488,10 +542,8 @@ export class GameStore {
   }
 
   destroy() {
-    this._resetGameState();
-    this.cg = null;
-    this.startFen = DEFAULT_POSITION;
+    this.#resetGameState();
     this.rootGame = undefined;
-    this._moveMap = new Map<string, CustomPgnMove>();
+    this.#moveMap = new Map<string, CustomPgnMove>();
   }
 }

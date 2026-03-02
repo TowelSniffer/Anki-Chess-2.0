@@ -12,15 +12,15 @@ export class TimerStore {
   private animationFrameId: number | null = null;
   private lastTickTimestamp: number | null = null;
 
-  private _internalRemaining;
-  private _lastStateUpdate = 0;
-  private _config: UserConfigOpts;
+  #internalRemaining;
+  #lastStateUpdate = 0;
+  #config: UserConfigOpts;
 
   constructor(getConfig: () => UserConfigOpts) {
-    this._config = getConfig();
-    this.totalTime = this._config.timer;
-    this.remainingTime = $state(this._config.timer);
-    this._internalRemaining = this._config.timer;
+    this.#config = getConfig();
+    this.totalTime = this.#config.timer;
+    this.remainingTime = $state(this.#config.timer);
+    this.#internalRemaining = this.#config.timer;
   }
 
   /*
@@ -35,7 +35,7 @@ export class TimerStore {
   }
 
   get isOutOfTime() {
-    return this._config?.timer && this.remainingTime === 0;
+    return this.#config?.timer && this.remainingTime === 0;
   }
 
   // --- Actions ---
@@ -44,7 +44,7 @@ export class TimerStore {
    * Initialize and start the timer
    * @param durationMs - Duration in milliseconds
    */
-  start(durationMs: number = this._config.timer) {
+  start(durationMs: number = this.#config.timer) {
     this.stop();
 
     // Reset totalTime to the initial duration requested
@@ -54,7 +54,7 @@ export class TimerStore {
     this.visible = true;
     this.isRunning = true;
 
-    this.animationFrameId = requestAnimationFrame((t) => this._loop(t));
+    this.animationFrameId = requestAnimationFrame((t) => this.#loop(t));
   }
 
   stop() {
@@ -80,20 +80,20 @@ export class TimerStore {
   resume() {
     if (this.remainingTime > 0 && !this.isRunning) {
       this.isRunning = true;
-      this.animationFrameId = requestAnimationFrame((t) => this._loop(t));
+      this.animationFrameId = requestAnimationFrame((t) => this.#loop(t));
     }
   }
 
   /**
    * Smoothly adds time to the clock over (gameStore.aiDelayTime)
    */
-  extend(ms: number = this._config.increment, duration: number = this._config.animationTime + 100) {
+  extend(ms: number = this.#config.increment, duration: number = this.#config.animationTime + 100) {
     if (!this.visible) return;
 
     this.pause();
 
     // Base the math on the precise internal state, not the throttled UI state
-    const startRemaining = this._internalRemaining;
+    const startRemaining = this.#internalRemaining;
     const startTotal = this.totalTime;
 
     const targetRemaining = startRemaining + ms;
@@ -113,13 +113,13 @@ export class TimerStore {
       const progress = 1 - Math.pow(1 - rawProgress, 3);
 
       // Update the internal tracker
-      this._internalRemaining = startRemaining + (targetRemaining - startRemaining) * progress;
+      this.#internalRemaining = startRemaining + (targetRemaining - startRemaining) * progress;
       this.totalTime = startTotal + (targetTotal - startTotal) * progress;
 
       // Apply the same throttle logic from _loop
-      if (now - this._lastStateUpdate > 16) {
-        this.remainingTime = this._internalRemaining;
-        this._lastStateUpdate = now;
+      if (now - this.#lastStateUpdate > 16) {
+        this.remainingTime = this.#internalRemaining;
+        this.#lastStateUpdate = now;
       }
 
       if (rawProgress < 1) {
@@ -127,7 +127,7 @@ export class TimerStore {
         this.animationFrameId = requestAnimationFrame(animate);
       } else {
         // Animation Complete: Ensure both internal and UI states sync exactly at the end
-        this._internalRemaining = targetRemaining;
+        this.#internalRemaining = targetRemaining;
         this.remainingTime = targetRemaining;
         this.totalTime = targetTotal;
         this.animationFrameId = null;
@@ -142,10 +142,10 @@ export class TimerStore {
 
   reset() {
     this.stop();
-    this.remainingTime = this._config.timer;
-    this.totalTime = this._config.timer;
-    this._internalRemaining = this._config.timer;
-    this._lastStateUpdate = 0;
+    this.remainingTime = this.#config.timer;
+    this.totalTime = this.#config.timer;
+    this.#internalRemaining = this.#config.timer;
+    this.#lastStateUpdate = 0;
   }
 
   destroy() {
@@ -153,7 +153,7 @@ export class TimerStore {
   }
 
   // --- Loop Logic ---
-  private _loop(timestamp: number) {
+  #loop(timestamp: number) {
     if (!this.isRunning) return;
     if (!this.lastTickTimestamp) this.lastTickTimestamp = timestamp;
 
@@ -161,23 +161,23 @@ export class TimerStore {
     this.lastTickTimestamp = timestamp;
 
     // Internal Tracking
-    this._internalRemaining = Math.max(0, this._internalRemaining - deltaTime);
+    this.#internalRemaining = Math.max(0, this.#internalRemaining - deltaTime);
 
     // Throttle Svelte reactivity updates to ~60fps (every 16ms)
-    if (timestamp - this._lastStateUpdate > 16) {
-      this.remainingTime = this._internalRemaining;
-      this._lastStateUpdate = timestamp;
+    if (timestamp - this.#lastStateUpdate > 16) {
+      this.remainingTime = this.#internalRemaining;
+      this.#lastStateUpdate = timestamp;
     }
 
-    if (this._internalRemaining === 0) {
+    if (this.#internalRemaining === 0) {
       this.remainingTime = 0; // Force exact final state
-      this._handleOutOfTime();
+      this.#handleOutOfTime();
     } else {
-      this.animationFrameId = requestAnimationFrame((t) => this._loop(t));
+      this.animationFrameId = requestAnimationFrame((t) => this.#loop(t));
     }
   }
 
-  private _handleOutOfTime() {
+  #handleOutOfTime() {
     this.stop();
   }
 }
