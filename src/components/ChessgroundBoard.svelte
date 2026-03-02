@@ -42,8 +42,8 @@
     black: '#0f0f0f',
     draw: '#c0c0c0',
     divider: '#778899', // lightslategray
-    incorrect: 'var(--status-error)',
-    correct: 'var(--status-correct)',
+    fail: 'var(--status-fail)',
+    pass: 'var(--status-pass)',
     perfect: 'var(--status-perfect)',
     transparent: 'transparent',
   };
@@ -90,7 +90,7 @@
     else if (isStudyMode) color = gameStore.turn === 'w' ? 'white' : 'black';
     else if (isAIGameOver) {
       if (gameStore.isCheckmate)
-        color = gameStore.turn !== gameStore.playerColor[0] ? 'correct' : 'incorrect';
+        color = gameStore.turn !== gameStore.playerColor[0] ? 'pass' : 'fail';
       else color = 'draw';
     }
 
@@ -107,7 +107,7 @@
   });
 
   const barTopColor = $derived.by(() => {
-    if (isRandomPuzzle) return mapColor('incorrect');
+    if (isRandomPuzzle) return mapColor('fail');
     const color = gameStore.orientation === 'white' ? 'black' : 'white';
     return mapColor(color);
   });
@@ -319,7 +319,7 @@
   $effect(() => {
     if (gameStore.errorCount) {
       // ie > 0
-      triggerFlash('incorrect');
+      triggerFlash('fail');
     }
   });
   // B) : Handle Timeout (Flash Red)
@@ -327,7 +327,7 @@
     const timerFlash = timerStore.isOutOfTime;
     const timerAdvance = untrack(() => config.timerAdvance);
     if (timerFlash) {
-      triggerFlash('incorrect');
+      triggerFlash('fail');
       if (timerAdvance) showViewer();
     }
   });

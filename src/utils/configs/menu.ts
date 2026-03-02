@@ -114,7 +114,7 @@ export function getMenuData(setHelpOpen: (val: boolean) => void, gameStore?: Gam
           type: 'toggle',
           label: 'Strict Scoring',
           tooltip:
-            'Always mark incorrect when solved if any mistake is made (despite handicap value), or timer runs out',
+            'Always mark fail when solved if any mistake is made (despite handicap value), or timer runs out',
           checked: userConfig.opts.strictScoring,
           onToggle: () => setConfigBoolean('strictScoring'),
         },
