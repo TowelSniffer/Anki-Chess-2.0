@@ -7,14 +7,14 @@ const ANKI_URL = 'http://127.0.0.1:8765';
 
 export async function checkAnkiConnection(): Promise<boolean> {
   // Safety Check: If we are not in desktop
-  if (typeof pycmd === "undefined") {
+  if (typeof pycmd === 'undefined') {
     return false;
   }
 
   try {
     const res = await fetch(ANKI_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'version', version: 6 })
+      body: JSON.stringify({ action: 'version', version: 6 }),
     });
     const data = await res.json();
     return !data.error;
@@ -26,7 +26,7 @@ export async function checkAnkiConnection(): Promise<boolean> {
 export async function updateAnkiChessTemplate(
   modelName: string,
   cardName: string,
-  userConfig: object
+  userConfig: object,
 ) {
   const currentVersion = pkg.version;
 
@@ -52,8 +52,8 @@ export async function updateAnkiChessTemplate(
       body: JSON.stringify({
         action: 'modelTemplates',
         version: 6,
-        params: { modelName: modelName }
-      })
+        params: { modelName: modelName },
+      }),
     });
     const modelResult = await modelQuery.json();
 
@@ -71,7 +71,7 @@ export async function updateAnkiChessTemplate(
             templates: {
               [cardName]: {
                 Front: newFront,
-                Back: newBack
+                Back: newBack,
               },
             },
             css: newCss,
@@ -83,7 +83,6 @@ export async function updateAnkiChessTemplate(
     const result = await res.json();
     if (result.error) throw new Error(result.error);
     console.log(`Updated Template for "${modelName}" (v=${currentVersion})`);
-
   } catch (err) {
     console.error('AnkiConnect Template Update Failed:', err);
   }

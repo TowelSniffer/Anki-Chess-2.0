@@ -50,18 +50,18 @@ export class GameStore {
 
   // --- State variables ---
 
-  boardMode: BoardModes;
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   // Core tracker for board and PGN updates
   pgnPath: PgnPath;
   // Call PromotePopup
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
   parseError = $state<string | null>(null);
+  hasMadeMistake: boolean = $state(false);
 
   // --- Private State ---
-  #storedScore = $state<PuzzleScored | null>(null);
+  #storedScore: PuzzleScored | null = null;
+  #boardMode: BoardModes;
   #trackedPathKey: PgnPath | undefined;
-  #hasMadeMistake: boolean = $state(false);
   #moveMap = new Map<string, CustomPgnMove>();
   #moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
 
@@ -81,8 +81,8 @@ export class GameStore {
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
-    this.boardMode = $state(getBoardMode());
-    this.setBoardMode(this.boardMode);
+    this.#boardMode = $state(getBoardMode());
+    this.setBoardMode(getBoardMode());
 
     const storedPathStr = this.#storage.get('chess_pgnPath');
     // Map over the string array and convert numeric strings to actual numbers
@@ -150,11 +150,6 @@ export class GameStore {
       logAiHistory && this.#storage.set('chess_aiPgn', `${aiPgn}`);
     });
 
-    $effect(() => {
-      if (!this.#hasMadeMistake && (this.errorCount > 0 || timerStore.isOutOfTime))
-        this.#hasMadeMistake = true;
-    });
-
     // --- PUZZLE SCORING ---
     $effect(() => {
       const isPuzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
@@ -166,6 +161,10 @@ export class GameStore {
   /*
    * GETTERS
    */
+
+  get boardMode() {
+    return this.#boardMode;
+  }
 
   get aiDelayTime() {
     return this.config.animationTime + 100;
@@ -184,10 +183,11 @@ export class GameStore {
      * puzzleScores: if strictScoring [ pass, fail ]
      * else  [ perfect, pass, fail ]
      */
+    if (this.#storedScore) return this.#storedScore;
 
     const isPuzzle = /^(Puzzle|Study)$/.test(this.boardMode);
     // We only score once per puzzle
-    if (!isPuzzle || this.#storedScore) return null;
+    if (!isPuzzle) return null;
 
     // We check score on new currentMove
     const currentMove = this.currentMove;
@@ -199,22 +199,24 @@ export class GameStore {
     currentMove?.turn === this.playerColor[0];
 
     // Any mistake is a fail if strictScoring
-    const isStrictMistake = this.#hasMadeMistake && this.config.strictScoring;
+    const isStrictMistake = this.config.strictScoring && (this.hasMadeMistake || this.timerStore.isOutOfTime);
 
     const isHandicapFail = this.errorCount > this.config.handicap;
 
     if (isNagBlunder || isStrictMistake || isHandicapFail) {
       // if Fail
+      this.#storedScore = 'fail';
       return 'fail';
     } else if (this.isPuzzleComplete) {
       // Grade on puzzle completion
       const isPerfectScore =
       (this.config.timer || this.config.handicap) &&
-      !this.#hasMadeMistake &&
+      !this.hasMadeMistake &&
       !this.config.strictScoring;
+      this.#storedScore = isPerfectScore ? 'perfect' : 'pass';
       return isPerfectScore ? 'perfect' : 'pass';
     }
-
+    this.#storedScore = null;
     return null;
   }
 
@@ -353,16 +355,24 @@ export class GameStore {
    */
 
   setBoardMode(boardMode: BoardModes) {
+    if (this.boardMode === boardMode) return;
+
+    if (boardMode !== 'Viewer') {
+
+
+    }
+
     this.timerStore.reset();
     if (/^(Puzzle|Study)$/.test(boardMode)) {
       this.engineStore.enabled = false;
       this.engineStore.stop();
       this.timerStore.start();
+      this.#resetGameState();
     } else if (boardMode === 'AI') {
       this.engineStore.init(this.fen);
     }
 
-    this.boardMode = boardMode;
+    this.#boardMode = boardMode;
   }
 
   loadNewGame(rawPGN: string) {
@@ -474,7 +484,7 @@ export class GameStore {
     this.lastSelected = undefined;
     this.pendingPromotion = null;
     this.#storedScore = null;
-    this.#hasMadeMistake = false;
+    this.hasMadeMistake = false;
     destroyPuzzleTimeouts();
     if (this.#moveDebounce) {
       clearTimeout(this.#moveDebounce);

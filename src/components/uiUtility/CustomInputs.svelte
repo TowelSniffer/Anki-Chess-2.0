@@ -192,14 +192,12 @@
     align-items: center;
     width: 100%;
     gap: 0.5rem;
-    /* Removed justify-content: space-between */
   }
 
   .label {
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--text-secondary, #555);
-    flex: 1; /* Pushes everything else to the right */
+    color: var(--text-primary, #555);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

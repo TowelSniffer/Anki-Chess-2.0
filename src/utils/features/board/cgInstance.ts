@@ -74,7 +74,6 @@ export function handleSelect(key: Key, store: GameStore) {
     }
   }
   if (moveCheck?.promotion) {
-    console.log('here')
     handleUserMove(store, moveCheck.from, moveCheck.to, moveCheck.san);
   } else if (moveCheck) {
     store.cg.move(moveCheck.from, moveCheck.to);
@@ -97,7 +96,7 @@ function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStor
 
   if (moveCheck?.flags.includes('e')) {
     // Fix bad en Passent animation with click to move
-    store.customAnimation({ fen: moveCheck.after, animate: false });
+    store.customAnimation({ preFen: moveCheck.after, animate: false });
   }
   moveCheck && handleUserMove(store, from, to);
   const move = store.currentMove;
