@@ -228,9 +228,8 @@
   // Move & Custom Animation an Handler
   $effect(() => {
     const move = gameStore.currentMove;
-    if (gameStore.animationTimeout) {
-      gameStore.customAnimation({ fen: gameStore.fen, animate: false });
-    }
+
+    // Check if cg fen is up to date with gameStore fen
     const shouldHandleMove = gameStore.fen.split(' ')[0] !== gameStore.cg.getFen();
     shouldHandleMove && updateBoard(gameStore);
   });

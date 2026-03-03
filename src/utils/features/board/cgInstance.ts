@@ -82,38 +82,21 @@ export function handleSelect(key: Key, store: GameStore) {
 }
 
 /**
- * Handles the 'after' event (Drag and Drop or Click to Move completion).
- * Not called when running cg.move
- */
-function handleAfter(orig: Key, dest: Key, store: GameStore) {
-
-
-  const isSpecialMove = store.fen.split(' ')[0] !== store.cg.getFen();
-  console.log('after', isSpecialMove);
-}
-
-/**
  * Called before after: when running cg.move
  */
 function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStore) {
   const from = orig as Square;
   const to = dest as Square;
 
-  // Check Promotion
-  const isDragAndDrop = !store.cg.state.animation.current;
-  const isSpeciallMove = !isDragAndDrop && store.fen.split(' ')[0] !== store.cg.getFen();
-  console.log('move', isSpeciallMove);
-
   if (isPromotion(from, to, store.fen)) {
     store.setPendingPromotion(from, to);
     return;
   }
-
   const tempChess = store.newChess(store.fen);
   const moveCheck = from && to && getLegalMove({ from: from as Square, to: to }, store.fen);
 
   if (moveCheck?.flags.includes('e')) {
-    // store.cg.set({ fen: moveCheck.before });
+    // Fix bad en Passent animation with click to move
     store.customAnimation({ fen: moveCheck.after, animate: false });
   }
   moveCheck && handleUserMove(store, from, to);
@@ -121,8 +104,18 @@ function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStor
   const isForward = move && move.from === from && move.to === to;
 
   isForward && moveAudio(move);
-  // isCglMove && store.cg.set({ fen: store.fen })
   store.cg.playPremove();
+}
+
+/**
+ * Handles the 'after' event (Drag and Drop or Click to Move completion).
+ * Not called when running cg.move
+ */
+function handleAfter(orig: Key, dest: Key, store: GameStore) {
+  console.log(store.cg.state.animation.current)
+
+  const isSpecialMove = store.fen.split(' ')[0] !== store.cg.getFen();
+  console.log('after', isSpecialMove);
 }
 
 // --- Configuration ---
