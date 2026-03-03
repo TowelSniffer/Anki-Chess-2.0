@@ -216,11 +216,8 @@
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
   let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
-    const pullComplete = gameStore.isPuzzleComplete;
-
-    if (pullComplete) {
-      gameStore.cg.stop();
-      timerStore.stop();
+    const puzzleComplete = gameStore.isPuzzleComplete;
+    if (puzzleComplete) {
       viewerTimeout = setTimeout(showViewer, 300);
     }
   });
@@ -257,18 +254,10 @@
     }
   });
   // C) : Handle Puzzle Complete flash
-  let prevScore: PuzzleScored = null;
   $effect(() => {
     const currentScore = gameStore.puzzleScore;
-    // Only flash if we transitioned from no score to a valid score
-    // to ensure we only flash once per game
-    if (puzzleCompleteAndScored && currentScore && !prevScore) {
+    if (puzzleCompleteAndScored && currentScore) {
       triggerFlash(currentScore);
-      // Limit Score flash to once for puzzle
-      prevScore = currentScore;
-    } else if (!isViewerMode) {
-      // Fix race condition with new boardMode
-      prevScore = null;
     }
   });
 
@@ -310,6 +299,8 @@
       pycmd('ans');
     } else if (typeof AnkiDroidJS !== 'undefined') {
       showAnswer();
+    } else {
+      gameStore.setBoardMode('Viewer');
     }
   }
 </script>

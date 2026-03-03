@@ -25,7 +25,7 @@
     const { from, to } = gameStore.pendingPromotion;
 
     handleUserMove(gameStore, from, to, undefined, role);
-    gameStore.customAnimation({ fen: gameStore.fen, animate: true });
+    gameStore.customAnimation({ preFen: gameStore.fen, animate: true });
     if (gameStore.currentMove?.from === from && gameStore.currentMove?.to === to)
       moveAudio(gameStore.currentMove);
     gameStore.pendingPromotion = null;
