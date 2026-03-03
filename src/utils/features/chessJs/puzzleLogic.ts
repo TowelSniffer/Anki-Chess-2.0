@@ -71,10 +71,7 @@ export async function handleUserMove(
     : { from: orig, to: dest };
   const move = getLegalMove(san ?? moveObject, store.fen);
 
-  if (!move) {
-    store.pgnPath = [...store.pgnPath]; // Trigger re-render to snap piece back
-    return;
-  }
+  if (!move) return;
 
   if (store.boardMode === 'AI') {
     store.addMove(move);
@@ -104,6 +101,7 @@ export async function handleUserMove(
       store.pgnPath = existingPath;
       store.timerStore.extend(store.config.increment, store.aiDelayTime);
       if (store.boardMode === 'Puzzle') {
+        checkPuzzleComplete(store);
         // Reset error tracker
         store.errorCount = 0;
         playAiMove(store, store.aiDelayTime || 300);
@@ -121,10 +119,10 @@ export async function handleUserMove(
 }
 
 export function playAiMove(store: GameStore, delay: number): void {
+  store.errorCount = 0;
   setTrackedTimeout(() => {
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
     const nextMove = store.getMoveByPath(nextMovePathCheck);
-
     // Only play if it's the opponent's turn
     if (nextMove && nextMove.turn === store.opponentColor[0]) {
       const candidates: PgnPath[] = [nextMovePathCheck];
@@ -140,6 +138,7 @@ export function playAiMove(store: GameStore, delay: number): void {
       const randomIndex = Math.floor(Math.random() * candidates.length);
       store.pgnPath = candidates[randomIndex];
     }
+    checkPuzzleComplete(store);
   }, delay);
 }
 
@@ -155,16 +154,27 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
     if (store.boardMode === 'Puzzle') {
       playAiMove(store, delay); // then play the AI's response
     }
+    checkPuzzleComplete(store);
   }, delay);
 }
 
 function handleWrongMove(store: GameStore, move: Move): void {
   store.errorCount++;
-  store.customAnimation({ fen: move.after, animate: true });
+  store.hasMadeMistake = true;
+  store.customAnimation({ preFen: move.before, animate: true });
+  store.pgnPath = [...store.pgnPath]
   playSound('error');
   const isFailed = store.errorCount > store.config.handicap;
 
   if (isFailed) {
     playUserCorrectMove(store, store.config.animationTime * 2); // show the correct user move
+  }
+}
+
+function checkPuzzleComplete(store: GameStore): void {
+  const puzzleComplete = store.isPuzzleComplete;
+  if (puzzleComplete) {
+    store.cg.stop();
+    store.timerStore.stop();
   }
 }
