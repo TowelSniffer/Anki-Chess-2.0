@@ -289,7 +289,7 @@ export class EngineStore {
     }
   }
 
-  private async #stopAndWait() {
+  async #stopAndWait() {
     if (this.isThinking) {
       stockfishWorker?.postMessage('stop');
       await this.#idlePromise; // Wait until _parseBestMove unlocks it
@@ -370,7 +370,7 @@ export class EngineStore {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  private async #initWorker(fen?: string): Promise<void> {
+  async #initWorker(fen?: string): Promise<void> {
     // STATE 1: Worker is already fully loaded and ready
     if (stockfishWorker && initPromise) {
       stockfishWorker.onmessage = (event) => this.#handleEngineMessage(event);

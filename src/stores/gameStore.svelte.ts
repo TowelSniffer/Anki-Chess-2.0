@@ -57,6 +57,7 @@ export class GameStore {
   pgnPath: PgnPath;
   // Call PromotePopup
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
+  parseError = $state<string | null>(null);
 
   // --- Private State ---
 
@@ -406,16 +407,30 @@ export class GameStore {
     }
 
     this.rootGame = undefined;
-    this.#moveMap = new Map<string, CustomPgnMove>();
+    this.#moveMap.clear();
 
-    const parsed = parsePGN(PGN);
+    const parsedData = parsePGN(PGN);
+    const parsedPgn = parsedData.parsedPgn;
 
-    mirrorPGN(parsed, mirrorState);
+    // Capture the error (if any)
+    this.parseError = parsedData.error || null;
 
-    this.startFen = parsed.tags?.FEN ?? DEFAULT_POSITION;
+    mirrorPGN(parsedPgn, mirrorState);
+    this.startFen = parsedPgn.tags?.FEN ?? DEFAULT_POSITION;
+    this.rootGame = parsedPgn;
 
-    this.rootGame = parsed;
-    augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this.#moveMap);
+
+    // Wrap the tree augmentation in a try/catch to catch Invalid PGN errors
+    try {
+      augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this.#moveMap);
+    } catch (e) {
+      console.warn(e);
+      this.parseError = e instanceof Error ? e.message : 'An unknown error occurred applying moves.';
+
+      // Clear the corrupted moves so the app doesn't lock up or crash
+      this.rootGame.moves = [];
+      this.#moveMap.clear();
+    }
   }
 
   customAnimation(animation: { fen: string; animate: boolean; postAnimateFen?: string }): void {
@@ -443,6 +458,10 @@ export class GameStore {
         this.animationTimeout = null;
       }, this.config.animationTime);
     }
+  }
+
+  clearError() {
+    this.parseError = null;
   }
 
   // --- Internal ---
@@ -544,6 +563,6 @@ export class GameStore {
   destroy() {
     this.#resetGameState();
     this.rootGame = undefined;
-    this.#moveMap = new Map<string, CustomPgnMove>();
+    this.#moveMap.clear();;
   }
 }

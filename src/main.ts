@@ -40,7 +40,7 @@ const mountApp = () => {
   appInstance = mount(App, {
     target,
     props: {
-      pgn: pgnContent,
+      rawPgn: pgnContent,
       boardMode: boardModeFromAnki,
       userText: userTextFromAnki,
     },

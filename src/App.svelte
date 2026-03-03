@@ -4,13 +4,14 @@
   import PromotePopup from '$components/PromotePopup.svelte';
   import PgnViewer from '$components/PgnViewer.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
-  import EngineAnalysis from '$components//EngineAnalysis.svelte';
+  import EngineAnalysis from '$components/EngineAnalysis.svelte';
   import HelpWrapper from '$components/HelpWrapper.svelte';
+  import ErrorPopup from '$components/ErrorPopup.svelte';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
 
-  let { pgn, boardMode, userText } = $props();
+  let { rawPgn, boardMode, userText } = $props();
 
   let isHelpOpen = $state(false);
 </script>
@@ -19,7 +20,8 @@
   <RenderScan />
 {/if}
 <HelpWrapper bind:isHelpOpen/>
-<GameProvider {pgn} {boardMode}>
+<GameProvider {rawPgn} {boardMode}>
+  <ErrorPopup bind:isHelpOpen/>
   <div id="container">
     {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
       <div id="commentBox">
