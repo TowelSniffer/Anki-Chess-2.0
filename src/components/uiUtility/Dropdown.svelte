@@ -310,7 +310,10 @@
               type="select"
               label={item.label}
               value={item.value}
-              onChange={item.onChange}
+              onChange={(val) => {
+                if (item.onChange) item.onChange(val);
+                close();
+              }}
               options={item.options}
             />
           </div>
