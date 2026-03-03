@@ -22,7 +22,7 @@ import { GameStorage } from '$utils/GameStorage';
 import { getCgConfig } from '$features/board/cgInstance';
 import { assignMirrorState } from '$features/pgn/mirror';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
-import { destroyPuzzleTimeouts } from '$features/chessJs/puzzleLogic';
+import { destroyPuzzleTimeouts, playAiMove } from '$features/chessJs/puzzleLogic';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
 import { getSystemShapes, blunderNags, parseCal, parseCsl } from '$features/board/arrows';
@@ -59,13 +59,13 @@ export class GameStore {
   hasMadeMistake: boolean = $state(false);
 
   // --- Private State ---
+  #flipBoolean = $state<boolean>(false); // Board orientation
   #storedScore: PuzzleScored | null = null;
   #boardMode: BoardModes;
   #trackedPathKey: PgnPath | undefined;
   #moveMap = new Map<string, CustomPgnMove>();
   #moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
 
-  #flipBoolean: boolean = false; // If Viewer should be flipped
   #randOrientBool: boolean = false; // Track randomOrientation boolean
   #storage: GameStorage;
 
@@ -81,7 +81,7 @@ export class GameStore {
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
-    this.#boardMode = $state(getBoardMode());
+    this.#boardMode = $state();
     this.setBoardMode(getBoardMode());
 
     const storedPathStr = this.#storage.get('chess_pgnPath');
@@ -194,12 +194,13 @@ export class GameStore {
 
     // We mark blunder lines as fail if played in Puzzle
     const isNagBlunder =
-    this.boardMode === 'Puzzle' &&
-    currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
-    currentMove?.turn === this.playerColor[0];
+      this.boardMode === 'Puzzle' &&
+      currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
+      currentMove?.turn === this.playerColor[0];
 
     // Any mistake is a fail if strictScoring
-    const isStrictMistake = this.config.strictScoring && (this.hasMadeMistake || this.timerStore.isOutOfTime);
+    const isStrictMistake =
+      this.config.strictScoring && (this.hasMadeMistake || this.timerStore.isOutOfTime);
 
     const isHandicapFail = this.errorCount > this.config.handicap;
 
@@ -210,9 +211,9 @@ export class GameStore {
     } else if (this.isPuzzleComplete) {
       // Grade on puzzle completion
       const isPerfectScore =
-      (this.config.timer || this.config.handicap) &&
-      !this.hasMadeMistake &&
-      !this.config.strictScoring;
+        (this.config.timer || this.config.handicap) &&
+        !this.hasMadeMistake &&
+        !this.config.strictScoring;
       this.#storedScore = isPerfectScore ? 'perfect' : 'pass';
       return isPerfectScore ? 'perfect' : 'pass';
     }
@@ -357,17 +358,15 @@ export class GameStore {
   setBoardMode(boardMode: BoardModes) {
     if (this.boardMode === boardMode) return;
 
-    if (boardMode !== 'Viewer') {
-
-
-    }
-
     this.timerStore.reset();
+
     if (/^(Puzzle|Study)$/.test(boardMode)) {
       this.engineStore.enabled = false;
       this.engineStore.stop();
       this.timerStore.start();
       this.#resetGameState();
+      const playAi = boardMode === 'Puzzle' && this.config.flipBoard;
+      playAi && playAiMove(this, 100);
     } else if (boardMode === 'AI') {
       this.engineStore.init(this.fen);
     }
@@ -484,6 +483,7 @@ export class GameStore {
     this.lastSelected = undefined;
     this.pendingPromotion = null;
     this.#storedScore = null;
+    this.#flipBoolean = this.config.flipBoard;
     this.hasMadeMistake = false;
     destroyPuzzleTimeouts();
     if (this.#moveDebounce) {

@@ -174,7 +174,7 @@ function handleWrongMove(store: GameStore, move: Move): void {
 function checkPuzzleComplete(store: GameStore): void {
   const puzzleComplete = store.isPuzzleComplete;
   if (puzzleComplete) {
-    store.cg.stop();
+    store.cg.selectSquare(null, true);
     store.timerStore.stop();
   }
 }
