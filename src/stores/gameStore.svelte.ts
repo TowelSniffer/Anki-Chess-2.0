@@ -42,7 +42,6 @@ export class GameStore {
   // --- Trackers ---
   lastSelected: Key | undefined = undefined;
   errorCount = 0;
-  puzzleScore: PuzzleScored = null;
   animationTimeout: number | null = null;
 
   // --- Board State ---
@@ -60,12 +59,11 @@ export class GameStore {
   parseError = $state<string | null>(null);
 
   // --- Private State ---
-
+  #storedScore = $state<PuzzleScored | null>(null);
   #trackedPathKey: PgnPath | undefined;
   #hasMadeMistake: boolean = $state(false);
   #moveMap = new Map<string, CustomPgnMove>();
   #moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
-
 
   #flipBoolean: boolean = false; // If Viewer should be flipped
   #randOrientBool: boolean = false; // Track randomOrientation boolean
@@ -105,7 +103,6 @@ export class GameStore {
       const path = this.pgnPath;
       this.#trackedPathKey = path.join(',');
     });
-
 
     // Track the external props so we only update when Anki/App actually changes it
     let externalModeTrack = getBoardMode();
@@ -160,47 +157,6 @@ export class GameStore {
 
     // --- PUZZLE SCORING ---
     $effect(() => {
-      /*
-       * We track mistakes and blunders in puzzle and Study mode and Scores Puzzle.
-       * Mistakes: wrong moves played; Timer is 0
-       * Fail: if strictScoring, any mistake; Blunder move played in puzzle
-       * mode; errorCount > handicap
-       * puzzleScores: if strictScoring [ pass, fail ]
-       * else  [ perfect, pass, fail ]
-       */
-
-      const isPuzzle = /^(Puzzle|Study)$/.test(this.boardMode);
-      // We only score once per puzzle
-      if (!isPuzzle || this.puzzleScore) return;
-
-      // We check score on new currentMove
-      const currentMove = this.currentMove;
-
-      // We mark blunder lines as fail if played in Puzzle
-      const isNagBlunder =
-        this.boardMode === 'Puzzle' &&
-        currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
-        currentMove?.turn === this.playerColor[0];
-
-      // Any mistake is a fail if strictScoring
-      const isStrictMistake = this.#hasMadeMistake && this.config.strictScoring;
-
-      const isHandicapFail = this.errorCount > this.config.handicap;
-
-      if (isNagBlunder || isStrictMistake || isHandicapFail) {
-        // if Fail
-        this.puzzleScore = 'fail';
-      } else if (this.isPuzzleComplete) {
-        // Grade on puzzle completion
-        const isPerfectScore =
-          (this.config.timer || this.config.handicap) &&
-          !this.#hasMadeMistake &&
-          !this.config.strictScoring;
-        this.puzzleScore = isPerfectScore ? 'perfect' : 'pass';
-      }
-    });
-
-    $effect(() => {
       const isPuzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
       const puzzledScored = this.puzzleScore && isPuzzleMode;
       if (puzzledScored) this.#storage.set('chess_puzzle_score', this.puzzleScore!.toString());
@@ -217,6 +173,49 @@ export class GameStore {
 
   get isPuzzleComplete() {
     return this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext;
+  }
+
+  get puzzleScore() {
+    /*
+     * We track mistakes and blunders in puzzle and Study mode and Scores Puzzle.
+     * Mistakes: wrong moves played; Timer is 0
+     * Fail: if strictScoring, any mistake; Blunder move played in puzzle
+     * mode; errorCount > handicap
+     * puzzleScores: if strictScoring [ pass, fail ]
+     * else  [ perfect, pass, fail ]
+     */
+
+    const isPuzzle = /^(Puzzle|Study)$/.test(this.boardMode);
+    // We only score once per puzzle
+    if (!isPuzzle || this.#storedScore) return null;
+
+    // We check score on new currentMove
+    const currentMove = this.currentMove;
+
+    // We mark blunder lines as fail if played in Puzzle
+    const isNagBlunder =
+    this.boardMode === 'Puzzle' &&
+    currentMove?.nag?.some((n) => blunderNags.includes(n)) &&
+    currentMove?.turn === this.playerColor[0];
+
+    // Any mistake is a fail if strictScoring
+    const isStrictMistake = this.#hasMadeMistake && this.config.strictScoring;
+
+    const isHandicapFail = this.errorCount > this.config.handicap;
+
+    if (isNagBlunder || isStrictMistake || isHandicapFail) {
+      // if Fail
+      return 'fail';
+    } else if (this.isPuzzleComplete) {
+      // Grade on puzzle completion
+      const isPerfectScore =
+      (this.config.timer || this.config.handicap) &&
+      !this.#hasMadeMistake &&
+      !this.config.strictScoring;
+      return isPerfectScore ? 'perfect' : 'pass';
+    }
+
+    return null;
   }
 
   // caches the string key (prevents repeated .join() calls)
@@ -376,8 +375,7 @@ export class GameStore {
       const storedScore = this.#storage.get('chess_puzzle_score');
       this.#randOrientBool = this.#storage.get('chess_randOrientBool') === 'true';
       this.#flipBoolean = this.#storage.get('chess_flipBoolean') === 'true';
-
-      this.puzzleScore = (storedScore as PuzzleScored) ?? null;
+      this.#storedScore = (storedScore as PuzzleScored) ?? null;
 
       const aiPgn = this.#storage.get('chess_aiPgn');
       if (aiPgn && this.boardMode === 'Viewer') PGN = aiPgn;
@@ -419,13 +417,13 @@ export class GameStore {
     this.startFen = parsedPgn.tags?.FEN ?? DEFAULT_POSITION;
     this.rootGame = parsedPgn;
 
-
     // Wrap the tree augmentation in a try/catch to catch Invalid PGN errors
     try {
       augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this.#moveMap);
     } catch (e) {
       console.warn(e);
-      this.parseError = e instanceof Error ? e.message : 'An unknown error occurred applying moves.';
+      this.parseError =
+        e instanceof Error ? e.message : 'An unknown error occurred applying moves.';
 
       // Clear the corrupted moves so the app doesn't lock up or crash
       this.rootGame.moves = [];
@@ -433,28 +431,32 @@ export class GameStore {
     }
   }
 
-  customAnimation(animation: { fen: string; animate: boolean; postAnimateFen?: string }): void {
+  customAnimation(animation: { preFen: string | null; animate: boolean; postFen?: string }): void {
     /*
      * --- Control Chessground animations ---
      * Eg. default promotion isn't good so with this we can pass a fen with the pawn
-     * moved and animate that, then with postAnimateFen we can change the pawn to
+     * moved and animate that, then with postFen we can change the pawn to
      * promotion choice with timeout
      */
     if (this.animationTimeout) {
-      clearTimeout(this.animationTimeout)
+      clearTimeout(this.animationTimeout);
       this.animationTimeout = null;
-    };
-    this.cg.set({
-      fen: animation.fen,
-      animation: {
-        enabled: animation.animate
-      },
-    });
+    }
+    if (animation.preFen) {
+      this.cg.set({
+        fen: animation.preFen,
+        animation: {
+          enabled: animation.animate,
+        },
+      });
+    }
 
-    if (animation.postAnimateFen) {
+    if (animation.postFen) {
       this.animationTimeout = setTimeout(() => {
-        const isSamePosition = this.fen === animation.postAnimateFen;
-        if (isSamePosition) this.cg.set({ fen: animation.postAnimateFen });
+        const isSamePosition = this.fen === animation.postFen;
+        if (isSamePosition) {
+          this.cg?.set({ fen: animation.postFen });
+        }
         this.animationTimeout = null;
       }, this.config.animationTime);
     }
@@ -471,8 +473,8 @@ export class GameStore {
     this.errorCount = 0;
     this.lastSelected = undefined;
     this.pendingPromotion = null;
+    this.#storedScore = null;
     this.#hasMadeMistake = false;
-    this.puzzleScore = null;
     destroyPuzzleTimeouts();
     if (this.#moveDebounce) {
       clearTimeout(this.#moveDebounce);
@@ -563,6 +565,6 @@ export class GameStore {
   destroy() {
     this.#resetGameState();
     this.rootGame = undefined;
-    this.#moveMap.clear();;
+    this.#moveMap.clear();
   }
 }
