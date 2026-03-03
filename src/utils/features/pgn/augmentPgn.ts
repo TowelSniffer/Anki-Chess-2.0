@@ -20,8 +20,15 @@ export function augmentPgnTree(
     const move = moves[i];
     const currentPath: PgnPath = [...path, i];
 
-    const moveResult = chess.move(move.notation.notation);
-    if (!moveResult) continue;
+    let moveResult;
+    try {
+      // Catch illegal moves rejected by chess.js
+      moveResult = chess.move(move.notation.notation);
+      if (!moveResult) throw new Error('Move returned null');
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : 'Invalid move';
+      throw new Error(`Move legality error on "${move.notation.notation}": ${errMsg}`);
+    }
 
 
     Object.assign(move, {
@@ -57,8 +64,7 @@ export function augmentPgnTree(
       });
     }
   }
-
-  // backtrack
+  // Backtrack to start of branch
   for (let i = 0; i < moves.length; i++) chess.undo();
 }
 

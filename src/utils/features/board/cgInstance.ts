@@ -1,12 +1,12 @@
-import type { Piece, Key, Color as CgColor, Elements } from '@lichess-org/chessground/types';
+import type { Piece, Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
 import { untrack } from 'svelte';
 import type { GameStore } from '$stores/gameStore.svelte';
 import type { CustomShape } from '$Types/ChessStructs';
 import { getLegalMove, isPromotion } from '$features/chessJs/chessFunctions';
 import { shapePriority } from '$features/board/arrows';
-import { moveAudio, playSound } from '$features/audio/audio';
-import { playAiMove, handleUserMove } from '$features/chessJs/puzzleLogic';
+import { moveAudio } from '$features/audio/audio';
+import { handleUserMove } from '$features/chessJs/puzzleLogic';
 
 // --- Logic Handlers ---
 
@@ -82,37 +82,43 @@ export function handleSelect(key: Key, store: GameStore) {
 }
 
 /**
- * Handles the 'after' event (Drag and Drop completion).
+ * Handles the 'after' event (Drag and Drop or Click to Move completion).
+ * Not called when running cg.move
  */
 function handleAfter(orig: Key, dest: Key, store: GameStore) {
-  const from = orig as Square;
-  const to = dest as Square;
+
 
   const isSpecialMove = store.fen.split(' ')[0] !== store.cg.getFen();
   console.log('after', isSpecialMove);
 }
 
+/**
+ * Called before after: when running cg.move
+ */
 function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStore) {
+  const from = orig as Square;
+  const to = dest as Square;
+
   // Check Promotion
   const isDragAndDrop = !store.cg.state.animation.current;
   const isSpeciallMove = !isDragAndDrop && store.fen.split(' ')[0] !== store.cg.getFen();
   console.log('move', isSpeciallMove);
 
-  if (isPromotion(orig, dest, store.fen)) {
-    store.setPendingPromotion(orig, dest);
+  if (isPromotion(from, to, store.fen)) {
+    store.setPendingPromotion(from, to);
     return;
   }
 
   const tempChess = store.newChess(store.fen);
-  const moveCheck = orig && dest && getLegalMove({ from: orig as Square, to: dest }, store.fen);
+  const moveCheck = from && to && getLegalMove({ from: from as Square, to: to }, store.fen);
 
   if (moveCheck?.flags.includes('e')) {
     // store.cg.set({ fen: moveCheck.before });
     store.customAnimation({ fen: moveCheck.after, animate: false });
   }
-  moveCheck && handleUserMove(store, orig, dest);
+  moveCheck && handleUserMove(store, from, to);
   const move = store.currentMove;
-  const isForward = move && move.from === orig && move.to === dest;
+  const isForward = move && move.from === from && move.to === to;
 
   isForward && moveAudio(move);
   // isCglMove && store.cg.set({ fen: store.fen })
