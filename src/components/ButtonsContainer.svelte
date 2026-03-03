@@ -31,6 +31,7 @@
    *  DERIVED VARIABLES
    */
 
+  const isViewerMode = $derived(gameStore.boardMode === 'Viewer');
   const canGoBack = $derived(gameStore.pgnPath.length);
   const canGoForward = $derived(gameStore.hasNext);
 
@@ -75,7 +76,7 @@
   const menuData = $derived(getMenuData((val) => isHelpOpen = val, isDevMenu ? gameStore : undefined));
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={isViewerMode ? handleKeydown : null} />
 
 <Dropdown icon={IconSettings} items={menuData} />
 
