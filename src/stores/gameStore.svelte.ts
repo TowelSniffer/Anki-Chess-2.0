@@ -22,7 +22,7 @@ import { GameStorage } from '$utils/GameStorage';
 import { getCgConfig } from '$features/board/cgInstance';
 import { assignMirrorState } from '$features/pgn/mirror';
 import { augmentPgnTree, addMoveToPgn } from '$features/pgn/augmentPgn';
-import { destroyPuzzleTimeouts, playAiMove } from '$features/chessJs/puzzleLogic';
+import { playAiMove } from '$features/chessJs/puzzleLogic';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
 import { getSystemShapes, blunderNags, parseCal, parseCsl } from '$features/board/arrows';
@@ -43,6 +43,7 @@ export class GameStore {
   lastSelected: Key | undefined = undefined;
   errorCount = 0;
   animationTimeout: number | null = null;
+  #activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
   // --- Board State ---
   startFen: string;
@@ -73,16 +74,14 @@ export class GameStore {
     getPgn: () => string,
     getBoardMode: () => BoardModes,
     getConfig: () => UserConfigOpts,
+    persist: boolean,
     engineStore: EngineStore,
     timerStore: TimerStore,
-    getPersist: () => boolean,
   ) {
-    this.#storage = new GameStorage(getPersist());
+    this.#storage = new GameStorage(persist);
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
-    this.#boardMode = $state();
-    this.setBoardMode(getBoardMode());
 
     const storedPathStr = this.#storage.get('chess_pgnPath');
     // Map over the string array and convert numeric strings to actual numbers
@@ -95,6 +94,15 @@ export class GameStore {
     const pgnPath = isValidPath ? storedPath : [];
     this.pgnPath = $state(pgnPath);
 
+    this.#boardMode = $state();
+    this.#flipBoolean = this.config.flipBoard;
+
+    this.init(getBoardMode(), getPgn());
+
+    // Track the external props so we only update when Anki/App actually changes it
+    let externalModeTrack = getBoardMode();
+    let pgnTrack = getPgn();
+
     // $effect(() => {
     //   $inspect(this.hasNext, this.isPuzzleComplete);
     // });
@@ -104,11 +112,11 @@ export class GameStore {
       this.#trackedPathKey = path.join(',');
     });
 
-    // Track the external props so we only update when Anki/App actually changes it
-    let externalModeTrack = getBoardMode();
-    let pgnTrack = getPgn();
-
-    this.loadNewGame(pgnTrack);
+    // Set cg config
+    $effect(() => {
+      const config = this.boardConfig;
+      this.cg.set(config);
+    });
 
     // Track External BoardMode changes (New Card)
     $effect(() => {
@@ -243,7 +251,7 @@ export class GameStore {
   }
 
   get viewOnly() {
-    return this.#moveDebounce ? true : false;
+    return this.isPuzzleComplete || this.isGameOver || this.#moveDebounce;
   }
 
   get playerColor(): CgColor {
@@ -355,19 +363,26 @@ export class GameStore {
    * METHODS
    */
 
+  init(boardMode: BoardModes, rawPgn: string) {
+    this.setBoardMode(boardMode);
+    this.loadNewGame(rawPgn);
+  }
+
   setBoardMode(boardMode: BoardModes) {
     if (this.boardMode === boardMode) return;
 
     this.timerStore.reset();
 
     if (/^(Puzzle|Study)$/.test(boardMode)) {
+      this.#resetGameState();
       this.engineStore.enabled = false;
       this.engineStore.stop();
       this.timerStore.start();
-      this.#resetGameState();
       const playAi = boardMode === 'Puzzle' && this.config.flipBoard;
+      console.log(this.config.flipBoard, this.#flipBoolean);
       playAi && playAiMove(this, 100);
     } else if (boardMode === 'AI') {
+      this.#flipBoolean = false;
       this.engineStore.init(this.fen);
     }
 
@@ -395,22 +410,17 @@ export class GameStore {
       this.#storage.clearGame();
     } else if (/^(Puzzle|Study)$/.test(this.boardMode)) {
       if (this.boardMode === 'Puzzle') {
-        const flipPgn = this.config.flipBoard;
-        this.#flipBoolean = flipPgn;
+        const flipPgn = this.#flipBoolean;
         this.#storage.set('chess_flipBoolean', flipPgn.toString());
-
         if (this.config.mirror) {
           mirrorState = assignMirrorState();
           this.#storage.set('chess_mirrorState', `${mirrorState}`);
         }
       }
-
       if (this.config.randomOrientation) {
         this.#randOrientBool = !Math.round(Math.random());
         this.#storage.set('chess_randOrientBool', this.#randOrientBool.toString());
       }
-    } else if (this.boardMode === 'AI') {
-      this.#flipBoolean = false;
     }
 
     this.rootGame = undefined;
@@ -448,7 +458,7 @@ export class GameStore {
      * promotion choice with timeout
      */
     if (this.animationTimeout) {
-      clearTimeout(this.animationTimeout);
+      this.clearTrackedTimeout(this.animationTimeout);
       this.animationTimeout = null;
     }
     if (animation.preFen) {
@@ -461,7 +471,7 @@ export class GameStore {
     }
 
     if (animation.postFen) {
-      this.animationTimeout = setTimeout(() => {
+      this.animationTimeout = this.setTrackedTimeout(() => {
         const isSamePosition = this.fen === animation.postFen;
         if (isSamePosition) {
           this.cg?.set({ fen: animation.postFen });
@@ -485,11 +495,29 @@ export class GameStore {
     this.#storedScore = null;
     this.#flipBoolean = this.config.flipBoard;
     this.hasMadeMistake = false;
-    destroyPuzzleTimeouts();
-    if (this.#moveDebounce) {
-      clearTimeout(this.#moveDebounce);
-      this.#moveDebounce = null;
-    }
+    this.#destroyTimeouts();
+  }
+
+  // --- Timeout Management ---
+
+  setTrackedTimeout(callback: () => void, delay: number): ReturnType<typeof setTimeout> {
+    const id = setTimeout(() => {
+      this.#activeTimeouts.delete(id);
+      callback();
+    }, delay);
+    this.#activeTimeouts.add(id);
+    return id; // Return the ID so we can target it specifically
+  }
+
+  clearTrackedTimeout(id: ReturnType<typeof setTimeout> | null) {
+    if (!id) return;
+    clearTimeout(id);
+    this.#activeTimeouts.delete(id); // Remove it from the cleanup Set
+  }
+
+  #destroyTimeouts() {
+    this.#activeTimeouts.forEach(clearTimeout);
+    this.#activeTimeouts.clear();
   }
 
   // --- Navigation Helpers ---
@@ -530,11 +558,12 @@ export class GameStore {
 
   // Prevent rapid move attempts
   setMoveDebounce(time = this.config.animationTime) {
-    const timerStore = this.timerStore;
-    timerStore.pause();
-    this.#moveDebounce = setTimeout(() => {
+    this.timerStore.pause();
+
+    if (this.#moveDebounce) this.clearTrackedTimeout(this.#moveDebounce);
+    this.#moveDebounce = this.setTrackedTimeout(() => {
       this.#moveDebounce = null;
-      if (!this.isPuzzleComplete) timerStore.resume();
+      if (!this.isPuzzleComplete) this.timerStore.resume();
     }, time);
   }
 
