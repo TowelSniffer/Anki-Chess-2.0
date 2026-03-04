@@ -103,7 +103,6 @@ export async function handleUserMove(
 }
 
 export function playAiMove(store: GameStore, delay: number): void {
-  store.errorCount = 0;
   store.setTrackedTimeout(() => {
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
 
@@ -130,8 +129,6 @@ export function playAiMove(store: GameStore, delay: number): void {
 function playUserCorrectMove(store: GameStore, delay: number): void {
   // disable interaction until player move is made
   store.setMoveDebounce();
-  // Reset error tracker
-  store.errorCount = 0;
   store.setTrackedTimeout(() => {
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(store.pgnPath);
