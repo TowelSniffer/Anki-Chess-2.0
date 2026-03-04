@@ -47,7 +47,7 @@ export class GameStore {
 
   // --- Board State ---
   startFen: string;
-  cg: Api;
+  cg?: Api;
 
   // --- State variables ---
 
@@ -63,7 +63,7 @@ export class GameStore {
   #flipBoolean = $state<boolean>(false); // Board orientation
   #storedScore: PuzzleScored | null = null;
   #boardMode: BoardModes;
-  #trackedPathKey: PgnPath | undefined;
+  #trackedPathKey: string | undefined;
   #moveMap = new Map<string, CustomPgnMove>();
   #moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
 
@@ -74,11 +74,11 @@ export class GameStore {
     getPgn: () => string,
     getBoardMode: () => BoardModes,
     getConfig: () => UserConfigOpts,
-    persist: boolean,
+    getPersist: () => boolean,
     engineStore: EngineStore,
     timerStore: TimerStore,
   ) {
-    this.#storage = new GameStorage(persist);
+    this.#storage = new GameStorage(getPersist());
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
@@ -94,14 +94,12 @@ export class GameStore {
     const pgnPath = isValidPath ? storedPath : [];
     this.pgnPath = $state(pgnPath);
 
-    this.#boardMode = $state();
+    this.#boardMode = $state(getBoardMode());
     this.#flipBoolean = this.config.flipBoard;
 
-    this.init(getBoardMode(), getPgn());
-
-    // Track the external props so we only update when Anki/App actually changes it
-    let externalModeTrack = getBoardMode();
-    let pgnTrack = getPgn();
+    this.setBoardMode(getBoardMode());
+    this.loadNewGame(getPgn());
+    this.startFen = this.rootGame?.tags?.FEN ?? DEFAULT_POSITION;
 
     // $effect(() => {
     //   $inspect(this.hasNext, this.isPuzzleComplete);
@@ -115,29 +113,15 @@ export class GameStore {
     // Set cg config
     $effect(() => {
       const config = this.boardConfig;
-      this.cg.set(config);
-    });
-
-    // Track External BoardMode changes (New Card)
-    $effect(() => {
-      const externalMode = getBoardMode();
-      if (externalModeTrack !== externalMode) {
-        untrack(() => {
-          this.setBoardMode(externalMode);
-        });
-        externalModeTrack = externalMode;
-      }
+      this.cg?.set(config);
     });
 
     // Handle boardMode and Pgn updates
     $effect(() => {
       const boardMode = this.boardMode;
+      const PGN = getPgn();
 
-      let PGN = getPgn();
-      const newPgnCheck = pgnTrack !== PGN;
-      if (newPgnCheck) pgnTrack = PGN;
-
-      const reloadCheck = newPgnCheck || (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
+      const reloadCheck = (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
       untrack(() => {
         reloadCheck && this.loadNewGame(PGN);
       });
@@ -242,7 +226,7 @@ export class GameStore {
   get trackedMove() {
     // We track moves for undo logic
     const path = untrack(() => this.#trackedPathKey);
-    return this.#moveMap.get(path) || null;
+    return path ? this.#moveMap.get(path) : null;
   }
 
   // depends on cached currentMove
@@ -251,7 +235,7 @@ export class GameStore {
   }
 
   get viewOnly() {
-    return this.isPuzzleComplete || this.isGameOver || this.#moveDebounce;
+    return !!(this.isPuzzleComplete || this.isGameOver || this.#moveDebounce);
   }
 
   get playerColor(): CgColor {
@@ -324,7 +308,7 @@ export class GameStore {
   }
 
   get rootMoves() {
-    return this.rootGame.moves;
+    return this.rootGame?.moves;
   }
 
   get dests() {
@@ -362,11 +346,6 @@ export class GameStore {
   /*
    * METHODS
    */
-
-  init(boardMode: BoardModes, rawPgn: string) {
-    this.setBoardMode(boardMode);
-    this.loadNewGame(rawPgn);
-  }
 
   setBoardMode(boardMode: BoardModes) {
     if (this.boardMode === boardMode) return;
@@ -433,12 +412,13 @@ export class GameStore {
     this.parseError = parsedData.error || null;
 
     mirrorPGN(parsedPgn, mirrorState);
-    this.startFen = parsedPgn.tags?.FEN ?? DEFAULT_POSITION;
+
     this.rootGame = parsedPgn;
+    const fen = this.rootGame?.tags?.FEN ?? DEFAULT_POSITION;
 
     // Wrap the tree augmentation in a try/catch to catch Invalid PGN errors
     try {
-      augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this.#moveMap);
+      augmentPgnTree(this.rootGame.moves, [], this.newChess(fen), this.#moveMap);
     } catch (e) {
       console.warn(e);
       this.parseError =
@@ -462,7 +442,7 @@ export class GameStore {
       this.animationTimeout = null;
     }
     if (animation.preFen) {
-      this.cg.set({
+      this.cg?.set({
         fen: animation.preFen,
         animation: {
           enabled: animation.animate,
@@ -551,7 +531,7 @@ export class GameStore {
 
     return {
       destroy: () => {
-        this.cg.destroy();
+        this.cg?.destroy();
       },
     };
   };

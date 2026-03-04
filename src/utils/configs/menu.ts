@@ -280,7 +280,7 @@ export function getMenuData(
               {
                 type: 'action',
                 label: 'cg.stop',
-                action: () => gameStore.cg.newPiece({ role: 'pawn', color: 'black' }, 'h8'),
+                action: () => gameStore.cg?.newPiece({ role: 'pawn', color: 'black' }, 'h8'),
               },
               {
                 type: 'select',
@@ -295,7 +295,7 @@ export function getMenuData(
                 label: 'Paste PGN',
                 action: () => {
                   const newPgn = prompt('Paste new PGN string:');
-                  if (newPgn) gameStore.loadNewGame(newPgn, 'original');
+                  if (newPgn) gameStore.loadNewGame(newPgn);
                 },
               },
             ],

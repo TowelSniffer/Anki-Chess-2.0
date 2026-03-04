@@ -104,7 +104,7 @@ of 164k]}) *
 
     {#key `${activeDemo.label}-${reloadKey}`}
       <GameProvider
-        pgn={activeDemo.pgn}
+        rawPgn={activeDemo.pgn}
         boardMode={activeDemo.boardMode}
         configOverride={activeDemo.configOverride}
         persist={false}

@@ -2,7 +2,7 @@
   import '@lichess-org/chessground/assets/chessground.base.css';
   import '$scss/_components/_chessground.scss';
 
-  import type { PgnPath, PuzzleScored } from '$Types/ChessStructs';
+  import type { PuzzleScored } from '$Types/ChessStructs';
   import type { GameStore } from '$stores/gameStore.svelte';
   import type { EngineStore } from '$stores/engineStore.svelte';
   import type { TimerStore } from '$stores/timerStore.svelte';
@@ -19,7 +19,6 @@
 
   onDestroy(() => {
     if (flashState) flashState = null;
-    if (viewerTimeout) clearTimeout(viewerTimeout);
   });
 
   // Map logical strings for border, divider and flash
@@ -214,27 +213,19 @@
   });
 
   // Handle Puzzle Completion Side-Effects (Timer/Drag cancel)
-  let viewerTimeout: ReturnType<typeof setTimeout>;
   $effect(() => {
     const puzzleComplete = gameStore.isPuzzleComplete;
+    if (!config.autoAdvance || isViewerMode) return;
     if (puzzleComplete) {
-      viewerTimeout = setTimeout(showViewer, 300);
+      gameStore.setTrackedTimeout(showViewer, 300);
     }
   });
 
   // Move & Custom Animation an Handler
   $effect(() => {
-    const move = gameStore.currentMove;
-
     // Check if cg fen is up to date with gameStore fen
-    const shouldHandleMove = gameStore.fen.split(' ')[0] !== gameStore.cg.getFen();
+    const shouldHandleMove = gameStore.fen.split(' ')[0] !== gameStore.cg?.getFen();
     shouldHandleMove && updateBoard(gameStore);
-  });
-
-  // Set cg config
-  $effect(() => {
-    const config = gameStore.boardConfig;
-    gameStore.cg.set(config);
   });
 
   // A) : Handle Mistakes (Flash Red)
@@ -277,7 +268,7 @@
      * We must track selected piece so our single click move logic can compare it
      * to the against the new value in select:
      */
-    const cgStateSelected = gameStore.cg.state.selected;
+    const cgStateSelected = gameStore.cg?.state.selected;
 
     gameStore.lastSelected = cgStateSelected;
   }
@@ -490,3 +481,4 @@
     }
   }
 </style>
+

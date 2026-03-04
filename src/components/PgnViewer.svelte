@@ -16,7 +16,7 @@
   } = $props();
 
   let moves = $derived(passedMoves ?? gameStore.rootMoves);
-  let gameComment = $derived(gameStore.rootGame.gameComment?.comment);
+  let gameComment = $derived(gameStore.rootGame?.gameComment?.comment);
 
   const currentPgnPathKey = $derived(gameStore.currentPathKey);
 

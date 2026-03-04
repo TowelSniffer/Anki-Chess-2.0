@@ -76,7 +76,7 @@ export function handleSelect(key: Key, store: GameStore) {
   if (moveCheck?.promotion) {
     handleUserMove(store, moveCheck.from, moveCheck.to, moveCheck.san);
   } else if (moveCheck) {
-    store.cg.move(moveCheck.from, moveCheck.to);
+    store.cg?.move(moveCheck.from, moveCheck.to);
   }
 }
 
@@ -102,7 +102,7 @@ function handleMove(orig: Key, dest: Key, store: GameStore) {
   const isForward = move && move.from === from && move.to === to;
 
   isForward && moveAudio(move);
-  store.cg.playPremove();
+  store.cg?.playPremove();
 }
 
 // --- Configuration ---

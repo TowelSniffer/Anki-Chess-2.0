@@ -1,8 +1,6 @@
-import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
+import type { Role, Color } from '@lichess-org/chessground/types';
 import type { GameStore } from '$stores/gameStore.svelte';
-import type { Sounds } from '$Types/Audio';
 import { moveAudio, playSound } from '$features/audio/audio';
-import { navigatePrevMove } from '$features/pgn/pgnNavigate';
 
 export function updateBoard(store: GameStore): void {
   /**
@@ -12,10 +10,11 @@ export function updateBoard(store: GameStore): void {
    */
 
   const move = store.currentMove;
+
   const fen = store.fen;
   const prevMove = store.trackedMove;
 
-  if (store.animationTimeout) {
+  if (move && store.animationTimeout) {
     // Fix any previous animation fens
     store.customAnimation({ preFen: move.before, animate: false });
   }
@@ -31,10 +30,10 @@ export function updateBoard(store: GameStore): void {
       const square = prevMove.to;
       const color = prevMove.turn === 'w' ? 'white' : 'black';
       const pieces = new Map([[square, undefined]]);
-      store.cg.setPieces(pieces);
-      store.cg.newPiece({ role: 'pawn', color: color }, square);
+      store.cg?.setPieces(pieces);
+      store.cg?.newPiece({ role: 'pawn' as Role, color: color as Color }, square);
     }
-    store.cg.set({ fen: prevMove.before });
+    store.cg?.set({ fen: prevMove.before });
   } else if (forwardMoveCheck) {
     /**
      * Check if cg.move can be used instead of set({ fen: ... })
@@ -46,14 +45,14 @@ export function updateBoard(store: GameStore): void {
       const color = move.turn === 'w' ? 'white' : 'black';
       const pieces = new Map([
         [orig, undefined],
-        [dest, { role: 'pawn', color: color }],
+        [dest, { role: 'pawn' as Role, color: color as Color }],
       ]);
-      store.cg.setPieces(pieces);
+      store.cg?.setPieces(pieces);
       store.customAnimation({ preFen: null, animate: false, postFen: move.after });
 
       move && moveAudio(move);
     } else {
-      store.cg.move(move.from, move.to);
+      move && store.cg?.move(move.from, move.to);
       // Remove captured pawn
       if (move?.flags.includes('e')) store.customAnimation({ preFen: move.after, animate: false });
     }

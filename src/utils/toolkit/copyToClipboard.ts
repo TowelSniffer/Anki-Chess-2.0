@@ -74,7 +74,7 @@ function showTooltip(targetBtn: HTMLElement, message: string) {
           document.body.removeChild(tooltip);
         }
       }, 300); // Match CSS transition time
-    }, 2000);
+    }, 1200);
 
     return { tooltip, timer };
 }
