@@ -173,6 +173,7 @@ export function getCgConfig(store: GameStore) {
    */
   const fixedMovable = /^(Puzzle|AI)$/.test(store.boardMode);
   const movableColor = fixedMovable ? store.playerColor : store.turn === 'w' ? 'white' : 'black';
+  console.log(store.viewOnly);
 
   return {
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,

@@ -46,7 +46,7 @@ export class GameStore {
   #activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
   // --- Board State ---
-  startFen: string;
+  startFen: string = DEFAULT_POSITION;
   cg?: Api;
 
   // --- State variables ---
@@ -60,14 +60,14 @@ export class GameStore {
   hasMadeMistake: boolean = $state(false);
 
   // --- Private State ---
-  #flipBoolean = $state<boolean>(false); // Board orientation
+  #flipBoolean: boolean; // Board orientation
   #storedScore: PuzzleScored | null = null;
   #boardMode: BoardModes;
   #trackedPathKey: string | undefined;
   #moveMap = new Map<string, CustomPgnMove>();
   #moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
 
-  #randOrientBool: boolean = false; // Track randomOrientation boolean
+  #orientBool: boolean; // Track randomOrientation boolean
   #storage: GameStorage;
 
   constructor(
@@ -82,7 +82,6 @@ export class GameStore {
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
-
     const storedPathStr = this.#storage.get('chess_pgnPath');
     // Map over the string array and convert numeric strings to actual numbers
     const storedPath = storedPathStr
@@ -90,20 +89,25 @@ export class GameStore {
           .split(',')
           .map((step) => (isNaN(Number(step)) ? step : Number(step))) as PgnPath)
       : [];
-    const isValidPath = !!this.getMoveByPath(storedPath);
-    const pgnPath = isValidPath ? storedPath : [];
+    const pgnPath = storedPath ?? [];
     this.pgnPath = $state(pgnPath);
 
     this.#boardMode = $state(getBoardMode());
-    this.#flipBoolean = this.config.flipBoard;
-
+    this.#flipBoolean = $state(false);
+    this.#orientBool = $state(false);
     this.setBoardMode(getBoardMode());
     this.loadNewGame(getPgn());
-    this.startFen = this.rootGame?.tags?.FEN ?? DEFAULT_POSITION;
 
+    let modeTrack = getBoardMode();
     // $effect(() => {
     //   $inspect(this.hasNext, this.isPuzzleComplete);
     // });
+
+    $effect(() => {
+      if (this.boardMode === modeTrack) return;
+      modeTrack = this.boardMode;
+      this.setBoardMode(modeTrack);
+    });
 
     $effect(() => {
       const path = this.pgnPath;
@@ -121,7 +125,7 @@ export class GameStore {
       const boardMode = this.boardMode;
       const PGN = getPgn();
 
-      const reloadCheck = (/^Puzzle|Study$/.test(boardMode) && this.config.mirror);
+      const reloadCheck = /^Puzzle|Study$/.test(boardMode) && this.config.mirror;
       untrack(() => {
         reloadCheck && this.loadNewGame(PGN);
       });
@@ -163,7 +167,7 @@ export class GameStore {
   }
 
   get isPuzzleComplete() {
-    return this.cg && /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext;
+    return /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext;
   }
 
   get puzzleScore() {
@@ -235,12 +239,19 @@ export class GameStore {
   }
 
   get viewOnly() {
-    return !!(this.isPuzzleComplete || this.isGameOver || this.#moveDebounce);
+    return this.isPuzzleComplete || this.isGameOver || !!this.#moveDebounce;
   }
 
   get playerColor(): CgColor {
     let color: CgColor = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
     if (this.#flipBoolean) color = color === 'white' ? 'black' : 'white';
+    if (this.#orientBool) {
+      if (this.#flipBoolean) {
+        color = color === 'white' ? 'white' : 'black';
+      } else {
+        color = color === 'white' ? 'black' : 'white';
+      }
+    }
 
     return color;
   }
@@ -251,16 +262,12 @@ export class GameStore {
 
   get orientation(): CgColor {
     const flipPgn = this.#flipBoolean;
-    let orientation: CgColor =
-      getTurnFromFen(this.startFen) === 'w'
-        ? flipPgn
-          ? 'black'
-          : 'white'
-        : flipPgn
-          ? 'white'
-          : 'black';
+    const randFlip = this.#orientBool;
 
-    if (this.#randOrientBool) orientation = orientation === 'white' ? 'black' : 'white';
+    let orientation: CgColor = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
+
+    if (flipPgn) orientation = orientation === 'white' ? 'black' : 'white';
+    if (randFlip) orientation = orientation === 'white' ? 'black' : 'white';
 
     return orientation;
   }
@@ -334,8 +341,7 @@ export class GameStore {
   }
 
   get isGameOver() {
-    if (!this.currentMove) return false;
-    return this.currentMove.isCheckmate || this.currentMove.isStalemate || this.currentMove.isDraw;
+    return this.currentMove?.isCheckmate || this.currentMove?.isStalemate || this.currentMove?.isDraw;
   }
 
   get prevPath() {
@@ -348,9 +354,8 @@ export class GameStore {
    */
 
   setBoardMode(boardMode: BoardModes) {
-    if (this.boardMode === boardMode) return;
-
     this.timerStore.reset();
+    if (boardMode !== 'Viewer') this.pgnPath = [];
 
     if (/^(Puzzle|Study)$/.test(boardMode)) {
       this.#resetGameState();
@@ -358,11 +363,23 @@ export class GameStore {
       this.engineStore.stop();
       this.timerStore.start();
       const playAi = boardMode === 'Puzzle' && this.config.flipBoard;
-      console.log(this.config.flipBoard, this.#flipBoolean);
-      playAi && playAiMove(this, 100);
+      if (playAi) {
+        this.#flipBoolean = true;
+        this.#storage.set('chess_flipBoolean', 'true');
+        this.cg &&
+          this.setTrackedTimeout(() => {
+            playAiMove(this, 0);
+          }, 200);
+      }
+      if (this.config.randomOrientation) {
+        this.#orientBool = !Math.round(Math.random());
+        this.#storage.set('chess_randOrientBool', this.#orientBool.toString());
+      }
     } else if (boardMode === 'AI') {
+      this.#orientBool = false;
       this.#flipBoolean = false;
       this.engineStore.init(this.fen);
+      this.#storage.clearGame();
     }
 
     this.#boardMode = boardMode;
@@ -376,7 +393,7 @@ export class GameStore {
 
     if (this.boardMode === 'Viewer') {
       const storedScore = this.#storage.get('chess_puzzle_score');
-      this.#randOrientBool = this.#storage.get('chess_randOrientBool') === 'true';
+      this.#orientBool = this.#storage.get('chess_randOrientBool') === 'true';
       this.#flipBoolean = this.#storage.get('chess_flipBoolean') === 'true';
       this.#storedScore = (storedScore as PuzzleScored) ?? null;
 
@@ -389,16 +406,10 @@ export class GameStore {
       this.#storage.clearGame();
     } else if (/^(Puzzle|Study)$/.test(this.boardMode)) {
       if (this.boardMode === 'Puzzle') {
-        const flipPgn = this.#flipBoolean;
-        this.#storage.set('chess_flipBoolean', flipPgn.toString());
         if (this.config.mirror) {
           mirrorState = assignMirrorState();
           this.#storage.set('chess_mirrorState', `${mirrorState}`);
         }
-      }
-      if (this.config.randomOrientation) {
-        this.#randOrientBool = !Math.round(Math.random());
-        this.#storage.set('chess_randOrientBool', this.#randOrientBool.toString());
       }
     }
 
@@ -414,11 +425,11 @@ export class GameStore {
     mirrorPGN(parsedPgn, mirrorState);
 
     this.rootGame = parsedPgn;
-    const fen = this.rootGame?.tags?.FEN ?? DEFAULT_POSITION;
+    this.startFen = this.rootGame.tags?.FEN ?? DEFAULT_POSITION;
 
     // Wrap the tree augmentation in a try/catch to catch Invalid PGN errors
     try {
-      augmentPgnTree(this.rootGame.moves, [], this.newChess(fen), this.#moveMap);
+      augmentPgnTree(this.rootGame.moves, [], this.newChess(this.startFen), this.#moveMap);
     } catch (e) {
       console.warn(e);
       this.parseError =
@@ -428,6 +439,8 @@ export class GameStore {
       this.rootGame.moves = [];
       this.#moveMap.clear();
     }
+
+    this.cg && this.customAnimation({ preFen: this.fen, animate: false });
   }
 
   customAnimation(animation: { preFen: string | null; animate: boolean; postFen?: string }): void {
@@ -468,12 +481,10 @@ export class GameStore {
   // --- Internal ---
 
   #resetGameState() {
-    this.pgnPath = [];
     this.errorCount = 0;
     this.lastSelected = undefined;
     this.pendingPromotion = null;
     this.#storedScore = null;
-    this.#flipBoolean = this.config.flipBoard;
     this.hasMadeMistake = false;
     this.#destroyTimeouts();
   }
@@ -527,7 +538,11 @@ export class GameStore {
 
   loadCgInstance = (node: HTMLDivElement) => {
     if (!node) return;
-    this.cg = Chessground(node, { fen: this.startFen });
+    this.cg = Chessground(node, { fen: this.fen });
+    this.cg.set(this.boardConfig);
+    this.setTrackedTimeout(() => {
+      playAiMove(this, 0);
+    }, 200);
 
     return {
       destroy: () => {
@@ -549,7 +564,7 @@ export class GameStore {
 
   // toggle orientation helper
   toggleOrientation() {
-    this.#flipBoolean = !this.#flipBoolean;
+    this.#orientBool = !this.#orientBool;
     playSound('castle');
   }
 
