@@ -1,5 +1,5 @@
 // Log a previous value for a $state
-export function trackPrevious(getter) {
+export function trackPrevious(getter: () => any) {
   let previous = $state();
   let current = $state(getter());
 

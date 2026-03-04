@@ -5,22 +5,6 @@ import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
 import { getLegalMove, type MoveInput } from './chessFunctions';
 
-// --- Timeout Management ---
-const activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
-
-function setTrackedTimeout(callback: () => void, delay: number) {
-  const id = setTimeout(() => {
-    activeTimeouts.delete(id);
-    callback();
-  }, delay);
-  activeTimeouts.add(id);
-}
-
-export function destroyPuzzleTimeouts() {
-  activeTimeouts.forEach(clearTimeout);
-  activeTimeouts.clear();
-}
-
 // --- Helper Functions ---
 
 function isSameMove(pgnMove: CustomPgnMove, playedMove: Move): boolean {
@@ -85,7 +69,7 @@ export async function handleUserMove(
       // Play AI Move
       const aiMove = getLegalMove(bestMoveSan, store.fen); // Validate SAN
       if (aiMove) {
-        setTrackedTimeout(() => {
+        store.setTrackedTimeout(() => {
           !!getLegalMove(bestMoveSan, store.fen) && store.addMove(aiMove);
         }, store.aiDelayTime || 300);
       }
@@ -120,8 +104,9 @@ export async function handleUserMove(
 
 export function playAiMove(store: GameStore, delay: number): void {
   store.errorCount = 0;
-  setTrackedTimeout(() => {
+  store.setTrackedTimeout(() => {
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
+
     const nextMove = store.getMoveByPath(nextMovePathCheck);
     // Only play if it's the opponent's turn
     if (nextMove && nextMove.turn === store.opponentColor[0]) {
@@ -147,7 +132,7 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
   store.setMoveDebounce();
   // Reset error tracker
   store.errorCount = 0;
-  setTrackedTimeout(() => {
+  store.setTrackedTimeout(() => {
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(store.pgnPath);
     store.pgnPath = nextMovePath;
@@ -159,6 +144,7 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
 }
 
 function handleWrongMove(store: GameStore, move: Move): void {
+  store.setMoveDebounce();
   store.errorCount++;
   store.hasMadeMistake = true;
   store.customAnimation({ preFen: move.before, animate: true });
@@ -174,7 +160,7 @@ function handleWrongMove(store: GameStore, move: Move): void {
 function checkPuzzleComplete(store: GameStore): void {
   const puzzleComplete = store.isPuzzleComplete;
   if (puzzleComplete) {
-    store.cg.selectSquare(null, true);
+    store.cg?.selectSquare(null, true);
     store.timerStore.stop();
   }
 }

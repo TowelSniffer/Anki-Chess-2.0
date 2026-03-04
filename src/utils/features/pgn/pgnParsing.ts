@@ -1,6 +1,6 @@
 import type { CustomPgnGame } from '$Types/ChessStructs';
 import type { Tags } from '@mliebelt/pgn-types';
-import { Chess, validateFen, DEFAULT_POSITION } from 'chess.js';
+import { validateFen, DEFAULT_POSITION } from 'chess.js';
 import { parse } from '@mliebelt/pgn-parser';
 import {
   checkCastleRights,
@@ -52,7 +52,7 @@ export function parsePGN(rawPgn: string): ParsedObject {
   // Attempt parsing and log error
   try {
     parsed = parse(pgnCheck, { startRule: 'game' }) as unknown as CustomPgnGame;
-    errorMsg = null; // Clear previous errors on success
+    errorMsg = undefined; // Clear previous errors on success
   } catch (e) {
     const pgnFallback = `[Event "AI Practice"]\n[FEN "${DEFAULT_POSITION}"]\n[SetUp "1"]\n\n*`;
     parsed = parse(pgnFallback, { startRule: 'game' }) as unknown as CustomPgnGame;

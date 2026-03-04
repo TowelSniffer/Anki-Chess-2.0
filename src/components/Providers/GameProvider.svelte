@@ -42,8 +42,6 @@
     return currentMode;
   });
 
-
-
   const config = $derived.by(() => {
     if (!configOverride) return userConfig.opts;
     // Merge default userConfig with specific overrides
@@ -57,9 +55,9 @@
     () => getPgn,
     () => getBoardMode,
     () => config,
+    () => persist,
     engineStore,
     timerStore,
-    () => persist,
   );
 
   // Set Stores in context so child components can access them
