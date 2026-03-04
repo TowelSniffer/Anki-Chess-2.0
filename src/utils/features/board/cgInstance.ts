@@ -1,4 +1,4 @@
-import type { Piece, Key, Color as CgColor } from '@lichess-org/chessground/types';
+import type { Key, Color as CgColor } from '@lichess-org/chessground/types';
 import type { Square } from 'chess.js';
 import { untrack } from 'svelte';
 import type { GameStore } from '$stores/gameStore.svelte';
@@ -81,9 +81,9 @@ export function handleSelect(key: Key, store: GameStore) {
 }
 
 /**
- * Called before after: when running cg.move
+ * Called when User manually moves a piece or when running cg.move
  */
-function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStore) {
+function handleMove(orig: Key, dest: Key, store: GameStore) {
   const from = orig as Square;
   const to = dest as Square;
 
@@ -91,7 +91,6 @@ function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStor
     store.setPendingPromotion(from, to);
     return;
   }
-  const tempChess = store.newChess(store.fen);
   const moveCheck = from && to && getLegalMove({ from: from as Square, to: to }, store.fen);
 
   if (moveCheck?.flags.includes('e')) {
@@ -104,17 +103,6 @@ function handleMove(orig: Key, dest: Key, capturedPiece?: Piece, store: GameStor
 
   isForward && moveAudio(move);
   store.cg.playPremove();
-}
-
-/**
- * Handles the 'after' event (Drag and Drop or Click to Move completion).
- * Not called when running cg.move
- */
-function handleAfter(orig: Key, dest: Key, store: GameStore) {
-  console.log(store.cg.state.animation.current)
-
-  const isSpecialMove = store.fen.split(' ')[0] !== store.cg.getFen();
-  console.log('after', isSpecialMove);
 }
 
 // --- Configuration ---
@@ -190,7 +178,7 @@ export function getCgConfig(store: GameStore) {
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
     orientation: store.orientation,
-    viewOnly: store.isPuzzleComplete || store.viewOnly || store.isGameOver,
+    viewOnly: store.viewOnly,
     turnColor: (store.turn === 'w' ? 'white' : 'black') as CgColor,
     premovable: {
       enabled: true,
@@ -212,23 +200,15 @@ export function getCgConfig(store: GameStore) {
       select: (key: Key) => {
         untrack(() => handleSelect(key, store));
       },
-      move: (orig: Key, dest: Key, capturedPiece?: Piece) => {
-        untrack(() => handleMove(orig, dest, capturedPiece, store));
-      },
-      dropNewPiece: (piece, key) => {
-        console.log('dropNewPiece');
+      move: (orig: Key, dest: Key) => {
+        untrack(() => handleMove(orig, dest, store));
       },
     },
     movable: {
       free: false,
       showDests: store.config.showDests,
       color: movableColor,
-      dests: store.dests,
-      events: {
-        after: (orig: Key, dest: Key) => {
-          untrack(() => handleAfter(orig, dest, store));
-        },
-      },
-    },
+      dests: store.dests
+    }
   };
 }
