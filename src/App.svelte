@@ -7,6 +7,7 @@
   import EngineAnalysis from '$components/EngineAnalysis.svelte';
   import HelpWrapper from '$components/HelpWrapper.svelte';
   import ErrorPopup from '$components/ErrorPopup.svelte';
+  import SettingsMenu from '$components/SettingsMenu.svelte';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
@@ -33,7 +34,7 @@
         {#if boardMode === 'Viewer'}
           <div id="sticky-container">
             <div id="buttons-container">
-              <ButtonsContainer bind:isHelpOpen/>
+              <ButtonsContainer />
             </div>
             <div id="analysis-container">
               <EngineAnalysis />
@@ -46,6 +47,7 @@
       </div>
     {/if}
     <div id="board-container">
+      <SettingsMenu bind:isHelpOpen />
       <ChessgroundBoard />
       <PromotePopup />
     </div>

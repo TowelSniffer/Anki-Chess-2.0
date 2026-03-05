@@ -1,6 +1,5 @@
 <script lang="ts">
   // Import the specific icons as components
-  import IconSettings from '~icons/material-symbols/settings-sharp';
   import IconDevBoard from '~icons/material-symbols/developer-board-sharp';
   import IconFirstPage from '~icons/material-symbols/first-page-sharp';
   import IconArrowLeft from '~icons/material-symbols/keyboard-arrow-left';
@@ -14,12 +13,8 @@
   import type { EngineStore } from '$stores/engineStore.svelte';
 
   import { getContext } from 'svelte';
-  import Dropdown from './uiUtility/Dropdown.svelte';
   import { playSound } from '$features/audio/audio';
-  import { getMenuData } from '$configs/menu';
   import { clickToCopy } from '$utils/toolkit/copyToClipboard';
-
-  let { isHelpOpen = $bindable(false) } = $props();
 
   // Retrieve Stores created by the parent
   const gameStore = getContext<GameStore>('GAME_STORE');
@@ -71,14 +66,9 @@
     isFlipped = !isFlipped;
     gameStore.toggleOrientation();
   }
-
-  const isDevMenu = import.meta.env.DEV;
-  const menuData = $derived(getMenuData((val) => isHelpOpen = val, isDevMenu ? gameStore : undefined));
 </script>
 
 <svelte:window onkeydown={isViewerMode ? handleKeydown : null} />
-
-<Dropdown icon={IconSettings} items={menuData} />
 
 <button class="iconBtn" id="resetBoard" disabled={!canGoBack} onclick={() => gameStore.reset()}>
   <IconFirstPage />
