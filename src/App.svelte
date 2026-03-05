@@ -20,9 +20,9 @@
 {#if import.meta.env.DEV}
   <RenderScan />
 {/if}
-<HelpWrapper bind:isHelpOpen/>
+<HelpWrapper bind:isHelpOpen />
 <GameProvider {rawPgn} {boardMode}>
-  <ErrorPopup bind:isHelpOpen/>
+  <ErrorPopup bind:isHelpOpen />
   <div id="container">
     {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
       <div id="commentBox">
@@ -30,6 +30,9 @@
           <div id="userTextContainer">
             <div id="textField">{@html userText}</div>
           </div>
+        {/if}
+        {#if boardMode !== 'Viewer' && userConfig.opts.frontText}
+          <SettingsMenu bind:isHelpOpen />
         {/if}
         {#if boardMode === 'Viewer'}
           <div id="sticky-container">
@@ -47,7 +50,7 @@
       </div>
     {/if}
     <div id="board-container">
-      {#if boardMode !== 'Viewer'}
+      {#if boardMode !== 'Viewer' && !userConfig.opts.frontText}
         <SettingsMenu bind:isHelpOpen />
       {/if}
       <ChessgroundBoard />
