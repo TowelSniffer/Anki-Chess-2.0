@@ -117,6 +117,10 @@ cg-container {
         background-color: rgba(155, 199, 0, 0.41);
       }
 
+      &.wrong-move {
+        background-color: rgba(255, 0, 0, 0.41); // A translucent red
+      }
+
       &.selected {
         background-color: rgba(20, 85, 30, 0.5);
       }

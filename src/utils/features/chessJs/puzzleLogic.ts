@@ -49,6 +49,9 @@ export async function handleUserMove(
   san?: string,
   promotionRole?: string,
 ) {
+  // Clear any existing wrong move highlight on new attempt
+  store.wrongMove = null;
+
   let moveObject: string | MoveInput;
   moveObject = promotionRole
     ? { from: orig, to: dest, promotion: promotionRole }
@@ -104,6 +107,8 @@ export async function handleUserMove(
 
 export function playAiMove(store: GameStore, delay: number): void {
   store.setTrackedTimeout(() => {
+    // Clear any existing wrong move highlight
+    store.wrongMove = null;
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
 
     const nextMove = store.getMoveByPath(nextMovePathCheck);
@@ -128,6 +133,8 @@ export function playAiMove(store: GameStore, delay: number): void {
 
 function playUserCorrectMove(store: GameStore, delay: number): void {
   // disable interaction until player move is made
+  // Clear any existing wrong move highlight
+  store.wrongMove = null;
   store.setMoveDebounce();
   store.setTrackedTimeout(() => {
     // Make the move without the AI's variation-selection logic
@@ -144,6 +151,8 @@ function handleWrongMove(store: GameStore, move: Move): void {
   store.setMoveDebounce();
   store.errorCount++;
   store.hasMadeMistake = true;
+  // Track the wrong move
+  store.wrongMove = { from: move.from, to: move.to };
   store.customAnimation({ preFen: move.after, animate: true, postFen: move.before });
   playSound('error');
   const isFailed = store.errorCount > store.config.handicap;

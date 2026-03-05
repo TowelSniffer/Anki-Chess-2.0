@@ -174,6 +174,13 @@ export function getCgConfig(store: GameStore) {
   const fixedMovable = /^(Puzzle|AI)$/.test(store.boardMode);
   const movableColor = fixedMovable ? store.playerColor : store.turn === 'w' ? 'white' : 'black';
 
+  // Custom Wrong Move highlight
+  const customHighlight = new Map<Key, string>();
+  if (store.wrongMove) {
+    customHighlight.set(store.wrongMove.from, 'wrong-move');
+    customHighlight.set(store.wrongMove.to, 'wrong-move');
+  }
+
   return {
     lastMove: store.currentMove ? [store.currentMove.from, store.currentMove.to] : undefined,
     check: store.inCheck,
@@ -186,6 +193,7 @@ export function getCgConfig(store: GameStore) {
     highlight: {
       check: true,
       currentMove: true,
+      custom: customHighlight,
     },
     animation: {
       enabled: true,
