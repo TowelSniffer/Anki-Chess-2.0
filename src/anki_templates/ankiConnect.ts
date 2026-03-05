@@ -5,6 +5,15 @@ import pkg from '../../package.json';
 
 const ANKI_URL = 'http://127.0.0.1:8765';
 
+export function generateFrontHtml(userConfig: object): string {
+  const finalConfig = { ...defaultConfig, ...userConfig };
+  const configString = `window.USER_CONFIG = ${JSON.stringify(finalConfig, null, 2)};`;
+
+  return frontTemplate
+    .replace('// __USER_CONFIG__', configString)
+    .replaceAll('__VERSION__', pkg.version);
+}
+
 export async function checkAnkiConnection(): Promise<boolean> {
   // Safety Check: If we are not in desktop
   if (typeof pycmd === 'undefined') {
@@ -28,20 +37,12 @@ export async function updateAnkiChessTemplate(
   cardName: string,
   userConfig: object,
 ) {
-  const currentVersion = pkg.version;
-
-  // merge userConfig with defaults to ensure no keys are missing
-  const finalConfig = { ...defaultConfig, ...userConfig };
-
-  const configString = `window.USER_CONFIG = ${JSON.stringify(finalConfig, null, 2)};`;
-
   // Construct the new Front Template with inlined Config and Cache-busted Script
-  let newFront = frontTemplate
-    .replace('// __USER_CONFIG__', configString)
-    .replaceAll('__VERSION__', currentVersion);
+  const newFront = generateFrontHtml(userConfig);
   const newBack = `{{FrontSide}}\n<script>document.getElementById('anki-chess-root').setAttribute('data-boardMode', 'Viewer');</script>`;
 
   // Construct the new CSS with Cache-busted Import
+  const currentVersion = pkg.version;
   const newCss = cssTemplate.replaceAll('__VERSION__', currentVersion);
 
   try {

@@ -8,6 +8,7 @@ export interface UserConfigOpts {
   handicap: number;
   autoAdvance: boolean;
   timerAdvance: boolean;
+  storePgnPath: boolean;
   strictScoring: boolean;
   acceptVariations: boolean;
   playBothSides: boolean;
