@@ -83,9 +83,9 @@ export async function handleUserMove(
     if (existingPath) {
       // A) Move exists in PGN (Main line or Variation)
       store.pgnPath = existingPath;
+      checkPuzzleComplete(store);
       store.timerStore.extend(store.config.increment, store.aiDelayTime);
       if (store.boardMode === 'Puzzle') {
-        checkPuzzleComplete(store);
         // Reset error tracker
         store.errorCount = 0;
         playAiMove(store, store.aiDelayTime || 300);
@@ -144,8 +144,7 @@ function handleWrongMove(store: GameStore, move: Move): void {
   store.setMoveDebounce();
   store.errorCount++;
   store.hasMadeMistake = true;
-  store.customAnimation({ preFen: move.before, animate: true });
-  store.pgnPath = [...store.pgnPath]
+  store.customAnimation({ preFen: move.after, animate: true, postFen: move.before });
   playSound('error');
   const isFailed = store.errorCount > store.config.handicap;
 
