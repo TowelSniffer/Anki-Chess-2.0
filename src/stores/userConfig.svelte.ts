@@ -1,6 +1,6 @@
 import type { UserConfigOpts } from '$Types/UserConfig';
 import defaultConfig from '$anki/default_config.json';
-import { updateAnkiChessTemplate, checkAnkiConnection } from '$anki/ankiConnect';
+import { updateAnkiChessTemplate, checkAnkiConnection, generateFrontHtml } from '$anki/ankiConnect';
 import { copyToClipboard } from '$utils/toolkit/copyToClipboard';
 
 export class UserConfig {
@@ -127,7 +127,7 @@ export class UserConfig {
 
     // --- STRATEGY 3: Clipboard (Mobile/Manual) ---
     console.warn('No connection found. Settings copied to clipboard.');
-    const clipboardString = `window.USER_CONFIG = ${JSON.stringify({ ...this.lastSavedState }, null, 2)};`;
+    const clipboardString = generateFrontHtml(this.lastSavedState);
     copyToClipboard(clipboardString);
   }
 }
