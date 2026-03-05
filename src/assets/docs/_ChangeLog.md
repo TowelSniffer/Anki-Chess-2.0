@@ -1,3 +1,14 @@
+## Version: 1.2.10
+
+Best to make sure the companion addon Is up to date before updating this. 
+
+- Fixed PGN and Fen validation breaking some PGNs and added a popup when trying to load bad PGNs
+- Fixed broken Gamecomment
+- Viewer now loads the same potion as Puzzle. Set "Save Position" to false to to default to staring position.
+- Backside now uses Anki's {{FrontSide}} field to avoid having to save config options for both sides 
+- Added a method to control settings on Front Side also. I will probably add an option in future and to instead use touch gestures and keyboard shortcuts. Toggle with Anki Template > Front Settings.
+- Added a help menu to show documentation an interactive examples. 
+
 ## Version: 1.2.04
 
 1. some changes to the look of the border that I like

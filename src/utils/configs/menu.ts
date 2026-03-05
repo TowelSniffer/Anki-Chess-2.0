@@ -193,6 +193,13 @@ export function getMenuData(
           onToggle: () => setConfigBoolean('frontText'),
         },
         {
+          type: 'toggle',
+          label: 'Settings on Front',
+          tooltip: 'Show User Settings button on Front side of note',
+          checked: userConfig.opts.frontSettings,
+          onToggle: () => setConfigBoolean('frontSettings'),
+        },
+        {
           type: 'separator',
         },
         {
