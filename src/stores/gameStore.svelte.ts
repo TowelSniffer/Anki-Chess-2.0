@@ -58,6 +58,7 @@ export class GameStore {
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
   parseError = $state<string | null>(null);
   hasMadeMistake: boolean = $state(false);
+  wrongMove = $state<{ from: Square; to: Square } | null>(null);
 
   // --- Private State ---
   #flipBoolean: boolean; // Board orientation
@@ -82,7 +83,7 @@ export class GameStore {
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
-    let storedPath = [];
+    let storedPath: PgnPath = [];
     if (this.config.storePgnPath) {
       const storedPathStr = this.#storage.get('chess_pgnPath');
       // Map over the string array and convert numeric strings to actual numbers
@@ -488,6 +489,7 @@ export class GameStore {
     this.lastSelected = undefined;
     this.pendingPromotion = null;
     this.#storedScore = null;
+    this.wrongMove = null;
     this.hasMadeMistake = false;
     this.#destroyTimeouts();
   }
@@ -543,9 +545,12 @@ export class GameStore {
     if (!node) return;
     this.cg = Chessground(node, { fen: this.fen });
     this.cg.set(this.boardConfig);
-    this.setTrackedTimeout(() => {
-      playAiMove(this, 0);
-    }, 200);
+    const playAi = this.boardMode === 'Puzzle' && this.config.flipBoard;
+    if (playAi) {
+      this.setTrackedTimeout(() => {
+        playAiMove(this, 0);
+      }, 200);
+    }
 
     return {
       destroy: () => {
