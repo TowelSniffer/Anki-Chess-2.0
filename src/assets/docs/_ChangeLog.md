@@ -8,6 +8,7 @@ Best to make sure the companion addon Is up to date before updating this.
 - Backside now uses Anki's {{FrontSide}} field to avoid having to save config options for both sides 
 - Added a method to control settings on Front Side also. I will probably add an option in future and to instead use touch gestures and keyboard shortcuts. Toggle with Anki Template > Front Settings.
 - Added a help menu to show documentation an interactive examples. 
+- Some performance improvements
 
 ## Version: 1.2.04
 
