@@ -47,7 +47,9 @@
       </div>
     {/if}
     <div id="board-container">
-      <SettingsMenu bind:isHelpOpen />
+      {#if boardMode !== 'Viewer'}
+        <SettingsMenu bind:isHelpOpen />
+      {/if}
       <ChessgroundBoard />
       <PromotePopup />
     </div>
