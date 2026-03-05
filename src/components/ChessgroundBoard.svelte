@@ -93,7 +93,8 @@
 
   const barTopColor = $derived.by(() => {
     if (isRandomPuzzle) return mapColor('fail');
-    const color = gameStore.orientation === 'white' ? 'black' : 'white';
+    let color = gameStore.orientation === 'white' ? 'black' : 'white';
+    if (isStudyMode) color = gameStore.turn === 'w' ? 'black' : 'white';
     return mapColor(color);
   });
 
