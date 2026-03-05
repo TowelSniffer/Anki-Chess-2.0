@@ -42,6 +42,11 @@
     return currentMode;
   });
 
+  function getConfig() {
+    return configOverride; // Reads the shared 'count'
+  }
+
+  if (!getConfig()) userConfig.refresh();
   const config = $derived.by(() => {
     if (!configOverride) return userConfig.opts;
     // Merge default userConfig with specific overrides
