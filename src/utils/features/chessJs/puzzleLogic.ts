@@ -89,8 +89,6 @@ export async function handleUserMove(
       checkPuzzleComplete(store);
       store.timerStore.extend(store.config.increment, store.aiDelayTime);
       if (store.boardMode === 'Puzzle') {
-        // Reset error tracker
-        store.errorCount = 0;
         playAiMove(store, store.aiDelayTime || 300);
       }
     } else {
@@ -136,9 +134,9 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
   // disable interaction until player move is made
   // Clear any existing wrong move highlight
   store.wrongMove = null;
-  store.errorCount = 0;
   store.setMoveDebounce();
   store.setTrackedTimeout(() => {
+    store.errorCount = 0;
     // Make the move without the AI's variation-selection logic
     const nextMovePath = navigateNextMove(store.pgnPath);
     store.pgnPath = nextMovePath;
