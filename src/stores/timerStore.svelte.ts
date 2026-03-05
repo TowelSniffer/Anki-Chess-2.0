@@ -35,7 +35,7 @@ export class TimerStore {
   }
 
   get isOutOfTime() {
-    return this.#config?.timer && this.remainingTime === 0;
+    return this.#config?.timer && !this.remainingTime;
   }
 
   // --- Actions ---

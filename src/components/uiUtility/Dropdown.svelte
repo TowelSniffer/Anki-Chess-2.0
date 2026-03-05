@@ -147,6 +147,14 @@
     if (!(triggerRef && menuRef)) return;
 
     if (isOpen) {
+      // Establish dependency: re-run effect when tooltips are toggled
+      activeTooltips.size;
+
+      // Reset inline styles to get natural dimensions before measuring
+      menuRef.style.top = '';
+      menuRef.style.left = '';
+      menuRef.style.maxWidth = '';
+
       const rect = triggerRef.getBoundingClientRect();
       let top = rect.bottom + 5;
       let left = rect.left;
@@ -561,7 +569,8 @@
     border-radius: 4px;
     margin-top: 4px;
     border-left: 2px solid #2196f3;
-    width: 100%;
+    width: 0;
+    min-width: 100%;
     box-sizing: border-box;
     white-space: normal;
     word-break: break-word;

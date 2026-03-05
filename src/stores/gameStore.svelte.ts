@@ -195,8 +195,8 @@ export class GameStore {
       currentMove?.turn === this.playerColor[0];
 
     // Any mistake is a fail if strictScoring
-    const isStrictMistake =
-      this.config.strictScoring && (this.hasMadeMistake || this.timerStore.isOutOfTime);
+    const mistakeCheck = this.hasMadeMistake || this.timerStore.isOutOfTime;
+    const isStrictMistake = this.config.strictScoring && mistakeCheck;
 
     const isHandicapFail = this.errorCount > this.config.handicap;
 
@@ -208,7 +208,7 @@ export class GameStore {
       // Grade on puzzle completion
       const isPerfectScore =
         (this.config.timer || this.config.handicap) &&
-        !this.hasMadeMistake &&
+        !mistakeCheck &&
         !this.config.strictScoring;
       this.#storedScore = isPerfectScore ? 'perfect' : 'pass';
       return isPerfectScore ? 'perfect' : 'pass';
@@ -341,7 +341,9 @@ export class GameStore {
   }
 
   get isGameOver() {
-    return this.currentMove?.isCheckmate || this.currentMove?.isStalemate || this.currentMove?.isDraw;
+    return (
+      this.currentMove?.isCheckmate || this.currentMove?.isStalemate || this.currentMove?.isDraw
+    );
   }
 
   get prevPath() {
