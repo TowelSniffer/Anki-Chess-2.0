@@ -21,8 +21,9 @@
 
 <style lang="scss">
   #global-settings {
-    position: absolute;
-    top: -50px;
+    position: relative;
+    padding: 5px;
+    top: 0px;
     left: 0px;
     z-index: 100;
   }
