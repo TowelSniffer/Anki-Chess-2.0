@@ -39,7 +39,7 @@ export async function updateAnkiChessTemplate(
   let newFront = frontTemplate
     .replace('// __USER_CONFIG__', configString)
     .replaceAll('__VERSION__', currentVersion);
-  const newBack = newFront.replace('data-boardMode="Puzzle"', 'data-boardMode="Viewer"');
+  const newBack = `{{FrontSide}}\n<script>document.getElementById('anki-chess-root').setAttribute('data-boardMode', 'Viewer');</script>`;
 
   // Construct the new CSS with Cache-busted Import
   const newCss = cssTemplate.replaceAll('__VERSION__', currentVersion);
