@@ -82,13 +82,16 @@ export class GameStore {
     this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
-    const storedPathStr = this.#storage.get('chess_pgnPath');
-    // Map over the string array and convert numeric strings to actual numbers
-    const storedPath = storedPathStr
-      ? (storedPathStr
-          .split(',')
-          .map((step) => (isNaN(Number(step)) ? step : Number(step))) as PgnPath)
-      : [];
+    let storedPath = [];
+    if (this.config.storePgnPath) {
+      const storedPathStr = this.#storage.get('chess_pgnPath');
+      // Map over the string array and convert numeric strings to actual numbers
+      storedPath = storedPathStr
+        ? (storedPathStr
+            .split(',')
+            .map((step) => (isNaN(Number(step)) ? step : Number(step))) as PgnPath)
+        : [];
+    }
     const pgnPath = storedPath ?? [];
     this.pgnPath = $state(pgnPath);
 
@@ -137,7 +140,7 @@ export class GameStore {
       if (!newMove) return;
 
       // Log PgnPath
-      const logPgnPath = this.boardMode !== 'Viewer';
+      const logPgnPath = this.boardMode !== 'Viewer' && this.config.storePgnPath;
       logPgnPath && this.#storage.set('chess_pgnPath', `${newMove.pgnPath}`);
 
       // Log Ai PGN
@@ -207,9 +210,7 @@ export class GameStore {
     } else if (this.isPuzzleComplete) {
       // Grade on puzzle completion
       const isPerfectScore =
-        (this.config.timer || this.config.handicap) &&
-        !mistakeCheck &&
-        !this.config.strictScoring;
+        (this.config.timer || this.config.handicap) && !mistakeCheck && !this.config.strictScoring;
       this.#storedScore = isPerfectScore ? 'perfect' : 'pass';
       return isPerfectScore ? 'perfect' : 'pass';
     }
@@ -590,7 +591,6 @@ export class GameStore {
   //  cancel (e.g. if user clicks away)
   cancelPromotion() {
     this.pendingPromotion = null;
-    this.pgnPath = [...this.pgnPath]; // Trigger re-render to snap piece back
   }
 
   // --- Chess js ---

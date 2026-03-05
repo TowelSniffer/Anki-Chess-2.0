@@ -8,6 +8,7 @@
   "handicap": 1,
   "autoAdvance": false,
   "timerAdvance": false,
+  "storePgnPath": true,
   "strictScoring": false,
   "acceptVariations": true,
   "playBothSides": false,
