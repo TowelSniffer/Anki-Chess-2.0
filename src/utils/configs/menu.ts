@@ -232,7 +232,7 @@ export function getMenuData(
           type: 'toggle',
           label: 'Auto Advance',
           tooltip:
-            'Uses anki API to automatically show answer when puzzle is solved. Note: Does not work on anki mobile, and not yet supported on Ankidroid\'s "New Study Screen"',
+            'Uses anki API to automatically show answer when puzzle is solved. Note: Does not work on anki mobile.',
           checked: userConfig.opts.autoAdvance,
           onToggle: () => setConfigBoolean('autoAdvance'),
         },
@@ -244,6 +244,14 @@ export function getMenuData(
             checked: userConfig.opts.timerAdvance,
             onToggle: () => setConfigBoolean('timerAdvance'),
           },
+        {
+          type: 'toggle',
+          label: 'Save Position',
+          tooltip:
+            'Use this ',
+          checked: userConfig.opts.storePgnPath,
+          onToggle: () => setConfigBoolean('storePgnPath'),
+        },
         {
           type: 'separator',
         },
