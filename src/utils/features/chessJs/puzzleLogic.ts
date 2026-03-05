@@ -109,6 +109,7 @@ export function playAiMove(store: GameStore, delay: number): void {
   store.setTrackedTimeout(() => {
     // Clear any existing wrong move highlight
     store.wrongMove = null;
+    store.errorCount = 0;
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
 
     const nextMove = store.getMoveByPath(nextMovePathCheck);
@@ -135,6 +136,7 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
   // disable interaction until player move is made
   // Clear any existing wrong move highlight
   store.wrongMove = null;
+  store.errorCount = 0;
   store.setMoveDebounce();
   store.setTrackedTimeout(() => {
     // Make the move without the AI's variation-selection logic
