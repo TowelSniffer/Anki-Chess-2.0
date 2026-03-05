@@ -41,7 +41,6 @@ export class GameStore {
 
   // --- Trackers ---
   lastSelected: Key | undefined = undefined;
-  errorCount = 0;
   animationTimeout: number | null = null;
   #activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
@@ -54,6 +53,7 @@ export class GameStore {
   rootGame = $state<CustomPgnGame | undefined>(undefined);
   // Core tracker for board and PGN updates
   pgnPath: PgnPath;
+  errorCount = $state(0);
   // Call PromotePopup
   pendingPromotion = $state<{ from: Square; to: Square } | null>(null);
   parseError = $state<string | null>(null);
