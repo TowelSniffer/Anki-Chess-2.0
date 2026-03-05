@@ -34,10 +34,19 @@ of 164k]}) *
       label: 'Timed',
       subtitle: 'Mate in 3',
       description:
-        'This uses a 10 Second timer with a 1 second increment. Timer can be disabled by ',
+        'This uses a 10 Second timer with a 1 second increment. Timer can be disabled by Setting value to zero',
       pgn: puzzlePgn,
       boardMode: 'Puzzle' as BoardModes,
       configOverride: { flipBoard: false, timer: 10000 },
+    },
+    {
+      label: 'Mirror',
+      subtitle: 'Mate in 3',
+      description:
+        'This uses the Anki Template > Mirror option to randomise colour and orientation on any PGN with no castle rights (castling is asymmetric). Hit the reload icon to see effect',
+      pgn: puzzlePgn,
+      boardMode: 'Puzzle' as BoardModes,
+      configOverride: { flipBoard: false, timer: 0, mirror: true },
     },
     {
       label: 'Flipped',
@@ -64,6 +73,12 @@ of 164k]}) *
     demoOptions.find((d) => d.label === selectedDemoLabel) || demoOptions[0],
   );
 
+  // Define ordering rules (higher number = lower in the list)
+  const sortWeights: Record<string, number> = {
+    changelog: 98, // Second last
+    support: 99,   // Last
+  };
+
   // Dynamically create a section for each imported markdown file
   const markdownSections: SettingsSection[] = Object.entries(mdDocs).map(([key, content]) => ({
     id: key.toLowerCase(),
@@ -80,7 +95,7 @@ of 164k]}) *
       icon: IconInfo,
       customSnippet: demoBoardSnippet,
     },
-  ]);
+  ].sort((a, b) => (sortWeights[a.id] ?? 0) - (sortWeights[b.id] ?? 0)));
 </script>
 
 {#snippet demoBoardSnippet()}
