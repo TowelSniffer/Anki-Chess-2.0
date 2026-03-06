@@ -381,7 +381,7 @@
 
   /* Markdown / HTML Content Styling */
   /* Markdown / HTML Content Styling */
-  .html-content {
+  .html-content, .modal-content {
     line-height: 1.6;
     color: var(--text-primary);
     font-size: 0.95rem;

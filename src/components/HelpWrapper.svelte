@@ -76,7 +76,7 @@ of 164k]}) *
   // Define ordering rules (higher number = lower in the list)
   const sortWeights: Record<string, number> = {
     changelog: 98, // Second last
-    support: 99,   // Last
+    support: 99, // Last
   };
 
   // Dynamically create a section for each imported markdown file
@@ -87,15 +87,17 @@ of 164k]}) *
     mdContent: content,
   }));
 
-  let settingsConfig = $derived<SettingsSection[]>([
-    ...markdownSections,
-    {
-      id: 'demo',
-      label: 'Interactive Examples',
-      icon: IconInfo,
-      customSnippet: demoBoardSnippet,
-    },
-  ].sort((a, b) => (sortWeights[a.id] ?? 0) - (sortWeights[b.id] ?? 0)));
+  let settingsConfig = $derived<SettingsSection[]>(
+    [
+      ...markdownSections,
+      {
+        id: 'demo',
+        label: 'Interactive Examples',
+        icon: IconInfo,
+        customSnippet: demoBoardSnippet,
+      },
+    ].sort((a, b) => (sortWeights[a.id] ?? 0) - (sortWeights[b.id] ?? 0)),
+  );
 </script>
 
 {#snippet demoBoardSnippet()}
@@ -131,8 +133,9 @@ of 164k]}) *
         </div>
       </GameProvider>
     {/key}
-
-    <p>{activeDemo.description}</p>
+    <blockquote>
+      <p>{activeDemo.description}</p>
+    </blockquote>
   </div>
 {/snippet}
 
