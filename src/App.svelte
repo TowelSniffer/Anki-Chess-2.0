@@ -31,13 +31,10 @@
             <div id="textField">{@html userText}</div>
           </div>
         {/if}
-        {#if boardMode !== 'Viewer' && userConfig.opts.frontText && userConfig.opts.frontSettings}
-          <SettingsMenu bind:isHelpOpen />
-        {/if}
         {#if boardMode === 'Viewer'}
           <div id="sticky-container">
             <div id="buttons-container">
-              <ButtonsContainer bind:isHelpOpen/>
+              <ButtonsContainer />
             </div>
             <div id="analysis-container">
               <EngineAnalysis />
@@ -50,9 +47,7 @@
       </div>
     {/if}
     <div id="board-container">
-      {#if boardMode !== 'Viewer' && !userConfig.opts.frontText && userConfig.opts.frontSettings}
-        <SettingsMenu bind:isHelpOpen />
-      {/if}
+      <SettingsMenu bind:isHelpOpen />
       <ChessgroundBoard />
       <PromotePopup />
     </div>

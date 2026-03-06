@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconSettings from '~icons/material-symbols/settings-sharp';
+  import IconMenu from '~icons/material-symbols/menu';
   import Dropdown from './uiUtility/Dropdown.svelte';
   import { getContext } from 'svelte';
   import { getMenuData } from '$configs/menu';
@@ -16,15 +16,15 @@
 </script>
 
 <div id="global-settings">
-  <Dropdown icon={IconSettings} items={menuData} position="bottom-left" />
+  <Dropdown icon={IconMenu} items={menuData} position="bottom-left" variant="ghost" />
 </div>
 
 <style lang="scss">
   #global-settings {
-    position: relative;
-    padding: 5px;
-    top: 0px;
-    left: 0px;
+    position: absolute;
+    top: 5px;
+    left: 5px;
     z-index: 100;
+    pointer-events: auto; /* Ensures clicks register on the button */
   }
 </style>

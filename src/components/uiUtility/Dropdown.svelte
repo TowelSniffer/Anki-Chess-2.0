@@ -39,9 +39,16 @@
     icon?: Component | string;
     items: MenuItem[];
     position?: 'bottom-left' | 'bottom-right';
+    variant?: 'standard' | 'ghost';
   };
 
-  let { label = '', icon = '', items, position = 'bottom-left' }: Props = $props();
+  let {
+    label = '',
+    icon = '',
+    items,
+    position = 'bottom-left',
+    variant = 'standard',
+  }: Props = $props();
 
   let isOpen = $state(false);
   let activeTooltips = $state(new Set<MenuItem>());
@@ -204,6 +211,7 @@
 <div class="dropdown-container tappable">
   <button
     class="trigger"
+    class:ghost={variant === 'ghost'}
     onclick={toggle}
     class:isActive={isOpen}
     aria-expanded={isOpen}
@@ -408,6 +416,28 @@
     .trigger-icon {
       font-size: 1.5rem;
       @include flex-center;
+    }
+
+    &.ghost {
+      color: #333;
+      background-color: transparent;
+      border: none;
+      width: 1rem;
+      height: 1rem;
+      box-shadow: none;
+      opacity: 0.7;
+
+      &:hover:not(:disabled) {
+        opacity: 1;
+        background-color: transparent;
+        box-shadow: none;
+      }
+
+      &.isActive, &:active {
+        opacity: 1;
+        background-color: transparent;
+        box-shadow: none;
+      }
     }
   }
 
