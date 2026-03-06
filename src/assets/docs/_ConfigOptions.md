@@ -1,12 +1,11 @@
-## Configuring the templates
+## Configuring the Templates
 
-Configuration can be handled automatically via the companion addon API (also currently works with anki connect API). 
+Configuration can be handled automatically via the companion add-on API (also currently works with the AnkiConnect API). 
 
-### Auto update settings for current template with companion addon (Also works with anki connect)
+### Auto-Update Settings (Companion Add-on / AnkiConnect)
 
-> When changing settings, the will be applied to the current note/card type for the current session. When making changes, the Save Config button will become red. Clicking this will write the current settings to your note types making the changes permanent. 
+> **How to save:** When changing settings, they will be temporarily applied to the current note/card type for the current session. When making changes, the **Save Config** button will become red. Clicking this will write the current settings to your note types, making the changes permanent! 
 
-### No addon
+### Manual Setup (No Add-on)
 
-> Without the comapanion addon, the card settings will need to be applied manually. You can do this manually by editing `window.USER_CONFIG`, or by clicking the copy to clipboard option, and replacing the ENTIRE front section of your note template with the clipboard contents. 
-
+> **How to save:** Without the companion add-on, the card settings will need to be applied manually. You can do this by editing `window.USER_CONFIG` in the code, or by clicking the **Copy to Clipboard** option in the settings menu and replacing the ENTIRE front section of your Anki note template with the clipboard contents.
