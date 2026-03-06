@@ -61,11 +61,15 @@
       let shiftX = 0;
       let shiftY = 0;
 
-      if (rect.right > window.innerWidth) {
-        shiftX = window.innerWidth - rect.right - padding;
+      // Grab the dynamic viewport dimensions, falling back to documentElement if needed
+      const vpWidth = window.visualViewport?.width || document.documentElement.clientWidth;
+      const vpHeight = window.visualViewport?.height || document.documentElement.clientHeight;
+
+      if (rect.right > vpWidth) {
+        shiftX = vpWidth - rect.right - padding;
       }
-      if (rect.bottom > window.innerHeight) {
-        shiftY = window.innerHeight - rect.bottom - padding;
+      if (rect.bottom > vpHeight) {
+        shiftY = vpHeight - rect.bottom - padding;
       }
 
       if (shiftX !== 0 || shiftY !== 0) {
@@ -169,11 +173,14 @@
       const menuRect = menuRef.getBoundingClientRect();
       menuRef.style.maxWidth = `${menuRect.width}px`;
 
-      if (menuRect.right > window.innerWidth) {
-        menuRef.style.left = `${window.innerWidth - menuRect.width - 10}px`;
+      const vpWidth = window.visualViewport?.width || document.documentElement.clientWidth;
+      const vpHeight = window.visualViewport?.height || document.documentElement.clientHeight;
+
+      if (menuRect.right > vpWidth) {
+        menuRef.style.left = `${vpWidth - menuRect.width - 10}px`;
       }
-      if (menuRect.bottom > window.innerHeight) {
-        menuRef.style.top = `${window.innerHeight - menuRect.height - 10}px`;
+      if (menuRect.bottom > vpHeight) {
+        menuRef.style.top = `${vpHeight - menuRect.height - 10}px`;
       }
     }
   });
