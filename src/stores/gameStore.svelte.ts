@@ -45,12 +45,12 @@ export class GameStore {
   #activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
 
   // --- Board State ---
-  startFen: string = DEFAULT_POSITION;
   cg?: Api;
 
   // --- State variables ---
 
   rootGame = $state<CustomPgnGame | undefined>(undefined);
+  startFen = $state(DEFAULT_POSITION);
   // Core tracker for board and PGN updates
   pgnPath: PgnPath;
   errorCount = $state(0);
