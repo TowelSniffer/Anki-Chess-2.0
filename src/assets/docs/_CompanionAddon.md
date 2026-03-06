@@ -1,7 +1,7 @@
-### [Companion Addon](https://ankiweb.net/shared/info/1300975327)
+## Companion Add-on
 
-This is not required for the templates but will provide additional functionality:
-- Check for updates weekly, and handle updating for you existing templates
-  - NOTE: will attempt to update any template with PGN as first field
-- Provides an API to allow more utility from template.
-- Allows saving config options for each note/card type automatically. 
+While not required for the templates, the [ankiChess Companion Add-on](https://ankiweb.net/shared/info/1300975327) provides massive quality-of-life improvements:
+
+* **Auto-Updates:** Checks for updates weekly and handles updating your existing templates for you. *(Note: It will attempt to update any template with `PGN` as the first field).*
+* **Extended API:** Provides an API to allow more utility from the template.
+* **Easy Configuration:** Allows saving config options for each note/card type automatically without touching the code.
