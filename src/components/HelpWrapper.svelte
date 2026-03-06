@@ -125,7 +125,7 @@ of 164k]}) *
         persist={false}
       >
         <div
-          style="--board-size: 300px; width: var(--board-size); height: var(--board-size); position: relative; margin: 0 auto;"
+          style="--board-size: min(300px, 100%); width: var(--board-size); height: var(--board-size); position: relative; margin: 0 auto;"
         >
           <ChessgroundBoard />
         </div>
