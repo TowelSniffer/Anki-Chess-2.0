@@ -13,8 +13,6 @@
 
 ![Demo Gif](./Gifs/demo.gif)
 
-> [give a tip!](https://ko-fi.com/towelsniffer1437).
-
 # installation
 
 download the apkg in [releases](https://github.com/TowelSniffer/Anki-Chess-2.0/releases) and import to anki. 
@@ -37,6 +35,7 @@ Refer to configuration tool tips or 'About' menu for information on config optio
 - [Companion Addon](src/assets/docs/_CompanionAddon.md)
 - [Board Modes](src/assets/docs/_BoardModes.md)
 - [Config Options](src/assets/docs/_ConfigOptions.md)
+- [Support](src/assets/docs/_Support.md)
 - [Recent Changelog](src/assets/docs/_ChangeLog.md)
 
 # Build
