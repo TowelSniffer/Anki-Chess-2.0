@@ -4,6 +4,7 @@
 
 ### Version 1.2.11
 * Fixed a Bug with border colour when mirror is enabled (Thanks Leugim).
+* Fixed player colour with random Orientation.
 * Redesigned setting menu button. Now positioned as a subtle hamburger menu top left of the board. This solves the issue of accessing from front side, while being less intrusive than the previous button approach. 
 * Improved the documentation styling. 
 * Added embedded shapes to mirroring logic.
