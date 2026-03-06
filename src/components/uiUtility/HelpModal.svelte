@@ -67,10 +67,17 @@
         <nav
           class="modal-sidebar"
           class:collapsed={isSidebarCollapsed}
-          onmouseenter={() => (isSidebarCollapsed = false)}
-          onmouseleave={() => (isSidebarCollapsed = true)}
+          onpointerenter={() => (isSidebarCollapsed = false)}
+          onpointerleave={() => (isSidebarCollapsed = true)}
         >
-          <button class="collapse-btn" onclick={() => isSidebarCollapsed = !isSidebarCollapsed} aria-label="Toggle Sidebar">
+          <button
+            class="collapse-btn"
+            onclick={(e) => {
+              e.stopPropagation();
+              isSidebarCollapsed = !isSidebarCollapsed;
+            }}
+            aria-label="Toggle Sidebar"
+          >
             <span class="arrow-icon" class:flipped={!isSidebarCollapsed}>
               <IconArrowRight />
             </span>
@@ -80,7 +87,10 @@
             <button
               class="tab-btn"
               class:active={activeTabId === section.id}
-              onclick={() => (activeTabId = section.id)}
+              onclick={() => {
+                activeTabId = section.id;
+                isSidebarCollapsed = true; // Auto-collapse the overlay after selection
+              }}
               title={isSidebarCollapsed ? section.label : ''}
             >
               {#if typeof section.icon === 'string'}
@@ -92,8 +102,14 @@
             </button>
           {/each}
         </nav>
-
-        <main class="modal-content">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <main
+          class="modal-content"
+          onclick={() => {
+            if (!isSidebarCollapsed) isSidebarCollapsed = true;
+          }}
+        >
           {#if activeSection}
             {#if activeSection.items}
               <div class="settings-list">
