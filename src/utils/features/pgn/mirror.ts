@@ -175,6 +175,42 @@ function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
   if (move.notation.notation) {
     move.san = move.notation.notation;
   }
+  // --- Mirroring embedded shapes and comments ---
+
+  // Helper to mirror a 2-character square (e.g., 'e4' -> 'd5')
+  const mirrorSq = (sq: string): string => {
+    if (sq.length !== 2) return sq;
+    return (notationMap[sq[0]] || sq[0]) + (notationMap[sq[1]] || sq[1]);
+  };
+
+  // A) Mirror Diagram Shapes (colorFields and colorArrows) and Diagram Comments
+  if (move.commentDiag) {
+    if (move.commentDiag.colorFields) {
+      move.commentDiag.colorFields = move.commentDiag.colorFields.map((cf) =>
+        cf.length === 3 ? cf[0] + mirrorSq(cf.substring(1)) : cf
+      );
+    }
+    if (move.commentDiag.colorArrows) {
+      move.commentDiag.colorArrows = move.commentDiag.colorArrows.map((ca) =>
+        ca.length === 5 ? ca[0] + mirrorSq(ca.substring(1, 3)) + mirrorSq(ca.substring(3, 5)) : ca
+      );
+    }
+    if (move.commentDiag.comment) {
+      move.commentDiag.comment = move.commentDiag.comment.replace(
+        /\[([a-h][1-8])\]/g,
+        (_, sq) => `[${mirrorSq(sq)}]`
+      );
+    }
+  }
+
+  // B) Mirror Standard Text Comments
+  const mirrorTextComment = (text: string | undefined) => {
+    if (!text) return text;
+    return text.replace(/\[([a-h][1-8])\]/g, (_, sq) => `[${mirrorSq(sq)}]`);
+  };
+
+  move.commentMove = mirrorTextComment(move.commentMove);
+  move.commentAfter = mirrorTextComment(move.commentAfter);
 }
 
 export function mirrorPgnTree(
