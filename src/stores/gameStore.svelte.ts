@@ -247,12 +247,8 @@ export class GameStore {
   get playerColor(): CgColor {
     let color: CgColor = getTurnFromFen(this.startFen) === 'w' ? 'white' : 'black';
     if (this.#flipBoolean) color = color === 'white' ? 'black' : 'white';
-    if (this.#orientBool) {
-      if (this.#flipBoolean) {
-        color = color === 'white' ? 'white' : 'black';
-      } else {
-        color = color === 'white' ? 'black' : 'white';
-      }
+    if (this.#orientBool && this.#flipBoolean) {
+      color = color === 'white' ? 'white' : 'black';
     }
 
     return color;
