@@ -22,8 +22,9 @@
 <style lang="scss">
   #global-settings {
     position: absolute;
-    top: 5px;
-    left: 5px;
+    top: $board-border-width;
+    left: $board-border-width;
+    margin: 3px;
     z-index: 100;
     pointer-events: auto; /* Ensures clicks register on the button */
   }
