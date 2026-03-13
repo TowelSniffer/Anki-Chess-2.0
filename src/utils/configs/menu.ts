@@ -271,7 +271,7 @@ export function getMenuData(
             label: 'Dev Tools',
             icon: IconBugReport,
             tooltip:
-            'yada yada yada yada yada yada yada yada yada yada yada yada yada yada yada yada yada yada yada yada yada ...dev shite',
+            '...dev shite',
             children: [
               {
                 type: 'action',

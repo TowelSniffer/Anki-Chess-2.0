@@ -335,7 +335,6 @@
               value={item.value}
               onChange={(val) => {
                 if (item.onChange) item.onChange(val);
-                close();
               }}
               options={item.options}
             />

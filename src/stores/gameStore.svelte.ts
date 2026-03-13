@@ -362,14 +362,16 @@ export class GameStore {
       this.engineStore.enabled = false;
       this.engineStore.stop();
       this.timerStore.start();
-      const playAi = boardMode === 'Puzzle' && this.config.flipBoard;
-      if (playAi) {
+      const shouldPlayAiMove = boardMode === 'Puzzle' && this.config.flipBoard;
+      if (shouldPlayAiMove) {
         this.#flipBoolean = true;
         this.#storage.set('chess_flipBoolean', 'true');
         this.cg &&
           this.setTrackedTimeout(() => {
             playAiMove(this, 0);
           }, 200);
+      } else if (this.#orientBool) {
+        this.#orientBool = false;
       }
       if (this.config.randomOrientation) {
         this.#orientBool = !Math.round(Math.random());
@@ -541,8 +543,8 @@ export class GameStore {
     if (!node) return;
     this.cg = Chessground(node, { fen: this.fen });
     this.cg.set(this.boardConfig);
-    const playAi = this.boardMode === 'Puzzle' && this.config.flipBoard;
-    if (playAi) {
+    const shouldPlayAiMove = this.boardMode === 'Puzzle' && this.config.flipBoard;
+    if (shouldPlayAiMove) {
       this.setTrackedTimeout(() => {
         playAiMove(this, 0);
       }, 200);
