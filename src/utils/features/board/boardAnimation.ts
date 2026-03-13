@@ -9,20 +9,23 @@ export function updateBoard(store: GameStore): void {
    * Determines if we should Animate (Undo/Promotion) or Snap (Jump/Load).
    */
 
+  // New pgnPath
   const move = store.currentMove;
+  // Last pgnPath
+  const prevMove = store.trackedMove;
 
   const fen = store.fen;
-  const prevMove = store.trackedMove;
 
   if (move && store.animationTimeout) {
     // Fix any previous animation fens
     store.customAnimation({ preFen: move.before, animate: false });
   }
 
-  const forwardMoveCheck = [store.trackedMove?.after, store.startFen].includes(move?.before);
+  const undoMoveCheck = prevMove?.before === fen; // Is logged moved before fen equal to new fen
 
-  const undoMoveCheck =
-    (prevMove && prevMove?.before === move?.after) || (!move && prevMove?.before === fen);
+  const forwardMoveCheck =
+    prevMove?.after === move?.before || // Is logged moved after fen equal to new moves before
+    (!prevMove && move?.before === store.startFen); // Else is it first move?
 
   if (undoMoveCheck) {
     playSound('move');
