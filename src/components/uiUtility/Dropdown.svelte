@@ -425,7 +425,7 @@
       width: 1rem;
       height: 1rem;
       box-shadow: none;
-      opacity: 0.7;
+      opacity: 0.3;
 
       &:hover:not(:disabled) {
         opacity: 1;
