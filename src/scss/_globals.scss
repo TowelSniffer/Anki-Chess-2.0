@@ -38,6 +38,10 @@ $border-radius-global: 4px;
 
 /* SEMANTIC VARIABLES */
 :root {
+  /* Board Themes */
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+
   /* shadows */
   --shadow-main: #{$shadow-main};
   --shadow-strong: #{$shadow-strong};

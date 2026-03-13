@@ -1,5 +1,4 @@
-@use "$scss/globals" as *;
-
+@use '$scss/globals' as *;
 
 cg-container {
   width: 100% !important;
@@ -28,36 +27,50 @@ cg-container {
   }
 
   coords {
-    position: relative;
-    left: 0 !important;
-    top: 0 !important;
-    pointer-events: none;
+    font-weight: bold;
+    opacity: 1 !important;
 
     coord {
-      font-size: calc(var(--board-size) * 0.025);
-      font-weight: bold;
-      flex: 1 1 auto;
-    }
-
-    &.files {
-      position: relative;
-      left: calc(var(--board-size) * 0.045) !important;
-      top: calc(var(--board-size) * -0.035) !important;
+      display: flex;
+      transform: none !important; /* Kills the default translateY(39%) */
+      padding: 1px 4px;
     }
 
     &.ranks {
-      position: relative;
-      left: calc(var(--board-size) * 0.01) !important;
-      top: calc(var(--board-size) * -0.045) !important;
+      left: auto !important; /* Overrides default left: 4px */
+      right: 0 !important;
+      top: 0 !important;     /* Overrides default top: -20px */
+      width: 12.5% !important; /* Overrides default 12px */
+
+      coord {
+        align-items: flex-start; /* Top */
+        justify-content: flex-end; /* Right */
+      }
     }
 
+    &.files {
+      left: 0 !important;    /* Overrides default left: 24px */
+      bottom: 0 !important;  /* Overrides default bottom: -4px */
+      height: 12.5% !important; /* Overrides default 16px */
+
+      coord {
+        align-items: flex-end; /* Bottom */
+        justify-content: flex-start; /* Left */
+      }
+    }
   }
 
   cg-board {
-    background-color: #f0d9b5;
-    background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4PSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIgogICAgIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+CjxnIGlkPSJhIj4KICA8ZyBpZD0iYiI+CiAgICA8ZyBpZD0iYyI+CiAgICAgIDxnIGlkPSJkIj4KICAgICAgICA8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjZjBkOWI1IiBpZD0iZSIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iMSIgaHJlZj0iI2UiIHg6aHJlZj0iI2UiLz4KICAgICAgICA8cmVjdCB5PSIxIiB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjYjU4ODYzIiBpZD0iZiIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iLTEiIGhyZWY9IiNmIiB4OmhyZWY9IiNmIi8+CiAgICAgIDwvZz4KICAgICAgPHVzZSB4PSIyIiBocmVmPSIjZCIgeDpocmVmPSIjZCIvPgogICAgPC9nPgogICAgPHVzZSB4PSI0IiBocmVmPSIjYyIgeDpocmVmPSIjYyIvPgogIDwvZz4KICA8dXNlIHk9IjIiIGhyZWY9IiNiIiB4OmhyZWY9IiNiIi8+CjwvZz4KPHVzZSB5PSI0IiBocmVmPSIjYSIgeDpocmVmPSIjYSIvPgo8L3N2Zz4K");
+    background-color: var(--board-light);
+    background-image: conic-gradient(
+      var(--board-dark) 90deg,
+      transparent 90deg 180deg,
+      var(--board-dark) 180deg 270deg,
+      transparent 270deg
+    );
+    background-size: 25% 25%;
+
     border: 0;
-    position: absolute;
     top: 0;
     left: 0;
     -webkit-user-select: none;
@@ -65,43 +78,36 @@ cg-container {
     -ms-user-select: none;
     user-select: none;
     line-height: 0;
-    background-size: cover;
     border-radius: inherit;
     cursor: inherit !important;
 
     square {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 12.5%;
-      height: 12.5%;
-      pointer-events: none;
 
       &.move-dest {
-        background: radial-gradient(rgba(20, 85, 30, 0.5) 22%,
-            #208530 0,
-            rgba(0, 0, 0, 0.3) 0,
-            rgba(0, 0, 0, 0) 0);
+        background: radial-gradient(
+          rgba(20, 85, 30, 0.5) 22%,
+          #208530 0,
+          rgba(0, 0, 0, 0.3) 0,
+          rgba(0, 0, 0, 0) 0
+        );
         pointer-events: auto;
       }
 
       &.premove-dest {
-        background: radial-gradient(rgba(20, 30, 85, 0.5) 22%,
-            #203085 0,
-            rgba(0, 0, 0, 0.3) 0,
-            rgba(0, 0, 0, 0) 0);
+        background: radial-gradient(
+          rgba(20, 30, 85, 0.5) 22%,
+          #203085 0,
+          rgba(0, 0, 0, 0.3) 0,
+          rgba(0, 0, 0, 0) 0
+        );
       }
 
       &.oc.move-dest {
-        background: radial-gradient(transparent 0%,
-            transparent 80%,
-            rgba(20, 85, 0, 0.3) 80%);
+        background: radial-gradient(transparent 0%, transparent 80%, rgba(20, 85, 0, 0.3) 80%);
       }
 
       &.oc.premove-dest {
-        background: radial-gradient(transparent 0%,
-            transparent 80%,
-            rgba(20, 30, 85, 0.2) 80%);
+        background: radial-gradient(transparent 0%, transparent 80%, rgba(20, 30, 85, 0.2) 80%);
       }
 
       &.move-dest:hover {
@@ -126,11 +132,13 @@ cg-container {
       }
 
       &.check {
-        background: radial-gradient(ellipse at center,
-            rgba(255, 0, 0, 1) 0%,
-            rgba(231, 0, 0, 1) 25%,
-            rgba(169, 0, 0, 0) 89%,
-            rgba(158, 0, 0, 0) 100%);
+        background: radial-gradient(
+          ellipse at center,
+          rgba(255, 0, 0, 1) 0%,
+          rgba(231, 0, 0, 1) 25%,
+          rgba(169, 0, 0, 0) 89%,
+          rgba(158, 0, 0, 0) 100%
+        );
       }
 
       &.current-premove {
@@ -232,22 +240,22 @@ cg-container {
   }
 }
 
-
 /** Alternating colors in rank/file/square labels */
-.orientation-white .ranks :nth-child(even),
+.orientation-white .ranks :nth-child(odd),
 .orientation-white .files :nth-child(even),
-.orientation-black .ranks :nth-child(odd),
+.orientation-black .ranks :nth-child(even),
 .orientation-black .files :nth-child(odd),
 coords.squares:nth-of-type(odd) :nth-child(even),
 coords.squares:nth-of-type(even) :nth-child(odd) {
-  color: rgba(72, 72, 72, 0.8);
+  color: var(--board-dark);
 }
 
-.orientation-white .ranks :nth-child(odd),
+.orientation-white .ranks :nth-child(even),
 .orientation-white .files :nth-child(odd),
-.orientation-black .ranks :nth-child(even),
+.orientation-black .ranks :nth-child(odd),
 .orientation-black .files :nth-child(even),
 coords.squares:nth-of-type(odd) :nth-child(odd),
 coords.squares:nth-of-type(even) :nth-child(even) {
-  color: rgba(255, 255, 255, 0.8);
+
+  color: var(--board-light);
 }
