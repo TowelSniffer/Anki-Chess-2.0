@@ -43,7 +43,8 @@ export default defineConfig(sharedViteConfig({
     // specific output folder for this build
     outDir: 'dist-anki/collection.media',
     emptyOutDir: true,
-    assetsInlineLimit: 20480,
+    assetsInlineLimit: 204800,
+    chunkSizeWarningLimit: 2000,
     // Flatten the assets (do not put them in an /assets folder)
     assetsDir: '',
     rollupOptions: {

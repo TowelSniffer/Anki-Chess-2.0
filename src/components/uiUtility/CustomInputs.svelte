@@ -5,6 +5,7 @@
     label: string;
     value: any;
     icon?: string;
+    sprite?: string;
     color1?: string;
     color2?: string;
   };
@@ -185,7 +186,12 @@
                 type="button"
               >
                 <div class="opt-content">
-                  {#if opt.icon}
+                  {#if opt.sprite}
+                    <div
+                      class="opt-icon sprite"
+                      style="background-image: url('{opt.sprite}')"
+                    ></div>
+                  {:else if opt.icon}
                     <img src={opt.icon} alt="piece" class="opt-icon" />
                   {/if}
                   {#if opt.color1 && opt.color2}
@@ -448,6 +454,11 @@
   .opt-icon {
     width: 20px;
     height: 20px;
+
+    &.sprite {
+      background-size: 600% 200%;
+      background-position: 80% 0%; /* Targets the White Knight */
+    }
   }
 
   .opt-swatch-container {
