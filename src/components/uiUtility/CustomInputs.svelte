@@ -1,6 +1,14 @@
 <script lang="ts">
   import { onMount, onDestroy, type Component } from 'svelte';
 
+  type SelectOption = {
+    label: string;
+    value: any;
+    icon?: string;
+    color1?: string;
+    color2?: string;
+  };
+
   type Props = {
     type: 'toggle' | 'number' | 'select';
     label?: string;
@@ -14,7 +22,7 @@
     step?: number;
 
     // Select specific
-    options?: any[];
+    options?: SelectOption[] | string[];
   };
 
   let {
@@ -84,6 +92,14 @@
       e.preventDefault();
     }
   }
+
+  // Helper to normalize strings into objects
+  const normalizedOptions = $derived.by(() => {
+    // Safely ensure it's an array to prevent any .map() crashes
+    const safeOptions = Array.isArray(options) ? options : [];
+
+    return safeOptions.map((opt) => (typeof opt === 'string' ? { label: opt, value: opt } : opt));
+  });
 </script>
 
 {#snippet itemIcon()}
@@ -143,8 +159,8 @@
       <div class="sel-value-section">
         <!-- A ghost element to help keep sizing uniform -->
         <div class="ghost-sizer" aria-hidden="true">
-          {#each options as opt}
-            <div class="ghost-opt">{opt} <span class="arrow">▼</span></div>
+          {#each normalizedOptions as opt}
+            <div class="ghost-opt">{opt.label} <span class="arrow">▼</span></div>
           {/each}
         </div>
         <button
@@ -153,20 +169,33 @@
           onclick={toggleSelect}
           type="button"
         >
-          <span class="curr-val">{value}</span>
+          <span class="curr-val">
+            {normalizedOptions.find((o) => o.value === value)?.label || value}
+          </span>
           <span class="arrow" class:open={isSelectOpen}>▼</span>
         </button>
 
         {#if isSelectOpen}
           <div class="sel-dropdown">
-            {#each options as opt}
+            {#each normalizedOptions as opt}
               <button
                 class="sel-option"
-                class:selected={opt === value}
-                onclick={() => handleSelect(opt)}
+                class:selected={opt.value === value}
+                onclick={() => handleSelect(opt.value)}
                 type="button"
               >
-                {opt}
+                <div class="opt-content">
+                  {#if opt.icon}
+                    <img src={opt.icon} alt="piece" class="opt-icon" />
+                  {/if}
+                  {#if opt.color1 && opt.color2}
+                    <div class="opt-swatch-container">
+                      <div class="swatch" style="background: {opt.color1}"></div>
+                      <div class="swatch" style="background: {opt.color2}"></div>
+                    </div>
+                  {/if}
+                  <span class="opt-label">{opt.label}</span>
+                </div>
               </button>
             {/each}
           </div>
@@ -177,6 +206,8 @@
 </div>
 
 <style lang="scss">
+  $trigger-padding: 0.3rem 0.5rem;
+
   /* --- Global Reset for Buttons inside Inputs --- */
   button {
     all: unset;
@@ -184,7 +215,8 @@
 
   .custom-input-container {
     display: flex;
-    align-items: center;
+    align-items: right;
+    width: auto;
   }
 
   .control-item {
@@ -206,9 +238,9 @@
   .icon {
     @include flex-center;
     font-size: 1.1rem;
-    width: 1.5rem; /* Downsized slightly for better inline fit */
+    width: 1.5rem;
     height: 1.5rem;
-    color: var(--text-muted, #888); /* Removed the red */
+    color: var(--text-muted, #888);
     flex-shrink: 0;
   }
 
@@ -228,7 +260,7 @@
     position: absolute;
     cursor: pointer;
     inset: 0;
-    background-color: #ccc;
+    background-color: var(--surface-hover);
     transition: 0.4s;
     border-radius: 34px;
     &:before {
@@ -261,22 +293,23 @@
     padding: 2px;
 
     .step-btn {
+      @include unselectable;
       display: flex;
       align-items: center;
       justify-content: center;
       border: none;
       color: var(--surface-primary, grey);
-      background: var(--text-primary, #fff);
+      background: var(--text-muted, #fff);
       cursor: pointer;
       width: 20px;
       height: 20px;
       border-radius: 3px;
       font-weight: bold;
       &:hover {
-        background: #e0e0e0;
+        background: var(--text-muted);
       }
       &:active {
-        background: #e0e0e0;
+        background: #2196f3;
       }
     }
 
@@ -304,10 +337,11 @@
   .selector-wrapper {
     display: flex;
     align-items: stretch;
-    border: 1px solid #ccc;
+    border: var(--border-thin);
+    background: var(--surface-secondary);
     border-radius: 4px;
-    background: #f9f9f9;
     width: 100%;
+    min-width: max-content;
     position: relative;
   }
   .sel-label {
@@ -326,6 +360,7 @@
     background: #ccc;
   }
   .sel-value-section {
+    display: grid;
     color: var(--surface-primary, #fff);
     flex: 1;
     position: relative;
@@ -333,27 +368,36 @@
   }
   .ghost-sizer {
     grid-area: 1 / 1;
+    display: grid; /* Added to control children */
     visibility: hidden;
     pointer-events: none;
-    padding: 0 0.5rem;
-    width: 100%;
-    height: 0;
+  }
+
+  /* Add this new rule to overlap all options perfectly */
+  .ghost-opt {
+    grid-area: 1 / 1;
+    padding: 0.3rem 0.5rem;
+    white-space: nowrap;
   }
   .sel-trigger {
+    grid-area: 1 / 1; /* Stacks exactly on top of the ghost sizer */
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
     height: 100%;
-    padding: 0.3rem 0.5rem;
+    padding: $trigger-padding;
     box-sizing: border-box;
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 500;
-    color: var(--surface-primary, #222);
+    color: var(--text-primary, #222);
     gap: 0.3rem;
+
     &:hover {
-      background: #f0f0f0;
+      background: var(--surface-hover);
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
     }
     .arrow {
       font-size: 0.6rem;
@@ -370,8 +414,8 @@
     top: calc(100% + 2px);
     left: -1px;
     right: -1px;
-    background: white;
-    border: 1px solid #ccc;
+    background: var(--surface-primary);
+    border: var(--border-thin);
     border-radius: 4px;
     z-index: 10001;
     display: flex;
@@ -384,14 +428,37 @@
     padding: 0.4rem;
     font-size: 0.85rem;
     cursor: pointer;
-    color: var(--surface-secondary, #333);
+    color: var(--text-primary);
     &:hover {
-      background: var(--text-muted, #f0f0f0);
+      background: var(--text-muted);
     }
     &.selected {
       background: #e8f5e9;
       color: #2e7d32;
       font-weight: bold;
     }
+  }
+
+  .opt-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .opt-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .opt-swatch-container {
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
   }
 </style>

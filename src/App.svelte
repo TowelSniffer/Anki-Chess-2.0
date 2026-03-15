@@ -8,6 +8,7 @@
   import HelpWrapper from '$components/HelpWrapper.svelte';
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
+  import { BOARD_THEMES } from '$utils/themeData';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
@@ -15,6 +16,17 @@
   let { rawPgn, boardMode, userText } = $props();
 
   let isHelpOpen = $state(false);
+
+  let themeColors = $derived(BOARD_THEMES[userConfig.opts.boardTheme] || BOARD_THEMES['wood']);
+
+  $effect(() => {
+    // Automatically apply or remove the class on the body tag
+    if (userConfig.opts.lightMode) {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+  });
 </script>
 
 {#if import.meta.env.DEV}
@@ -23,7 +35,7 @@
 <HelpWrapper bind:isHelpOpen />
 <GameProvider {rawPgn} {boardMode}>
   <ErrorPopup bind:isHelpOpen />
-  <div id="container">
+  <div id="container" style="--board-light: {themeColors.light}; --board-dark: {themeColors.dark};">
     {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
       <div id="commentBox">
         {#if userText}

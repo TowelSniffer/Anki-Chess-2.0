@@ -132,7 +132,6 @@
       &.active-toggle:not(:disabled) {
         background-color: var(--interactive-button-active);
         @include subtle-shadow(0.7, inset);
-        color: var(--surface-secondary);
         &:hover:not(:active) {
           @include subtle-shadow(0.7);
         }

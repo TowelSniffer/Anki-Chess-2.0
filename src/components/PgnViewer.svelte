@@ -321,7 +321,7 @@
 
   .altLine {
     background: var(--surface-hover);
-    color: white;
+    color: var(--text-primary);
     font-size: 0.8em;
     padding: 0.3em;
 
@@ -397,7 +397,7 @@
     position: fixed; /* Bound to viewport, not parent */
     z-index: 9999;
     background: var(--surface-secondary);
-    box-shadow: 0px 0px 2px 0px black;
+    box-shadow: var(--shadow-strong);
     padding: 0.3em;
     border-radius: var(--border-radius-global);
     border: var(--border-thin);

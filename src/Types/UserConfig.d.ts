@@ -21,5 +21,8 @@ export interface UserConfigOpts {
   frontText: boolean;
   aiMoveTime: number;
   aiElo: number;
-  aiEval: boolean
+  aiEval: boolean;
+  lightMode: boolean;
+  pieceTheme: string,
+  boardTheme: string
 }
