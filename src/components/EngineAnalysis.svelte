@@ -46,7 +46,7 @@
         icon={IconSearchGear}
         value={config.analysisTime}
         min={1}
-        max={10}
+        max={300}
         onChange={(val: number) => (config.analysisTime = val)}
       />
     </div>
