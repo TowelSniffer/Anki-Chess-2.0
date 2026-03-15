@@ -80,6 +80,7 @@
 <style lang="scss">
   button {
     &.promoteBtn {
+      all: unset;
       @include flex-center;
       @include board-square-size;
       border: 0px;

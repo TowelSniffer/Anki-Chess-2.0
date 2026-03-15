@@ -594,6 +594,7 @@ export class GameStore {
   //  cancel (e.g. if user clicks away)
   cancelPromotion() {
     this.pendingPromotion = null;
+    this.pgnPath = [...this.pgnPath];
   }
 
   // --- Chess js ---
