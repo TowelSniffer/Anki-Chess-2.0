@@ -6,6 +6,13 @@ $palette-gray-800: #2c2c2c;
 $palette-gray-84: #d6d6d6;
 $palette-gray-25: #404040;
 
+$palette-light-900: #ffffff;
+$palette-light-800: #f0f0f0;
+$palette-light-84: #e0e0e0;
+$palette-light-25: #d5d5d5;
+$palette-light-text: #222222;
+$palette-light-muted: #666666;
+
 $palette-green-500: #557d38;
 $palette-moss-green: #a5d6a7;
 
@@ -61,7 +68,7 @@ $border-radius-global: 4px;
   --text-muted: #797979;
 
   /* Interaction  Game State */
-  --interactive-button-active: #{$palette-moss-green};
+  --interactive-button-active: #{$palette-green-500};
   --interactive-button-hover: #{$palette-green-500};
   --status-fail: #{$palette-fail};
   --status-pass: #{$palette-pass};
@@ -73,7 +80,19 @@ $border-radius-global: 4px;
 }
 
 /* THEMES */
-body.light-theme {
+:global(body.light-theme) {
+  --surface-primary: #{$palette-light-900};
+  --surface-secondary: #{$palette-light-800};
+  --surface-interactive-hover: #{$palette-light-muted};
+  --surface-hover: #{$palette-light-25};
+
+  --text-primary: #{$palette-light-text};
+  --text-muted: #{$palette-light-muted};
+
+  /* Soften the shadows and borders for light mode */
+  --shadow-main: 0px 0px 3px 0px rgba(0, 0, 0, 0.2);
+  --shadow-strong: 0px 0px 3px 1px rgba(0, 0, 0, 0.3);
+  --border-thin: 1px solid #ccc;
 }
 
 @mixin unselectable {
@@ -148,13 +167,11 @@ body.light-theme {
 
   &:hover:not(:disabled, .active-toggle) {
     background-color: var(--interactive-button-hover);
-    color: var(--surface-primary);
     @include subtle-shadow(0.7);
   }
 
   &:active:not(:disabled) {
     background-color: var(--interactive-button-active);
-    color: var(--surface-primary);
     @include subtle-shadow(0.7, inset);
   }
   &:disabled {

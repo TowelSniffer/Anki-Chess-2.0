@@ -20,7 +20,7 @@
     step?: number;
     onChange?: (val: any) => void;
     // Select (CustomSelector)
-    options?: string[];
+    options?: any[];
   };
 </script>
 
@@ -195,7 +195,13 @@
   // Add/remove event listeners
   $effect(() => {
     if (isOpen) {
-      const onEvent = () => close();
+      const onEvent = (e: Event) => {
+        // If the scroll happened inside the menu itself, do nothing
+        if (e.type === 'scroll' && menuRef?.contains(e.target as Node)) {
+          return;
+        }
+        close();
+      };
 
       window.addEventListener('scroll', onEvent, true);
       window.addEventListener('resize', onEvent);

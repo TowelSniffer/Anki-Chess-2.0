@@ -8,6 +8,10 @@ import IconBugReport from '~icons/material-symbols/bug-report';
 import IconDelete from '~icons/material-symbols/delete';
 import IconRobot from '~icons/material-symbols/robot-2';
 import IconInfo from '~icons/material-symbols/info';
+import IconPalette from '~icons/material-symbols/palette-sharp';
+
+import { BOARD_THEMES } from '$utils/themeData';
+import { pieceThemes, availablePieceThemes } from '$utils/toolkit/importAssets';
 
 import { userConfig } from '$stores/userConfig.svelte';
 import type { GameStore } from '$stores/gameStore.svelte';
@@ -263,6 +267,42 @@ export function getMenuData(
         },
       ],
     },
+    {
+      label: 'Appearance',
+      icon: IconPalette,
+      children: [
+        {
+          type: 'toggle',
+          label: 'Light Mode',
+          checked: userConfig.opts.lightMode,
+          onToggle: () => setConfigBoolean('lightMode'),
+        },
+        {
+          type: 'select',
+          label: 'Board Theme',
+          value: userConfig.opts.boardTheme,
+          onChange: (val: string) => (userConfig.opts.boardTheme = val),
+          // Convert the Record into an array of option objects
+          options: Object.entries(BOARD_THEMES).map(([key, colors]) => ({
+            label: key.charAt(0).toUpperCase() + key.slice(1), // e.g., "Wood", "Ocean"
+            value: key,
+            color1: colors.light,
+            color2: colors.dark,
+          })),
+        },
+        {
+          type: 'select',
+          label: 'Piece Theme',
+          value: userConfig.opts.pieceTheme,
+          onChange: (val: string) => (userConfig.opts.pieceTheme = val),
+          options: availablePieceThemes.map((theme) => ({
+            label: theme,
+            value: theme,
+            icon: pieceThemes[theme]['wN'], // Use white knight as the preview icon
+          })),
+        },
+      ],
+    },
 
     // Developer tools
     ...(import.meta.env.DEV && gameStore
@@ -270,8 +310,7 @@ export function getMenuData(
           {
             label: 'Dev Tools',
             icon: IconBugReport,
-            tooltip:
-            '...dev shite',
+            tooltip: '...dev shite',
             children: [
               {
                 type: 'action',

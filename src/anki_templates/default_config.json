@@ -21,5 +21,8 @@
   "frontText": false,
   "aiMoveTime": 1,
   "aiElo": 2700,
-  "aiEval": true
+  "aiEval": true,
+  "lightMode": false,
+  "pieceTheme": "merida",
+  "boardTheme": "wood"
 }

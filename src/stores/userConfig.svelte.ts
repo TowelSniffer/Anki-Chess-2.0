@@ -76,7 +76,12 @@ export class UserConfig {
     if (stored !== null) {
       if (stored === 'true') return true as UserConfigOpts[K];
       if (stored === 'false') return false as UserConfigOpts[K];
-      return parseFloat(stored) as UserConfigOpts[K];
+
+      // Try to parse as number, otherwise fallback to the raw string
+      const parsedNum = Number(stored);
+      if (!isNaN(parsedNum)) return parsedNum as UserConfigOpts[K];
+
+      return stored as UserConfigOpts[K];
     }
 
     return (window.USER_CONFIG?.[key] ?? defaultConfig[key]) as UserConfigOpts[K];

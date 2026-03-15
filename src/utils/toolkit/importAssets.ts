@@ -1,5 +1,5 @@
 // Grab all matching SVGs eagerly as raw strings
-const pieceModules = import.meta.glob('$assets/pieces/_*.svg', {
+const pieceModules = import.meta.glob('$assets/pieces/*/*.svg', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -31,15 +31,21 @@ export const mdDocs = Object.entries(mdModules).reduce((acc, [path, content]) =>
   return acc;
 }, {} as Record<string, string>);
 
-// Transform the file paths into your keys (e.g., './_wP.svg' -> 'wP')
-export const pieceImages = Object.entries(pieceModules).reduce(
-  (acc, [path, content]) => {
-    const key = path.split('_')[1].split('.')[0];
-    acc[key] = toDataUri(content);
-    return acc;
-  },
-  {} as Record<string, string>,
-);
+// Restructure piece svg's to group by theme
+export const pieceThemes: Record<string, Record<string, string>> = {};
+
+Object.entries(pieceModules).forEach(([path, content]) => {
+  // path example: /src/assets/pieces/cburnett/wN.svg
+  const parts = path.split('/');
+  const fileName = parts.pop()!;
+  const themeName = parts.pop()!;
+  const pieceKey = fileName.split('.')[0];
+
+  if (!pieceThemes[themeName]) pieceThemes[themeName] = {};
+  pieceThemes[themeName][pieceKey] = toDataUri(content);
+});
+
+export const availablePieceThemes = Object.keys(pieceThemes);
 
 export const nagImages = Object.entries(nagModules).reduce((acc, [path, url]) => {
   const key = path.split('_')[1].split('.')[0];

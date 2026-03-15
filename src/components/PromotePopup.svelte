@@ -2,21 +2,25 @@
   import type { ChessJsPromotions } from '$Types/ChessStructs';
   import type { GameStore } from '$stores/gameStore.svelte';
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
-  import { pieceImages } from '$utils/toolkit/importAssets';
+  import { pieceThemes } from '$utils/toolkit/importAssets';
   import { getContext } from 'svelte';
   import { moveAudio } from '$features/audio/audio';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<GameStore>('GAME_STORE');
 
-  let turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
-  let orientaion = $derived(gameStore.orientation[0]);
+  const currentPieceTheme = $derived(
+    pieceThemes[gameStore.config.pieceTheme] || pieceThemes['cburnett'],
+  );
 
-  let promoteImages = $derived({
-    q: pieceImages[`${turnColor}Q`],
-    b: pieceImages[`${turnColor}B`],
-    n: pieceImages[`${turnColor}N`],
-    r: pieceImages[`${turnColor}R`],
+  const turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
+  const orientaion = $derived(gameStore.orientation[0]);
+
+  const promoteImages = $derived({
+    q: currentPieceTheme[`${turnColor}Q`],
+    b: currentPieceTheme[`${turnColor}B`],
+    n: currentPieceTheme[`${turnColor}N`],
+    r: currentPieceTheme[`${turnColor}R`],
   });
 
   function select(role: ChessJsPromotions) {
