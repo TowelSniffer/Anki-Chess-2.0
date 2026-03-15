@@ -10,7 +10,7 @@
   import { getContext, untrack, onDestroy } from 'svelte';
   import { spring } from 'svelte/motion';
   import { updateBoard } from '$features/board/boardAnimation';
-  import { pieceThemes } from '$utils/toolkit/importAssets';
+  import { pieceSprites } from '$utils/toolkit/pieceSprites';
 
   // Global Stores
   const gameStore = getContext<GameStore>('GAME_STORE');
@@ -50,7 +50,7 @@
   const config = $derived(gameStore.config);
 
   // Reactively fetch the selected theme dictionary
-  const currentPieceTheme = $derived(pieceThemes[config.pieceTheme] || pieceThemes['merida']);
+  const currentSprite = $derived(pieceSprites[config.pieceTheme] || pieceSprites['merida']);
 
   // --- Board State ---
 
@@ -312,9 +312,7 @@
     "
 >
   <div
-    style="{Object.entries(currentPieceTheme)
-      .map(([k, v]) => `--${k}: url('${v}')`)
-      .join('; ')};"
+    style:--theme-sprite="url('{currentSprite}')"
     class="board-wrapper"
     class:analysisMode
     class:timerMode={timerStore.visible}

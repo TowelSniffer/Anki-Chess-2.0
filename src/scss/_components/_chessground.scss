@@ -152,15 +152,22 @@ cg-container {
 
     piece {
       position: absolute;
-      top: 0;
-      left: 0;
+      /* Load the single sprite */
+      background-image: var(--theme-sprite);
+      background-size: 600% 200% !important; /* 6 columns, 2 rows */
       width: 12.5%;
       height: 12.5%;
-      background-size: cover;
       z-index: 2;
       will-change: transform;
       pointer-events: auto !important;
       cursor: grab;
+
+      &.white {
+        background-position-y: 0%;
+      }
+      &.black {
+        background-position-y: 100%;
+      }
 
       &.dragging {
         // Crucial: When dragging, we must disable pointer events on the piece.
@@ -179,57 +186,13 @@ cg-container {
         opacity: 0.5;
       }
 
-      &.white {
-        &.pawn {
-          background-image: var(--wP);
-        }
-
-        &.bishop {
-          background-image: var(--wB);
-        }
-
-        &.knight {
-          background-image: var(--wN);
-        }
-
-        &.rook {
-          background-image: var(--wR);
-        }
-
-        &.queen {
-          background-image: var(--wQ);
-        }
-
-        &.king {
-          background-image: var(--wK);
-        }
-      }
-
-      &.black {
-        &.pawn {
-          background-image: var(--bP);
-        }
-
-        &.bishop {
-          background-image: var(--bB);
-        }
-
-        &.knight {
-          background-image: var(--bN);
-        }
-
-        &.rook {
-          background-image: var(--bR);
-        }
-
-        &.queen {
-          background-image: var(--bQ);
-        }
-
-        &.king {
-          background-image: var(--bK);
-        }
-      }
+      /* Map the columns (K, Q, R, B, N, P) */
+      &.king   { background-position-x: 0%; }
+      &.queen  { background-position-x: 20%; }
+      &.rook   { background-position-x: 40%; }
+      &.bishop { background-position-x: 60%; }
+      &.knight { background-position-x: 80%; }
+      &.pawn   { background-position-x: 100%; }
     }
   }
 

@@ -11,7 +11,7 @@ import IconInfo from '~icons/material-symbols/info';
 import IconPalette from '~icons/material-symbols/palette-sharp';
 
 import { BOARD_THEMES } from '$utils/themeData';
-import { pieceThemes, availablePieceThemes } from '$utils/toolkit/importAssets';
+import { pieceSprites } from '$utils/toolkit/pieceSprites';
 
 import { userConfig } from '$stores/userConfig.svelte';
 import type { GameStore } from '$stores/gameStore.svelte';
@@ -295,10 +295,10 @@ export function getMenuData(
           label: 'Piece Theme',
           value: userConfig.opts.pieceTheme,
           onChange: (val: string) => (userConfig.opts.pieceTheme = val),
-          options: availablePieceThemes.map((theme) => ({
+          options: Object.keys(pieceSprites).map((theme) => ({
             label: theme,
             value: theme,
-            icon: pieceThemes[theme]['wN'], // Use white knight as the preview icon
+            sprite: pieceSprites[theme], // Pass the sprite instead of icon
           })),
         },
       ],

@@ -2,26 +2,21 @@
   import type { ChessJsPromotions } from '$Types/ChessStructs';
   import type { GameStore } from '$stores/gameStore.svelte';
   import { handleUserMove } from '$features/chessJs/puzzleLogic';
-  import { pieceThemes } from '$utils/toolkit/importAssets';
+  import { pieceSprites } from '$utils/toolkit/pieceSprites';
   import { getContext } from 'svelte';
   import { moveAudio } from '$features/audio/audio';
 
   // Retrieve the instance created by the parent
   const gameStore = getContext<GameStore>('GAME_STORE');
 
-  const currentPieceTheme = $derived(
-    pieceThemes[gameStore.config.pieceTheme] || pieceThemes['cburnett'],
+  const currentSprite = $derived(
+    pieceSprites[gameStore.config.pieceTheme] || pieceSprites['cburnett'],
   );
 
   const turnColor = $derived(gameStore.turn[0]); // 'w' or 'b'
   const orientaion = $derived(gameStore.orientation[0]);
 
-  const promoteImages = $derived({
-    q: currentPieceTheme[`${turnColor}Q`],
-    b: currentPieceTheme[`${turnColor}B`],
-    n: currentPieceTheme[`${turnColor}N`],
-    r: currentPieceTheme[`${turnColor}R`],
-  });
+  const bgY = $derived(turnColor === 'w' ? '0%' : '100%'); // Select top or bottom row
 
   function select(role: ChessJsPromotions) {
     if (!gameStore.pendingPromotion) return;
@@ -46,17 +41,29 @@
     class:top={turnColor === orientaion}
     class:bottom={turnColor !== orientaion}
   >
-    <button class="promoteBtn" onclick={() => select('q')}>
-      <img class="promotePiece" src={promoteImages.q} alt="Promote to Queen" />
+    <button class="promoteBtn" aria-label="Promote to Queen" onclick={() => select('q')}>
+      <div
+        class="promotePiece"
+        style="background-image: url('{currentSprite}'); background-position: 20% {bgY};"
+      ></div>
     </button>
-    <button class="promoteBtn" onclick={() => select('b')}>
-      <img class="promotePiece" src={promoteImages.b} alt="Promote to Bishop" />
+    <button class="promoteBtn" aria-label="Promote to Bishop" onclick={() => select('b')}>
+      <div
+        class="promotePiece"
+        style="background-image: url('{currentSprite}'); background-position: 60% {bgY};"
+      ></div>
     </button>
-    <button class="promoteBtn" onclick={() => select('n')}>
-      <img class="promotePiece" src={promoteImages.n} alt="Promote to Knight" />
+    <button class="promoteBtn" aria-label="Promote to Knight" onclick={() => select('n')}>
+      <div
+        class="promotePiece"
+        style="background-image: url('{currentSprite}'); background-position: 80% {bgY};"
+      ></div>
     </button>
-    <button class="promoteBtn" onclick={() => select('r')}>
-      <img class="promotePiece" src={promoteImages.r} alt="Promote to Rook" />
+    <button class="promoteBtn" aria-label="Promote to Rook" onclick={() => select('r')}>
+      <div
+        class="promotePiece"
+        style="background-image: url('{currentSprite}'); background-position: 40% {bgY};"
+      ></div>
     </button>
   </div>
   <div
@@ -104,6 +111,7 @@
       .promotePiece {
         margin: 0;
         @include board-square-size;
+        background-size: 600% 200%; /* Stretch the sprite across the container */
       }
     }
   }
