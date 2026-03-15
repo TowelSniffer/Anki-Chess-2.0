@@ -2,6 +2,11 @@
 
 > **Notice:** It is highly recommended to make sure the [Companion Add-on](https://ankiweb.net/shared/info/1300975327) is up to date before updating this template!
 
+### Version 1.2.20
+* Fixed a bug when trying to navigate backwards by clicking on the first move.
+* Added board and piece themes under new appearance config section
+* Added a light mode option.
+
 ### Version 1.2.11
 * Fixed a Bug with border colour when mirror is enabled (Thanks Leugim).
 * Fixed player colour with random Orientation.
