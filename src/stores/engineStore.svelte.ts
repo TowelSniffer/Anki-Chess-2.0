@@ -5,7 +5,7 @@ import { Chess, type Square } from 'chess.js';
 import pkg from '../../package.json';
 
 const sfFull = pkg.dependencies.stockfish.replace(/[^0-9.]/g, '');
-const stockfishWorkerUrl = `/_stockfish-${sfFull}-single.js`;
+const stockfishWorkerUrl = `/_stockfish-${sfFull}-lite-single.js`;
 
 function convertCpToWinPercentage(cp: number): number {
   const probability = 1 / (1 + Math.pow(10, -cp / 400));
