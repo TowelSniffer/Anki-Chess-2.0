@@ -16,6 +16,8 @@ PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '../')
 with open(os.path.join(PROJECT_ROOT, 'package.json'), 'r') as f:
     pkg_data = json.load(f)
     version = pkg_data['version']
+    # Clean up the version string (e.g., "^17.1.0" -> "17.1.0")
+    stockfish_version = pkg_data['dependencies']['stockfish'].strip('^~')
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), '../src/anki_templates')
 
@@ -99,20 +101,23 @@ apkg_path = os.path.join(os.path.dirname(__file__), '../dist-anki/ankichess.apkg
 package.write_to_file(apkg_path)
 print(f"Success: {os.path.basename(apkg_path)} created.")
 
-# --- EXPORT RELEASE ZIP (For Companion Add-on) ---
-zip_path = os.path.join(os.path.dirname(__file__), '../dist-anki/anki-chess-release.zip')
+# --- EXPORT RELEASE ZIPs (For Companion Add-on) ---
+main_zip_path = os.path.join(os.path.dirname(__file__), '../dist-anki/anki-chess-release.zip')
+sf_zip_path = os.path.join(os.path.dirname(__file__), f'../dist-anki/stockfish-v{stockfish_version}.zip')
 
-print("Creating release zip...")
-with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-    # A. Add processed templates
-    # The Add-on expects "Front.html" and "style.css" at the root
-    zf.writestr("Front.html", final_front)
-    zf.writestr("style.css", final_css)
+with zipfile.ZipFile(main_zip_path, 'w', zipfile.ZIP_DEFLATED) as main_zip, \
+     zipfile.ZipFile(sf_zip_path, 'w', zipfile.ZIP_DEFLATED) as sf_zip:
 
-    # B. Add media files
+    # A. Add processed templates to main zip
+    main_zip.writestr("Front.html", final_front)
+    main_zip.writestr("style.css", final_css)
+
+    # B. Split media files
     for file_path in media_files:
-        # Add files to the root of the zip
         arcname = os.path.basename(file_path)
-        zf.write(file_path, arcname)
+        if 'stockfish' in arcname.lower():
+            sf_zip.write(file_path, arcname)
+        else:
+            main_zip.write(file_path, arcname)
 
-print(f"Success: {os.path.basename(zip_path)} created.")
+print(f"Success: {os.path.basename(main_zip_path)} and {os.path.basename(sf_zip_path)} created.")
