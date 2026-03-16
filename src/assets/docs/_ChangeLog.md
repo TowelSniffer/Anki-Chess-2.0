@@ -2,6 +2,13 @@
 
 > **Notice:** It is highly recommended to make sure the [Companion Add-on](https://ankiweb.net/shared/info/1300975327) is up to date before updating this template!
 
+### Version 1.2.22
+
+* Updated Stockfish to stockfish 18
+* Separate stockish into it's own zip file to make updating faster with addon (Stockfish typically isn't updated but was downloading every time).
+* Added UI feedback when updating in the addon.
+* New addon now cleans old unused files in the media folder after updating. 
+
 ### Version 1.2.20
 * Fixed a bug when trying to navigate backwards by clicking on the first move.
 * Added board and piece themes under new appearance config section
