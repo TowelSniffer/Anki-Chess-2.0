@@ -315,17 +315,14 @@ export function getMenuData(
               {
                 type: 'action',
                 label: 'Simulate Layout Shift (100px)',
-                icon: IconBackgroundGridSmall, // Re-using a board-related icon
+                icon: IconBackgroundGridSmall,
                 action: () => {
                   const spacer = document.createElement('div');
                   spacer.style.height = '100px';
                   spacer.style.background = 'rgba(255, 0, 0, 0.2)';
                   spacer.textContent = 'DEV SPACER';
                   document.body.prepend(spacer);
-
-                  // Log current state to verify ResizeObserver handled the shift
                   console.log('Layout Shift Simulated.');
-                  console.log('CG Bounds:', gameStore.cg?.state.bounds);
                 },
               },
               {
