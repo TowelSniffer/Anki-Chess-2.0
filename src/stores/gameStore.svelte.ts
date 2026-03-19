@@ -550,11 +550,8 @@ export class GameStore {
   this.cg = Chessground(node, { fen: this.fen });
   this.cg.set(this.boardConfig);
 
-  // Force WebKit/Mobile Safari to recalibrate the hit-map
-  // when the Svelte layout shifts (e.g., commentBox expanding)
-
-  // Find the root layout container
-  const root = document.querySelector('#anki-chess-root', '#chessRs-root') || document.body;
+  // Observing body to catch shifts from ANY sibling or parent
+  const root = document.body;
 
   let redrawTimeout: ReturnType<typeof setTimeout>;
 
