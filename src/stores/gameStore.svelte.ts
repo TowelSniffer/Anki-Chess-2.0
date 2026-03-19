@@ -368,8 +368,9 @@ export class GameStore {
         this.#storage.set('chess_flipBoolean', 'true');
         this.cg &&
           this.setTrackedTimeout(() => {
+            // FIXME need to pass after initial load to make sure fen is correct
             playAiMove(this, 0);
-          }, 200);
+          }, 100);
       } else if (this.#orientBool) {
         this.#orientBool = false;
       }
@@ -380,7 +381,10 @@ export class GameStore {
     } else if (boardMode === 'AI') {
       this.#orientBool = false;
       this.#flipBoolean = false;
-      this.engineStore.init(this.fen);
+      this.setTrackedTimeout(() => {
+        // FIXME need to pass after initial load to make sure fen is correct
+        this.engineStore.aiInit(this.fen);
+      }, 200);
       this.#storage.clearGame();
     }
 
@@ -540,22 +544,42 @@ export class GameStore {
   // --- CG Board ---
 
   loadCgInstance = (node: HTMLDivElement) => {
-    if (!node) return;
-    this.cg = Chessground(node, { fen: this.fen });
-    this.cg.set(this.boardConfig);
-    const shouldPlayAiMove = this.boardMode === 'Puzzle' && this.config.flipBoard;
-    if (shouldPlayAiMove) {
-      this.setTrackedTimeout(() => {
-        playAiMove(this, 0);
-      }, 200);
-    }
+  if (!node) return;
 
-    return {
-      destroy: () => {
-        this.cg?.destroy();
-      },
-    };
+  // Initialize Chessground
+  this.cg = Chessground(node, { fen: this.fen });
+  this.cg.set(this.boardConfig);
+
+  // Force WebKit/Mobile Safari to recalibrate the hit-map
+  // when the Svelte layout shifts (e.g., commentBox expanding)
+
+  // Find the root layout container
+  const root = document.querySelector('#anki-chess-root', '#chessRs-root') || document.body;
+
+  const observer = new ResizeObserver(() => {
+    requestAnimationFrame(() => {
+      // Recalculates the board's absolute screen coordinates
+      this.cg?.redrawAll();
+      if (import.meta.env.DEV) console.log("Layout Shift Detected: Redrawing Board");
+    });
+  });
+
+  observer.observe(root);
+
+  const shouldPlayAiMove = this.boardMode === 'Puzzle' && this.config.flipBoard;
+  if (shouldPlayAiMove) {
+    this.setTrackedTimeout(() => {
+      playAiMove(this, 0);
+    }, 200);
+  }
+
+  return {
+    destroy: () => {
+      observer.disconnect(); // Cleanup to prevent memory leaks
+      this.cg?.destroy();
+    },
   };
+};
 
   // Prevent rapid move attempts
   setMoveDebounce(time = this.config.animationTime) {
@@ -608,3 +632,4 @@ export class GameStore {
     this.#moveMap.clear();
   }
 }
+
