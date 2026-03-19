@@ -1,5 +1,6 @@
 import type { CustomShape } from '$Types/ChessStructs';
 import type { UserConfigOpts } from '$Types/UserConfig';
+import type { BoardModes } from '$Types/ChessStructs';
 import { untrack } from 'svelte';
 import { Chess, type Square } from 'chess.js';
 import pkg from '../../package.json';
@@ -48,6 +49,7 @@ export class EngineStore {
 
   // --- Internal State ---
 
+  #boardMode: BoardModes;
   #config: UserConfigOpts;
   #currentFen = ''; // The FEN currently being processed by the engine
   #currentFenLegalMoves = 1;
@@ -64,9 +66,10 @@ export class EngineStore {
   #aiRequestPending = false;
   #aiMoveResolver: ((san: string) => void) | null = null;
 
-  constructor(getConfig: () => UserConfigOpts) {
+  constructor(getConfig: () => UserConfigOpts, getBoardMode: () => BoardModes) {
     this.stop();
     this.#config = getConfig();
+    this.#boardMode = getBoardMode();
 
     /*
      * EFFECTS
@@ -99,7 +102,7 @@ export class EngineStore {
   }
 
   get multipv() {
-    return this.#config.analysisLines;
+    return this.#boardMode === 'AI' ? 1 : this.#config.analysisLines;
   }
 
   get #aiElo() {
@@ -226,8 +229,8 @@ export class EngineStore {
     this.#processPending();
   }
 
-  async init(fen?: string) {
-    await this.#delay(200);
+  async aiInit(fen?: string) {
+    await this.#delay(100);
     this.enabled = true;
     this.#initWorker(fen);
   }
@@ -300,12 +303,7 @@ export class EngineStore {
     }
   }
 
-  #performAiSearch(
-    fen: string,
-    elo: number,
-    moveTime: number,
-    resolve: (san: string) => void,
-  ) {
+  #performAiSearch(fen: string, elo: number, moveTime: number, resolve: (san: string) => void) {
     this.#aiMoveResolver = resolve; // Store the resolver for _parseBestMove to use
     /**
      * Keep elo value within default stockfish UCI_Elo min/max values

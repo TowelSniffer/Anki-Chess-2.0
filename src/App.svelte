@@ -135,6 +135,8 @@
       }
     }
     #board-container {
+      aspect-ratio: 1 / 1;
+      contain: layout; /* Helps WebKit keep layout calculations isolated */
       position: relative;
       margin: 0 auto;
       grid-area: two;

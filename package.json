@@ -4,6 +4,8 @@
   "version": "1.2.22",
   "type": "module",
   "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "predev": "tsx scripts/setup-stockfish.ts && tsx scripts/build-pieces.ts",
     "prebuild": "tsx scripts/setup-stockfish.ts && tsx scripts/build-pieces.ts",
     "dev": "vite",
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@iconify-json/material-symbols": "^1.2.53",
+    "@playwright/test": "^1.58.2",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@tsconfig/svelte": "^5.0.5",
     "@types/archiver": "^7.0.0",

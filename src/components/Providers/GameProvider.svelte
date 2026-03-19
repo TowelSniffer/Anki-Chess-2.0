@@ -54,7 +54,10 @@
   });
 
   // Instantiate the stores
-  const engineStore = new EngineStore(() => config);
+  const engineStore = new EngineStore(
+    () => config,
+    () => getBoardMode,
+  );
   const timerStore = new TimerStore(() => config);
   const gameStore = new GameStore(
     () => getPgn,
@@ -64,6 +67,10 @@
     engineStore,
     timerStore,
   );
+
+  if (import.meta.env.DEV) {
+    (window as any).gameStore = gameStore;
+  }
 
   // Set Stores in context so child components can access them
   setContext('GAME_STORE', gameStore);
@@ -79,3 +86,4 @@
 </script>
 
 {@render children()}
+

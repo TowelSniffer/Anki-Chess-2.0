@@ -8,11 +8,10 @@ export const devPgn = `
 [White "White"]
 [Black "Black"]
 [Result "*"]
-[FEN "rnbq1rk1/pp3pbp/3p1np1/1N2p3/2P5/4P1P1/PP3PBP/RNBQ1RK1 b - - 1 9"]
+[FEN "4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 0 16"]
 [SetUp "1"]
 
-9... Nc6 10. N1c3 {[%EV 63.1] [%N 71.69% of 157k] [%csl Rd6] [%cal Bc3d5] look at [e4]} (10. b3 {[%EV 61.7] [%N 7.84% of
-157k]}) (10. Qxd6 {[%EV 61.9] [%N 16.56% of 157k]}) *
+16. Qb8+ *
 `;
 
 export const devBoardMode: BoardModes = 'Viewer';
