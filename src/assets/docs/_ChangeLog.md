@@ -2,6 +2,10 @@
 
 > **Notice:** It is highly recommended to make sure the [Companion Add-on](https://ankiweb.net/shared/info/1300975327) is up to date before updating this template!
 
+### Version 1.2.23
+
+* Fixed render issues for anki mobile which could cause misaligned piece when trying to select.
+
 ### Version 1.2.22
 
 * Updated Stockfish to stockfish 18
