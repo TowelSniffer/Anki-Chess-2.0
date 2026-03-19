@@ -11,14 +11,22 @@ test('detect piece interaction after layout shift', async ({ page }) => {
 
   // Wait for the actual board to mount since we didn't wait for 'load'
   const board = page.locator('#board');
-  await expect(board).toBeVisible({ timeout: 15000 });
+  await expect(board).toBeVisible({ timeout: 10000 });
 
   // 1. Get a movable piece position
   const turnColor = await page.evaluate(() => (window as any).gameStore.playerColor);
   const piece = page.locator(`piece.${turnColor}`).first();
+  // Wait for the element to actually exist in the layout
+  await piece.waitFor({ state: 'visible', timeout: 10000 });
 
-  const box = await piece.boundingBox();
-  if (!box) throw new Error("Piece not found");
+  // Poll for the bounding box until WebKit calculates it
+  let box = null;
+  await expect(async () => {
+    box = await piece.boundingBox();
+    expect(box).not.toBeNull();
+  }).toPass({ timeout: 5000 });
+
+  if (!box) throw new Error("Layout engine failed to compute piece geometry.");
 
   // 2. Shift the board down
   await page.evaluate(() => {
@@ -33,8 +41,8 @@ test('detect piece interaction after layout shift', async ({ page }) => {
   // 4. Click the OLD coordinates to test if redrawAll() worked
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2 + 100);
 
-  // 5. Verify
-  const isSelected = await page.evaluate(() => !!(window as any).gameStore?.cg?.state.selected);
-
-  expect(isSelected).toBeTruthy();
+  await expect(async () => {
+    const selected = await page.evaluate(() => !!(window as any).gameStore?.cg?.state.selected);
+    expect(selected).toBeTruthy();
+  }).toPass();
 });

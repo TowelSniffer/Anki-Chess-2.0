@@ -4,8 +4,8 @@
   "version": "1.2.22",
   "type": "module",
   "scripts": {
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
+    "test:e2e": "docker run --rm --network='host' -u $(id -u):$(id -g) -v $(pwd):/work/ -w /work/ mcr.microsoft.com/playwright:v1.58.2-jammy npx playwright test",
+    "fix:permissions": "sudo chown -R $(id -u):$(id -g) node_modules/ .vite/ test-results/",
     "predev": "tsx scripts/setup-stockfish.ts && tsx scripts/build-pieces.ts",
     "prebuild": "tsx scripts/setup-stockfish.ts && tsx scripts/build-pieces.ts",
     "dev": "vite",

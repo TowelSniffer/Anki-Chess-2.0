@@ -556,11 +556,18 @@ export class GameStore {
   // Find the root layout container
   const root = document.querySelector('#anki-chess-root', '#chessRs-root') || document.body;
 
+  let redrawTimeout: ReturnType<typeof setTimeout>;
+
   const observer = new ResizeObserver(() => {
+    // Clear previous attempt if a new shift is detected
+    clearTimeout(redrawTimeout);
+
+    // Use rAF to wait for the paint, then a small debounce to let it "settle"
     requestAnimationFrame(() => {
-      // Recalculates the board's absolute screen coordinates
-      this.cg?.redrawAll();
-      if (import.meta.env.DEV) console.log("Layout Shift Detected: Redrawing Board");
+      redrawTimeout = setTimeout(() => {
+        this.cg?.redrawAll();
+        if (import.meta.env.DEV) console.log("Board coordinates recalibrated");
+      }, 100);
     });
   });
 
