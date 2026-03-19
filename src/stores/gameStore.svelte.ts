@@ -413,7 +413,10 @@ export class GameStore {
     } else if (/^(Puzzle|Study)$/.test(this.boardMode)) {
       if (this.boardMode === 'Puzzle') {
         if (this.config.mirror) {
-          mirrorState = assignMirrorState();
+          // Trapdoor for Playwright tests
+          const forcedMirror = typeof window !== 'undefined' ? (window as any).DEV_OVERRIDES?.mirrorState : null
+
+          mirrorState = forcedMirror || assignMirrorState();
           this.#storage.set('chess_mirrorState', `${mirrorState}`);
         }
       }

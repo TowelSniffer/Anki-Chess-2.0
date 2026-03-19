@@ -15,20 +15,33 @@ const flipBoardStates = [false, true];
 
 for (const flipBoard of flipBoardStates) {
   for (const state of mirrorStates) {
-    test(`evaluates correct bar-bottom-color for mirror: ${state}, flipBoard: ${flipBoard}`, async ({ page }) => {
+    test(`evaluates correct bar-bottom-color for mirror: ${state}, flipBoard: ${flipBoard}`, async ({
+      page,
+    }) => {
+      await page.addInitScript(
+        ({ mockState, mockPgn, isFlipped }) => {
+          // Pass the dynamic flipBoard state
+          (window as any).USER_CONFIG = { mirror: true, timer: 10, flipBoard: isFlipped };
 
-      await page.addInitScript(({ mockState, mockPgn, isFlipped }) => {
-        // 1. Pass the dynamic flipBoard state
-        (window as any).USER_CONFIG = { mirror: true, timer: 10, flipBoard: isFlipped };
-
-        (window as any).DEV_OVERRIDES = {
-          boardMode: 'Puzzle',
-          mirrorState: mockState,
-          pgn: mockPgn,
-        };
-      }, { mockState: state, mockPgn: noCastlePgn, isFlipped: flipBoard }); // Bind it here
+          (window as any).DEV_OVERRIDES = {
+            boardMode: 'Puzzle',
+            mirrorState: mockState,
+            pgn: mockPgn,
+          };
+        },
+        { mockState: state, mockPgn: noCastlePgn, isFlipped: flipBoard },
+      );
 
       await page.goto('/', { waitUntil: 'commit' });
+
+      // Verify the internal store pgnPath
+      await expect(async () => {
+        const pathKey = await page.evaluate(() => (window as any).gameStore.currentPathKey);
+
+        const expectPathKey = flipBoard ? '0' : '';
+
+        expect(pathKey).toBe(expectPathKey);
+      }).toPass();
 
       const boardWrapper = page.locator('.board-wrapper');
       await expect(boardWrapper).toBeVisible();
@@ -38,7 +51,10 @@ for (const flipBoard of flipBoardStates) {
       const expectBlack = flipBoard ? !isBaseInvert : isBaseInvert;
       const expectedColor = expectBlack ? 'rgb(15, 15, 15)' : 'rgb(234, 234, 234)';
 
-      await page.screenshot({ path: `test-results/debug-mirror-${state}-flip-${flipBoard}.png`, fullPage: true });
+      await page.screenshot({
+        path: `test-results/debug-mirror-${state}-flip-${flipBoard}.png`,
+        fullPage: true,
+      });
 
       await expect(async () => {
         const bottomColor = await boardWrapper.evaluate((el) =>

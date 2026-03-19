@@ -6,7 +6,7 @@
   // __USER_CONFIG__
 </script>
 <script type="module" crossorigin src="./_ankiChess__VERSION__.js"></script>
-<div id="anki-chess-root" data-boardMode="Puzzle"></div>
+<div id="chessRs-root" data-boardMode="Puzzle"></div>
 
 <div id="anki-pgn" style="display: none;">{{text:PGN}}</div>
 {{#textField}}
@@ -19,7 +19,7 @@
       if (window.mountChess) {
         window.mountChess();
         // focus to allow autoplaying media
-        document.getElementById('anki-chess-root').focus();
+        document.getElementById('chessRs-root').focus();
       } else {
         setTimeout(attemptMount, 20);
       }

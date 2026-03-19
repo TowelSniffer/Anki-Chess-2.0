@@ -9,8 +9,7 @@ let appInstance: any = null;
 
 // The logic to mount the app
 const mountApp = () => {
-  const target =
-    document.getElementById('anki-chess-root') ?? document.getElementById('chessRs-root');
+  const target = document.getElementById('chessRs-root');
 
   // Prevent double mounting
   if (!target || target.hasAttribute('data-mounted')) return;
@@ -26,8 +25,9 @@ const mountApp = () => {
   const pgnDiv = document.getElementById('anki-pgn');
 
   let pgnContent = pgnDiv ? pgnDiv.textContent?.trim() : devPgn;
-  let boardModeFromAnki: BoardModes =
-    (target.getAttribute('data-boardMode') as BoardModes) || devBoardMode;
+  let boardMode: BoardModes = import.meta.env.DEV
+    ? devBoardMode
+    : (target.getAttribute('data-boardMode') as BoardModes);
 
   const userTextFromAnki = import.meta.env.DEV ? devText : (textDiv?.innerHTML ?? '');
 
@@ -41,7 +41,7 @@ const mountApp = () => {
     target,
     props: {
       rawPgn: pgnContent,
-      boardMode: boardModeFromAnki,
+      boardMode: boardMode,
       userText: userTextFromAnki,
     },
   });

@@ -39,7 +39,7 @@ export async function updateAnkiChessTemplate(
 ) {
   // Construct the new Front Template with inlined Config and Cache-busted Script
   const newFront = generateFrontHtml(userConfig);
-  const newBack = `{{FrontSide}}\n<script>document.getElementById('anki-chess-root').setAttribute('data-boardMode', 'Viewer');</script>`;
+  const newBack = `{{FrontSide}}\n<script>document.getElementById('chessRs-root').setAttribute('data-boardMode', 'Viewer');</script>`;
 
   // Construct the new CSS with Cache-busted Import
   const currentVersion = pkg.version;
