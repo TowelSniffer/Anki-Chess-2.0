@@ -25,6 +25,78 @@ const booleanStates = [false, true];
 const pieceThemes = ['merida', 'cburnett'];
 const boardThemes = ['sepia', 'green'];
 
+// --- Interaction & Persistence Tests ---
+
+for (const playBothSides of booleanStates) {
+  test(`evaluates movable color after move for playBothSides: ${playBothSides}`, async ({
+    page,
+  }) => {
+    await page.addInitScript(
+      ({ playBothSides, mockPgn }) => {
+        (window as any).USER_CONFIG = { playBothSides: playBothSides };
+        (window as any).DEV_OVERRIDES = { boardMode: 'Puzzle', pgn: mockPgn };
+      },
+      { playBothSides, mockPgn: castlePgn },
+    );
+
+    await page.goto('/', { waitUntil: 'commit' });
+    await expect(async () => {
+      // Trigger a move in the browser
+      await page.evaluate(() => {
+        const store = (window as any).gameStore;
+        store.cg.move('e2', 'e4');
+      });
+
+      const movableColor = await page.evaluate(() => {
+        return (window as any).gameStore.cg.state.movable.color;
+      });
+
+      if (playBothSides) {
+        // playBothSides converts Puzzle to Study mode, so movable tracks the active turn
+        expect(movableColor).toBe('black');
+      } else {
+        // Strict Puzzle mode locks the movable color to the player's initial color
+        expect(movableColor).toBe('white');
+      }
+    }).toPass();
+  });
+}
+
+for (const storePath of booleanStates) {
+  test(`evaluates localStorage for storePgnPath: ${storePath} upon Viewer transition`, async ({
+    page,
+  }) => {
+    await page.addInitScript(
+      ({ storePath, mockPgn }) => {
+        (window as any).USER_CONFIG = { storePgnPath: storePath };
+        (window as any).DEV_OVERRIDES = { boardMode: 'Puzzle', pgn: mockPgn };
+      },
+      { storePath, mockPgn: castlePgn },
+    );
+
+    await page.goto('/', { waitUntil: 'commit' });
+
+    await expect(async () => {
+      // 1. Run browser logic and return the result to Node
+      const storedPath = await page.evaluate(() => {
+        const store = (window as any).gameStore;
+        store.cg.move('e2', 'e4');
+        store.setBoardMode('Viewer');
+
+        return store.currentPathKey;
+      });
+
+      // 2. Run Playwright expectations in Node
+      if (storePath) {
+        expect(storedPath).toBe('0');
+      } else {
+        // If storePgnPath is false, the store resets pgnPath to [], so the key is ''
+        expect(storedPath).toBe('');
+      }
+    }).toPass();
+  });
+}
+
 for (const strictScoring of booleanStates) {
   test(`evaluates puzzleScore for strictScoring: ${strictScoring} on mistake`, async ({ page }) => {
     await page.addInitScript(

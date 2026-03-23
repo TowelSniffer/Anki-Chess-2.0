@@ -355,7 +355,10 @@ export class GameStore {
 
   setBoardMode(boardMode: BoardModes) {
     this.timerStore.reset();
-    if (boardMode !== 'Viewer') this.pgnPath = [];
+    if (boardMode !== 'Viewer' || !this.config.storePgnPath) {
+      this.pgnPath = [];
+      this.#storage.clearGame();
+    }
 
     if (/^(Puzzle|Study)$/.test(boardMode)) {
       this.#resetGameState();
