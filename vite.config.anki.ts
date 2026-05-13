@@ -49,6 +49,7 @@ export default defineConfig(sharedViteConfig({
     assetsDir: '',
     rollupOptions: {
       output: {
+        format: 'iife',
         // Force the main JS file name
         entryFileNames: `${versionedName}.js`,
         // Force chunk names (if code splitting happens) to start with _
