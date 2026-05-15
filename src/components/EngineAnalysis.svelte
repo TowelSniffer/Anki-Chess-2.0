@@ -25,6 +25,12 @@
     const val = line.scoreNormalized / 100;
     return val > 0 ? `+${val.toFixed(2)}` : `${val.toFixed(2)}`;
   }
+
+  function formatNps(nps: number) {
+    if (nps >= 1_000_000) return `${(nps / 1_000_000).toFixed(2)} MN/s`;
+    if (nps >= 1_000) return `${(nps / 1_000).toFixed(1)} kN/s`;
+    return `${nps} N/s`;
+  }
 </script>
 
 {#if engineStore?.enabled}
@@ -76,6 +82,11 @@
           </div>
         {/each}
       </div>
+      {#if engineStore.nps > 0}
+      <div class="engine-speed">
+        {formatNps(engineStore.nps)}
+      </div>
+    {/if}
     {/if}
   </div>
 {/if}
@@ -132,5 +143,12 @@
         color: #51cf66; /* Green (White Wins) */
       }
     }
+  }
+
+  .engine-speed {
+    font-size: 0.75em;
+    color: #888;
+    text-align: right;
+    padding: 0.2rem 0.5rem 0 0;
   }
 </style>

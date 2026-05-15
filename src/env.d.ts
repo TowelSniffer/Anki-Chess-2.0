@@ -8,9 +8,12 @@ declare global {
       modelName: string;
       cardName: string;
     };
+    updateChessMode?: (mode: string) => void;
+    updateRawPgn?: (pgn: string) => void;
   }
   const showAnswer: () => void | any;
   const AnkiDroidJS: () => void | any;
+  const showAnswer: () => void | any;
   const pycmd: (command: string) => void | any;
 }
 

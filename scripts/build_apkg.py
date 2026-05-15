@@ -24,6 +24,9 @@ TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), '../src/anki_templates')
 with open(os.path.join(TEMPLATE_DIR, 'front.html'), 'r', encoding='utf-8') as f:
     RAW_FRONT = f.read()
 
+with open(os.path.join(TEMPLATE_DIR, 'back.html'), 'r', encoding='utf-8') as f:
+    RAW_BACK = f.read()
+
 with open(os.path.join(TEMPLATE_DIR, 'style.css'), 'r', encoding='utf-8') as f:
     RAW_CSS = f.read()
 
@@ -37,8 +40,7 @@ final_front = RAW_FRONT.replace('// __USER_CONFIG__', config_js_string)
 
 final_front = final_front.replace('__VERSION__', version)
 final_css = RAW_CSS.replace('__VERSION__', version)
-
-final_back = final_front.replace('data-boardMode="Puzzle"', 'data-boardMode="Viewer"')
+final_back = RAW_BACK
 
 ankichess_model = genanki.Model(
   MODEL_ID,
@@ -110,6 +112,7 @@ with zipfile.ZipFile(main_zip_path, 'w', zipfile.ZIP_DEFLATED) as main_zip, \
 
     # A. Add processed templates to main zip
     main_zip.writestr("Front.html", final_front)
+    main_zip.writestr("Back.html", final_back)
     main_zip.writestr("style.css", final_css)
 
     # B. Split media files

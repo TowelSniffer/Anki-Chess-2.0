@@ -134,7 +134,6 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
   // disable interaction until player move is made
   // Clear any existing wrong move highlight
   store.wrongMove = null;
-  store.setMoveDebounce();
   store.setTrackedTimeout(() => {
     store.errorCount = 0;
     // Make the move without the AI's variation-selection logic
@@ -148,7 +147,7 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
 }
 
 function handleWrongMove(store: GameStore, move: Move): void {
-  store.setMoveDebounce();
+
   store.errorCount++;
   store.hasMadeMistake = true;
   // Track the wrong move

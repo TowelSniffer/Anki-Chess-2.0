@@ -9,7 +9,9 @@
   import IconSync from '~icons/material-symbols/sync-sharp';
   import { mdDocs } from '$utils/toolkit/importAssets';
 
-  let { isHelpOpen = $bindable(false) } = $props();
+  let { isHelpOpen = $bindable(false), isStandalone = false } = $props();
+
+  const helpMenuTitle = 'About ChessRs';
 
   const puzzlePgn = `
 [FEN "2B5/k1K5/8/3N4/8/8/8/8 w - - 1 2"]
@@ -139,7 +141,13 @@ of 164k]}) *
   </div>
 {/snippet}
 
-<HelpModal isOpen={isHelpOpen} sections={settingsConfig} onClose={() => (isHelpOpen = false)} />
+<HelpModal
+  title={helpMenuTitle}
+  isOpen={isHelpOpen}
+  sections={settingsConfig}
+  onClose={() => (isHelpOpen = false)}
+  {isStandalone}
+/>
 
 <style lang="scss">
   button {

@@ -8,16 +8,49 @@
   import HelpWrapper from '$components/HelpWrapper.svelte';
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
+  import TemplateConfig from '$components/TemplateConfig.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
 
-  let { rawPgn, boardMode, userText } = $props();
+  let { rawPgn: initialRawPgn, boardMode: initialBoardMode, userText } = $props();
+
+  // svelte-ignore state_referenced_locally
+  let rawPgn = $state(initialRawPgn);
+  // svelte-ignore state_referenced_locally
+  let boardMode = $state(initialBoardMode);
 
   let isHelpOpen = $state(false);
 
   let themeColors = $derived(BOARD_THEMES[userConfig.opts.boardTheme] || BOARD_THEMES['wood']);
+  let showDevConfig = $state(false);
+
+  if (import.meta.env.DEV) {
+    window.addEventListener('dev:toggleTemplateConfig', () => {
+      showDevConfig = true;
+    });
+  }
+
+  // Watch the root DOM element for attribute changes (Handles Anki Card Flips)
+  $effect(() => {
+    // Expose a direct reactive setter to the global window
+    (window as any).updateChessMode = (newMode: string) => {
+      if (boardMode !== newMode) {
+        boardMode = newMode as typeof boardMode;
+      }
+    };
+
+    (window as any).updateRawPgn = (newPgn: string) => {
+      if (rawPgn !== newPgn) rawPgn = newPgn;
+    };
+
+    // Cleanup if the component unmounts
+    return () => {
+      delete (window as any).updateChessMode;
+      delete (window as any).updateRawPgn;
+    };
+  });
 
   $effect(() => {
     // Automatically apply or remove the class on the body tag
@@ -32,6 +65,19 @@
 {#if import.meta.env.DEV}
   <RenderScan />
 {/if}
+
+{#if showDevConfig}
+  <!-- Dark backdrop to dim the rest of the app -->
+  <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 999999;">
+
+    <!-- 800x600 Modal Container (Matches Python QDialog) -->
+    <div style="width: 800px; height: 600px; max-width: 95vw; max-height: 95vh; background: var(--surface-primary); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      <TemplateConfig onClose={() => (showDevConfig = false)} />
+    </div>
+
+  </div>
+{/if}
+
 <HelpWrapper bind:isHelpOpen />
 <GameProvider {rawPgn} {boardMode}>
   <ErrorPopup bind:isHelpOpen />
@@ -154,3 +200,4 @@
     }
   }
 </style>
+

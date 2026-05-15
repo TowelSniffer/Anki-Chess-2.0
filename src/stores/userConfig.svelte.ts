@@ -88,19 +88,29 @@ export class UserConfig {
   }
 
   async #checkConnections() {
-    // Check for specific Add-on Marker
-    if (typeof pycmd !== 'undefined') {
-      pycmd('ankiChess:handshake');
+    // 1. Check if we are inside the Add-on Settings Dialog
+    const root = typeof document !== 'undefined' ? document.getElementById('chessRs-root') : null;
+    if (root && root.getAttribute('data-mode') === 'addon-settings') {
+      this.hasAddon = true; // We know the add-on is running
+      return;               // Exit early! Do NOT fire the handshake here.
+    }
 
-      // Wait a tiny bit for Python to execute the eval
+    // 2. Normal Handshake for the Reviewer Board
+    const w = window as any;
+    if (typeof w.pycmd !== 'undefined') {
+      try {
+        w.pycmd('ankiChess:handshake');
+      } catch (e) {
+        console.warn("Handshake skipped/failed.");
+      }
+
       await new Promise((r) => setTimeout(r, 50));
-
-      if ((window as any).ANKI_CHESS_ADDON_INSTALLED === true) {
+      if (w.ANKI_CHESS_ADDON_INSTALLED === true) {
         this.hasAddon = true;
       }
     }
 
-    // Check for AnkiConnect (Localhost)
+    // 3. Check for AnkiConnect
     this.isAnkiConnect = await checkAnkiConnection();
   }
 

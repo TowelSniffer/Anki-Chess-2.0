@@ -6,7 +6,7 @@ import { Chess, type Square } from 'chess.js';
 import pkg from '../../package.json';
 
 const sfFull = pkg.dependencies.stockfish.replace(/[^0-9.]/g, '');
-const stockfishWorkerUrl = `/_stockfish-${sfFull}-lite-single.js`;
+const stockfishWorkerUrl = `/_stockfish-${sfFull}-asm.js`;
 
 function convertCpToWinPercentage(cp: number): number {
   const probability = 1 / (1 + Math.pow(10, -cp / 400));
@@ -42,6 +42,7 @@ export class EngineStore {
   // Analysis Data
   evalFen = $state<string>(''); // The FEN that the current analysis belongs to
   analysisLines = $state<AnalysisLine[]>([]);
+  nps = $state<number>(0);
 
   // --- Non-reactive variables ---
 
@@ -49,8 +50,9 @@ export class EngineStore {
 
   // --- Internal State ---
 
-  #boardMode: BoardModes;
-  #config: UserConfigOpts;
+  #currentNps = 0;
+  #getConfig: () => UserConfigOpts;
+  #getBoardMode: () => BoardModes;
   #currentFen = ''; // The FEN currently being processed by the engine
   #currentFenLegalMoves = 1;
   #pendingFen: string = ''; // A queued FEN waiting for the engine to stop
@@ -68,8 +70,8 @@ export class EngineStore {
 
   constructor(getConfig: () => UserConfigOpts, getBoardMode: () => BoardModes) {
     this.stop();
-    this.#config = getConfig();
-    this.#boardMode = getBoardMode();
+    this.#getConfig = getConfig;
+    this.#getBoardMode = getBoardMode;
 
     /*
      * EFFECTS
@@ -97,6 +99,9 @@ export class EngineStore {
    */
 
   // --- User Config ---
+  get #config() { return this.#getConfig(); }
+  get #boardMode() { return this.#getBoardMode(); }
+
   get analysisThinkingTime() {
     return this.#config.analysisTime;
   }
@@ -247,6 +252,8 @@ export class EngineStore {
     this.#pendingFen = '';
     this.analysisLines = [];
     this.#currentFen = '';
+    this.nps = 0;
+    this.#currentNps = 0;
 
     // Clear the map
     this.#lineBuffer.clear();
@@ -350,6 +357,8 @@ export class EngineStore {
     this.#currentFenLegalMoves = tempChess.moves().length || 1;
 
     this.analysisLines = []; // Clear old lines
+    this.nps = 0;
+    this.#currentNps = 0;
     this.#lineBuffer.clear(); // Clear buffer
     // Reset the throttle timer.
     this.#lastInfoUpdate = 0;
@@ -552,6 +561,11 @@ export class EngineStore {
         pvRaw = rawMoves.join(' ');
       }
 
+      const npsIdx = parts.indexOf('nps');
+      if (npsIdx > -1 && parts[npsIdx + 1]) {
+        this.#currentNps = parseInt(parts[npsIdx + 1], 10);
+      }
+
       // Update Analysis Line
       const newLine: AnalysisLine = {
         id: multipvIndex,
@@ -613,6 +627,7 @@ export class EngineStore {
       // ------------------------------------------------------------------
 
       this.analysisLines = lines;
+      this.nps = this.#currentNps;
 
       // Mark the time and clear the timeout handle
       this.#lastInfoUpdate = performance.now();

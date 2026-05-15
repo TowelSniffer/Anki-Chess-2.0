@@ -14,10 +14,10 @@ export class TimerStore {
 
   #internalRemaining;
   #lastStateUpdate = 0;
-  #config: UserConfigOpts;
+  #getConfig: () => UserConfigOpts;
 
   constructor(getConfig: () => UserConfigOpts) {
-    this.#config = getConfig();
+    this.#getConfig = getConfig;
     this.totalTime = this.#config.timer;
     this.remainingTime = $state(this.#config.timer);
     this.#internalRemaining = this.#config.timer;
@@ -26,6 +26,8 @@ export class TimerStore {
   /*
    * GETTERS
    */
+
+  get #config() { return this.#getConfig(); }
 
   // Calculates the percentage (0% to 100%) for the CSS gradient
   get percent() {

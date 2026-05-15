@@ -17,6 +17,8 @@ import { handleUserMove } from '$features/chessJs/puzzleLogic';
  * 2. Manual Click-to-Move handling (if needed)
  */
 export function handleSelect(key: Key, store: GameStore) {
+  if (store.getMoveDebounce || store.errorCount > store.config.handicap ) return;
+
   // type assertion as clicked square cannot be 'a0'
   const orig = store.lastSelected; // Logged synchronously in ChessgroundBoard.svelte
   const dest = key as Square; // This will be a delayed asynchronous result (Chessground)
@@ -86,6 +88,7 @@ export function handleSelect(key: Key, store: GameStore) {
 function handleMove(orig: Key, dest: Key, store: GameStore) {
   const from = orig as Square;
   const to = dest as Square;
+  store.setMoveDebounce();
 
   if (isPromotion(from, to, store.fen)) {
     store.setPendingPromotion(from, to);
@@ -217,6 +220,6 @@ export function getCgConfig(store: GameStore) {
       showDests: store.config.showDests,
       color: movableColor,
       dests: store.dests
-    }
+    },
   };
 }

@@ -37,7 +37,6 @@ export class GameStore {
   // --- Stores ---
   engineStore: EngineStore;
   timerStore: TimerStore;
-  config: UserConfigOpts;
 
   // --- Trackers ---
   lastSelected: Key | undefined = undefined;
@@ -63,10 +62,12 @@ export class GameStore {
   // --- Private State ---
   #flipBoolean: boolean; // Board orientation
   #storedScore: PuzzleScored | null = null;
-  #boardMode: BoardModes;
   #trackedPathKey: string | undefined;
   #moveMap = new Map<string, CustomPgnMove>();
   #moveDebounce = $state<ReturnType<typeof setTimeout> | null>(null);
+  #getPgn: () => string;
+  #getBoardMode: () => BoardModes;
+  #getConfig: () => UserConfigOpts;
 
   #orientBool: boolean; // Track randomOrientation boolean
   #storage: GameStorage;
@@ -79,10 +80,14 @@ export class GameStore {
     engineStore: EngineStore,
     timerStore: TimerStore,
   ) {
+    this.#getPgn = getPgn;
+    this.#getBoardMode = getBoardMode;
+    this.#getConfig = getConfig;
+
     this.#storage = new GameStorage(getPersist());
-    this.config = getConfig();
     this.engineStore = engineStore;
     this.timerStore = timerStore;
+
     let storedPath: PgnPath = [];
     if (this.config.storePgnPath) {
       const storedPathStr = this.#storage.get('chess_pgnPath');
@@ -96,21 +101,50 @@ export class GameStore {
     const pgnPath = storedPath ?? [];
     this.pgnPath = $state(pgnPath);
 
-    this.#boardMode = $state(getBoardMode());
     this.#flipBoolean = $state(false);
     this.#orientBool = $state(false);
-    this.setBoardMode(getBoardMode());
-    this.loadNewGame(getPgn());
 
-    let modeTrack = getBoardMode();
-    // $effect(() => {
-    //   $inspect(this.hasNext, this.isPuzzleComplete);
-    // });
+    let PGN = this.#getPgn();
+    //
+
+    this.setBoardMode(this.boardMode);
+    this.loadNewGame(PGN);
+    $effect(() => {
+      $inspect(this.viewOnly);
+    });
 
     $effect(() => {
-      if (this.boardMode === modeTrack) return;
-      modeTrack = this.boardMode;
-      this.setBoardMode(modeTrack);
+      const newPGN = this.#getPgn();
+      if (newPGN === PGN) return;
+      PGN = newPGN;
+      this.timerStore.reset();
+      this.#storage.clearGame();
+      this.#resetGameState();
+      this.rootGame = undefined;
+      this.#moveMap.clear();
+      untrack(() => {
+        this.loadNewGame(PGN);
+      });
+    });
+
+    let modeTrack = this.boardMode;
+    $effect(() => {
+      const boardMode = this.boardMode;
+      if (boardMode === modeTrack) return;
+      modeTrack = boardMode;
+      const PGN = this.#getPgn();
+
+      untrack(() => {
+        this.setBoardMode(this.boardMode);
+      });
+
+      const reloadCheck = /^Puzzle|Study$/.test(boardMode) && this.config.mirror;
+      if (reloadCheck) {
+        untrack(() => {
+          this.loadNewGame(PGN);
+        });
+      }
+      this.customAnimation({ preFen: this.fen, animate: false });
     });
 
     $effect(() => {
@@ -120,19 +154,31 @@ export class GameStore {
 
     // Set cg config
     $effect(() => {
+      if (!this.cg) return;
+
       const config = this.boardConfig;
-      this.cg?.set(config);
+      this.cg.set(config);
     });
 
-    // Handle boardMode and Pgn updates
-    $effect(() => {
-      const boardMode = this.boardMode;
-      const PGN = getPgn();
+    let prevViewOnly = this.viewOnly;
 
-      const reloadCheck = /^Puzzle|Study$/.test(boardMode) && this.config.mirror;
-      untrack(() => {
-        reloadCheck && this.loadNewGame(PGN);
-      });
+    // Handle deselect/viewOnly
+    $effect(() => {
+      const currentViewOnly = this.viewOnly;
+
+      // Only react to changed values
+      if (currentViewOnly === prevViewOnly) return;
+
+      prevViewOnly = currentViewOnly;
+      if (currentViewOnly) {
+        // If we are navigating to end of puzzle/checkmate, we force deselect
+        // any held piece to avoid piece being stuck to mouse.
+        this.cg?.cancelMove();
+      } else {
+        // If we are navigating OUT of checkmate, we force a redraw to
+        // ensure Chessground re-binds its drag event listeners.
+        this.cg?.redrawAll();
+      }
     });
 
     // Store Move History
@@ -162,9 +208,9 @@ export class GameStore {
    * GETTERS
    */
 
-  get boardMode() {
-    return this.#boardMode;
-  }
+  get config() { return this.#getConfig(); }
+
+  get boardMode() { return this.#getBoardMode(); }
 
   get aiDelayTime() {
     return this.config.animationTime + 100;
@@ -241,7 +287,11 @@ export class GameStore {
   }
 
   get viewOnly() {
-    return this.isPuzzleComplete || this.isGameOver || !!this.#moveDebounce;
+    return this.isPuzzleComplete || this.isGameOver;
+  }
+
+  get getMoveDebounce() {
+    return !!this.#moveDebounce
   }
 
   get playerColor(): CgColor {
@@ -355,9 +405,13 @@ export class GameStore {
 
   setBoardMode(boardMode: BoardModes) {
     this.timerStore.reset();
-    if (boardMode !== 'Viewer' || !this.config.storePgnPath) {
-      this.pgnPath = [];
+    if (boardMode !== 'Viewer') {
       this.#storage.clearGame();
+      this.#resetGameState();
+    }
+
+    if (boardMode === 'Viewer' && !this.config.storePgnPath) {
+      this.pgnPath = [];
     }
 
     if (/^(Puzzle|Study)$/.test(boardMode)) {
@@ -390,8 +444,10 @@ export class GameStore {
       }, 200);
       this.#storage.clearGame();
     }
+    requestAnimationFrame(() => {
+      this.cg?.redrawAll();
+    });
 
-    this.#boardMode = boardMode;
   }
 
   loadNewGame(rawPGN: string) {
@@ -411,6 +467,7 @@ export class GameStore {
 
       const storedMirror = this.#storage.get('chess_mirrorState');
       if (storedMirror && this.config.mirror) mirrorState = storedMirror as MirrorState;
+      if (!this.config.storePgnPath) this.pgnPath = [];
       // Clear storage after 'Viewer' load
       this.#storage.clearGame();
     } else if (/^(Puzzle|Study)$/.test(this.boardMode)) {
@@ -451,8 +508,10 @@ export class GameStore {
       this.rootGame.moves = [];
       this.#moveMap.clear();
     }
-
-    this.cg && this.customAnimation({ preFen: this.fen, animate: false });
+    if (this.cg) {
+      // Load position with no animations
+      this.customAnimation({ preFen: this.fen, animate: false });
+    }
   }
 
   customAnimation(animation: { preFen: string | null; animate: boolean; postFen?: string }): void {
@@ -494,6 +553,7 @@ export class GameStore {
 
   #resetGameState() {
     this.errorCount = 0;
+    this.pgnPath = [];
     this.lastSelected = undefined;
     this.pendingPromotion = null;
     this.#storedScore = null;
@@ -528,13 +588,13 @@ export class GameStore {
 
   next() {
     if (this.hasNext) {
-      this.pgnPath = navigateNextMove(this.pgnPath);
+      this.pgnPath = [...navigateNextMove(this.pgnPath)];
     }
   }
 
   prev() {
     if (this.pgnPath.length > 0) {
-      this.pgnPath = navigatePrevMove(this.pgnPath);
+      this.pgnPath = [...navigatePrevMove(this.pgnPath)];
     }
   }
 
@@ -550,46 +610,46 @@ export class GameStore {
   // --- CG Board ---
 
   loadCgInstance = (node: HTMLDivElement) => {
-  if (!node) return;
+    if (!node) return;
 
-  // Initialize Chessground
-  this.cg = Chessground(node, { fen: this.fen });
-  this.cg.set(this.boardConfig);
+    // Initialize Chessground
+    this.cg = Chessground(node, { fen: this.fen });
+    this.cg.set(this.boardConfig);
 
-  // Observing body to catch shifts from ANY sibling or parent
-  const root = document.body;
+    // Observing body to catch shifts from ANY sibling or parent
+    const root = document.body;
 
-  let redrawTimeout: ReturnType<typeof setTimeout>;
+    let redrawTimeout: ReturnType<typeof setTimeout>;
 
-  const observer = new ResizeObserver(() => {
-    // Clear previous attempt if a new shift is detected
-    clearTimeout(redrawTimeout);
+    const observer = new ResizeObserver(() => {
+      // Clear previous attempt if a new shift is detected
+      clearTimeout(redrawTimeout);
 
-    // Use rAF to wait for the paint, then a small debounce to let it "settle"
-    requestAnimationFrame(() => {
-      redrawTimeout = setTimeout(() => {
-        this.cg?.redrawAll();
-        if (import.meta.env.DEV) console.log("Board coordinates recalibrated");
-      }, 100);
+      // Use rAF to wait for the paint, then a small debounce to let it "settle"
+      requestAnimationFrame(() => {
+        redrawTimeout = setTimeout(() => {
+          this.cg?.redrawAll();
+          if (import.meta.env.DEV) console.log("Board coordinates recalibrated");
+        }, 100);
+      });
     });
-  });
 
-  observer.observe(root);
+    observer.observe(root);
 
-  const shouldPlayAiMove = this.boardMode === 'Puzzle' && this.config.flipBoard;
-  if (shouldPlayAiMove) {
-    this.setTrackedTimeout(() => {
-      playAiMove(this, 0);
-    }, 200);
-  }
+    const shouldPlayAiMove = this.boardMode === 'Puzzle' && this.config.flipBoard;
+    if (shouldPlayAiMove) {
+      this.setTrackedTimeout(() => {
+        playAiMove(this, 0);
+      }, 200);
+    }
 
-  return {
-    destroy: () => {
-      observer.disconnect(); // Cleanup to prevent memory leaks
-      this.cg?.destroy();
-    },
+    return {
+      destroy: () => {
+        observer.disconnect(); // Cleanup to prevent memory leaks
+        this.cg?.destroy();
+      },
+    };
   };
-};
 
   // Prevent rapid move attempts
   setMoveDebounce(time = this.config.animationTime) {

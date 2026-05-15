@@ -5,3 +5,6 @@ Join the [Discord Community](https://discord.gg/YPj4Pz2Qzw) if you want to find 
 
 ### Support the Project
 If you wish to donate, you can [give a tip on Ko-fi!](https://ko-fi.com/towelsniffer1437) I promise to spend it all in one place.
+
+### Report Issues
+Make a bug report on the [GitHub](https://github.com/TowelSniffer/Anki-Chess-2.0), or post a message in the [Discord Community](https://discord.gg/YPj4Pz2Qzw).

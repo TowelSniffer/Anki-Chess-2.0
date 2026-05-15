@@ -63,7 +63,7 @@
 
   // Puzzle state
   const puzzleInProgress = $derived(isPuzzleMode && !gameStore.isPuzzleComplete);
-  const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && gameStore.puzzleScore);
+  const puzzleCompleteAndScored = $derived(gameStore.isPuzzleComplete && !!gameStore.puzzleScore);
   const isRandomPuzzle = $derived(config.randomOrientation && isPuzzleMode);
 
   // AI mode and checkmate/draw
@@ -105,7 +105,7 @@
 
   const barDividerColor = $derived.by(() => {
     const color = !isViewerMode
-      ? 'divider'
+      ? gameStore.isPuzzleComplete ? boardBorderColor : 'grey'
       : gameStore.puzzleScore
         ? gameStore.puzzleScore
         : 'divider';
@@ -189,9 +189,9 @@
 
   // --- REACTIVE LOGIC ---
 
-  // $effect(() => {
-  //   $inspect(flashState)
-  // });
+  $effect(() => {
+    $inspect(flashState)
+  });
 
   // Sync the Spring to derived visualDivider
   let shouldHardSpring = false;
@@ -335,7 +335,7 @@
       use:gameStore.loadCgInstance
       onpointerdown={trackSlectedPiece}
       onwheel={isViewerMode ? handleWheel : null}
-      class:view-only={gameStore.isPuzzleComplete || gameStore.isGameOver}
+      class:view-only={gameStore.viewOnly}
     ></div>
   </div>
 </div>
@@ -369,7 +369,7 @@
     height: var(--board-size);
     border-radius: var(--border-radius-global);
     border: $board-border-width solid var(--border-color, #c0c0c0);
-    box-shadow: $shadow-grey;
+    @include border-shadow(var(--bar-divider-color));
     box-sizing: border-box;
     background-color: var(--border-color, #c0c0c0);
     transition: border-color 0.3s ease;
@@ -470,7 +470,7 @@
     cursor: pointer;
     position: relative; /* Required for z-index to work reliably */
     z-index: 7;
-    @include border-shadow;
+    @include border-shadow(black);
     border-radius: 4px;
 
     &.view-only {

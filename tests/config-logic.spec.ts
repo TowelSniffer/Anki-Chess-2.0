@@ -81,8 +81,7 @@ for (const storePath of booleanStates) {
       const storedPath = await page.evaluate(() => {
         const store = (window as any).gameStore;
         store.cg.move('e2', 'e4');
-        store.setBoardMode('Viewer');
-
+        (window as any).updateChessMode('Viewer');
         return store.currentPathKey;
       });
 

@@ -1,4 +1,5 @@
 import frontTemplate from '$anki/front.html?raw';
+import backTemplate from '$anki/back.html?raw';
 import cssTemplate from '$anki/style.css?raw';
 import defaultConfig from '$anki/default_config.json';
 import pkg from '../../package.json';
@@ -39,11 +40,9 @@ export async function updateAnkiChessTemplate(
 ) {
   // Construct the new Front Template with inlined Config and Cache-busted Script
   const newFront = generateFrontHtml(userConfig);
-  const newBack = `{{FrontSide}}\n<script>document.getElementById('chessRs-root').setAttribute('data-boardMode', 'Viewer');</script>`;
 
   // Construct the new CSS with Cache-busted Import
   const currentVersion = pkg.version;
-  const newCss = cssTemplate.replaceAll('__VERSION__', currentVersion);
 
   try {
     // Step A: Fetch current model to preserve the Back template
@@ -72,10 +71,10 @@ export async function updateAnkiChessTemplate(
             templates: {
               [cardName]: {
                 Front: newFront,
-                Back: newBack,
+                Back: backTemplate,
               },
             },
-            css: newCss,
+            css: cssTemplate,
           },
         },
       }),

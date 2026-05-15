@@ -1,7 +1,7 @@
 {
   "name": "ankichess",
   "private": true,
-  "version": "1.2.23",
+  "version": "1.3.00",
   "type": "module",
   "scripts": {
     "test:e2e": "docker run --rm --network='host' -u $(id -u):$(id -g) -v $(pwd):/work/ -w /work/ mcr.microsoft.com/playwright:v1.58.2-jammy npx playwright test",
@@ -10,8 +10,8 @@
     "prebuild": "tsx scripts/setup-stockfish.ts && tsx scripts/build-pieces.ts",
     "dev": "vite",
     "build": "vite build",
-    "build:anki-media": "vite build --config vite.config.anki.ts",
-    "build:anki": "tsx scripts/setup-stockfish.ts && npm run build:anki-media && uv run scripts/build_apkg.py",
+    "build:anki-media": "tsx scripts/setup-stockfish.ts && vite build --config vite.config.anki.ts",
+    "build:anki": "npm run build:anki-media && uv run scripts/build_apkg.py",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json && npm run check:deps",
     "check:error": "svelte-check --threshold error --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",

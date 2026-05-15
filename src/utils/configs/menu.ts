@@ -56,7 +56,7 @@ export function getMenuData(
       ],
     },
     {
-      label: 'Board Settings',
+      label: 'Board',
       icon: IconBackgroundGridSmall,
       children: [
         {
@@ -87,7 +87,7 @@ export function getMenuData(
       ],
     },
     {
-      label: 'Puzzle Settings',
+      label: 'Puzzle',
       icon: IconChessKnight,
       children: [
         {
@@ -145,6 +145,7 @@ export function getMenuData(
           max: 60,
           value: userConfig.opts.increment / 1000,
           onChange: (val: number) => (userConfig.opts.increment = val * 1000),
+          indent: true,
         },
       ],
     },
@@ -186,7 +187,7 @@ export function getMenuData(
       ],
     },
     {
-      label: 'Anki Template',
+      label: 'Template',
       icon: IconKidStar,
       children: [
         {
@@ -247,6 +248,7 @@ export function getMenuData(
             tooltip: 'Flip card when timer runs out',
             checked: userConfig.opts.timerAdvance,
             onToggle: () => setConfigBoolean('timerAdvance'),
+            indent: true,
           },
         {
           type: 'toggle',
@@ -279,7 +281,7 @@ export function getMenuData(
         },
         {
           type: 'select',
-          label: 'Board Theme',
+          label: 'Board',
           value: userConfig.opts.boardTheme,
           onChange: (val: string) => (userConfig.opts.boardTheme = val),
           // Convert the Record into an array of option objects
@@ -292,7 +294,7 @@ export function getMenuData(
         },
         {
           type: 'select',
-          label: 'Piece Theme',
+          label: 'Pieces',
           value: userConfig.opts.pieceTheme,
           onChange: (val: string) => (userConfig.opts.pieceTheme = val),
           options: Object.keys(pieceSprites).map((theme) => ({
@@ -327,6 +329,14 @@ export function getMenuData(
               },
               {
                 type: 'action',
+                label: 'Test TemplateConfig UI',
+                icon: IconDevBoard,
+                action: () => {
+                  window.dispatchEvent(new CustomEvent('dev:toggleTemplateConfig'));
+                },
+              },
+              {
+                type: 'action',
                 icon: IconDelete,
                 label: 'Clear sessionStorage',
                 action: () => sessionStorage.clear(),
@@ -346,7 +356,18 @@ export function getMenuData(
                 label: 'Board Mode',
                 options: ['Viewer', 'Puzzle', 'AI', 'Study'],
                 value: gameStore.boardMode,
-                onChange: (val: any) => gameStore.setBoardMode(val),
+                onChange: (val: any) => {
+                  // Ping the Svelte App directly (Desktop / iOS / Dev)
+                  if ((window as any).updateChessMode) {
+                    (window as any).updateChessMode(val);
+                  }
+
+                  // Update the DOM attribute to keep everything perfectly in sync
+                  const rootEl = document.getElementById('chessRs-root');
+                  if (rootEl) {
+                    rootEl.setAttribute('data-boardMode', val);
+                  }
+                },
               },
               {
                 type: 'action',
@@ -354,7 +375,9 @@ export function getMenuData(
                 label: 'Paste PGN',
                 action: () => {
                   const newPgn = prompt('Paste new PGN string:');
-                  if (newPgn) gameStore.loadNewGame(newPgn);
+                  if (newPgn && (window as any).updateRawPgn) {
+                    (window as any).updateRawPgn(newPgn);
+                  }
                 },
               },
             ],

@@ -21,6 +21,7 @@
     onChange?: (val: any) => void;
     // Select (CustomSelector)
     options?: any[];
+    indent?: boolean;
   };
 </script>
 
@@ -135,7 +136,8 @@
   }
 
   function handleAction(item: MenuItem) {
-    if (item.disabled || item.children) return;
+    // If children exist AND the array isn't empty, block the action
+    if (item.disabled || (item.children && item.children.length > 0)) return;
     if (item.action) item.action();
     close();
   }
@@ -218,8 +220,9 @@
   <button
     class="trigger"
     class:ghost={variant === 'ghost'}
-    onclick={toggle}
     class:isActive={isOpen}
+    class:has-label={!!label}
+    onclick={toggle}
     aria-expanded={isOpen}
     bind:this={triggerRef}
   >
@@ -360,12 +363,13 @@
           >
             {@render itemLabel(item)}
 
-            {#if item.children}
+            <!-- Only show the arrow if there are actually items inside -->
+            {#if item.children && item.children.length > 0}
               <IconArrowRight />
             {/if}
           </div>
 
-          {#if item.children}
+          {#if item.children && item.children.length > 0}
             <div class="submenu">{@render menuList(item.children)}</div>
           {/if}
         </li>
@@ -393,12 +397,22 @@
     background-color: var(--surface-primary, #fff);
     color: var(--text-primary, #333);
     @include subtle-shadow;
+
+    /* Default fixed size for icon-only buttons */
     width: $button-size-calc;
     height: $button-size-calc;
     @include x-margin($button-margin-calc);
     cursor: pointer;
     box-sizing: border-box;
     transition: background 0.2s;
+
+    /* Let it expand into a pill/rectangle if there is text */
+    &.has-label {
+      width: auto;
+      min-width: $button-size-calc;
+      padding: 0 0.8rem;
+      gap: 0.4rem; /* Spacing if it has both icon AND label */
+    }
 
     &:hover:not(:disabled, :active, .isActive) {
       background-color: var(--interactive-button-hover, #f0f0f0);
@@ -423,6 +437,13 @@
       @include flex-center;
     }
 
+    /* Keep the text crisp and on one line */
+    .trigger-label {
+      font-size: 0.95rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
     &.ghost {
       color: #333;
       background-color: transparent;
@@ -431,6 +452,11 @@
       height: 1rem;
       box-shadow: none;
       opacity: 0.3;
+
+      /* Override fixed width for text-based ghost buttons */
+      &.has-label {
+        width: auto;
+      }
 
       &:hover:not(:disabled) {
         opacity: 1;
