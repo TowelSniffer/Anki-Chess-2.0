@@ -27,9 +27,10 @@
     title?: string;
     sections: SettingsSection[];
     onClose: () => void;
+    isStandalone?: boolean;
   };
 
-  let { isOpen, title = 'Info', sections, onClose }: Props = $props();
+  let { isOpen, title = 'Info', sections, onClose, isStandalone = false }: Props = $props();
 
   const getSections = () => sections;
   let activeTabId = $state(getSections()[0]?.id);
@@ -54,13 +55,15 @@
 <svelte:window onkeydown={isOpen ? handleKeydown : null} />
 
 {#if isOpen}
-  <div class="modal-backdrop" use:portal>
+  <div class="modal-backdrop" class:standalone={isStandalone} use:portal>
     <div class="modal-container" use:clickOutside={onClose} role="dialog" aria-modal="true">
       <div class="modal-header">
         <h2>{title}</h2>
-        <button class="close-btn" onclick={onClose} aria-label="Close">
-          <IconClose />
-        </button>
+        {#if !isStandalone}
+          <button class="close-btn" onclick={onClose} aria-label="Close">
+            <IconClose />
+          </button>
+        {/if}
       </div>
 
       <div class="modal-body">
@@ -181,6 +184,20 @@
     justify-content: center;
     align-items: center;
     z-index: 99999;
+
+    /* Override the layout in standalone mode */
+    &.standalone {
+      background: transparent;
+
+      .modal-container {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
+    }
   }
 
   .modal-container {

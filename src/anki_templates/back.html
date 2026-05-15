@@ -1,0 +1,13 @@
+<div id="chessRs-isAnswer" style="display: none;"></div>
+
+{{FrontSide}}
+
+<script>
+  (function setViewer () {
+    // Failsafe: If Svelte is somehow already fully mounted
+    // (e.g., highly aggressive retained DOMs), ping it to update.
+    if (window.updateChessMode) {
+        window.updateChessMode("Viewer");
+    }
+  })();
+</script>
