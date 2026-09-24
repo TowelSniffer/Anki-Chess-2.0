@@ -17,6 +17,14 @@ interface ParsedObject {
 export const isFen = (str: string | undefined | null) =>
   /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(str || '');
 
+// Strip embedded commands ([%cal], [%eval], [%anno]...) leaving only readable text
+export const cleanComment = (comment: string | null | undefined) =>
+  (comment ?? '').replace(/\[%[^\]]*\]/g, '').trim();
+
+// Quick check on the raw PGN so the comment box is only shown when there is text to show
+export const hasPgnComments = (rawPgn: string | undefined | null) =>
+  (rawPgn?.match(/\{[^}]*\}/g) ?? []).some((c) => cleanComment(c.slice(1, -1)).length > 0);
+
 export function mirrorPGN(parsedPGN: CustomPgnGame, mirrorState: MirrorState): void {
   let pgnBaseFen = parsedPGN.tags?.FEN ?? DEFAULT_POSITION;
   const isValidMirrorFen = !checkCastleRights(pgnBaseFen);

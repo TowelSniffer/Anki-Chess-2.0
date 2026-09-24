@@ -3,6 +3,7 @@
   import ButtonsContainer from '$components/ButtonsContainer.svelte';
   import PromotePopup from '$components/PromotePopup.svelte';
   import PgnViewer from '$components/PgnViewer.svelte';
+  import PuzzleComments from '$components/PuzzleComments.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components/EngineAnalysis.svelte';
   import HelpWrapper from '$components/HelpWrapper.svelte';
@@ -10,6 +11,7 @@
   import SettingsMenu from '$components/SettingsMenu.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
+  import { hasPgnComments } from '$features/pgn/pgnParsing';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
@@ -25,6 +27,9 @@
 
   let themeColors = $derived(BOARD_THEMES[userConfig.opts.boardTheme] || BOARD_THEMES['wood']);
   let showDevConfig = $state(false);
+  let showFrontComments = $derived(
+    boardMode !== 'Viewer' && userConfig.opts.frontComments && hasPgnComments(rawPgn),
+  );
 
   if (import.meta.env.DEV) {
     window.addEventListener('dev:toggleTemplateConfig', () => {
@@ -82,12 +87,15 @@
 <GameProvider {rawPgn} {boardMode}>
   <ErrorPopup bind:isHelpOpen />
   <div id="container" style="--board-light: {themeColors.light}; --board-dark: {themeColors.dark};">
-    {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
+    {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText) || showFrontComments}
       <div id="commentBox">
         {#if userText}
           <div id="userTextContainer">
             <div id="textField">{@html userText}</div>
           </div>
+        {/if}
+        {#if showFrontComments}
+          <PuzzleComments />
         {/if}
         {#if boardMode === 'Viewer'}
           <div id="sticky-container">
