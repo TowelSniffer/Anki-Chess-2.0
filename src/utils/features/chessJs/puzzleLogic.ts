@@ -40,6 +40,12 @@ function findMatchingPath(store: GameStore, playedMove: Move): PgnPath | null {
   return null;
 }
 
+// Any checkmate solves a puzzle whose answer is checkmate (#115)
+function isAlternativeMate(store: GameStore, playedMove: Move): boolean {
+  const expected = store.getMoveByPath(navigateNextMove(store.pgnPath));
+  return !!expected?.isCheckmate && store.newChess(playedMove.after).isCheckmate();
+}
+
 // --- Main Handler ---
 
 export async function handleUserMove(
@@ -95,6 +101,10 @@ export async function handleUserMove(
       // B) Move does not exist in PGN
       if (store.boardMode === 'Viewer') {
         store.addMove(move); // Add to PGN
+      } else if (isAlternativeMate(store, move)) {
+        // C) Another checkmate than the PGN's: correct, and it ends the puzzle
+        store.addMove(move);
+        checkPuzzleComplete(store);
       } else {
         // Wrong move in Puzzle mode
         handleWrongMove(store, move);

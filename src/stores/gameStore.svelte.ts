@@ -508,6 +508,15 @@ export class GameStore {
       this.rootGame.moves = [];
       this.#moveMap.clear();
     }
+
+    // The front's path can end on a move the PGN doesn't have (an alternative checkmate): go
+    // back to the PGN move that move was played instead of
+    let path = this.pgnPath;
+    while (path.length && !this.getMoveByPath(path)) {
+      path = path.at(-3) === 'v' ? path.slice(0, -3) : navigatePrevMove(path);
+    }
+    if (path !== this.pgnPath) this.pgnPath = path;
+
     if (this.cg) {
       // Load position with no animations
       this.customAnimation({ preFen: this.fen, animate: false });
