@@ -15,6 +15,16 @@ img {
   color: white;
 }
 
+/*
+ * AnkiDroid 2.25.1+ scales cards with CSS zoom (system font size, Card zoom). The zoom pushes the
+ * viewport-sized board off screen and misplaces Chessground's pieces; the board fits the screen
+ * anyway. Scoped to the card so other note types keep their zoom on the shared reviewer page.
+ */
+:root:has(#chessRs-root),
+:root:has(#chessRs-root) body {
+  zoom: 1 !important;
+}
+
 body {
   background: var(--background-color);
   margin: 0;
