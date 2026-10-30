@@ -131,10 +131,10 @@
     z-index: 100;
     border-radius: var(--border-radius-global) var(--border-radius-global) 0 0;
     &.top {
-      top: 0;
+      top: $player-bar;
     }
     &.bottom {
-      bottom: 0;
+      bottom: $player-bar;
     }
   }
 

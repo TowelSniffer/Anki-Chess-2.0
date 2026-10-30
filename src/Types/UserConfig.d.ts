@@ -5,6 +5,8 @@ export interface UserConfigOpts {
   disableArrows: boolean;
   singleClickMove: boolean;
   animationTime: number;
+  boardSize: number;
+  playerBars: boolean;
   handicap: number;
   autoAdvance: boolean;
   timerAdvance: boolean;

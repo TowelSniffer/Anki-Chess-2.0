@@ -8,6 +8,7 @@ import {
   mirrorPgnTree,
   type MirrorState,
 } from '$features/pgn/mirror';
+import { swapPlayers } from '$features/pgn/players';
 
 interface ParsedObject {
   parsedPgn: CustomPgnGame;
@@ -26,6 +27,10 @@ export function mirrorPGN(parsedPGN: CustomPgnGame, mirrorState: MirrorState): v
     parsedPGN.tags ??= {} as Tags;
     parsedPGN.tags.FEN = mirrorFen(pgnBaseFen, mirrorState);
     mirrorPgnTree(parsedPGN.moves, mirrorState);
+    // Inverted colours: the players change sides too
+    if (mirrorState === 'invert' || mirrorState === 'invert_mirror') {
+      swapPlayers(parsedPGN.tags as Record<string, unknown>);
+    }
   }
 }
 
