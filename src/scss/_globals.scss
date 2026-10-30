@@ -24,10 +24,12 @@ $palette-perfect: #df4096;
 /* sizing */
 $board-border-width: 8px;
 $board-border: $board-border-width solid grey;
+/* --board-max comes from the boardSize option; the viewport still caps it (phones) */
+$board-max: var(--board-max, 600px);
 $board-size-calc: min(
   max(calc(100dvh - calc($board-border-width * 2)), 300px),
   max(calc(100dvw - calc($board-border-width * 2)), 200px),
-  600px
+  $board-max
 );
 $board-square-calc: calc($board-size-calc * 0.125);
 

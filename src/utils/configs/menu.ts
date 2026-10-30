@@ -84,6 +84,17 @@ export function getMenuData(
           value: userConfig.opts.animationTime,
           onChange: (val: number) => (userConfig.opts.animationTime = val),
         },
+        {
+          type: 'number',
+          label: 'Board size (px)',
+          tooltip:
+            'Maximum board size. The board always stays square and never grows past the screen, so phones in portrait are not affected',
+          min: 400,
+          max: 1200,
+          step: 50,
+          value: userConfig.opts.boardSize,
+          onChange: (val: number) => (userConfig.opts.boardSize = val),
+        },
       ],
     },
     {

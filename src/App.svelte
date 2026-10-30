@@ -60,6 +60,11 @@
       document.body.classList.remove('light-theme');
     }
   });
+
+  $effect(() => {
+    // Maximum board size; the viewport still limits it on small screens
+    document.documentElement.style.setProperty('--board-max', `${userConfig.opts.boardSize}px`);
+  });
 </script>
 
 {#if import.meta.env.DEV}
@@ -113,7 +118,8 @@
 </GameProvider>
 
 <style lang="scss">
-  $max-width: min(100vw, 1000px);
+  // Board plus room for the comment box (1000px with the default 600px board)
+  $max-width: min(100vw, calc(var(--board-max, 600px) + 400px));
   $comment-box-width-calc: calc($max-width - var(--board-size) - calc($max-width * 0.03));
 
   #container {
@@ -186,7 +192,7 @@
       position: relative;
       margin: 0 auto;
       grid-area: two;
-      max-width: 600px;
+      max-width: var(--board-max, 600px);
     }
   }
 
