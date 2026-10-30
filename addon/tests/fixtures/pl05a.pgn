@@ -1,0 +1,519 @@
+[Event "Rated rapid game"]
+[Site "https://lichess.org/8LLIVqs7"]
+[Date "2024.09.30"]
+[White "NN"]
+[Black "Alexandre"]
+[Result "*"]
+[WhiteElo "1379"]
+[BlackElo "1268"]
+[Variant "From Position"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "r2qk2r/pp2nppp/2n1p3/1B1pPb2/5P2/2P5/PP4PP/RNBQ1RK1 b kq - 2 10"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (peça sem defesa - aluno)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/kZ9o8FTD"]
+[FEN "r2qk2r/pp2nppp/2n1p3/1B1pPb2/5P2/2P5/PP4PP/RNBQ1RK1 b kq - 2 10"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+{ As brancas acabaram de rocar, qual o melhor lance para as pretas? }
+10... Qb6+! { Aproveitando o alinhamento de intersecção. } (10... O-O { Assim seguiu a partida... }) (10... Bg6 11. Be3 f5 12. Qe2 O-O) 11. Kh1 Qxb5 *
+
+
+[Event "#PL05A - O jeito certo para achar tática em toda partida: Exercício (rei com pouca defesa)"]
+[Date "2026.09.20"]
+[Result "*"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (rei com pouca defesa)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/9joqOtyZ"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[FEN "7Q/4kppp/p1b1p3/1p6/2p5/5qPK/P2B3P/1R5R b - - 1 22"]
+[SetUp "1"]
+[UTCDate "2026.09.20"]
+[UTCTime "15:41:25"]
+[ChapterMode "gamebook"]
+
+22... Qh5# *
+
+
+[Event "It (cat.2)"]
+[Site "Belgrade (Yugoslavia)"]
+[Date "2001.??.??"]
+[White "Milan Andrijevic"]
+[Black "Boskovic Drasko"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "3r1rk1/2qnbp1p/p5p1/1p3R2/3BB3/P1P4Q/1P4PP/4R2K b - - 0 24"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (rei com pouca defesa)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/NetioIAN"]
+[FEN "3r1rk1/2qnbp1p/p5p1/1p3R2/3BB3/P1P4Q/1P4PP/4R2K b - - 0 24"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+24... Bc5 (24... gxf5 25. Bxf5 (25. Qg3+ Bg5 26. Qxg5#) 25... h5 (25... Bh4 26. Qg4+) 26. Qxh5) 25. Qxh7+ Kxh7 26. Rh5+ (26. h4) 26... Kg8 27. Rh8# 1-0
+
+
+[Event "Swinemunde"]
+[Date "1931.??.??"]
+[White "Richter, Kurt"]
+[Black "Moritz, Bruno"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "r4rk1/p1qbbpp1/1p2pn1B/nP1pN3/7Q/2PBPN2/P4PPP/R4RK1 b - - 0 16"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (peça sem defesa)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/2tQpBuNP"]
+[FEN "r4rk1/p1qbbpp1/1p2pn1B/nP1pN3/7Q/2PBPN2/P4PPP/R4RK1 b - - 0 16"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+16... gxh6 17. Qg3+ (17. Ng6) (17. Ng4 Kh8) 17... Kh8 (17... Ng4) 18. Nxf7+ 1-0
+
+
+[Event "Chicago"]
+[Date "1926.??.??"]
+[White "Marshall, Frank James"]
+[Black "Kupchik, Abraham"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "4r2k/p3rbpn/1ppq1p1p/3p1P2/3P1N1P/P2BP1R1/1P3QP1/4R1K1 b - - 0 23"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (peça sem defesa)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/ZYgNtPjl"]
+[FEN "4r2k/p3rbpn/1ppq1p1p/3p1P2/3P1N1P/P2BP1R1/1P3QP1/4R1K1 b - - 0 23"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+23... c5 24. Rxg7 Kxg7 25. Qg3+ (25. Nh5+) (25. Ng6) 25... Kh8 26. Ng6+ Kg7 27. Qxd6 1-0
+
+
+[Event "#V21 - Peça sem defesa/abandonada: Taube, A. - Henning"]
+[Date "????.??.??"]
+[White "Taube, A."]
+[Black "Henning"]
+[Result "0-1"]
+[Variant "From Position"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "r2q1rk1/pp3ppp/2p2b2/8/B2pPPb1/7P/PPP1N1P1/R2Q1RK1 b - - 0 1"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (peça sem defesa)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/Hx6Og5K3"]
+[FEN "r2q1rk1/pp3ppp/2p2b2/8/B2pPPb1/7P/PPP1N1P1/R2Q1RK1 b - - 0 1"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+1... d3! (1... Bxe2 2. Qxe2 d3 3. Qxd3 (3. cxd3 Qd4+)) 2. cxd3 (2. Qxd3 Qxd3 3. cxd3 Bxe2) (2. hxg4 dxe2 3. Qxe2 (3. Qxd8 exf1=R+ 4. Rxf1 Raxd8) 3... Qd4+) 2... Bxe2 3. Qxe2 Qd4+ 0-1
+
+
+[Event "#PL05A - O jeito certo para achar tática em toda partida: Exercício (adicionando um ataque)"]
+[Date "2026.09.20"]
+[Result "*"]
+[Variant "Standard"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (adicionando um ataque)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/U1jhX7Mv"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[FEN "8/5pk1/2Q2Np1/7p/2p5/2P4P/4q1PK/4n3 b - - 0 1"]
+[SetUp "1"]
+[UTCDate "2026.09.20"]
+[UTCTime "15:41:25"]
+[ChapterMode "gamebook"]
+
+{ [%anno "basso01", basso01] a. Adicionando um novo ataque ao alvo que pretendemos capturar; ou
+b. Subtraindo uma defesa desse alvo. }
+1... Qe5+ 2. Kg1 Qxf6 (2... Qxc3 3. Ne8+ Kh7 4. Qd7) 3. Qxc4 Qe6 *
+
+
+[Event "Ch Yugoslavia (team)"]
+[Site "Vrnjacka Banja (Yugoslavia)"]
+[Date "1999.??.??"]
+[White "Nenad Ristic"]
+[Black "Bozidar Ivanovic"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "rq3k2/3bbpp1/p1p1pn1r/3p2Qp/3BP2P/2N2B2/PPP2PP1/2KRR3 b - - 0 19"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (removendo o defensor)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/2chqTbFJ"]
+[FEN "rq3k2/3bbpp1/p1p1pn1r/3p2Qp/3BP2P/2N2B2/PPP2PP1/2KRR3 b - - 0 19"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+19... Ne8 { Jogam as brancas } 20. Bxg7+! Nxg7 21. Qxh6 1-0
+
+
+[Event "It"]
+[Site "Reggio Emilia (Italy)"]
+[Date "1986.??.??"]
+[White "Ljubomir Ljubojevic"]
+[Black "Jan Smejkal"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "8/6k1/1qbRnpp1/rN2p2p/2P1P2P/2Q5/5PP1/5BK1 b - - 0 48"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (peça sobrecarregada)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/QtPSc5GK"]
+[FEN "8/6k1/1qbRnpp1/rN2p2p/2P1P2P/2Q5/5PP1/5BK1 b - - 0 48"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+48... Nc5 49. Rxc6! Qxc6 50. Qxa5 1-0
+
+
+[Event "KNSB Cup"]
+[Site "Amersfoort NED"]
+[Date "2010.05.13"]
+[White "Friso Nijboer"]
+[Black "Rudy van Wessel"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "5r2/R3b2p/2p1k1p1/1p1p3P/5nP1/2P1B3/1PB2P2/5K2 b - - 0 36"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (bloqueando o defensor)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/ASf8NOIS"]
+[FEN "5r2/R3b2p/2p1k1p1/1p1p3P/5nP1/2P1B3/1PB2P2/5K2 b - - 0 36"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+36... gxh5 { Jogam as brancas } 37. Bf5+ Kf6 (37... Rxf5 38. gxf5+ Kxf5 (38... Kf6 39. Bxf4) 39. Rxe7) 38. Bxf4 hxg4 39. Bxg4 { 1-0 Black resigns. } 1-0
+
+
+[Event "Ch Paris (open)"]
+[Site "Paris (France)"]
+[Date "2004.07.11"]
+[White "Bojan Vuckovic"]
+[Black "Andrei Shchekachev"]
+[Result "1/2-1/2"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "8/6k1/p2r1p1P/1p1p4/3Rb3/P1P1N1P1/1P2K3/8 b - - 0 56"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (ganhando casas)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/etwN9soc"]
+[FEN "8/6k1/p2r1p1P/1p1p4/3Rb3/P1P1N1P1/1P2K3/8 b - - 0 56"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+56... Kxh6 { Jogam as brancas } (56... Kh7) 57. Rxe4! (57. Kf2 Kg5 58. Nf1 f5 59. a4 bxa4 60. Rxa4 Rb6 61. Rb4 Rxb4 62. cxb4 d4 63. Nd2 Bd5 64. Nf1 f4 65. Nd2 Kg4 66. gxf4 Kxf4 67. Ke2 Bc6 68. Kd3 Ke5 69. Nc4+ Kd5 70. Nb6+ Ke5 { 1/2-1/2 The game is a draw. }) 57... dxe4 58. Nf5+ 1/2-1/2
+
+
+[Event "#PL05A - O jeito certo para achar tática em toda partida: Exercício (peão passado)"]
+[Date "2026.09.20"]
+[Result "*"]
+[Variant "Standard"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (peão passado)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/SJh3zsIz"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[FEN "5b2/8/6Pp/2kp2B1/1p2p3/1P6/P3K3/8 w - - 0 1"]
+[SetUp "1"]
+[UTCDate "2026.09.20"]
+[UTCTime "15:41:25"]
+[ChapterMode "gamebook"]
+
+1. Be7+ Bxe7 2. g7 *
+
+
+[Event "Memorial R.Nezhmetdinov"]
+[Site "Kazan (Russia)"]
+[Date "2006.06.04"]
+[White "Evgeny Gleizerov"]
+[Black "Rodchenkov Sergey D"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "4k3/pQ2q2p/P1B3p1/6P1/2p2r1P/3n4/8/5R1K b - - 0 53"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (peça sem defesa)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/dNgyOsy6"]
+[FEN "4k3/pQ2q2p/P1B3p1/6P1/2p2r1P/3n4/8/5R1K b - - 0 53"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+53... Kf8 { Jogam as brancas } 54. Rxf4+ (54. Qb8+ Kg7 55. Rxf4 Qe1+) 54... Nxf4 55. Qb8+ Kg7 56. Qxf4 Qe1+ 57. Kh2 Qe2+ 58. Bg2 { 1-0 Black resigns. } 1-0
+
+
+[Event "It (cat.7)"]
+[Site "Budapest (Hungary)"]
+[Date "2001.??.??"]
+[White "Satea Husari"]
+[Black "Mohamad Naser Al Sayed"]
+[Result "1-0"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "6rk/1p2Q1bp/3pb3/p3p3/P1Pp3N/1n1q2BP/6RK/4R3 b - - 0 33"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (rei com pouca defesa)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/iVklivEb"]
+[FEN "6rk/1p2Q1bp/3pb3/p3p3/P1Pp3N/1n1q2BP/6RK/4R3 b - - 0 33"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+33... Qxc4 { Jogam as brancas } 34. Ng6+ { 1-0 Black resigns. } 34... hxg6 35. Qh4+ Bh6 36. Qxh6# { 1-0 White wins. } 1-0
+
+
+[Event "7th Univ Cent Open 2013"]
+[Site "Bogota COL"]
+[Date "2013.10.11"]
+[White "Oscar Gerardo Sanchez Enriquez"]
+[Black "Isan Reynaldo Ortiz Suarez"]
+[Result "0-1"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "2r3k1/6bp/3pr1p1/2q5/1R3P2/5PP1/7K/3QBR2 w - - 0 34"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exercício (imobilizando o defensor)"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/lZ8fB4Ai"]
+[FEN "2r3k1/6bp/3pr1p1/2q5/1R3P2/5PP1/7K/3QBR2 w - - 0 34"]
+[SetUp "1"]
+[ChapterMode "gamebook"]
+
+34. Re4 { Jogam as pretas } 34... Qh5+ 35. Kg1 Rxe4 { 0-1 White resigns. } 36. g4 (36. fxe4 Qxd1) 36... Qc5+ (36... Bd4+ 37. Bf2 Bxf2+ 38. Rxf2) 37. Bf2 Rd4 38. Bxd4 Bxd4+ { 0-1 Black wins. } 0-1
+
+
+[Event "Rated rapid game"]
+[Date "2024.04.26"]
+[White "Tr. André Basso"]
+[Black "NN"]
+[Result "1-0"]
+[BlackElo "2141"]
+[TimeControl "600+5"]
+[Variant "Standard"]
+[Termination "Normal"]
+[Annotator "https://lichess.org/@/basso01"]
+[ECO "C54"]
+[Opening "Italian Game: Classical Variation, Giuoco Pianissimo"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "André - NN"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/MRD53qq4"]
+
+1. e4 { [%eval 0.14] [%clk 0:10:00] } 1... e5 { [%eval 0.21] [%clk 0:10:00] } 2. Nf3 { [%eval 0.19] [%clk 0:10:01] } 2... Nc6 { [%eval 0.23] [%clk 0:10:03] } 3. Bc4 { [%eval 0.1] [%clk 0:10:02] } 3... Nf6 { [%eval 0.15] [%clk 0:10:01] } 4. d3 { [%eval 0.16] [%clk 0:10:02] } 4... Bc5 { [%eval 0.17] [%clk 0:10:02] } 5. O-O { [%eval 0.09] [%clk 0:10:03] } 5... h6 { [%eval 0.22] [%clk 0:09:56] } 6. c3 { [%eval 0.16] [%clk 0:10:02] } 6... O-O { [%eval 0.27] [%clk 0:09:53] } (6... g5 7. d4 exd4 8. e5 Nh5 9. cxd4 Bb4 10. d5 (10. Qb3) (10. a3)) 7. Nbd2 { [%eval 0.11] [%clk 0:09:59] } 7... d5 { [%eval 0.4] [%clk 0:09:45] } (7... d6 8. Bb3 Be6 9. Bc2 a6 10. h3) 8. exd5 { [%eval 0.4] [%clk 0:10:00] } 8... Nxd5 { [%eval 0.43] [%clk 0:09:48] } 9. Ne4 { [%eval 0.37] [%clk 0:10:00] } 9... Bb6 { [%eval 1.84] [%clk 0:09:43] } (9... Be7 10. Re1 (10. Ng3)) 10. Bxh6! { [%eval 1.85] [%clk 0:09:20] } (10. Bxd5 Qxd5 11. Bxh6 f5) 10... f5 { [%eval 3.67] [%clk 0:07:10] } (10... Nxc3 11. bxc3 gxh6 12. Re1 Bf5 13. Bd5 Re8 14. a4 Na5 15. Ng3 Bg6 16. Be4) (10... gxh6 11. Bxd5 Qxd5 12. Nf6+ { [%cal Bf6d5,Bf6g8] }) 11. Bg5 { [%eval 3.84] [%clk 0:09:21] } 11... Ne7 { [%eval 5.4] [%clk 0:04:39] } (11... Qd7 12. Ned2 Re8 13. Re1 Qf7 14. Bh4 Be6 15. Ng5 Qd7 16. Ndf3 Qd6 17. Bg3) 12. Bxe7 { [%eval 5.26] [%clk 0:09:21] } (12. Bxd5+ Qxd5 13. Bxe7 Rf7 { [%csl Be7,Be4] } 14. c4 Qc6) 12... Qxe7 { [%eval 5.37] [%clk 0:04:42] } 13. Bxd5+ { [%eval 5.31] [%clk 0:09:21] } 13... Be6 { [%eval 5.32] [%clk 0:04:45] } 14. Bxe6+ { [%eval 5.32] [%clk 0:09:20] } 14... Qxe6 { [%eval 5.3] [%clk 0:04:47] } 15. Neg5 { [%eval 5.35] [%clk 0:08:26] } 15... Qf6 { [%eval 5.45] [%clk 0:04:05] } 16. Qb3+ { [%eval 5.53] [%clk 0:08:25] } 16... Kh8 { [%eval 5.34] [%clk 0:04:08] } 17. Qe6 { [%eval 5.16] [%clk 0:07:50] } 17... Rae8 { [%eval 5.22] [%clk 0:03:54] } 18. Qxf6 { [%eval 4.76] [%clk 0:07:45] } 18... gxf6 { [%eval 4.75] [%clk 0:03:55] } (18... Rxf6 19. Rfe1) 19. Nh3 { [%eval 4.9] [%clk 0:07:45] } 19... Rg8 { [%eval 5.05] [%clk 0:03:35] } 20. Nh4 { [%eval 4.66] [%clk 0:07:26] } 20... f4 { [%eval 4.73] [%clk 0:03:28] } 21. Kh1 { [%eval 4.73] [%clk 0:07:23] } 21... Rg4 { [%eval 4.63] [%clk 0:02:35] } 22. g3 { [%eval 4.81] [%clk 0:07:23] } 22... Reg8 { [%eval 4.93] [%clk 0:02:03] } 23. Nf5 { [%eval 5.04] [%clk 0:06:32] } 23... c5 { [%eval 5.19] [%clk 0:01:03] } 24. Nh6 { [%eval 4.91] [%clk 0:06:31] } 24... fxg3 { [%eval 5.42] [%clk 0:01:01] } 25. fxg3 { [%eval 5.33] [%clk 0:06:25] } 1-0
+
+
+[Event "Simul, 50b"]
+[Site "Cicero, IL USA"]
+[Date "1964.05.20"]
+[White "Robert James Fischer"]
+[Black "G Kral"]
+[Result "1-0"]
+[Variant "Standard"]
+[ECO "C10"]
+[Opening "French Defense: Rubinstein Variation, Blackburne Defense"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Robert James Fischer - G Kral"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/XFgqb0Cl"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. e4 e6 (1... c5 2. Nf3 (2. Nc3) 2... d6 (2... g6) 3. d4) 2. d4 d5 3. Nc3 (3. Nd2 dxe4 4. Nxe4) 3... dxe4 4. Nxe4 Nd7 (4... Be7 5. c3 Nf6 6. Bd3 Nxe4 7. Bxe4 c5 8. Ne2 Nd7 9. O-O) 5. Nf3 Ngf6 6. Nxf6+ Nxf6 7. Bd3 Be7 8. Qe2 O-O 9. Bg5 c5 10. dxc5 Qa5+ 11. c3 Qxc5 12. O-O-O b5 13. Bxf6! (13. Bxb5 Rb8) 13... Bxf6 (13... gxf6 14. Qe4 f5 15. Qxa8 Bd7 (15... Ba6)) 14. Qe4 g6 15. Qxa8 b4 16. c4 a5 17. Rd2 Bd7 { [%cal Gf8a8] } 18. Qe4 a4 19. Qe3 Qe7 20. h4 a3 21. b3 Bc3 22. Rc2 f5 (22... Bg7 23. h5 gxh5 24. Rxh5 h6 25. Kd1 Rd8 26. Rd2 f5 27. Ne5 Qd6 28. f4 Bxe5 29. fxe5) 23. c5 Qf6 24. Bc4 Bb2+ 25. Kb1 f4 26. Qe4 Kg7 27. c6 Bc8 28. Rd1 e5 29. Rd7+ Bxd7 30. cxd7 Rd8 31. Rd2 Qe7 32. Bb5 Qc5 33. Qc6 Qf8 34. Ng5 Qf5+ 35. Qe4 1-0
+
+
+[Event "Memorial R.Nezhmetdinov"]
+[Site "Kazan (Russia)"]
+[Date "2006.06.04"]
+[White "Evgeny Gleizerov"]
+[Black "Rodchenkov Sergey D"]
+[Result "1-0"]
+[Variant "Standard"]
+[ECO "D19"]
+[Opening "Slav Defense: Czech Variation, Dutch Variation"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Evgeny Gleizerov - Rodchenkov Sergey D"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/npsxdCef"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. d4 d5 2. c4 c6 3. Nf3 Nf6 4. Nc3 dxc4 5. a4 Bf5 6. e3 e6 7. Bxc4 Bb4 8. O-O O-O 9. Nh4 Nbd7 10. Nxf5 exf5 11. Qc2 Nb6 12. Be2 Qd7 13. a5 Nbd5 14. Bd2 { [%cal Be2d3,Bd3c4,Bc4b5,Bb5a6,Be2f3,Bf3g4,Bg4h5,Be2d1,Bf1e1,Be1d1,Bd1b1,Bb1a1,Ba1a2,Ba2a3,Ba3a4,Bc2b3,Bc2d3,Bc2b1,Bc2d1,Bc2c1,Bc2e4,Be4f5,Bg1h1,Bg2g3,Bh2h3,Bh3h4,Bg3g4,Bf2f3,Bf3f5,Be3e4,Bc3b5,Bc3d5] } 14... Nxc3?! { Inaccuracy. Bd6 was best. } (14... Bd6 15. Rfc1) 15. bxc3 Bd6 16. Rfb1 Ne4 17. Be1 Rfe8 18. Bd3 g6 19. f3 Nf6 20. e4 fxe4 21. fxe4 Bf8 22. a6 b6 23. Bh4 Be7 24. e5 Nd5 25. Bf2 Rf8 26. Be4 Rad8 27. c4 Nb4?! { Inaccuracy. Nf4 was best. } (27... Nf4 28. Re1) 28. Qc3 c5 29. d5 Rfe8 30. Rf1 Bf8 31. Bh4 Bg7 32. Bf6 Bxf6 33. Rxf6 Qg4 34. Re1 Qg5 35. Bf3?! { Inaccuracy. Bb1 was best. } (35. Bb1 b5 36. e6 fxe6 37. dxe6 Nc6 38. cxb5 Nd4 39. Rff1 Nxb5 40. Qf3 Re7) 35... b5?? { Blunder. Nc2 was best. } (35... Nc2) 36. e6 fxe6 37. Rfxe6 Rxe6 38. dxe6 bxc4 39. Qxc4? { Mistake. e7 was best. } (39. e7 Re8 40. Be2 Nd3 41. Qxc4+ Kg7 42. Bxd3 Rxe7 43. Qc3+ Kh6 44. Rxe7 Qxe7) 39... Qe7 40. h4 Rd4 41. Qb5 Nd3 42. Qb7 Kf8 43. Rf1 Rf4 44. Qd5 c4 45. Qa8+ Kg7 46. Qb7 Kf6? { Mistake. Kf8 was best. } (46... Kf8 47. g3) 47. g3 Rf5 48. g4 Qc5+ 49. Kh1 Rf4?! { Inaccuracy. Kxe6 was best. } (49... Kxe6 50. gxf5+ gxf5 51. Qa8 Qe5 52. Qg8+ Kf6 53. Bc6 h6 54. Qd8+ Ke6 55. Bf3) 50. e7 Qxe7 51. g5+ Kf7 52. Bd5+ Ke8 53. Bc6+ Kf8 { [%anno "basso01", basso01] Jogam as brancas } 54. Rxf4+ (54. Qb8+ { [%cal Ge7e8] } 54... Kg7 55. Rxf4 Qe1+) 54... Nxf4 55. Qb8+ { [%cal Gb8f4,Bb8f8] } 55... Kg7 56. Qxf4 Qe1+ 57. Kh2 Qe2+ 58. Bg2 { 1-0 Black resigns. } 1-0
+
+
+[Event "It (cat.2)"]
+[Site "Belgrade (Yugoslavia)"]
+[Date "2001.??.??"]
+[White "Milan Andrijevic"]
+[Black "Boskovic Drasko"]
+[Result "1-0"]
+[Variant "Standard"]
+[ECO "B47"]
+[Opening "Sicilian Defense: Taimanov Variation, Bastrikov Variation"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Milan Andrijevic - Boskovic Drasko"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/73K91oAL"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 Nc6 5. Nc3 Qc7 6. Be2 a6 { [%csl Rb5] } 7. O-O Nf6 { [%csl Bd4][%cal Rf2f4] } 8. Kh1 (8. f4 Nxd4 9. Qxd4 { [%csl Bd4][%cal Rf8c5,Rc5g1] }) 8... Be7 9. f4 d6 10. Be3 O-O 11. Qe1 Nxd4 12. Bxd4 { [%csl Rd4] } 12... b5 { [%csl Re4][%cal Bc3e4,Rb5b4] } 13. a3 (13. b4 { [%csl Rd4][%cal Be6e5] }) 13... Bb7 14. Qg3 Bc6 (14... Nxe4 15. Qxg7#) 15. Rae1 Qb7 { [%csl Re4] } 16. Bf3 g6 17. e5 Nd7 18. exd6 Bxd6 19. Ne4 Be7 20. c3 Rad8 21. Qh3 Bxe4 22. Bxe4 Qc7 { [%cal Be4h7,Bh3h7,Bd4g7] } 23. f5 exf5 24. Rxf5 Bc5 (24... gxf5 25. Bxf5 { [%cal Rh3h7] } (25. Qg3+ { [%cal Gc7g3] } 25... Bg5 26. Qxg5#) 25... h5 (25... Bh4 26. Qg4+) 26. Qxh5 { [%cal Gh5h7,Gh7h8] }) 25. Qxh7+ { 1-0 Black resigns. } 25... Kxh7 26. Rh5+ { [%csl Bg6,Rh5][%cal Rg6h5] } (26. h4) 26... Kg8 27. Rh8# 1-0
+
+
+[Event "It (cat.7)"]
+[Site "Budapest (Hungary)"]
+[Date "2001.??.??"]
+[White "Satea Husari"]
+[Black "Mohamad Naser Al Sayed"]
+[Result "1-0"]
+[Variant "Standard"]
+[ECO "A16"]
+[Opening "English Opening: Anglo-Indian Defense, Queen's Knight Variation"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Satea Husari - Mohamad Naser Al Sayed"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/WfpMuPzO"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. c4 Nf6 2. Nc3 g6 3. e4 d6 4. g3 c5 5. Bg2 Nc6 6. Nge2 Bg7 7. d3 O-O 8. O-O Ne8 9. Be3 Nd4 10. Rb1 a5 11. h3 Nc7 12. f4 Rb8 13. a4 Na6 14. g4 Nb4 15. b3 e6 16. Bf2 f5 17. gxf5 gxf5 18. Nxd4 cxd4 19. Ne2 e5 20. Kh2 fxe4 21. Bxe4 Qd7 22. f5 Rxf5 23. Bxf5 Qxf5 24. Ng1 Qg6 25. Nf3 Nxd3 26. Nh4 Qe4 27. Bg3 Be6 28. Qh5 Nc5 29. Rb2 Nxb3 30. Rg2 Kh8 31. Qg5 Rg8 32. Re1 Qd3 33. Qe7 Qxc4 { [%anno "basso01", basso01] Jogam as brancas } 34. Ng6+ { 1-0 Black resigns. } 34... hxg6 35. Qh4+ Bh6 36. Qxh6# 1-0
+
+
+[Event "Ch Yugoslavia (team)"]
+[Site "Vrnjacka Banja (Yugoslavia)"]
+[Date "1999.??.??"]
+[White "Nenad Ristic"]
+[Black "Bozidar Ivanovic"]
+[Result "1-0"]
+[Variant "Standard"]
+[ECO "B66"]
+[Opening "Sicilian Defense: Richter-Rauzer Variation, Neo-Modern Variation, Early Deviations"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Remover defensor - Nenad Ristic - Bozidar Ivanovic"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/6Dz5pn9I"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. e4 c5 2. Nf3 Nc6 3. Nc3 d6 4. d4 cxd4 5. Nxd4 Nf6 6. Bg5 e6 7. Qd2 a6 8. O-O-O (8. Bf4) 8... h6 9. Nxc6 bxc6 10. Bf4 d5 11. Qe3 Qe7 12. Be2 Qa7 13. Qg3 Bd7 14. Be5 h5 15. Rhe1 Be7 16. h4 Kf8 17. Bf3 Rh6 18. Bd4 Qb8 19. Qg5 Ne8 { [%anno "basso01", basso01] Jogam as brancas } 20. Bxg7+ Nxg7 21. Qxh6 Kg8 22. exd5 Bd6 23. g3 cxd5 24. Bxd5 Ra7 25. Bb3 Bc6 26. Ne4 Bxe4 27. Rxe4 Be7 28. g4 a5 29. gxh5 a4 30. Rg1 Bf8 31. Rxa4 Rxa4 32. Bxa4 Qa7 33. Qf4 e5 34. Qc4 Qxf2 35. Rf1 Qa7 36. Bb3 Nxh5 { 1-0 Black resigns. } 1-0
+
+
+[Event "It"]
+[Site "Reggio Emilia (Italy)"]
+[Date "1986.??.??"]
+[White "Ljubomir Ljubojevic"]
+[Black "Jan Smejkal"]
+[Result "1-0"]
+[Variant "Standard"]
+[ECO "C92"]
+[Opening "Ruy Lopez: Closed, Flohr System"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Sobrecarga - Ljubomir Ljubojevic - Jan Smejkal"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/R3lTcgFd"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Bb7 10. d4 Re8 11. Nbd2 Bf8 12. Bc2 Nb8 13. b3 Nbd7 14. Bb2 g6 15. a4 Bg7 16. Bd3 c6 17. Rb1 Qb6 18. b4 Nh5 19. Nb3 Rad8 20. Bc1 Qc7 21. Bg5 Rb8 22. Qc2 c5 23. bxc5 dxc5 24. Nxc5 Nxc5 25. dxc5 Bc6 26. axb5 Bxb5 27. Be3 Bf8 28. c4 Bd7 29. Rb6 Bxc5 30. Rxa6 Ra8 31. Rxa8 Rxa8 32. Qb2 Bxe3 33. Rxe3 Ra5 34. Bf1 Bc6 35. Nd2 Nf4 36. Nb1 Ne6 37. Nc3 Qa7 38. Nb5 Qc5 39. Re1 h5 40. Nc3 Kg7 41. Nd5 Qd4 42. Nc3 Qa7 43. Rd1 Kh7 44. h4 Kg8 45. Qb4 Kg7 46. Nb5 Qb6 47. Qc3 f6 48. Rd6 Nc5 { [%anno "basso01", basso01] Jogam as brancas } 49. Rxc6 { 1-0 Black resigns. } 49... Qxc6 50. Qxa5 1-0
+
+
+[Event "#PL05A - O jeito certo para achar tática em toda partida: Exemplo - Sobrecarga"]
+[Date "2026.09.20"]
+[Result "*"]
+[Variant "Standard"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Exemplo - Sobrecarga"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/TY9NW6yl"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[FEN "3r1r2/k7/8/3N1N2/4P3/8/K7/8 w - - 0 1"]
+[SetUp "1"]
+[UTCDate "2026.09.20"]
+[UTCTime "15:41:25"]
+
+1. Ka1 Rxf5 2. exf5 Rxd5 *
+
+
+[Event "7th Univ Cent Open 2013"]
+[Site "Bogota COL"]
+[Date "2013.10.11"]
+[White "Oscar Gerardo Sanchez Enriquez"]
+[Black "Isan Reynaldo Ortiz Suarez"]
+[Result "0-1"]
+[Variant "Standard"]
+[ECO "A61"]
+[Opening "Benoni Defense"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Imobilizando defensor - Oscar Enriquez - Isan Reynaldo Ortiz Suarez"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/oVZpAFpH"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. d4 Nf6 2. c4 e6 3. Nc3 c5 4. d5 exd5 5. cxd5 d6 6. Nf3 g6 7. Bf4 a6 8. Nd2 Nh5 9. Be3 Bg7 10. a4 Nd7 11. Nc4 Ne5 12. Nxe5 Bxe5 13. g3 O-O 14. Bg2 f5 15. f4 Bg7 16. O-O Re8 17. Bf2 Nf6 18. h3 Rb8 19. Rb1 Qa5 20. Be1 Qc7 21. Kh2 Bd7 22. Rc1 Rbc8 23. Bf3 Qd8 24. Rb1 b5 25. axb5 axb5 26. b4 cxb4 27. Rxb4 Ng4+ 28. hxg4 fxg4 29. Nxb5 gxf3 30. exf3 Qb6 31. Nd4 Qc5 32. Ne6 Bxe6 33. dxe6 Rxe6 34. Re4 { [%anno "basso01", basso01] Jogam as pretas } 34... Qh5+ 35. Kg1 Rxe4 { 0-1 White resigns. } 36. g4 (36. fxe4 Qxd1) 36... Qc5+ (36... Bd4+ 37. Bf2 Bxf2+ 38. Rxf2) 37. Bf2 Rd4 38. Bxd4 Bxd4+ { [%csl Gd4] } 0-1
+
+
+[Event "KNSB Cup"]
+[Site "Amersfoort NED"]
+[Date "2010.05.13"]
+[White "Friso Nijboer"]
+[Black "Rudy van Wessel"]
+[Result "1-0"]
+[Variant "Standard"]
+[ECO "C80"]
+[Opening "Ruy Lopez: Open, Bernstein Variation"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Bloqueando - Friso Nijboer - Rudy van Wessel"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/n4xlf14G"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Nxe4 6. d4 b5 7. Bb3 d5 8. dxe5 Be6 9. Nbd2 Be7 10. c3 O-O 11. Bc2 Nxd2 12. Qxd2 Qd7 13. Re1 f6 14. Qd3 g6 15. Bh6 Rfe8 16. exf6 Bxf6 17. Qd2 Bf7 18. Ng5 Ne5 19. Qf4 Bh8 20. Re3 Qg4 21. Nxf7 Qxf4 22. Bxf4 Kxf7 23. h4 c6 24. a4 Ng4 25. Rf3 Kg8 26. Rg3 Nf6 27. Re3 Kf7 28. Rxe8 Rxe8 29. axb5 axb5 30. Kf1 Nh5 31. Bd6 Bf6 32. Ra7+ Ke6 33. Bc5 Be7 34. Be3 Rf8 35. g4 Nf4 36. h5 gxh5 { [%anno "basso01", basso01] Jogam as brancas } 37. Bf5+ Kf6 (37... Rxf5 38. gxf5+ { [%csl Rf4][%cal Re6e7] } 38... Kxf5 (38... Kf6 39. Bxf4) 39. Rxe7) 38. Bxf4 hxg4 39. Bxg4 { 1-0 Black resigns. } 1-0
+
+
+[Event "Ch Paris (open)"]
+[Site "Paris (France)"]
+[Date "2004.07.11"]
+[White "Bojan Vuckovic"]
+[Black "Andrei Shchekachev"]
+[Result "1/2-1/2"]
+[Variant "Standard"]
+[ECO "C45"]
+[Opening "Scotch Game: Classical Variation, Intermezzo Variation"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Bojan Vuckovic - Andrei Shchekachev"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/L3OiLCcP"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+
+1. e4 e5 2. Nf3 Nc6 3. d4 exd4 4. Nxd4 Bc5 5. Nxc6 Qf6 6. Qd2 dxc6 7. Nc3 Qe7 8. Qg5 f6 9. Qg3 Be6 10. Be3 Bd6 11. Bf4 Bxf4 12. Qxf4 O-O-O 13. Bd3 Nh6 14. O-O-O Qc5 15. h3 Nf7 16. Rhe1 Ne5 17. Qe3 Qa5 18. a3 g5 19. Be2 Qb6 20. Bf1 Rd6 21. g3 g4 22. hxg4 Qxe3+ 23. Rxe3 Nxg4 24. Rf3 Kd7 25. Rf4 Ke7 26. Be2 Rxd1+ 27. Nxd1 Ne5 28. Rh4 Nf7 29. Bh5 Ng5 30. Be2 Nf7 31. Ne3 Ng5 32. Kd1 b5 33. Bd3 Nf3 34. Rh5 h6 35. Ke2 Nd4+ 36. Kf1 Nf3 37. Rh1 a6 38. Kg2 Ne5 39. Be2 Nf7 40. Bh5 Nd6 41. Bg6 Kf8 42. Rd1 Kg7 43. Bf5 Bf7 44. Kf3 Rb8 45. Bd7 Bg6 46. Bxc6 Rb6 47. Ba8 Rb8 48. Bd5 Re8 49. Bc6 Re6 50. Rd4 Nf7 51. Bd5 Rd6 52. c3 Ng5+ 53. Ke2 c6 54. f4 cxd5 55. fxg5 Bxe4 56. gxh6+ (56. Rxe4) 56... Kxh6 { [%anno "basso01", basso01] Jogam as brancas } (56... Kh7) 57. Kf2 (57. Rxe4 dxe4 58. Nf5+ { [%cal Gf5d6,Gf5h6] }) 57... Kg5 58. Nf1 f5 59. a4 bxa4 60. Rxa4 Rb6 61. Rb4 Rxb4 62. cxb4 d4 63. Nd2 Bd5 64. Nf1 f4 65. Nd2 Kg4 66. gxf4 Kxf4 67. Ke2 Bc6 68. Kd3 Ke5 69. Nc4+ Kd5 70. Nb6+ Ke5 { 1/2-1/2 The game is a draw. } 1/2-1/2
+
+
+[Event "#PL05A - O jeito certo para achar tática em toda partida: Pratique mais nos links da descrição"]
+[Date "2026.09.20"]
+[Result "*"]
+[Variant "Standard"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "#PL05A - O jeito certo para achar tática em toda partida"]
+[ChapterName "Pratique mais nos links da descrição"]
+[ChapterURL "https://lichess.org/study/7lucWTlb/DxgnzhzB"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[UTCDate "2026.09.20"]
+[UTCTime "15:41:25"]
+
+{ [%anno "basso01", basso01] https://lichess.org/training/capturingDefender
+https://lichess.org/training/hangingPiece }
+ *
+
+

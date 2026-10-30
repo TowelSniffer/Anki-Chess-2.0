@@ -195,6 +195,9 @@ function mirrorMove(move: CustomPgnMove, mirrorState: MirrorState): void {
         ca.length === 5 ? ca[0] + mirrorSq(ca.substring(1, 3)) + mirrorSq(ca.substring(3, 5)) : ca
       );
     }
+    if (move.commentDiag.c_effect) {
+      move.commentDiag.c_effect = move.commentDiag.c_effect.replace(/\b[a-h][1-8]\b/g, mirrorSq);
+    }
     if (move.commentDiag.comment) {
       move.commentDiag.comment = move.commentDiag.comment.replace(
         /\[([a-h][1-8])\]/g,

@@ -43,7 +43,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  * Creates and displays the tooltip.
  * Returns the DOM element and the Timer ID so the caller can manage cleanup.
  */
-function showTooltip(targetBtn: HTMLElement, message: string) {
+export function showTooltip(targetBtn: HTMLElement, message: string) {
     // Create the Tooltip Element
     const tooltip = document.createElement('div');
     tooltip.textContent = message;

@@ -8,13 +8,19 @@
   import IconSync from '~icons/material-symbols/sync-sharp';
   import IconDevBoardOff from '~icons/material-symbols/developer-board-off-sharp';
   import IconFlip from '~icons/material-symbols/flip-sharp';
+  import IconShare from '~icons/material-symbols/ios-share-sharp';
+  import IconFileCopy from '~icons/material-symbols/file-copy-sharp';
+  import IconAddCard from '~icons/material-symbols/add-card-sharp';
 
   import type { GameStore } from '$stores/gameStore.svelte';
   import type { EngineStore } from '$stores/engineStore.svelte';
+  import type { MenuItem } from '$components/uiUtility/Dropdown.svelte';
 
   import { getContext } from 'svelte';
+  import Dropdown from '$components/uiUtility/Dropdown.svelte';
   import { playSound } from '$features/audio/audio';
-  import { clickToCopy } from '$utils/toolkit/copyToClipboard';
+  import { writePgn, writePgnFrom } from '$features/pgn/pgnWriter';
+  import { clickToCopy, copyToClipboard, showTooltip } from '$utils/toolkit/copyToClipboard';
 
   // Retrieve Stores created by the parent
   const gameStore = getContext<GameStore>('GAME_STORE');
@@ -67,6 +73,62 @@
     gameStore.toggleOrientation();
   }
 
+  /*
+   *  EXPORT: the PGN with the analysis, or a new card from the position on the board
+   */
+
+  let exportAnchor: HTMLElement | undefined = $state();
+
+  // Anki desktop with the Lichess Study Importer add-on, which opens the Add window
+  const canAddNote =
+    typeof pycmd !== 'undefined' && !!(window as { ANKI_CHESS_IMPORTER?: number }).ANKI_CHESS_IMPORTER;
+
+  const wholePgn = () => writePgn(gameStore.rootGame!);
+  const pgnFromHere = () =>
+    writePgnFrom(gameStore.rootGame!, gameStore.pgnPath, gameStore.startFen);
+
+  function copyPgn(text: string, message: string) {
+    // Not awaited first: Anki copies only within the click
+    copyToClipboard(text).then((ok) => {
+      if (ok && exportAnchor) showTooltip(exportAnchor, message);
+    });
+  }
+
+  function newNote() {
+    pycmd(`ankiChessImporter:newNote:${JSON.stringify({ pgn: wholePgn() })}`);
+  }
+
+  const exportItems: MenuItem[] = [
+    {
+      type: 'action',
+      label: 'Copy PGN',
+      icon: IconFileCopy,
+      tooltip:
+        'The whole game, with the moves and lines you added while analysing. It gets its own AnkiChessId, so a card made from it is a card of its own.',
+      action: () => copyPgn(wholePgn(), 'PGN Copied!'),
+    },
+    {
+      type: 'action',
+      label: 'Copy PGN from this position',
+      icon: IconFileCopy,
+      tooltip:
+        'A new game starting from the position on the board, with the moves that follow on this line and their variations.',
+      action: () => copyPgn(pgnFromHere(), 'PGN Copied!'),
+    },
+    ...(canAddNote
+      ? [
+          {
+            type: 'action',
+            label: 'New card with this PGN',
+            icon: IconAddCard,
+            tooltip:
+              "Opens Anki's Add window with the PGN of Copy PGN (the whole game with your analysis), in this card's deck and note type and with its tags.",
+            action: newNote,
+          } as MenuItem,
+        ]
+      : []),
+  ];
+
 </script>
 
 <svelte:window onkeydown={isViewerMode ? handleKeydown : null} />
@@ -92,6 +154,10 @@
   <span class="md-small"><IconCopy /></span>
 </button>
 
+<span class="export" title="Export the PGN or make a new card" bind:this={exportAnchor}>
+  <Dropdown icon={IconShare} items={exportItems} position="bottom-left" />
+</span>
+
 <button
   class="iconBtn"
   class:active-toggle={engineStore.enabled}
@@ -113,6 +179,10 @@
 </button>
 
 <style lang="scss">
+  .export {
+    display: flex;
+  }
+
   /* Animation for when the analysis toggle button is loading */
   @keyframes spin {
     from {

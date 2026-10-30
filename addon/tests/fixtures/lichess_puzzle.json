@@ -1,0 +1,48 @@
+{
+ "game": {
+  "id": "AbCdEfGh",
+  "perf": {
+   "key": "blitz",
+   "name": "Blitz"
+  },
+  "rated": true,
+  "players": [
+   {
+    "name": "Player1",
+    "id": "player1",
+    "color": "white",
+    "rating": 1710
+   },
+   {
+    "name": "Player2",
+    "id": "player2",
+    "color": "black",
+    "rating": 1549
+   }
+  ],
+  "pgn": "d4 g6 c4 Bg7 Nc3 d6 Nf3 Nd7 e4 c5 d5 Ngf6 Bd3 O-O h4 Ng4 h5 Nge5 hxg6 fxg6 Ng5 Nxd3+ Qxd3 Bd4 f3 Ne5 Qe2 e6 Rxh7 exd5 Nxd5 a6 Ne7+ Qxe7 Rxe7 b5 cxb5 axb5 Qxb5 Ba6 Qb6 Nd3+ Kd2 Rfb8 Qc7 Nxc1 Rxc1 Rxb2+ Rc2 Rxc2+ Kxc2 Bc4 Kd2 Rxa2+ Ke1",
+  "clock": "6+0"
+ },
+ "puzzle": {
+  "id": "tgu12",
+  "rating": 1805,
+  "plays": 37716,
+  "solution": [
+   "d4c3",
+   "e1d1",
+   "c4b3",
+   "d1c1",
+   "a2a1"
+  ],
+  "themes": [
+   "exposedKing",
+   "endgame",
+   "long",
+   "mateIn3",
+   "pillsburysMate"
+  ],
+  "fen": "6k1/2Q1R3/3p2p1/2p3N1/2bbP3/5P2/r5P1/4K3 b - - 1 1",
+  "lastMove": "d2e1",
+  "initialPly": 54
+ }
+}

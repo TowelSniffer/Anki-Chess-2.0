@@ -12,6 +12,8 @@
     "build": "vite build",
     "build:anki-media": "tsx scripts/setup-stockfish.ts && vite build --config vite.config.anki.ts",
     "build:anki": "npm run build:anki-media && uv run scripts/build_apkg.py",
+    "build:addon": "python scripts/build_addon.py",
+    "test:addon": "python -m pytest addon/tests",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json && npm run check:deps",
     "check:error": "svelte-check --threshold error --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
