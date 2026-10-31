@@ -8,6 +8,7 @@
   import HelpWrapper from '$components/HelpWrapper.svelte';
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
+  import HintButton from '$components/HintButton.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
 
@@ -109,6 +110,7 @@
       <ChessgroundBoard />
       <PromotePopup />
     </div>
+    <HintButton />
   </div>
 </GameProvider>
 
@@ -117,6 +119,7 @@
   $comment-box-width-calc: calc($max-width - var(--board-size) - calc($max-width * 0.03));
 
   #container {
+    position: relative; /* The hint button sits in a corner of its grid area in landscape */
     margin: 0;
     margin-right: 15px;
     gap: 4px;

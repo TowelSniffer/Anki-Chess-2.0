@@ -4,6 +4,7 @@ import type { Square, Move, Color } from 'chess.js';
 import type {
   CustomPgnGame,
   CustomPgnMove,
+  CustomShape,
   PgnPath,
   BoardModes,
   PuzzleScored,
@@ -58,6 +59,9 @@ export class GameStore {
   parseError = $state<string | null>(null);
   hasMadeMistake: boolean = $state(false);
   wrongMove = $state<{ from: Square; to: Square } | null>(null);
+  // Hints for the current move: 1 marks the piece, 2 shows the move, 3 plays it
+  hintLevel = $state(0);
+  usedHint = $state(false);
 
   // --- Private State ---
   #flipBoolean: boolean; // Board orientation
@@ -150,6 +154,8 @@ export class GameStore {
     $effect(() => {
       const path = this.pgnPath;
       this.#trackedPathKey = path.join(',');
+      // A hint is for one move
+      this.hintLevel = 0;
     });
 
     // Set cg config
@@ -257,7 +263,10 @@ export class GameStore {
     } else if (this.isPuzzleComplete) {
       // Grade on puzzle completion
       const isPerfectScore =
-        (this.config.timer || this.config.handicap) && !mistakeCheck && !this.config.strictScoring;
+        (this.config.timer || this.config.handicap) &&
+        !mistakeCheck &&
+        !this.usedHint &&
+        !this.config.strictScoring;
       this.#storedScore = isPerfectScore ? 'perfect' : 'pass';
       return isPerfectScore ? 'perfect' : 'pass';
     }
@@ -330,15 +339,31 @@ export class GameStore {
     return this.currentMove.turn === 'w' ? 'b' : 'w';
   }
 
+  // The PGN move a hint points to: the player's next move in an unsolved puzzle
+  get hintMove(): CustomPgnMove | null {
+    if (!/^(Puzzle|Study)$/.test(this.boardMode) || this.isPuzzleComplete) return null;
+    const next = this.getMoveByPath(navigateNextMove(this.pgnPath));
+    const isPlayersMove = this.boardMode === 'Study' || next?.turn === this.playerColor[0];
+    return next && isPlayersMove ? next : null;
+  }
+
+  get hintShapes(): CustomShape[] {
+    const move = this.hintMove;
+    if (!move || !this.hintLevel) return [];
+    // 1: a circle on the piece to move; 2 on: the move's arrow
+    return [{ orig: move.from, dest: this.hintLevel > 1 ? move.to : undefined, brush: 'yellow' }];
+  }
+
   // The "Raw" Calculation (Always calculates the freshest shapes)
   get systemShapes() {
     const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
-    if (this.boardMode === 'AI' || (puzzleMode && this.config.disableArrows)) return [];
+    const hintShapes = this.hintShapes;
+    if (this.boardMode === 'AI' || (puzzleMode && this.config.disableArrows)) return hintShapes;
     const prevMovePath = navigatePrevMove(this.pgnPath);
     const flipPgn = this.config.flipBoard && this.boardMode === 'Puzzle';
     const isStartOfPuzzle =
       puzzleMode && (!this.pgnPath.length || (flipPgn && !prevMovePath.length));
-    if (isStartOfPuzzle) return [];
+    if (isStartOfPuzzle) return hintShapes;
     const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
     const pgnPath = redrawCachedShapes ? prevMovePath : this.pgnPath;
     const engineStore = this.engineStore;
@@ -348,6 +373,7 @@ export class GameStore {
       ...getSystemShapes(pgnPath, this.#moveMap, this.boardMode),
       ...parseCal(puzzleMode ? [] : this.currentMove?.commentDiag?.colorArrows),
       ...parseCsl(puzzleMode ? [] : this.currentMove?.commentDiag?.colorFields),
+      ...hintShapes,
     ];
   }
 
@@ -559,6 +585,8 @@ export class GameStore {
     this.#storedScore = null;
     this.wrongMove = null;
     this.hasMadeMistake = false;
+    this.hintLevel = 0;
+    this.usedHint = false;
     this.#destroyTimeouts();
   }
 

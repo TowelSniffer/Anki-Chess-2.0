@@ -146,6 +146,18 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
   }, delay);
 }
 
+// Each hint goes a step further: the piece to move, the move, then the move is played
+export function showHint(store: GameStore): void {
+  if (!store.config.hints || !store.hintMove || store.hintLevel > 2) return;
+  store.usedHint = true;
+  store.hintLevel++;
+  if (store.hintLevel === 3) {
+    // Played for the player, so it counts as a mistake
+    store.hasMadeMistake = true;
+    playUserCorrectMove(store, store.aiDelayTime || 300);
+  }
+}
+
 function handleWrongMove(store: GameStore, move: Move): void {
 
   store.errorCount++;
