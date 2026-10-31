@@ -4,6 +4,7 @@ import type { Square, Move, Color } from 'chess.js';
 import type {
   CustomPgnGame,
   CustomPgnMove,
+  CustomShape,
   PgnPath,
   BoardModes,
   PuzzleScored,
@@ -58,6 +59,9 @@ export class GameStore {
   parseError = $state<string | null>(null);
   hasMadeMistake: boolean = $state(false);
   wrongMove = $state<{ from: Square; to: Square } | null>(null);
+  // The reply punishing a wrong move, shown for a moment before the move is taken back
+  refutation = $state<{ from: Square; to: Square } | null>(null);
+  isRefuting = $state(false);
 
   // --- Private State ---
   #flipBoolean: boolean; // Board orientation
@@ -287,7 +291,8 @@ export class GameStore {
   }
 
   get viewOnly() {
-    return this.isPuzzleComplete || this.isGameOver;
+    // The board shows other positions while a wrong move is refuted
+    return this.isPuzzleComplete || this.isGameOver || this.isRefuting;
   }
 
   get getMoveDebounce() {
@@ -331,7 +336,10 @@ export class GameStore {
   }
 
   // The "Raw" Calculation (Always calculates the freshest shapes)
-  get systemShapes() {
+  get systemShapes(): CustomShape[] {
+    // While a wrong move is refuted, the board shows another position: only the reply's arrow
+    const refutation = this.refutation;
+    if (refutation) return [{ orig: refutation.from, dest: refutation.to, brush: 'red' }];
     const puzzleMode = /^(Puzzle|Study)$/.test(this.boardMode);
     if (this.boardMode === 'AI' || (puzzleMode && this.config.disableArrows)) return [];
     const prevMovePath = navigatePrevMove(this.pgnPath);
@@ -559,6 +567,8 @@ export class GameStore {
     this.#storedScore = null;
     this.wrongMove = null;
     this.hasMadeMistake = false;
+    this.refutation = null;
+    this.isRefuting = false;
     this.#destroyTimeouts();
   }
 

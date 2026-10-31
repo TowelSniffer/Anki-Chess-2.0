@@ -152,13 +152,73 @@ function handleWrongMove(store: GameStore, move: Move): void {
   store.hasMadeMistake = true;
   // Track the wrong move
   store.wrongMove = { from: move.from, to: move.to };
-  store.customAnimation({ preFen: move.after, animate: true, postFen: move.before });
   playSound('error');
   const isFailed = store.errorCount > store.config.handicap;
 
+  if (store.config.refutation) {
+    store.customAnimation({ preFen: move.after, animate: true });
+    showRefutation(store, move).then(() => {
+      if (isFailed) playUserCorrectMove(store, store.config.animationTime); // show the correct user move
+    });
+    return;
+  }
+
+  store.customAnimation({ preFen: move.after, animate: true, postFen: move.before });
   if (isFailed) {
     playUserCorrectMove(store, store.config.animationTime * 2); // show the correct user move
   }
+}
+
+// --- Refutation ---
+
+// How long the punishing reply stays on the board
+const REFUTATION_HOLD = 1200;
+
+const pause = (store: GameStore, ms: number) =>
+  new Promise<void>((resolve) => store.setTrackedTimeout(resolve, ms));
+
+// The PGN's reply to the wrong move, when it is a variation there with a continuation
+function authorReply(store: GameStore, wrongMove: Move): Move | null {
+  const nextMainMove = store.getMoveByPath(navigateNextMove(store.pgnPath));
+  for (const variationLine of nextMainMove?.variations ?? []) {
+    const reply = variationLine[1];
+    if (reply && isSameMove(variationLine[0], wrongMove)) {
+      return getLegalMove(reply.san, wrongMove.after);
+    }
+  }
+  return null;
+}
+
+async function engineReply(store: GameStore, fen: string): Promise<Move | null> {
+  const bestMoveUci = await store.engineStore.requestBestMove(fen);
+  return bestMoveUci ? getLegalMove(bestMoveUci, fen) : null;
+}
+
+/*
+ * After a wrong move: the reply that punishes it (the PGN's, else Stockfish's), then the move is
+ * taken back. The board is locked and the puzzle clock stopped meanwhile.
+ */
+async function showRefutation(store: GameStore, move: Move): Promise<void> {
+  const pathKey = store.currentPathKey;
+  store.isRefuting = true;
+  store.setMoveDebounce(60_000); // stops the clock until setMoveDebounce(0) below
+
+  const [reply] = await Promise.all([
+    authorReply(store, move) ?? engineReply(store, move.after),
+    pause(store, store.config.animationTime + 150), // the wrong move lands first
+  ]);
+
+  if (reply && store.currentPathKey === pathKey) {
+    store.refutation = { from: reply.from, to: reply.to };
+    store.customAnimation({ preFen: reply.after, animate: true });
+    playSound(reply.captured ? 'capture' : 'move');
+    await pause(store, REFUTATION_HOLD);
+  }
+
+  store.refutation = null;
+  store.isRefuting = false;
+  store.customAnimation({ preFen: store.fen, animate: true });
+  store.setMoveDebounce(0);
 }
 
 function checkPuzzleComplete(store: GameStore): void {

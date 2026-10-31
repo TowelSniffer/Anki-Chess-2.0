@@ -208,6 +208,15 @@ export class EngineStore {
     });
   }
 
+  // The best reply in a position, to show why a move is wrong: the strongest setting, with a time
+  // limit so a slow engine start can't hold the board (null when there's no answer in time). The
+  // first call also starts the engine: ~2 s on a desktop, later ones ~0.5 s.
+  async requestBestMove(fen: string, moveTime = 400, timeout = 3000): Promise<string | null> {
+    const late = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeout));
+    const uci = await Promise.race([this.requestMove(fen, 3190, moveTime), late]);
+    return uci && uci !== '(none)' ? uci : null;
+  }
+
   toggle(fen: string) {
     if (this.enabled) {
       this.enabled = false;

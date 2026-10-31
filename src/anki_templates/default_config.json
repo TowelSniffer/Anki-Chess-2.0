@@ -11,6 +11,7 @@
   "storePgnPath": true,
   "strictScoring": false,
   "acceptVariations": true,
+  "refutation": true,
   "playBothSides": false,
   "timer": 10000,
   "increment": 1000,
