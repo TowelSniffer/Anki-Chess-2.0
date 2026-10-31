@@ -9,6 +9,7 @@
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
   import HintButton from '$components/HintButton.svelte';
+  import GradeSuggestion from '$components/GradeSuggestion.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
 
@@ -85,6 +86,9 @@
   <div id="container" style="--board-light: {themeColors.light}; --board-dark: {themeColors.dark};">
     {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
       <div id="commentBox">
+        {#if boardMode === 'Viewer'}
+          <GradeSuggestion />
+        {/if}
         {#if userText}
           <div id="userTextContainer">
             <div id="textField">{@html userText}</div>

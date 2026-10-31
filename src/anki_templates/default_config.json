@@ -12,6 +12,8 @@
   "strictScoring": false,
   "acceptVariations": true,
   "hints": true,
+  "autoGrade": "suggest",
+  "easyTime": 0,
   "playBothSides": false,
   "timer": 10000,
   "increment": 1000,

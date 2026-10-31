@@ -134,6 +134,28 @@ export function getMenuData(
           onToggle: () => setConfigBoolean('strictScoring'),
         },
         {
+          type: 'select',
+          label: 'Answer Button',
+          tooltip:
+            "The back suggests Anki's answer button from the puzzle: Again (failed or not solved), Hard (a mistake, a hint or out of time), Good (solved), Easy (solved within Easy Time). On Anki desktop, Suggest answers when you click it, and Answer answers after 3 s (any click or key cancels). Other apps only show the suggestion.",
+          value: userConfig.opts.autoGrade,
+          onChange: (val: string) => (userConfig.opts.autoGrade = val as typeof userConfig.opts.autoGrade),
+          options: [
+            { label: 'Off', value: 'off' },
+            { label: 'Suggest', value: 'suggest' },
+            { label: 'Answer', value: 'answer' },
+          ],
+        },
+        {
+          type: 'number',
+          label: 'Easy Time (s)',
+          tooltip: 'A puzzle solved without help within this time suggests Easy. Set to 0 to never suggest Easy.',
+          min: 0,
+          max: 120,
+          value: userConfig.opts.easyTime,
+          onChange: (val: number) => (userConfig.opts.easyTime = val),
+        },
+        {
           type: 'separator',
         },
         {

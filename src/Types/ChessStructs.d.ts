@@ -4,6 +4,12 @@ import type { PgnMove, GameComment, PgnGame } from '@mliebelt/pgn-types';
 
 export type PuzzleScored = 'perfect' | 'pass' | 'fail' | 'draw' | null;
 
+// Anki's answer buttons: 1 Again, 2 Hard, 3 Good, 4 Easy
+export type AnswerGrade = 1 | 2 | 3 | 4;
+export type GradeReason = 'unsolved' | 'failed' | 'mistake' | 'hint' | 'slow' | 'solved' | 'fast';
+// The answer button a puzzle's result suggests, and why
+export type GradeSuggestion = { grade: AnswerGrade; reason: GradeReason; seconds: number | null };
+
 /**
  * Mlieberts promotion is uppercase. Gotten from san (ie dxc8=N)
  * chess.js promotion is lower case

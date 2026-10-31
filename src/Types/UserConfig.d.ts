@@ -11,6 +11,9 @@ export interface UserConfigOpts {
   storePgnPath: boolean;
   strictScoring: boolean;
   hints: boolean;
+  // The answer button suggested on the back from the puzzle's result
+  autoGrade: 'off' | 'suggest' | 'answer';
+  easyTime: number; // seconds; solved this fast without help suggests Easy (0: never)
   acceptVariations: boolean;
   playBothSides: boolean;
   timer: number;
