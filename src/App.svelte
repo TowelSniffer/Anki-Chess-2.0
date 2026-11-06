@@ -11,6 +11,7 @@
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
   import HintButton from '$components/HintButton.svelte';
+  import EvalButton from '$components/EvalButton.svelte';
   import StatusLine from '$components/StatusLine.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import BoardLayout from '$components/BoardLayout.svelte';
@@ -121,6 +122,7 @@
             {#if !userConfig.opts.playerBars}
               <StatusLine standalone />
             {/if}
+            <EvalButton />
             <HintButton />
             <SettingsMenu bind:isHelpOpen inToolbar />
           </div>
@@ -161,6 +163,7 @@
           {#if !userConfig.opts.playerBars}
             <StatusLine standalone />
           {/if}
+          <EvalButton />
           <HintButton />
           <SettingsMenu bind:isHelpOpen />
         </div>

@@ -25,6 +25,6 @@ The bar under the board says whose move it is, the time left (`Puzzle > Timer`),
 
 * **Hints** (`Puzzle > Hints`, the bulb button or `H`): the first marks the piece to move, the second shows the move, the third plays it. Any hint rules out a perfect score, and the third counts as a mistake.
 * **Refutation** (`Puzzle > Show Refutation`): after a wrong move the board shows the reply that punishes it for a moment, then takes the move back.
-* **Eval bar** (`Puzzle > Show Eval on Front`): the board's border shows Stockfish's evaluation while you solve, as on the back, without arrows or lines. It's off by default: Stockfish runs on each position, which takes some battery on a phone.
+* **Eval bar** (the Stockfish button next to the hint, or `Puzzle > Show Eval on Front`): the board's border shows Stockfish's evaluation while you solve, as on the back, without arrows or lines. It's off by default: Stockfish runs on each position, which takes some battery on a phone.
 * **Player bars** (`Board > Player Bars`): the players, their material and the result, above and below the board. Without them the status goes next to the card's tools.
 * **Board size** (`Board > Board Size`): the largest the board gets. It always fits the screen.

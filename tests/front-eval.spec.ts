@@ -83,6 +83,70 @@ test('the border is the eval bar while solving, for the position on the board', 
   await engineReady(page);
 });
 
+const barShare = (page: Page) =>
+  page.locator('.eval-fill').evaluate((el) => {
+    const fill = el.getBoundingClientRect();
+    const track = el.parentElement!.getBoundingClientRect();
+    return (fill.bottom - track.top) / track.height;
+  });
+
+test('a won position still shows the bar', async ({ page }) => {
+  await load(page, { frontEval: true });
+  await expect.poll(() => san(page)).toBe('hxg6');
+  await engineReady(page);
+  // White is winning by far, and the other side keeps a band to read it by
+  await expect.poll(() => barShare(page), { timeout: 10000 }).toBeLessThan(0.12);
+  expect(await barShare(page)).toBeGreaterThan(0.04);
+});
+
+test('the Stockfish button turns the bar on and off while solving', async ({ page }) => {
+  await load(page, {});
+  await expect.poll(() => san(page)).toBe('hxg6');
+  const button = page.locator('#eval-button');
+  await expect(button).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.board-wrapper.analysisMode')).toHaveCount(0);
+
+  await button.click();
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.board-wrapper.analysisMode')).toHaveCount(1);
+  await engineReady(page);
+
+  await button.click();
+  await expect(button).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.board-wrapper.analysisMode')).toHaveCount(0);
+  await expect.poll(async () => (await engine(page)).enabled).toBe(false);
+});
+
+test('the Stockfish button goes with the hint, floating or in the comment box', async ({ page }) => {
+  await load(page, { frontText: false, frontComments: false });
+  await expect(page.locator('#floating-tools #eval-button')).toHaveCount(1);
+  await page.close();
+
+  const withText = await page.context().newPage();
+  await load(withText, { frontText: true });
+  await expect(withText.locator('#commentBox #buttons-container #eval-button')).toHaveCount(1);
+});
+
+test('the Stockfish button is only for solving', async ({ page }) => {
+  await load(page, {});
+  await expect.poll(() => san(page)).toBe('hxg6');
+  await move(page, 'h5', 'h8');
+  await expect.poll(() => san(page)).toBe('Kf7');
+  await page.waitForTimeout(300);
+  await move(page, 'h8', 'h7');
+  await expect(page.locator('#eval-button')).toHaveCount(0);
+  await page.close();
+
+  const random = await page.context().newPage();
+  await load(random, { randomOrientation: true });
+  await expect(random.locator('#eval-button')).toHaveCount(0);
+  await random.close();
+
+  const back = await page.context().newPage();
+  await load(back, {}, puzzlePgn, 'Viewer');
+  await expect(back.locator('#eval-button')).toHaveCount(0);
+});
+
 test('it only needs one short line while solving', async ({ page }) => {
   await load(page, { frontEval: true, analysisLines: 3, analysisTime: 10 });
   const { multipv, time } = await engine(page);

@@ -20,6 +20,7 @@
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
   const timerStore = getContext<TimerStore>('TIMER_STORE');
   const showTimer = $derived(timerOnBorder && timerStore.visible);
+  const MIN_BAND = 0.06;
 
   onDestroy(() => {
     if (flashState) flashState = null;
@@ -219,6 +220,8 @@
   $effect(() => {
     if (!evalFillNode) return;
     let scale = (showTimer ? visualDivider : $dividerSpring) / 100;
+    // While solving a won position is the usual case: a band stays, or it would look like no bar
+    if (gameStore.showFrontEval) scale = Math.min(Math.max(scale, MIN_BAND), 1 - MIN_BAND);
 
     // Calculate percentage in JS, apply directly to the node
     evalFillNode.style.transform = `translate3d(0, ${-100 + scale * 100}%, 0)`;
