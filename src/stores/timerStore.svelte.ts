@@ -2,7 +2,7 @@ import type { UserConfigOpts } from '$Types/UserConfig';
 
 export class TimerStore {
   // --- State ---
-  isRunning = false;
+  isRunning = $state(false);
   totalTime; // in ms (initial duration)
   remainingTime; // in ms
   // Controls if the board shows the timer gradient

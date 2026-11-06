@@ -15,6 +15,7 @@
   "acceptVariations": true,
   "hints": true,
   "refutation": true,
+  "frontEval": false,
   "playBothSides": false,
   "timer": 10000,
   "increment": 1000,

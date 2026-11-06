@@ -122,7 +122,7 @@
 </script>
 
 {#snippet nullItem()}
-  <span class="nullMove">|...|</span>
+  <span class="nullMove">…</span>
 {/snippet}
 
 {#snippet moveNum(move: CustomPgnMove)}
@@ -239,6 +239,7 @@
 
 <style lang="scss">
   .move-number {
+    font-variant-numeric: tabular-nums;
     padding: 0.2em;
     background-color: var(--surface-primary);
     border-right: var(--border-thin);
@@ -259,15 +260,16 @@
     position: relative;
     box-sizing: border-box;
 
-    &:hover,
     &.current {
       background: var(--surface-hover);
     }
 
-    &:hover {
-      background: var(--surface-hover);
-      /*       border: 1px solid var(--surface-primary); */
-      box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.7);
+    @include can-hover {
+      &:hover {
+        background: var(--surface-hover);
+        /*       border: 1px solid var(--surface-primary); */
+        box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.7);
+      }
     }
 
     &.current {
@@ -337,10 +339,15 @@
     :global(.move) {
       border: 1px solid var(--surface-hover);
     }
-    :global(.move:hover),
     :global(.move.current) {
       background: var(--surface-primary);
       border: 1px solid var(--surface-secondary);
+    }
+    @include can-hover {
+      :global(.move:hover) {
+        background: var(--surface-primary);
+        border: 1px solid var(--surface-secondary);
+      }
     }
 
     :global(.move-number) {

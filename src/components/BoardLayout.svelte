@@ -28,6 +28,9 @@
     <div id="commentBox">
       {@render comments()}
     </div>
+  {:else}
+    <!-- Its place stays taken, so the board doesn't move when the card is flipped -->
+    <div id="commentSpace" aria-hidden="true"></div>
   {/if}
   <div id="board-container" class:player-bars={playerBars}>
     {@render board()}
@@ -57,22 +60,31 @@
     grid-template-rows: auto auto;
     justify-content: center;
 
-    #commentBox {
+    #commentBox,
+    #commentSpace {
       grid-area: one;
-      padding: 0px;
       width: $comment-box-width-calc;
+      margin-top: 1px;
+      box-sizing: border-box;
+    }
+    #commentBox {
+      padding: 0px;
       box-shadow: var(--shadow-main);
       background: var(--surface-primary);
       color: var(--text-primary);
       border: var(--border-thin);
       border-radius: var(--border-radius-global);
-      max-height: calc(var(--board-size) + $player-bar * 2);
-      margin-top: 1px;
-      overflow: scroll;
-      box-sizing: border-box;
+      // As tall as the board's column, with its margin: taller would move the board
+      max-height: calc(var(--board-size) + $player-bar * 2 - 1px);
+      overflow-x: hidden;
+      overflow-y: auto;
     }
     @media (orientation: portrait) {
       #commentBox {
+        max-height: none; // All the room under the board
+      }
+      #commentBox,
+      #commentSpace {
         width: calc(var(--board-size) + 12px);
         height: calc(100dvh - var(--board-size) - $player-bar * 2 - 14px);
         margin-left: 1px;

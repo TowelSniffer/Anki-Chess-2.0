@@ -95,9 +95,11 @@
       z-index: 100;
       cursor: pointer;
 
-      &:hover {
-        background-color: var(--interactive-button-hover);
-        box-shadow: $shadow-grey;
+      @include can-hover {
+        &:hover {
+          background-color: var(--interactive-button-hover);
+          box-shadow: $shadow-grey;
+        }
       }
 
       &:active {
@@ -105,8 +107,8 @@
         color: var(--surface-primary);
       }
 
-      &:focus {
-        outline: 0;
+      &:focus-visible {
+        @include focus-ring;
       }
 
       .promotePiece {

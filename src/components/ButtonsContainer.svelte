@@ -133,21 +133,43 @@
 
 <svelte:window onkeydown={isViewerMode ? handleKeydown : null} />
 
-<button class="iconBtn" id="resetBoard" disabled={!canGoBack} onclick={() => gameStore.reset()}>
+<button
+  class="iconBtn"
+  id="resetBoard"
+  title="First position"
+  aria-label="First position"
+  disabled={!canGoBack}
+  onclick={() => gameStore.reset()}
+>
   <IconFirstPage />
 </button>
 
-<button class="iconBtn" id="navBackward" disabled={!canGoBack} onclick={() => gameStore.prev()}>
+<button
+  class="iconBtn"
+  id="navBackward"
+  title="Previous move"
+  aria-label="Previous move"
+  disabled={!canGoBack}
+  onclick={() => gameStore.prev()}
+>
   <IconArrowLeft />
 </button>
 
-<button class="iconBtn" id="navForward" disabled={!canGoForward} onclick={() => gameStore.next()}>
+<button
+  class="iconBtn"
+  id="navForward"
+  title="Next move"
+  aria-label="Next move"
+  disabled={!canGoForward}
+  onclick={() => gameStore.next()}
+>
   <IconArrowRight />
 </button>
 
 <button
   class="iconBtn tooltip-btn"
   title="Copy FEN to clipboard"
+  aria-label="Copy FEN to clipboard"
   use:clickToCopy={{ text: gameStore.fen, message: 'FEN Copied!' }}
   onclick={() => playSound('click')}
 >
@@ -155,7 +177,7 @@
 </button>
 
 <span class="export" title="Export the PGN or make a new card" bind:this={exportAnchor}>
-  <Dropdown icon={IconShare} items={exportItems} position="bottom-left" />
+  <Dropdown icon={IconShare} items={exportItems} position="bottom-left" ariaLabel="Export the PGN or make a new card" />
 </span>
 
 <button
@@ -163,6 +185,7 @@
   class:active-toggle={engineStore.enabled}
   disabled={engineStore.loading}
   title={engineStore.enabled ? 'Turn Stockfish Off' : 'Turn Stockfish On'}
+  aria-label={engineStore.enabled ? 'Turn Stockfish Off' : 'Turn Stockfish On'}
   onclick={() => engineStore.toggle(gameStore.fen)}
 >
   {#if engineStore.loading}
@@ -174,7 +197,7 @@
   {/if}
 </button>
 
-<button class="iconBtn" onclick={flipBoard}>
+<button class="iconBtn" title="Flip the board" aria-label="Flip the board" onclick={flipBoard}>
   <span class="flipBoardIcon md-small" class:flipped={isFlipped}><IconFlip /></span>
 </button>
 
@@ -202,8 +225,10 @@
       &.active-toggle:not(:disabled) {
         background-color: var(--interactive-button-active);
         @include subtle-shadow(0.7, inset);
-        &:hover:not(:active) {
-          @include subtle-shadow(0.7);
+        @include can-hover {
+          &:hover:not(:active) {
+            @include subtle-shadow(0.7);
+          }
         }
       }
 

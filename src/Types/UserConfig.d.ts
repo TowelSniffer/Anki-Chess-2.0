@@ -14,6 +14,7 @@ export interface UserConfigOpts {
   strictScoring: boolean;
   hints: boolean;
   refutation: boolean;
+  frontEval: boolean;
   acceptVariations: boolean;
   playBothSides: boolean;
   timer: number;

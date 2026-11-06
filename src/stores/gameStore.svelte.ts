@@ -8,6 +8,7 @@ import type {
   PgnPath,
   BoardModes,
   PuzzleScored,
+  PuzzleStatus,
 } from '$Types/ChessStructs';
 import type { MirrorState } from '$features/pgn/mirror';
 
@@ -68,6 +69,8 @@ export class GameStore {
   // The reply punishing a wrong move, shown for a moment before the move is taken back
   refutation = $state<{ from: Square; to: Square } | null>(null);
   isRefuting = $state(false);
+  // How the player's last move went: found it, or the solution was played instead
+  moveFeedback = $state<'correct' | 'solution' | null>(null);
 
   // --- Private State ---
   #flipBoolean: boolean; // Board orientation
@@ -162,6 +165,26 @@ export class GameStore {
       this.#trackedPathKey = path.join(',');
       // A hint is for one move
       this.hintLevel = 0;
+    });
+
+    // Stockfish for the eval bar on the front: on with it, off when the puzzle is done
+    let frontEvalOn = false;
+    $effect(() => {
+      const on = this.showFrontEval;
+      if (on === frontEvalOn) return;
+      frontEvalOn = on;
+      untrack(() => {
+        if (on !== this.engineStore.enabled) this.engineStore.toggle(this.fen);
+      });
+    });
+    // On each new position (the back does this from its button row, which the front doesn't have).
+    // During a refutation the bar keeps the eval of the wrong move.
+    $effect(() => {
+      const engine = this.engineStore;
+      if (!this.showFrontEval || !engine.enabled || engine.loading) return;
+      if (this.isRefuting || engine.isSearchingMove) return;
+      const fen = this.fen;
+      untrack(() => engine.analyze(fen));
     });
 
     // Set cg config
@@ -367,6 +390,37 @@ export class GameStore {
   }
 
   // The PGN move a hint points to: the player's next move in an unsolved puzzle
+  // The border as Stockfish's eval bar while solving. A random orientation hides the side, and
+  // its border colours would mean nothing here
+  get showFrontEval(): boolean {
+    return (
+      /^(Puzzle|Study)$/.test(this.boardMode) &&
+      this.config.frontEval &&
+      !this.config.randomOrientation &&
+      !this.isPuzzleComplete
+    );
+  }
+
+  // The state of the puzzle for the status line (only while solving, on the front)
+  get puzzleStatus(): PuzzleStatus | null {
+    const isPuzzle = this.boardMode === 'Puzzle';
+    if ((!isPuzzle && this.boardMode !== 'Study') || !this.rootGame?.moves?.length) return null;
+
+    if (this.isPuzzleComplete) {
+      const score = this.puzzleScore;
+      return { kind: score === 'perfect' || score === 'fail' ? score : 'pass' };
+    }
+    if (this.moveFeedback === 'solution') return { kind: 'solution' };
+    if (this.hintLevel) return { kind: 'hint', level: this.hintLevel };
+    if (this.wrongMove && this.errorCount) {
+      return { kind: 'wrong', triesLeft: Math.max(this.config.handicap + 1 - this.errorCount, 0) };
+    }
+    // A study plays both sides, so what counts is whose move it is
+    if (isPuzzle && this.moveFeedback === 'correct') return { kind: 'correct' };
+    if (isPuzzle && this.config.randomOrientation) return { kind: 'turn', color: null };
+    return { kind: 'turn', color: isPuzzle ? this.playerColor[0] as 'w' | 'b' : this.turn };
+  }
+
   get hintMove(): CustomPgnMove | null {
     if (!/^(Puzzle|Study)$/.test(this.boardMode) || this.isPuzzleComplete) return null;
     const next = this.getMoveByPath(navigateNextMove(this.pgnPath));
@@ -400,8 +454,11 @@ export class GameStore {
     // Chess.com marks of the move whose shapes are drawn; its square is tinted while it is the last move
     const effectsMove = this.#moveMap.get(pgnPath.join(','));
     return [
-      // Only spread engine shapes if the engine's eval matches our visual FEN
-      ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
+      // Only spread engine shapes if the engine's eval matches our visual FEN.
+      // Never while solving: they would show the move
+      ...(!puzzleMode && engineStore.enabled && engineStore.evalFen === this.fen
+        ? engineStore.shapes
+        : []),
       ...getSystemShapes(pgnPath, this.#moveMap, this.boardMode),
       ...effectShapes(moveEffects(effectsMove), effectsMove === this.currentMove),
       ...parseCal(puzzleMode ? [] : this.currentMove?.commentDiag?.colorArrows),
@@ -632,6 +689,7 @@ export class GameStore {
     this.usedHint = false;
     this.refutation = null;
     this.isRefuting = false;
+    this.moveFeedback = null;
     this.#destroyTimeouts();
   }
 

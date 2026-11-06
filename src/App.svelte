@@ -11,6 +11,7 @@
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
   import HintButton from '$components/HintButton.svelte';
+  import StatusLine from '$components/StatusLine.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import BoardLayout from '$components/BoardLayout.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
@@ -117,6 +118,9 @@
         <!-- The front has no move buttons (they'd give the solution away): the hint and the menu -->
         <div id="sticky-container">
           <div id="buttons-container" class="menu-only">
+            {#if !userConfig.opts.playerBars}
+              <StatusLine standalone />
+            {/if}
             <HintButton />
             <SettingsMenu bind:isHelpOpen inToolbar />
           </div>
@@ -154,6 +158,9 @@
       {#if !showComments}
         <!-- No comment box for the hint and the menu: they float beside the board, never over a square -->
         <div id="floating-tools">
+          {#if !userConfig.opts.playerBars}
+            <StatusLine standalone />
+          {/if}
           <HintButton />
           <SettingsMenu bind:isHelpOpen />
         </div>
@@ -164,14 +171,19 @@
 
 <style lang="scss">
   #userTextContainer {
-    @include flex-center;
     width: 100%;
     background: var(--surface-secondary);
     color: var(--text-primary);
     border-bottom: var(--border-thin);
 
     #textField {
-      padding: 0.5em;
+      padding: 0.5em 0.75em;
+
+      :global(h1),
+      :global(h2),
+      :global(h3) {
+        margin: 0.1em 0 0.3em;
+      }
     }
   }
 
@@ -200,11 +212,13 @@
   #floating-tools {
     display: flex;
     align-items: center;
+    gap: 4px;
     position: absolute;
     grid-area: one;
     right: 0;
     bottom: 0;
     margin: 8px;
+    max-width: calc(100% - 16px);
     z-index: 50; /* Under the popups */
 
     @media (orientation: portrait) {

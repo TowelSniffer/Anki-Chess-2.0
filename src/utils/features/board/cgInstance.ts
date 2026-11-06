@@ -110,6 +110,9 @@ function handleMove(orig: Key, dest: Key, store: GameStore) {
 
 // --- Configuration ---
 
+// Enough to read the arrow without hiding the piece under it
+const ARROW_OPACITY = 0.8;
+
 const customBrushes = {
   stockfish: {
     key: 'stockfish',
@@ -126,25 +129,25 @@ const customBrushes = {
   mainLine: {
     key: 'mainLine',
     color: '#66AA66',
-    opacity: 1,
+    opacity: ARROW_OPACITY,
     lineWidth: 8,
   },
   altLine: {
     key: 'altLine',
     color: '#66AAAA',
-    opacity: 1,
+    opacity: ARROW_OPACITY,
     lineWidth: 8,
   },
   goodLine: {
     key: 'goodLine',
     color: 'var(--status-perfect)',
-    opacity: 1,
+    opacity: ARROW_OPACITY,
     lineWidth: 8,
   },
   blunderLine: {
     key: 'blunderLine',
     color: 'var(--status-fail)',
-    opacity: 1,
+    opacity: ARROW_OPACITY,
     lineWidth: 7,
   },
   nagOnly: {
@@ -154,10 +157,10 @@ const customBrushes = {
     lineWidth: 7,
   },
   // default
-  green: { key: 'green', color: 'green', opacity: 1, lineWidth: 7 },
-  red: { key: 'red', color: 'red', opacity: 1, lineWidth: 7 },
-  blue: { key: 'blue', color: 'blue', opacity: 1, lineWidth: 7 },
-  yellow: { key: 'yellow', color: 'yellow', opacity: 1, lineWidth: 7 },
+  green: { key: 'green', color: 'green', opacity: ARROW_OPACITY, lineWidth: 7 },
+  red: { key: 'red', color: 'red', opacity: ARROW_OPACITY, lineWidth: 7 },
+  blue: { key: 'blue', color: 'blue', opacity: ARROW_OPACITY, lineWidth: 7 },
+  yellow: { key: 'yellow', color: 'yellow', opacity: ARROW_OPACITY, lineWidth: 7 },
 };
 
 // track existing custom animations

@@ -1,18 +1,60 @@
 @use "globals" as *;
 
-::-webkit-scrollbar {
-  display: none;
-}
-
-* {
-  /*disable the tap/touch highlight that sametimes appears over the board when using a touch screen */
-  -webkit-tap-highlight-color: transparent;
-}
-
-html,
-img {
+/*
+ * Only while an AnkiChess card is shown: AnkiDroid reuses the page, with this CSS in it, for the
+ * cards of other note types. :where() adds no specificity, so a note type's own CSS still wins.
+ */
+:where(:root:has(#chessRs-root)) {
   margin: 0;
   color: white;
+
+  img {
+    margin: 0;
+    color: white;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    /*disable the tap/touch highlight that sametimes appears over the board when using a touch screen */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: var(--background-color);
+    margin: 0;
+    font-family: var(--font-ui);
+  }
+
+  hr {
+    border: 0; /* Removes default browser borders */
+    height: 4px; /* Defines the thickness of the rectangle */
+    margin:0;
+    width: 100%;
+    background-color: transparent;
+
+    /* Apply inner shadows for divet look */
+    box-shadow:
+    /* Top Inner Shadow: Creates the 'indented' dark depth */
+    inset 0px 1px 1px rgba(0,0,0,0.6),
+
+    /* Bottom Outer Highlight: Catches the light on the bottom lip */
+    0px 1px 0px rgba(255,255,255,0.8);
+  }
+
+  /* With a pointer, a thin scrollbar shows the moves go on; on touch a swipe finds out */
+  @media (hover: hover) {
+    #commentBox::-webkit-scrollbar {
+      display: block;
+      width: 6px;
+    }
+    #commentBox::-webkit-scrollbar-thumb {
+      background: var(--surface-hover);
+      border-radius: 3px;
+    }
+  }
 }
 
 /*
@@ -25,17 +67,13 @@ img {
   zoom: 1 !important;
 }
 
-body {
-  background: var(--background-color);
-  margin: 0;
+#chessRs-root {
+  height: 100dvh;
+  width: 100dvw;
+  font-family: var(--font-ui);
 
-  #chessRs-root {
-    height: 100dvh;
-    width: 100dvw;
-
-    flex-direction: column;
-    @include flex-center;
-  }
+  flex-direction: column;
+  @include flex-center;
 }
 
 .hidden {
@@ -47,22 +85,6 @@ body {
 
 }
 .box-shadow-bottom {
-}
-
-hr {
-  border: 0; /* Removes default browser borders */
-  height: 4px; /* Defines the thickness of the rectangle */
-  margin:0;
-  width: 100%;
-  background-color: transparent;
-
-  /* Apply inner shadows for divet look */
-  box-shadow:
-  /* Top Inner Shadow: Creates the 'indented' dark depth */
-  inset 0px 1px 1px rgba(0,0,0,0.6),
-
-  /* Bottom Outer Highlight: Catches the light on the bottom lip */
-  0px 1px 0px rgba(255,255,255,0.8);
 }
 
 /* Global Clipboard Tooltip Styles */

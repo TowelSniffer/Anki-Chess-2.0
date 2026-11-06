@@ -78,6 +78,10 @@ $border-radius-global: 4px;
   --status-pass: #{$palette-pass};
   --status-perfect: #{$palette-perfect};
 
+  /* The card's one font; the numbers line up in the clock and the move list */
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --focus-ring: #8ab4f8;
+
   /* Board Specifics */
   --board-border: #{$board-border};
   --board-size: #{$board-size-calc};
@@ -92,11 +96,24 @@ $border-radius-global: 4px;
 
   --text-primary: #{$palette-light-text};
   --text-muted: #{$palette-light-muted};
+  --focus-ring: #1a73e8;
 
   /* Soften the shadows and borders for light mode */
   --shadow-main: 0px 0px 3px 0px rgba(0, 0, 0, 0.2);
   --shadow-strong: 0px 0px 3px 1px rgba(0, 0, 0, 0.3);
   --border-thin: 1px solid #ccc;
+}
+
+/* Hover only where there is a pointer: on touch screens :hover sticks after a tap */
+@mixin can-hover {
+  @media (hover: hover) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
 }
 
 @mixin unselectable {
@@ -166,12 +183,14 @@ $border-radius-global: 4px;
   font-size: 1.65rem;
 
   &:focus-visible {
-    outline: 1px solid blue;
+    @include focus-ring;
   }
 
-  &:hover:not(:disabled, .active-toggle) {
-    background-color: var(--interactive-button-hover);
-    @include subtle-shadow(0.7);
+  @include can-hover {
+    &:hover:not(:disabled, .active-toggle) {
+      background-color: var(--interactive-button-hover);
+      @include subtle-shadow(0.7);
+    }
   }
 
   &:active:not(:disabled) {

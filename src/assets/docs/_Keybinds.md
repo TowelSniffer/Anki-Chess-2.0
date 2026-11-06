@@ -10,3 +10,6 @@ You can navigate through the moves quickly using your mouse wheel or keyboard.
 * `Arrow Right`: Navigates forwards to the next move.
 * `Arrow Left`: Navigates backwards to the previous move.
 * `Arrow Down`: Resets the board to the starting position.
+
+### While solving
+* `H`: Asks for a hint.

@@ -49,6 +49,7 @@ cg-container {
     }
 
     &.files {
+      text-transform: none !important; /* Overrides uppercase: "b" is a file, "B" a bishop */
       left: 0 !important;    /* Overrides default left: 24px */
       bottom: 0 !important;  /* Overrides default bottom: -4px */
       height: 12.5% !important; /* Overrides default 16px */

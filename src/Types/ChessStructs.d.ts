@@ -4,6 +4,13 @@ import type { PgnMove, GameComment, PgnGame } from '@mliebelt/pgn-types';
 
 export type PuzzleScored = 'perfect' | 'pass' | 'fail' | 'draw' | null;
 
+// What the status line says while a puzzle is solved on the front
+export type PuzzleStatus =
+  | { kind: 'turn'; color: 'w' | 'b' | null } // no colour: a random orientation hides the side
+  | { kind: 'hint'; level: number }
+  | { kind: 'wrong'; triesLeft: number }
+  | { kind: 'correct' | 'solution' | 'perfect' | 'pass' | 'fail' };
+
 /**
  * Mlieberts promotion is uppercase. Gotten from san (ie dxc8=N)
  * chess.js promotion is lower case
