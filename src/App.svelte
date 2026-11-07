@@ -12,7 +12,7 @@
   import SettingsMenu from '$components/SettingsMenu.svelte';
   import HintButton from '$components/HintButton.svelte';
   import EvalButton from '$components/EvalButton.svelte';
-  import StatusLine from '$components/StatusLine.svelte';
+  import PuzzleClock from '$components/PuzzleClock.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import BoardLayout from '$components/BoardLayout.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
@@ -120,7 +120,7 @@
         <div id="sticky-container">
           <div id="buttons-container" class="menu-only">
             {#if !userConfig.opts.playerBars}
-              <StatusLine standalone />
+              <PuzzleClock standalone />
             {/if}
             <EvalButton />
             <HintButton />
@@ -161,7 +161,7 @@
         <!-- No comment box for the hint and the menu: they float beside the board, never over a square -->
         <div id="floating-tools">
           {#if !userConfig.opts.playerBars}
-            <StatusLine standalone />
+            <PuzzleClock standalone />
           {/if}
           <EvalButton />
           <HintButton />

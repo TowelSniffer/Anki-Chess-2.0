@@ -104,7 +104,6 @@ export async function handleUserMove(
 
     if (existingPath) {
       // A) Move exists in PGN (Main line or Variation)
-      store.moveFeedback = 'correct';
       store.pgnPath = existingPath;
       checkPuzzleComplete(store);
       store.timerStore.extend(store.config.increment, store.aiDelayTime);
@@ -117,7 +116,6 @@ export async function handleUserMove(
         store.addMove(move); // Add to PGN
       } else if (isAlternativeMate(store, move)) {
         // C) Another checkmate than the PGN's: correct, and it ends the puzzle
-        store.moveFeedback = 'correct';
         store.addMove(move);
         checkPuzzleComplete(store);
       } else {
@@ -134,8 +132,6 @@ export function playAiMove(store: GameStore, delay: number): void {
     store.wrongMove = null;
     store.wrongMoveComment = null;
     store.errorCount = 0;
-    // The player's turn again after the solution was played: ask for the next move
-    if (store.moveFeedback === 'solution') store.moveFeedback = null;
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
 
     const nextMove = store.getMoveByPath(nextMovePathCheck);
@@ -162,7 +158,6 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
   // disable interaction until player move is made
   // Clear any existing wrong move highlight
   store.wrongMove = null;
-  store.moveFeedback = 'solution';
   store.setTrackedTimeout(() => {
     store.errorCount = 0;
     // Make the move without the AI's variation-selection logic
@@ -170,8 +165,6 @@ function playUserCorrectMove(store: GameStore, delay: number): void {
     store.pgnPath = nextMovePath;
     if (store.boardMode === 'Puzzle') {
       playAiMove(store, delay); // then play the AI's response
-    } else {
-      store.moveFeedback = null;
     }
     checkPuzzleComplete(store);
   }, delay);
@@ -193,7 +186,6 @@ function handleWrongMove(store: GameStore, move: Move): void {
 
   store.errorCount++;
   store.hasMadeMistake = true;
-  store.moveFeedback = null;
   // Track the wrong move
   store.wrongMove = { from: move.from, to: move.to };
   store.wrongMoveComment = findVariationComment(store, move);

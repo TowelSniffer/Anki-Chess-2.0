@@ -8,7 +8,6 @@ import type {
   PgnPath,
   BoardModes,
   PuzzleScored,
-  PuzzleStatus,
 } from '$Types/ChessStructs';
 import type { MirrorState } from '$features/pgn/mirror';
 
@@ -69,8 +68,6 @@ export class GameStore {
   // The reply punishing a wrong move, shown for a moment before the move is taken back
   refutation = $state<{ from: Square; to: Square } | null>(null);
   isRefuting = $state(false);
-  // How the player's last move went: found it, or the solution was played instead
-  moveFeedback = $state<'correct' | 'solution' | null>(null);
 
   // --- Private State ---
   #flipBoolean: boolean; // Board orientation
@@ -401,26 +398,6 @@ export class GameStore {
     );
   }
 
-  // The state of the puzzle for the status line (only while solving, on the front)
-  get puzzleStatus(): PuzzleStatus | null {
-    const isPuzzle = this.boardMode === 'Puzzle';
-    if ((!isPuzzle && this.boardMode !== 'Study') || !this.rootGame?.moves?.length) return null;
-
-    if (this.isPuzzleComplete) {
-      const score = this.puzzleScore;
-      return { kind: score === 'perfect' || score === 'fail' ? score : 'pass' };
-    }
-    if (this.moveFeedback === 'solution') return { kind: 'solution' };
-    if (this.hintLevel) return { kind: 'hint', level: this.hintLevel };
-    if (this.wrongMove && this.errorCount) {
-      return { kind: 'wrong', triesLeft: Math.max(this.config.handicap + 1 - this.errorCount, 0) };
-    }
-    // A study plays both sides, so what counts is whose move it is
-    if (isPuzzle && this.moveFeedback === 'correct') return { kind: 'correct' };
-    if (isPuzzle && this.config.randomOrientation) return { kind: 'turn', color: null };
-    return { kind: 'turn', color: isPuzzle ? this.playerColor[0] as 'w' | 'b' : this.turn };
-  }
-
   get hintMove(): CustomPgnMove | null {
     if (!/^(Puzzle|Study)$/.test(this.boardMode) || this.isPuzzleComplete) return null;
     const next = this.getMoveByPath(navigateNextMove(this.pgnPath));
@@ -689,7 +666,6 @@ export class GameStore {
     this.usedHint = false;
     this.refutation = null;
     this.isRefuting = false;
-    this.moveFeedback = null;
     this.#destroyTimeouts();
   }
 

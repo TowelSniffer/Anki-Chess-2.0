@@ -10,7 +10,7 @@
   import { getContext } from 'svelte';
   import { materialDiff } from '$features/chessJs/material';
   import { playerInfo } from '$features/pgn/players';
-  import StatusLine from '$components/StatusLine.svelte';
+  import PuzzleClock from '$components/PuzzleClock.svelte';
 
   // The side of the board this bar is on: it shows the player of the colour there
   let { position }: { position: 'top' | 'bottom' } = $props();
@@ -34,9 +34,6 @@
 
   const material = $derived(materialDiff(gameStore.fen)[color]);
 
-  // The player's side of the board says how the puzzle is going, while it's on the front
-  const showStatus = $derived(position === 'bottom' && !!gameStore.puzzleStatus);
-
   // Pieces of the same kind drawn overlapping, as on Lichess
   const groups = $derived.by(() => {
     const result: { role: MaterialRole; count: number }[] = [];
@@ -49,7 +46,7 @@
   });
 </script>
 
-{#snippet identity()}
+<div class="player-bar {position}" data-color={color}>
   {#if showResult && player.result}
     <span class="result" class:win={player.result === '1'} class:loss={player.result === '0'}>
       {player.result}
@@ -58,10 +55,7 @@
   {#if player.title}
     <span class="title">{player.title}</span>
   {/if}
-  <!-- Next to the status, a player without a name would only take its room -->
-  {#if !(showStatus && player.name === 'NN')}
-    <span class="name" title={player.name}>{player.name}</span>
-  {/if}
+  <span class="name" title={player.name}>{player.name}</span>
   {#if player.elo}
     <span class="elo">{player.elo}</span>
   {/if}
@@ -79,13 +73,9 @@
       <span class="score">+{material.score}</span>
     {/if}
   </span>
-{/snippet}
 
-<div class="player-bar {position}" data-color={color}>
-  {#if showStatus}
-    <StatusLine>{@render identity()}</StatusLine>
-  {:else}
-    {@render identity()}
+  {#if position === 'bottom'}
+    <PuzzleClock />
   {/if}
 </div>
 
@@ -134,6 +124,7 @@
   .name {
     min-width: 0;
     overflow: hidden;
+    line-height: 1.3; /* Room for the descenders: overflow clips them at the bar's line height */
     text-overflow: ellipsis;
     font-weight: 600;
     color: var(--text-primary);
