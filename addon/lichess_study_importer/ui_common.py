@@ -49,6 +49,8 @@ TOKEN_URL = (
     "?scopes[]=study:read&scopes[]=puzzle:read&description=AnkiChess%20importer"
 )
 TOKEN_KEYS = ("lichess_token", "lichess_token_user")
+# Where the puzzle sync is (puzzle_sync.py), saved by the sync alone
+SYNC_STATE_KEYS = ("puzzle_sync_since", "puzzle_sync_at", "puzzle_sync_layout")
 # Status colours, readable on light and dark themes
 STATUS_COLORS = {
     "new": ("#2e7d32", "#81c784"),
@@ -61,10 +63,20 @@ def get_config() -> dict:
 
 
 def write_config(config: dict) -> None:
-    # The token is saved by its dialog alone (save_token): a page's older copy of the
-    # config keeps the one saved now
+    # The token is saved by its dialog alone (save_token), and the puzzle sync's state by
+    # the sync (save_sync_state): a page's older copy of the config keeps the ones saved now
     current = get_config()
-    config.update({key: current[key] for key in TOKEN_KEYS if key in current})
+    config.update({key: current[key] for key in (*TOKEN_KEYS, *SYNC_STATE_KEYS) if key in current})
+    mw.addonManager.writeConfig(__name__, config)
+
+
+def save_sync_state(since: int, at: int, layout: int) -> None:
+    """
+    Where the next puzzle sync starts (ms), when this one ran (ms), and the deck and tag
+    layout of the puzzles it left in place (puzzle_sync.PUZZLE_LAYOUT).
+    """
+    config = get_config()
+    config.update(puzzle_sync_since=since, puzzle_sync_at=at, puzzle_sync_layout=layout)
     mw.addonManager.writeConfig(__name__, config)
 
 

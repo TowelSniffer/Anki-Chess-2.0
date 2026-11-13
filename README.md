@@ -147,7 +147,7 @@ All the importers file cards under one root deck, set in the add-on config (`dec
 
 - Each Lichess study gets its own deck, named after the study (`StudyName`; the file name for PGNs without it). Once loaded, its deck can be typed (with suggestions from your decks) or picked with **Choose…** (Anki's deck list, as in the Add window) in the **Study deck** field; a list picks the study when several are loaded. The deck is linked to the study at once: the next import uses it while it exists, else the deck the study's notes are in now (decks renamed or moved in Anki are followed). Each chapter's subdeck can be renamed too (double-click a **Deck** cell or press F2; with several rows selected, F2 renames them all). `::` creates levels, e.g. `Chess::Courses::Sicilian`; spaces around each level are trimmed and empty levels dropped, as Anki would otherwise name them `blank`. An empty subdeck files the chapter in the study deck itself. Renamed decks are kept for the next import of the same study (`study_decks` / `chapter_decks` in the config).
 - Lichess chapters are classified automatically: from a `[FEN]` → tactics, unless the position is in the opening catalog; a `[FEN]` and no moves → structure; no FEN and no result (`*`) → opening line; no FEN with a result → annotated game. The type can be changed per chapter, except for structures.
-- Tags are hierarchical (`::` separates the levels, `_` replaces spaces): `<study>::<study name>::<chapter name>` (e.g. `estudo::#C105_-_Siciliana_O'Kelly:_Outras_opções::Capítulo_1`), `<opening>::<family>::<variation>` (e.g. `opening::Slav_Defense::Czech_Variation`, from the opening Lichess writes in the chapter or the catalog), `eco::<code>`, and the source (`lichess::study::<id>`, `lichess::puzzle::<theme>`…). When updating a note, the importer replaces the tags it wrote before and keeps yours.
+- Tags are hierarchical (`::` separates the levels, `_` replaces spaces): `<study>::<study name>::<chapter name>` (e.g. `estudo::#C105_-_Siciliana_O'Kelly:_Outras_opções::Capítulo_1`), `<opening>::<family>::<variation>` (e.g. `opening::Slav_Defense::Czech_Variation`, from the opening Lichess writes in the chapter or the catalog), `eco::<code>`, and the source (`lichess::study::<id>`, `lichess::puzzle::theme::<theme>`…). When updating a note, the importer replaces the tags it wrote before and keeps yours.
 
 ## Games (Chess.com and Lichess)
 
@@ -170,11 +170,17 @@ The **Games** tab turns one of your games into cards:
 
 ## Lichess puzzles
 
-The **Lichess puzzles** tab imports puzzles as cards: the opponent's last move is played first, then you play the solution (any mate is accepted on the last move). Filter by theme or id, sort by rating, a board preview, and the deck can be changed (`puzzle_deck`).
+The **Lichess puzzles** tab imports puzzles as cards: the opponent's last move is played first, then you play the solution (any mate is accepted on the last move). Filter by theme, id or result, sort by date or rating, a board preview, and the deck can be changed (`puzzle_deck`).
 
-- **Load my puzzles**: your latest puzzles (by default only the ones you failed), with your [Lichess token](#lichess-token) (`puzzle:read` scope; without one, the button opens it).
+- **Load my puzzles**: your latest puzzles, or **All** of your puzzle history, with your [Lichess token](#lichess-token) (`puzzle:read` scope; without one, the button opens it). Lichess sends about 20 puzzles a second (10,000 in about 8 minutes); Esc stops and keeps the most recent ones loaded.
+- **Check: All · Only the failed ones · None** checks many puzzles at once, among the ones shown (so a theme filter applies too). Loading checks the new failed ones, or every new one after **All**. Lichess gives your last result: a puzzle you failed and then solved again counts as solved.
+- **Start with the opponent's move (slower)**: importing fetches each checked puzzle's game, about 0.6 s per puzzle; the estimate is shown next to the Import button, and Esc stops and imports the ones fetched (the others stay checked). Unchecked, the puzzles of your activity are imported at once and start at the puzzle position. Updating an imported puzzle always fetches its game.
 - Or puzzle links (`lichess.org/training/…`) or ids.
-- Tags: `lichess::puzzle`, one per theme (`lichess::puzzle::mateIn3`…) and `lichess::puzzle::failed`.
+- **Sync now** imports the puzzles you played on Lichess that aren't in Anki yet, all of them or only the failed ones (`Sync:` choice): your whole history the first time, then only the ones played since the last sync (seconds). Once a first sync was made, it also runs quietly when Anki opens (**When Anki opens**), with a tooltip when puzzles were imported. It uses the deck and **Start with the opponent's move**, and never changes puzzles already imported.
+- The green knight button at the end of Anki's menu bar (after Help), like Anki Restart's, syncs in one click; its tooltip shows the last sync. **Button in Anki's menu bar** (`puzzle_sync_button`) hides it.
+- Decks: the puzzles go into the **Failed** and **Solved** subdecks of the puzzle deck, by your result on Lichess (puzzle links: into the deck itself). A puzzle has several themes and a note lives in one deck, so the themes are tags: a filtered deck on `tag:lichess::puzzle::theme::fork` drills one theme.
+- Tags: `lichess::puzzle`, one per theme (`lichess::puzzle::theme::mateIn3`…) and `lichess::puzzle::failed` or `lichess::puzzle::solved`.
+- The sync also moves the puzzles already imported that it reads to Failed/Solved, with the current tags (their content and reviews stay). After an update that changes this layout, the next sync reads your whole history once, so every imported puzzle is moved.
 
 ## Build
 

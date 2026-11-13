@@ -24,8 +24,23 @@
 - **lichess_token_user**: the Lichess account of the token, found when it was checked (shown in the
   import window).
 - **lichess_username**: last user whose studies were listed (`User's studies…`).
-- **puzzle_max** / **puzzle_failed_only**: how many of your latest puzzles to load, and only the failed ones.
+- **puzzle_max** / **puzzle_all**: how many of your latest puzzles to load, or your whole puzzle history.
+- **puzzle_failed_only**: loading checks only the failed puzzles (the last of the "All" and "Only the failed
+  ones" buttons clicked).
+- **puzzle_fetch_games**: fetch each imported puzzle's game, so the card starts with the opponent's last
+  move (about 0.6 s per puzzle). `false` imports the puzzles of your activity at once, starting at the
+  puzzle position.
 - **puzzle_deck**: deck of the Lichess puzzles. Empty = `<root>::Lichess puzzles`.
+- **puzzle_sync_failed_only**: the puzzle sync imports only the puzzles you failed (`false`: all of them).
+- **puzzle_sync_on_open**: sync the puzzles when the profile opens, quietly, once a first sync was made
+  with "Sync now".
+- **puzzle_sync_button**: the button at the end of Anki's menu bar (after Help) that syncs the puzzles in
+  one click.
+- **puzzle_sync_since** / **puzzle_sync_at**: where the next sync starts reading your puzzle activity and
+  when the last one ran (ms; written by the sync). `0` = never synced: the next sync goes through your
+  whole history.
+- **puzzle_sync_layout**: the deck and tag layout the sync left the imported puzzles in (written by the
+  sync). Lower than the add-on's: the next sync reads the whole history once and moves them.
 
 **Games** (`Tools > Import into AnkiChess...`, Games tab):
 

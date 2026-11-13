@@ -318,7 +318,81 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.themes": "Themes: {themes}",
         "puzzle.result": "Lichess puzzles: {created} created, {updated} updated, {unchanged} up to date, {skipped} skipped.",
         "puzzle.undo": "Import Lichess puzzles",
+        "puzzle.all": "All",
+        "puzzle.all_tip": (
+            "Your whole puzzle history. Lichess sends about 20 puzzles a second (10,000 in about "
+            "8 minutes): Esc stops and keeps the most recent ones loaded."
+        ),
+        "puzzle.loading_activity": "Loading your puzzle activity: {count} puzzles…",
+        "puzzle.activity_cancelled": "Stopped: the {count} most recent puzzles were loaded.",
+        "puzzle.activity_connection": "The connection to Lichess dropped: the {count} most recent puzzles were loaded.",
+        "puzzle.unreadable": "{count} puzzles Lichess sent could not be read and were left out.",
+        "puzzle.check": "Check:",
+        "puzzle.check_all": "All",
+        "puzzle.check_all_tip": (
+            "Checks every puzzle shown (the filter applies) not imported yet, or all of them with "
+            "\"Update notes already imported\", and unchecks the others."
+        ),
+        "puzzle.check_failed_tip": (
+            "Checks the failed puzzles shown (the filter applies) not imported yet, or all of them "
+            "with \"Update notes already imported\", and unchecks the others. Lichess gives your "
+            "last result: a puzzle you failed and then solved again counts as solved."
+        ),
+        "puzzle.check_none": "None",
+        "puzzle.table.date": "Date",
+        "puzzle.fetch_games": "Start with the opponent's move (slower)",
+        "puzzle.fetch_games_tip": (
+            "Fetches each puzzle's game from Lichess (about 0.6 s each) so the card plays the "
+            "opponent's last move first, as on Lichess. Unchecked, the puzzles of your activity "
+            "are imported at once and start at the puzzle position. Updating an imported puzzle "
+            "always fetches its game."
+        ),
+        "puzzle.fetch_estimate": "{count} to fetch from Lichess (~{minutes} min)",
+        "puzzle.fetch_stopped": "Stopped after {done} of {total} puzzles.",
+        "puzzle.rest_checked": "The others are still checked: import again to go on.",
+        "puzzle.sync_label": "Sync:",
+        "puzzle.sync_all": "All new puzzles",
+        "puzzle.sync_mode_tip": "Which of the puzzles you played the sync imports: all of them, or only the ones you failed.",
+        "puzzle.sync_on_open": "When Anki opens",
+        "puzzle.sync_on_open_tip": (
+            "When your profile opens, looks for the puzzles you played since the last sync and "
+            "imports them, in the background. Starts after the first sync (Sync now), which "
+            "goes through your whole history."
+        ),
+        "puzzle.sync_now": "Sync now",
+        "puzzle.sync_now_tip": (
+            "Imports the puzzles you played on Lichess that aren't in Anki yet: your whole history "
+            "the first time (it can take a while: Esc stops, the rest is imported at the next "
+            "sync), then only the new ones. Uses the deck and \"Start with the opponent's move\" "
+            "below. The puzzles already imported that it reads move to Failed/Solved with the "
+            "current tags; their content and reviews stay."
+        ),
+        "puzzle.sync_never": "Never synced: the first sync imports your whole history.",
+        "puzzle.sync_last": "Last sync: {date}",
+        "puzzle.sync_running": "The puzzle sync is already running.",
+        "puzzle.sync_none": "Lichess puzzles: nothing new to import.",
+        "puzzle.sync_done": "Lichess puzzles: {count} new imported.",
+        "puzzle.sync_rest": "The rest will be imported at the next sync.",
+        "puzzle.sync_cancelled": "Sync stopped: nothing was imported, and the next sync starts from the same point.",
+        "puzzle.sync_connection": (
+            "The connection to Lichess dropped: nothing was imported, and the next sync starts "
+            "from the same point."
+        ),
+        "puzzle.sync_error": "Lichess puzzle sync: {error}",
+        "puzzle.sync_button": "Sync Lichess puzzles",
+        "puzzle.sync_button_check": "Button in Anki's menu bar",
+        "puzzle.sync_button_tip": (
+            "A button at the end of Anki's menu bar (after Help): one click syncs your Lichess puzzles."
+        ),
         "deck.puzzles": "Lichess puzzles",
+        "deck.puzzles_failed": "Failed",
+        "deck.puzzles_solved": "Solved",
+        "puzzle.deck_tip": (
+            "The puzzles go into its Failed and Solved subdecks, by your result on Lichess (puzzle "
+            "links: into this deck). Every theme is a tag (lichess::puzzle::theme::fork…): a "
+            "filtered deck on one of them drills that theme."
+        ),
+        "puzzle.sync_organized": "{count} already imported were moved to Failed/Solved or retagged.",
         # --- Interface refinements ---
         "window.title": "AnkiChess: import",
         "window.tab_studies": "Lichess studies",
@@ -734,7 +808,82 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.themes": "Temas: {themes}",
         "puzzle.result": "Puzzles do Lichess: {created} criados, {updated} atualizados, {unchanged} já em dia, {skipped} pulados.",
         "puzzle.undo": "Importar puzzles do Lichess",
+        "puzzle.all": "Todos",
+        "puzzle.all_tip": (
+            "Todo o seu histórico de puzzles. O Lichess envia uns 20 puzzles por segundo (10.000 em "
+            "uns 8 minutos): Esc para e fica com os mais recentes já carregados."
+        ),
+        "puzzle.loading_activity": "Carregando a sua atividade de puzzles: {count} puzzles…",
+        "puzzle.activity_cancelled": "Interrompido: os {count} puzzles mais recentes foram carregados.",
+        "puzzle.activity_connection": "A conexão com o Lichess caiu: os {count} puzzles mais recentes foram carregados.",
+        "puzzle.unreadable": "{count} puzzles enviados pelo Lichess não puderam ser lidos e ficaram de fora.",
+        "puzzle.check": "Marcar:",
+        "puzzle.check_all": "Todos",
+        "puzzle.check_all_tip": (
+            "Marca todos os puzzles mostrados (o filtro vale) que ainda não foram importados, ou "
+            "todos com \"Atualizar notas já importadas\", e desmarca os outros."
+        ),
+        "puzzle.check_failed_tip": (
+            "Marca os puzzles errados mostrados (o filtro vale) que ainda não foram importados, ou "
+            "todos com \"Atualizar notas já importadas\", e desmarca os outros. O Lichess informa "
+            "o seu último resultado: um puzzle que você errou e depois acertou conta como acertado."
+        ),
+        "puzzle.check_none": "Nenhum",
+        "puzzle.table.date": "Data",
+        "puzzle.fetch_games": "Começar pelo lance do adversário (mais lento)",
+        "puzzle.fetch_games_tip": (
+            "Busca o jogo de cada puzzle no Lichess (uns 0,6 s cada) para o cartão jogar primeiro o "
+            "último lance do adversário, como no Lichess. Desmarcado, os puzzles da sua atividade "
+            "são importados na hora e começam na posição do puzzle. Atualizar um puzzle já "
+            "importado sempre busca o jogo."
+        ),
+        "puzzle.fetch_estimate": "{count} a buscar no Lichess (~{minutes} min)",
+        "puzzle.fetch_stopped": "Parou em {done} de {total} puzzles.",
+        "puzzle.rest_checked": "Os outros continuam marcados: importe de novo para continuar.",
+        "puzzle.sync_label": "Sincronizar:",
+        "puzzle.sync_all": "Todos os puzzles novos",
+        "puzzle.sync_mode_tip": "Quais dos puzzles que você fez a sincronização importa: todos, ou só os que você errou.",
+        "puzzle.sync_on_open": "Ao abrir o Anki",
+        "puzzle.sync_on_open_tip": (
+            "Ao abrir o seu perfil, procura os puzzles que você fez desde a última sincronização e "
+            "os importa, em segundo plano. Começa depois da primeira sincronização (Sincronizar "
+            "agora), que percorre todo o seu histórico."
+        ),
+        "puzzle.sync_now": "Sincronizar agora",
+        "puzzle.sync_now_tip": (
+            "Importa os puzzles que você fez no Lichess e que ainda não estão no Anki: todo o seu "
+            "histórico na primeira vez (pode demorar: Esc para, e o resto entra na próxima "
+            "sincronização), depois só os novos. Usa o deck e \"Começar pelo lance do adversário\" "
+            "abaixo. Os puzzles já importados que ela lê vão para Errados/Acertados com as tags "
+            "atuais; o conteúdo e as revisões continuam."
+        ),
+        "puzzle.sync_never": "Nunca sincronizado: a primeira sincronização importa todo o seu histórico.",
+        "puzzle.sync_last": "Última sincronização: {date}",
+        "puzzle.sync_running": "A sincronização de puzzles já está em andamento.",
+        "puzzle.sync_none": "Puzzles do Lichess: nada novo para importar.",
+        "puzzle.sync_done": "Puzzles do Lichess: {count} novos importados.",
+        "puzzle.sync_rest": "O resto entra na próxima sincronização.",
+        "puzzle.sync_cancelled": "Sincronização interrompida: nada foi importado, e a próxima começa do mesmo ponto.",
+        "puzzle.sync_connection": (
+            "A conexão com o Lichess caiu: nada foi importado, e a próxima sincronização começa "
+            "do mesmo ponto."
+        ),
+        "puzzle.sync_error": "Sincronização de puzzles do Lichess: {error}",
+        "puzzle.sync_button": "Sincronizar puzzles do Lichess",
+        "puzzle.sync_button_check": "Botão na barra do Anki",
+        "puzzle.sync_button_tip": (
+            "Um botão no fim da barra de menus do Anki (depois de Ajuda): um clique sincroniza os "
+            "seus puzzles do Lichess."
+        ),
         "deck.puzzles": "Puzzles do Lichess",
+        "deck.puzzles_failed": "Errados",
+        "deck.puzzles_solved": "Acertados",
+        "puzzle.deck_tip": (
+            "Os puzzles vão para os subdecks Errados e Acertados deste deck, pelo seu resultado no "
+            "Lichess (links de puzzles: para este deck). Cada tema é uma tag "
+            "(lichess::puzzle::theme::fork…): um deck filtrado por uma delas treina aquele tema."
+        ),
+        "puzzle.sync_organized": "{count} já importados foram movidos para Errados/Acertados ou receberam as tags novas.",
         # --- Interface refinements ---
         "window.title": "AnkiChess: importar",
         "window.tab_studies": "Estudos do Lichess",

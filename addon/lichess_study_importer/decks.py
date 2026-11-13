@@ -214,6 +214,13 @@ def study_deck(ch: Chapter, root: str, fallback_study: str = "") -> str:
     return f"{root}::{study_name(ch, fallback_study)}"
 
 
+def puzzle_placement(deck: str, win: bool | None) -> Placement:
+    """A Lichess puzzle's deck: the Failed or Solved subdeck, by your result (a link's: the deck)."""
+    if win is None:
+        return Placement(deck)
+    return Placement(f"{deck}::{tr('deck.puzzles_solved' if win else 'deck.puzzles_failed')}")
+
+
 def place_game_card(card, root: str) -> Placement:
     """Placement for a game_analysis.GameCard."""
     if card.kind in OPENING_KINDS:
