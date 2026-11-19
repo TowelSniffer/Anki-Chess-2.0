@@ -1,0 +1,151 @@
+[Event "QUICKSTART - Siciliana O'kelly: Introdução"]
+[Date "2026.10.17"]
+[Result "*"]
+[Variant "Standard"]
+[ECO "B28"]
+[Opening "Sicilian Defense: O'Kelly Variation, Normal System"]
+[StudyName "QUICKSTART - Siciliana O'kelly"]
+[ChapterName "Introdução"]
+[ChapterURL "https://lichess.org/study/w7B3QmIi/NtZyfrcX"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[UTCDate "2026.10.17"]
+[UTCTime "06:18:25"]
+[Orientation "black"]
+
+1. e4 c5 2. Nf3 a6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 e5 *
+
+
+[Event "#C26 - Estrutura Najdorf II: Introdução"]
+[Site "https://lichess.org/study/9PEjG6aX/cG9BP1U9"]
+[Date "2026.10.17"]
+[Result "*"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "8/1p3ppp/p2p4/4p3/4P3/8/PPP2PPP/8 w - - 0 1"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "QUICKSTART - Siciliana O'kelly"]
+[ChapterName "Estrutura I (Najdorf)"]
+[ChapterURL "https://lichess.org/study/w7B3QmIi/3CY8U1bO"]
+[FEN "8/1p3ppp/p2p4/4p3/4P3/8/PPP2PPP/8 w - - 0 1"]
+[SetUp "1"]
+[UTCDate "2026.10.17"]
+[UTCTime "06:18:25"]
+[Orientation "black"]
+
+{ Nessa estrutura, todos os planos estratégicos estão de alguma forma ligados ao controle de d5.
+
+Plano das brancas:
+1. Colocar um cavalo em d5 e tenha peças suficientes para sempre ser capaz de recapturar com uma peça em vez de um peão.
+2. Avançar g4-g5 expulsando o cavalo preto em f6, o defensor de d5;
+3. Jogar Bg5 seguido de Bxf6 para eliminar o cavalo que defende a casa d5.
+4. Jogue f2-f4-f5 evitando que as pretas coloquem seu bispo em e6, que controla d5.
+
+Plano das pretas:
+1. Quebra o centro com d6-d5, após isso, assumir a iniciativa;
+2. Pressione a coluna c, de modo que as brancas não possam jogar Cc3-d5 por causa de um peão vulnerável em c2;
+3. Jogar b7-b5-b4 expulsando o cavalo branco de c3 antes que Cc3-d5 possa ser jogado. }
+ *
+
+
+[Event "QUICKSTART - Siciliana O'kelly: Estrutura III (PDI/Alapin)"]
+[Date "2026.10.17"]
+[Result "*"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "QUICKSTART - Siciliana O'kelly"]
+[ChapterName "Estrutura III (PDI/Alapin)"]
+[ChapterURL "https://lichess.org/study/w7B3QmIi/vcQEaC9K"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[FEN "8/1p3ppp/p3p3/8/3P4/8/PP3PPP/8 b - - 1 8"]
+[SetUp "1"]
+[UTCDate "2026.10.17"]
+[UTCTime "06:18:25"]
+[Orientation "black"]
+
+ *
+
+
+[Event "#E17 - Utilizando a estrutura porco-espinho: Estrutura Ouriço (porco-espinho)"]
+[Site "https://lichess.org/study/YG6XIfea/HkWeBxwR"]
+[Date "2026.10.17"]
+[Result "*"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "2r1r1k1/1bqnbppp/pp1ppn2/8/2P1P3/8/PP3PPP/8 w - - 0 1"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "QUICKSTART - Siciliana O'kelly"]
+[ChapterName "Estrutura IV (Porco-espinho)"]
+[ChapterURL "https://lichess.org/study/w7B3QmIi/cmLmmR8e"]
+[FEN "2r1r1k1/1bqnbppp/pp1ppn2/8/2P1P3/8/PP3PPP/8 w - - 0 1"]
+[SetUp "1"]
+[UTCDate "2026.10.17"]
+[UTCTime "06:18:25"]
+[Orientation "black"]
+
+{ Plano das brancas:
+1. Quebre na ala da dama com c4-c5.
+2. Quebre na ala de dama com b4-b5.
+3. Quebre na ala de dama com a4-a5.
+4. Pressionar o peão-d6, mas somente depois que algumas peças forem trocadas.
+
+Plano das pretas
+1. Quebre no centro com ... d6-d5.
+2. Quebre na ala de dama com ... b6-b5.
+3. Crie um ataque na ala de rei com...Rh8...Tg8 e...g7-g5-g4. Ou talvez com...h7-h5-h4-h3.
+4. Prepare todos os planos acima sem realmente executar nenhum deles até que surja a oportunidade certa. }
+ *
+
+
+[Event "#C105 - Siciliana O'Kelly: Outras opções: Estrutura Botvinnik"]
+[Site "https://lichess.org/study/0QRkVohU/MEuMH6bj"]
+[Date "2026.10.17"]
+[Result "*"]
+[Annotator "https://lichess.org/@/basso01"]
+[FEN "8/1p3p1p/p2p2p1/2p1p3/4P3/1P1P4/P1P2PPP/8 w - - 0 7"]
+[Variant "From Position"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "QUICKSTART - Siciliana O'kelly"]
+[ChapterName "Estrutura V (Botvinnik)"]
+[ChapterURL "https://lichess.org/study/w7B3QmIi/ucCfJFNX"]
+[FEN "8/1p3p1p/p2p2p1/2p1p3/4P3/1P1P4/P1P2PPP/8 w - - 0 7"]
+[SetUp "1"]
+[UTCDate "2026.10.17"]
+[UTCTime "06:18:25"]
+[Orientation "black"]
+[ChapterMode "gamebook"]
+
+{ Planos:
+1. f5 para atacar g3
+2. Dd7 + Bh6 para atacar a ala do rei
+3. a6 + b5 para atacar na ala da dama
+4. d5 para abrir a posição
+
+Plano de brancas:
+1. Controle da casa d5
+2. Avanço f4-f5
+3. Avanço a3 + b4 }
+ *
+
+
+[Event "QUICKSTART - Siciliana O'kelly: Exercício - avanço e5"]
+[Date "2026.10.17"]
+[Result "*"]
+[Variant "Standard"]
+[ECO "?"]
+[Opening "?"]
+[StudyName "QUICKSTART - Siciliana O'kelly"]
+[ChapterName "Exercício - avanço e5"]
+[ChapterURL "https://lichess.org/study/w7B3QmIi/otUC8tqh"]
+[Annotator "https://lichess.org/@/Bryan_Maroto"]
+[FEN "rnbqkb1r/1p1ppppp/p4n2/4P3/3N4/8/PPP2PPP/RNBQKB1R b KQkq - 0 5"]
+[SetUp "1"]
+[UTCDate "2026.10.17"]
+[UTCTime "06:18:25"]
+[Orientation "black"]
+[ChapterMode "gamebook"]
+
+5... Qa5+ 6. Nc3 Qxe5+ 7. Be2 { [%cal Ge5c7,Ge7e6] } *

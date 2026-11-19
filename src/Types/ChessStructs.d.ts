@@ -32,6 +32,7 @@ export type CustomShape = Omit<DrawShape, 'brush' | 'orig' | 'dest'> & {
 
 export type CustomGameComment = GameComment & {
   EV: string;
+  c_effect?: string; // Chess.com Game Review marks, see chesscomEffects.ts
 };
 
 export type CustomPgnMove = Omit<
