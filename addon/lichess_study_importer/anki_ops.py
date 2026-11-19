@@ -303,6 +303,11 @@ def imported_puzzles(col) -> dict[str, list[int]]:
     return found
 
 
+def puzzle_tag_strings(col) -> list[str]:
+    """The tags of the Lichess puzzle notes (for puzzle_themes.puzzle_stats), with one query."""
+    return col.db.list("select tags from notes where tags like ?", "%lichess::puzzle%")
+
+
 def card_status(col, card, strip_anno: bool, nids: list[int] | None = None) -> tuple[str, list[int]]:
     """
     ("new" | "same" | "changed", note ids): how a card compares to its notes (nids: the
@@ -336,7 +341,7 @@ def import_chapters(
     stats: dict,
     undo_label: str = "",
     move_cards: bool = True,
-    organize: list[tuple[list[int], str, list[str]]] = (),
+    organize: list[tuple[list[int], str, list[str], str | None]] = (),
 ):
     """
     rows: list of (card, note type dict, decks.Placement), where a card is a
@@ -350,10 +355,11 @@ def import_chapters(
     already up to date aren't rewritten. Notes imported before in another note type
     keep it, and are listed in stats["other_type"].
 
-    organize: (note ids, deck, tags) of notes already imported that only change place
-    (the puzzle sync): their cards move to the deck (not the ones in a filtered deck)
-    and the importer's tags are replaced; their fields stay. stats["organized"] counts
-    the items that changed.
+    organize: (note ids, deck, tags, text) of notes already imported that only change
+    place (the puzzle sync): their cards move to the deck (not the ones in a filtered
+    deck), the importer's tags are replaced and, when text isn't None, the text field
+    under the board too; the PGN field stays. stats["organized"] counts the items that
+    changed.
     """
     undo_pos = col.add_custom_undo_entry(undo_label or tr("undo.import"))
     deck_ids: dict[str, int] = {}
@@ -408,20 +414,23 @@ def import_chapters(
 
     if organize:
         stats.setdefault("organized", 0)
-    for note_ids, deck, tags in organize:
+    for note_ids, deck, tags, text in organize:
         did = deck_id(deck)
         cids = col.db.list(f"select id from cards where nid in {ids2str(note_ids)} and did != ? and odid = 0", did)
-        retagged = False
+        changed = False
         for nid in note_ids:
             note = col.get_note(nid)
             new_tags = merged_tags(note.tags, tags)
-            if {t.lower() for t in new_tags} != {t.lower() for t in note.tags}:
+            new_text = text is not None and len(note.fields) > 1 and note.fields[1] != text
+            if new_text or {t.lower() for t in new_tags} != {t.lower() for t in note.tags}:
                 note.tags = new_tags
+                if new_text:
+                    note.fields[1] = text
                 to_update.append(note)
-                retagged = True
+                changed = True
         if cids:
             moves.setdefault(did, []).extend(cids)
-        if retagged or cids:
+        if changed or cids:
             stats["organized"] += 1
 
     # Batched, so the import is a few undo steps: one per note would push the

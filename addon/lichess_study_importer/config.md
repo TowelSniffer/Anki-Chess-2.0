@@ -34,6 +34,8 @@
 - **puzzle_sync_failed_only**: the puzzle sync imports only the puzzles you failed (`false`: all of them).
 - **puzzle_sync_on_open**: sync the puzzles when the profile opens, quietly, once a first sync was made
   with "Sync now".
+- **puzzle_sync_hourly**: while Anki is open, sync the puzzles every hour, quietly (not while you review:
+  once you leave the reviewer), once a first sync was made.
 - **puzzle_sync_button**: the button at the end of Anki's menu bar (after Help) that syncs the puzzles in
   one click.
 - **puzzle_sync_since** / **puzzle_sync_at**: where the next sync starts reading your puzzle activity and

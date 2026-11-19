@@ -35,7 +35,7 @@ from aqt.qt import (
 from aqt.utils import restoreGeom, restoreHeader, saveGeom, saveHeader
 
 from .chess_lib import chess
-from .i18n import resolve_language, set_language, tr
+from .i18n import error_text, resolve_language, set_language, tr  # noqa: F401 (error_text: for the pages)
 from .lichess_api import Wait
 
 try:  # Anki ships PyQt6 with the SVG module; without it there is no board preview
@@ -111,21 +111,39 @@ def lichess_waiter(show: Callable[[str], None], cancelled: Callable[[], bool] = 
     return wait
 
 
+class LichessProgress:
+    """
+    The progress window of a Lichess task run with QueryOp(...).with_progress(): its label
+    (and bar), a 429 counted down in it, and Esc. shown=False, for a task run on its own
+    without a window: nothing is shown and nothing stops it.
+    """
+
+    def __init__(self, shown: bool = True):
+        self.shown = shown
+        self.label, self.value, self.max = "", None, None
+
+    def set(self, label: str, value: int | None = None, maximum: int | None = None):
+        """From the background: the label (and the bar's value and maximum)."""
+        self.label, self.value, self.max = label, value, maximum
+        if self.shown:
+            mw.taskman.run_on_main(self.show)
+
+    def show(self, waiting: str = ""):
+        lines = (self.label, waiting, tr("lichess.esc_cancels"))
+        mw.progress.update(label="\n".join(line for line in lines if line), value=self.value, max=self.max)
+
+    def wait(self) -> Wait | None:
+        """A 429 waited out in the window (Esc gives up); without it, the short quiet waits."""
+        return lichess_waiter(self.show, mw.progress.want_cancel) if self.shown else None
+
+    def cancelled(self) -> bool:
+        return self.shown and mw.progress.want_cancel()
+
+
 def apply_language() -> None:
     # "en" (default), "pt-BR", or "auto" to follow Anki's interface language
     setting = get_config().get("language")
     set_language(resolve_language(setting, getattr(anki.lang, "current_lang", None)))
-
-
-def error_text(e: Exception) -> str:
-    """Errors raised with an i18n key (Lichess, Chess.com, Stockfish), translated."""
-    key = getattr(e, "key", None)
-    if not key:
-        return str(e)
-    params = dict(getattr(e, "params", {}))
-    if "hint" in params:
-        params["hint"] = tr(params["hint"])
-    return tr(key, **params)
 
 
 def is_dark(widget: QWidget) -> bool:
@@ -218,6 +236,18 @@ def readonly_item(text: str, tip: str = "") -> QTableWidgetItem:
     if tip:
         item.setToolTip(tip)
     return item
+
+
+class SortKeyItem(QTableWidgetItem):
+    """Read-only cell sorted by the number in its UserRole (rating, date, count), not as text."""
+
+    def __init__(self, text: str, key: float):
+        super().__init__(text)
+        self.setData(Qt.ItemDataRole.UserRole, key)
+        self.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
+
+    def __lt__(self, other):
+        return (self.data(Qt.ItemDataRole.UserRole) or 0) < (other.data(Qt.ItemDataRole.UserRole) or 0)
 
 
 # --- Dialogs and widgets ---

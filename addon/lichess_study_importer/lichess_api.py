@@ -230,14 +230,19 @@ def fetch_puzzle_activity(
     cancelled: Callable[[], bool] | None = None,
     wait: Wait | None = None,
     since: int | None = None,
+    before: int | None = None,
 ) -> PuzzleActivity:
     """
     Your puzzle activity (puzzle:read): the latest max_entries puzzles, or all of them
-    (since: only the ones first played from that time on, in ms). Lichess sends it about
-    20 a second, so it is read as it comes: progress(count) every few puzzles, and
-    cancelled() stops it, keeping what came. A dropped connection keeps it too.
+    (since / before: only the ones first played from / before that time, in ms). Lichess
+    sends it about 20 a second, so it is read as it comes: progress(count) every few
+    puzzles, and cancelled() stops it, keeping what came. A dropped connection keeps it too.
     """
-    params = [f"max={max_entries}" if max_entries else "", f"since={since}" if since else ""]
+    params = [
+        f"max={max_entries}" if max_entries else "",
+        f"since={since}" if since else "",
+        f"before={before}" if before else "",
+    ]
     query = "&".join(p for p in params if p)
     query = f"?{query}" if query else ""
 

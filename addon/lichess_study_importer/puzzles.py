@@ -19,6 +19,7 @@ from .game_analysis import export_pgn, mate_alternatives
 from .i18n import tr
 from .lichess_api import LichessError, Wait, fetch_puzzle
 from .pgn_split import ID_TAG, MODE_FLIPPED, MODE_PUZZLE
+from .puzzle_themes import theme_names
 
 KIND_PUZZLE = "puzzle"
 KEY_PREFIX = "puzzle/"
@@ -129,7 +130,7 @@ def puzzle_card(data: dict, win: bool | None = None, date: int | None = None) ->
         win=win,
         date=date,
     )
-    card.details = [tr("puzzle.themes", themes=", ".join(themes))] if themes else []
+    card.details = puzzle_details(themes, win, date)
     card.body = export_pgn(
         game,
         {
@@ -144,6 +145,18 @@ def puzzle_card(data: dict, win: bool | None = None, date: int | None = None) ->
         },
     )
     return card
+
+
+def played_date(ms: int) -> str:
+    return time.strftime("%Y-%m-%d", time.localtime(ms / 1000))
+
+
+def puzzle_details(themes: list[str], win: bool | None, date: int | None) -> list[str]:
+    """The lines under the card's name: its themes, and your result on Lichess with its date."""
+    lines = [tr("puzzle.themes", themes=theme_names(themes))] if themes else []
+    if win is not None and date:
+        lines.append(tr("puzzle.played_solved" if win else "puzzle.played_failed", date=played_date(date)))
+    return lines
 
 
 def activity_card(entry: dict) -> PuzzleCard:

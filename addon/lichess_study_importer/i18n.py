@@ -320,12 +320,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.undo": "Import Lichess puzzles",
         "puzzle.all": "All",
         "puzzle.all_tip": (
-            "Your whole puzzle history. Lichess sends about 20 puzzles a second (10,000 in about "
-            "8 minutes): Esc stops and keeps the most recent ones loaded."
+            "Your whole puzzle history. The first time Lichess sends about 20 puzzles a second "
+            "(10,000 in about 8 minutes); then it is kept in Anki and only the new puzzles are "
+            "read. Esc stops and keeps what came: loading again goes on from there."
         ),
         "puzzle.loading_activity": "Loading your puzzle activity: {count} puzzles…",
-        "puzzle.activity_cancelled": "Stopped: the {count} most recent puzzles were loaded.",
-        "puzzle.activity_connection": "The connection to Lichess dropped: the {count} most recent puzzles were loaded.",
+        "puzzle.activity_cancelled": "Stopped with {count} puzzles loaded: loading again goes on from there.",
+        "puzzle.activity_connection": (
+            "The connection to Lichess dropped with {count} puzzles loaded: loading again goes on from there."
+        ),
         "puzzle.unreadable": "{count} puzzles Lichess sent could not be read and were left out.",
         "puzzle.check": "Check:",
         "puzzle.check_all": "All",
@@ -350,7 +353,41 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.fetch_estimate": "{count} to fetch from Lichess (~{minutes} min)",
         "puzzle.fetch_stopped": "Stopped after {done} of {total} puzzles.",
         "puzzle.rest_checked": "The others are still checked: import again to go on.",
-        "puzzle.sync_label": "Sync:",
+        "puzzle.sync_import": "Import:",
+        "puzzle.sync_hourly": "Every hour",
+        "puzzle.sync_hourly_tip": (
+            "While Anki is open, looks for new puzzles every hour, in the background (not while "
+            "you review: once you leave the reviewer). Starts after the first sync."
+        ),
+        "puzzle.section_sync": "Sync with Lichess",
+        "puzzle.section_cards": "Cards",
+        "puzzle.section_history": "Pick from your history",
+        "puzzle.in_anki": "In Anki: {count} puzzles, {failed} failed",
+        "puzzle.reload_tip": "Read your whole history from Lichess again (results changed on Lichess come with it).",
+        "puzzle.reload_ask": (
+            "Forget the puzzle activity kept in Anki and read your whole history from Lichess again? "
+            "It takes about a minute per 1,200 puzzles."
+        ),
+        "puzzle.themes_button": "Themes and training…",
+        "puzzle.themes_button_tip": "Your puzzles in Anki by theme, and a filtered deck to train one.",
+        "puzzle.themes_title": "Lichess puzzle themes",
+        "puzzle.themes_intro": (
+            "Your {count} Lichess puzzles in Anki ({failed} failed), by theme: a puzzle counts in "
+            "each of its themes. Pick one and train it in a filtered deck."
+        ),
+        "puzzle.themes_none": "No Lichess puzzles in Anki yet: sync or import them first.",
+        "puzzle.themes_col_theme": "Theme",
+        "puzzle.themes_col_puzzles": "Puzzles",
+        "puzzle.themes_col_failed": "Failed",
+        "puzzle.themes_col_rate": "% failed",
+        "puzzle.themes_failed_tip": "Train only the puzzles of the theme you failed on Lichess.",
+        "puzzle.themes_train": "Train in a filtered deck",
+        "puzzle.themes_train_tip": (
+            "Closes the import window and opens Anki's filtered deck window with the theme's search: "
+            "name it and click Build."
+        ),
+        "puzzle.played_failed": "You failed it on Lichess (played {date})",
+        "puzzle.played_solved": "You solved it on Lichess (played {date})",
         "puzzle.sync_all": "All new puzzles",
         "puzzle.sync_mode_tip": "Which of the puzzles you played the sync imports: all of them, or only the ones you failed.",
         "puzzle.sync_on_open": "When Anki opens",
@@ -373,10 +410,10 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.sync_none": "Lichess puzzles: nothing new to import.",
         "puzzle.sync_done": "Lichess puzzles: {count} new imported.",
         "puzzle.sync_rest": "The rest will be imported at the next sync.",
-        "puzzle.sync_cancelled": "Sync stopped: nothing was imported, and the next sync starts from the same point.",
+        "puzzle.sync_cancelled": "Sync stopped: nothing was imported; the next sync goes on from where it stopped.",
         "puzzle.sync_connection": (
-            "The connection to Lichess dropped: nothing was imported, and the next sync starts "
-            "from the same point."
+            "The connection to Lichess dropped: nothing was imported; the next sync goes on from "
+            "where it stopped."
         ),
         "puzzle.sync_error": "Lichess puzzle sync: {error}",
         "puzzle.sync_button": "Sync Lichess puzzles",
@@ -810,12 +847,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.undo": "Importar puzzles do Lichess",
         "puzzle.all": "Todos",
         "puzzle.all_tip": (
-            "Todo o seu histórico de puzzles. O Lichess envia uns 20 puzzles por segundo (10.000 em "
-            "uns 8 minutos): Esc para e fica com os mais recentes já carregados."
+            "Todo o seu histórico de puzzles. Na primeira vez o Lichess envia uns 20 puzzles por "
+            "segundo (10.000 em uns 8 minutos); depois ele fica guardado no Anki e só os puzzles "
+            "novos são lidos. Esc para e fica com o que veio: carregar de novo continua dali."
         ),
         "puzzle.loading_activity": "Carregando a sua atividade de puzzles: {count} puzzles…",
-        "puzzle.activity_cancelled": "Interrompido: os {count} puzzles mais recentes foram carregados.",
-        "puzzle.activity_connection": "A conexão com o Lichess caiu: os {count} puzzles mais recentes foram carregados.",
+        "puzzle.activity_cancelled": "Interrompido com {count} puzzles carregados: carregar de novo continua dali.",
+        "puzzle.activity_connection": (
+            "A conexão com o Lichess caiu com {count} puzzles carregados: carregar de novo continua dali."
+        ),
         "puzzle.unreadable": "{count} puzzles enviados pelo Lichess não puderam ser lidos e ficaram de fora.",
         "puzzle.check": "Marcar:",
         "puzzle.check_all": "Todos",
@@ -840,7 +880,41 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.fetch_estimate": "{count} a buscar no Lichess (~{minutes} min)",
         "puzzle.fetch_stopped": "Parou em {done} de {total} puzzles.",
         "puzzle.rest_checked": "Os outros continuam marcados: importe de novo para continuar.",
-        "puzzle.sync_label": "Sincronizar:",
+        "puzzle.sync_import": "Importar:",
+        "puzzle.sync_hourly": "A cada hora",
+        "puzzle.sync_hourly_tip": (
+            "Com o Anki aberto, procura puzzles novos a cada hora, em segundo plano (não durante a "
+            "revisão: quando você sair dela). Começa depois da primeira sincronização."
+        ),
+        "puzzle.section_sync": "Sincronização com o Lichess",
+        "puzzle.section_cards": "Cartões",
+        "puzzle.section_history": "Escolher no seu histórico",
+        "puzzle.in_anki": "No Anki: {count} puzzles, {failed} errados",
+        "puzzle.reload_tip": "Ler todo o seu histórico do Lichess de novo (traz os resultados que mudaram no Lichess).",
+        "puzzle.reload_ask": (
+            "Esquecer a atividade de puzzles guardada no Anki e ler todo o seu histórico do Lichess "
+            "de novo? Leva cerca de um minuto a cada 1.200 puzzles."
+        ),
+        "puzzle.themes_button": "Temas e treino…",
+        "puzzle.themes_button_tip": "Os seus puzzles no Anki por tema, e um deck filtrado para treinar um deles.",
+        "puzzle.themes_title": "Temas dos puzzles do Lichess",
+        "puzzle.themes_intro": (
+            "Os seus {count} puzzles do Lichess no Anki ({failed} errados), por tema: um puzzle conta "
+            "em cada um dos seus temas. Escolha um e treine num deck filtrado."
+        ),
+        "puzzle.themes_none": "Ainda não há puzzles do Lichess no Anki: sincronize ou importe antes.",
+        "puzzle.themes_col_theme": "Tema",
+        "puzzle.themes_col_puzzles": "Puzzles",
+        "puzzle.themes_col_failed": "Errados",
+        "puzzle.themes_col_rate": "% de erro",
+        "puzzle.themes_failed_tip": "Treinar só os puzzles do tema que você errou no Lichess.",
+        "puzzle.themes_train": "Treinar num deck filtrado",
+        "puzzle.themes_train_tip": (
+            "Fecha a janela de importação e abre a janela de deck filtrado do Anki com a busca do "
+            "tema: dê um nome e clique em Construir."
+        ),
+        "puzzle.played_failed": "Você errou no Lichess (jogado em {date})",
+        "puzzle.played_solved": "Você acertou no Lichess (jogado em {date})",
         "puzzle.sync_all": "Todos os puzzles novos",
         "puzzle.sync_mode_tip": "Quais dos puzzles que você fez a sincronização importa: todos, ou só os que você errou.",
         "puzzle.sync_on_open": "Ao abrir o Anki",
@@ -863,10 +937,10 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.sync_none": "Puzzles do Lichess: nada novo para importar.",
         "puzzle.sync_done": "Puzzles do Lichess: {count} novos importados.",
         "puzzle.sync_rest": "O resto entra na próxima sincronização.",
-        "puzzle.sync_cancelled": "Sincronização interrompida: nada foi importado, e a próxima começa do mesmo ponto.",
+        "puzzle.sync_cancelled": "Sincronização interrompida: nada foi importado; a próxima continua de onde parou.",
         "puzzle.sync_connection": (
-            "A conexão com o Lichess caiu: nada foi importado, e a próxima sincronização começa "
-            "do mesmo ponto."
+            "A conexão com o Lichess caiu: nada foi importado; a próxima sincronização continua de "
+            "onde parou."
         ),
         "puzzle.sync_error": "Sincronização de puzzles do Lichess: {error}",
         "puzzle.sync_button": "Sincronizar puzzles do Lichess",
@@ -1020,3 +1094,14 @@ def get_language() -> str:
 def tr(key: str, **params) -> str:
     text = STRINGS[_language].get(key) or STRINGS[DEFAULT_LANGUAGE][key]
     return text.format(**params) if params else text
+
+
+def error_text(e: Exception) -> str:
+    """Errors raised with an i18n key (Lichess, Chess.com, Stockfish), translated."""
+    key = getattr(e, "key", None)
+    if not key:
+        return str(e)
+    params = dict(getattr(e, "params", {}))
+    if "hint" in params:
+        params["hint"] = tr(params["hint"])
+    return tr(key, **params)

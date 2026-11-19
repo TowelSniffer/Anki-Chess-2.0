@@ -170,17 +170,23 @@ The **Games** tab turns one of your games into cards:
 
 ## Lichess puzzles
 
-The **Lichess puzzles** tab imports puzzles as cards: the opponent's last move is played first, then you play the solution (any mate is accepted on the last move). Filter by theme, id or result, sort by date or rating, a board preview, and the deck can be changed (`puzzle_deck`).
+The **Lichess puzzles** tab imports puzzles as cards: the opponent's last move is played first, then you play the solution (any mate is accepted on the last move). The text under the board gives the puzzle's themes by name ("Themes: Mate in 2, Back rank mate") and your result on Lichess ("You failed it on Lichess (played 2026-10-02)"). It needs your [Lichess token](#lichess-token) with the `puzzle:read` scope (without one, the buttons open it). The tab has three sections.
 
-- **Load my puzzles**: your latest puzzles, or **All** of your puzzle history, with your [Lichess token](#lichess-token) (`puzzle:read` scope; without one, the button opens it). Lichess sends about 20 puzzles a second (10,000 in about 8 minutes); Esc stops and keeps the most recent ones loaded.
-- **Check: All · Only the failed ones · None** checks many puzzles at once, among the ones shown (so a theme filter applies too). Loading checks the new failed ones, or every new one after **All**. Lichess gives your last result: a puzzle you failed and then solved again counts as solved.
-- **Start with the opponent's move (slower)**: importing fetches each checked puzzle's game, about 0.6 s per puzzle; the estimate is shown next to the Import button, and Esc stops and imports the ones fetched (the others stay checked). Unchecked, the puzzles of your activity are imported at once and start at the puzzle position. Updating an imported puzzle always fetches its game.
-- Or puzzle links (`lichess.org/training/…`) or ids.
-- **Sync now** imports the puzzles you played on Lichess that aren't in Anki yet, all of them or only the failed ones (`Sync:` choice): your whole history the first time, then only the ones played since the last sync (seconds). Once a first sync was made, it also runs quietly when Anki opens (**When Anki opens**), with a tooltip when puzzles were imported. It uses the deck and **Start with the opponent's move**, and never changes puzzles already imported.
+**Sync with Lichess**
+- **Sync now** imports the puzzles you played on Lichess that aren't in Anki yet, all of them or only the failed ones (**Import:**): your whole history the first time, then only the ones played since the last sync (seconds). Esc stops: the puzzles fetched are imported, the rest at the next sync.
+- Once a first sync was made it also runs quietly, with a tooltip when something changed: **When Anki opens**, and **Every hour** while Anki is open (never while you review: once you leave the reviewer).
 - The green knight button at the end of Anki's menu bar (after Help), like Anki Restart's, syncs in one click; its tooltip shows the last sync. **Button in Anki's menu bar** (`puzzle_sync_button`) hides it.
-- Decks: the puzzles go into the **Failed** and **Solved** subdecks of the puzzle deck, by your result on Lichess (puzzle links: into the deck itself). A puzzle has several themes and a note lives in one deck, so the themes are tags: a filtered deck on `tag:lichess::puzzle::theme::fork` drills one theme.
-- Tags: `lichess::puzzle`, one per theme (`lichess::puzzle::theme::mateIn3`…) and `lichess::puzzle::failed` or `lichess::puzzle::solved`.
-- The sync also moves the puzzles already imported that it reads to Failed/Solved, with the current tags (their content and reviews stay). After an update that changes this layout, the next sync reads your whole history once, so every imported puzzle is moved.
+- The line under it shows the last sync and how many puzzles are in Anki. **Themes and training…** lists your puzzles by theme (puzzles, failed, % failed; the themes you fail most first) and opens Anki's filtered deck window with a theme's search (only the ones you failed, if you like): name it and click Build. The import window closes first, as Anki's window can't open above it.
+- The sync also moves the imported puzzles it reads to Failed/Solved with the current tags and text under the board (their PGN and reviews stay). After an update that changes this layout, the next sync goes through your whole history once, so every imported puzzle gets it.
+
+**Cards**: the deck (`puzzle_deck`) and **Start with the opponent's move (slower)**, used by the sync and by importing here. The puzzles go into the deck's **Failed** and **Solved** subdecks, by your result on Lichess (puzzle links: into the deck itself). Starting with the opponent's move fetches each puzzle's game, about 0.6 s per puzzle; unchecked, the puzzles of your activity are imported at once and start at the puzzle position. Updating an imported puzzle always fetches its game.
+
+**Pick from your history**
+- **Load my puzzles**: your latest puzzles, or **All** of your puzzle history. Your activity is kept in the add-on's `user_files` (one file per Lichess account): Lichess sends the whole history once, about 20 puzzles a second (10,000 in about 8 minutes), then only the new puzzles are read. Esc stops and keeps what came; loading again goes on from there. The reload button reads it all again from Lichess (Lichess gives your last result, so a puzzle you failed and then solved again counts as solved).
+- Or puzzle links (`lichess.org/training/…`) or ids.
+- Filter by theme (key or name), id or result, sort by date or rating, and a board preview. **Check: All · Only the failed ones · None** checks many puzzles at once, among the ones shown. Loading checks the new failed ones, or every new one after **All**. The estimate of the games to fetch is shown next to the Import button; Esc stops and imports the ones fetched (the others stay checked).
+
+Tags: `lichess::puzzle`, one per theme (`lichess::puzzle::theme::mateIn3`…) and `lichess::puzzle::failed` or `lichess::puzzle::solved`. A puzzle has several themes and a note lives in one deck, so the themes are tags: a filtered deck on `tag:lichess::puzzle::theme::fork` drills one theme without duplicating notes.
 
 ## Build
 

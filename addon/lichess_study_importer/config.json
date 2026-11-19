@@ -18,6 +18,7 @@
   "puzzle_fetch_games": true,
   "puzzle_sync_failed_only": false,
   "puzzle_sync_on_open": true,
+  "puzzle_sync_hourly": true,
   "puzzle_sync_button": true,
   "puzzle_sync_since": 0,
   "puzzle_sync_at": 0,

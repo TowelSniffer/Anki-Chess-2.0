@@ -1,12 +1,15 @@
 """
-Puzzles page of the import window: import Lichess puzzles, from your puzzle activity
-(the latest ones or all of them) or from puzzle links, as cards in a deck of their own
-(<root>::Lichess puzzles by default).
+Puzzles page of the import window, in three sections:
 
-Your activity is listed as Lichess sends it, without a request per puzzle; the checked
-ones are fetched with their game when imported, so the card starts with the opponent's
-last move ("Start with the opponent's move"). "Sync now" imports the puzzles you played
-since the last sync (see puzzle_sync.py).
+- Sync: the puzzles you played on Lichess, imported at once (see puzzle_sync.py), when
+  Anki opens, every hour and from "Sync now"; how many puzzles are in Anki, and "Themes
+  and training" (puzzle_themes_dialog.py).
+- Cards: the deck (its Failed and Solved subdecks) and "Start with the opponent's move",
+  for the sync and for importing here.
+- Pick from your history: your activity (the latest puzzles or all of them, from the
+  activity cache: only what is new is read from Lichess) or puzzle links, to check and
+  import. The checked ones are fetched with their game when imported, so the card
+  starts with the opponent's last move.
 """
 
 from __future__ import annotations
@@ -16,38 +19,45 @@ import math
 import time
 from typing import Callable
 
+import aqt
 from aqt import mw
 from aqt.operations import CollectionOp, QueryOp
 from aqt.qt import (
     QCheckBox,
     QComboBox,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
     QSpinBox,
     QSplitter,
+    QStyle,
     Qt,
     QTableWidget,
     QTableWidgetItem,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
-from aqt.utils import showWarning, tooltip
+from aqt.utils import askUser, showWarning, tooltip
 
-from . import anki_ops, decks, puzzle_sync
+from . import anki_ops, decks, puzzle_cache, puzzle_sync
 from .chess_lib import chess
 from .i18n import tr
-from .lichess_api import fetch_puzzle_activity, parse_puzzle_ids
-from .puzzle_sync import stop_text
+from .lichess_api import parse_puzzle_ids
+from .puzzle_themes import puzzle_stats, theme_names
+from .puzzle_themes_dialog import PuzzleThemesDialog
 from .puzzles import REQUEST_PAUSE, PuzzleCard, activity_card, load_puzzles
+from .sync_flow import stop_text
 from .ui_common import (
     BoardPreview,
+    LichessProgress,
+    SortKeyItem,
     browse,
     error_text,
     get_config,
     lichess_token,
-    lichess_waiter,
     paint_status,
     plan_text,
     readonly_item,
@@ -64,24 +74,23 @@ MAX_LATEST = 10000
 SECONDS_PER_PUZZLE = REQUEST_PAUSE + 0.3  # fetching a puzzle's game, with the pause
 
 
-class SortKeyItem(QTableWidgetItem):
-    """Read-only cell sorted by the number in its UserRole (rating, date), not as text."""
-
-    def __init__(self, text: str, key: float):
-        super().__init__(text)
-        self.setData(Qt.ItemDataRole.UserRole, key)
-        self.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
-
-    def __lt__(self, other):
-        return (self.data(Qt.ItemDataRole.UserRole) or 0) < (other.data(Qt.ItemDataRole.UserRole) or 0)
-
-
 def date_text(ms: int | None) -> str:
     return time.strftime("%Y-%m-%d", time.localtime(ms / 1000)) if ms else ""
 
 
 def result_text(card: PuzzleCard) -> str:
     return {True: tr("puzzle.solved"), False: tr("puzzle.failed")}.get(card.win, "")
+
+
+def activity_cards(entries: list[dict]) -> tuple[list[PuzzleCard], int]:
+    """Cards of activity entries, without requests, and how many couldn't be read."""
+    cards, unreadable = [], 0
+    for entry in entries:
+        try:
+            cards.append(activity_card(entry))
+        except (KeyError, TypeError, ValueError, AssertionError):  # a position python-chess can't read
+            unreadable += 1
+    return cards, unreadable
 
 
 class PuzzleImportPage(QWidget):
@@ -99,9 +108,82 @@ class PuzzleImportPage(QWidget):
         self.default_deck = f"{root}::{tr('deck.puzzles')}"
 
         layout = QVBoxLayout(self)
+        layout.addWidget(self.sync_section())
+        layout.addWidget(self.cards_section())
+        layout.addWidget(self.history_section(), 1)
+        if not self.base:
+            self.summary.setText(tr("warn.no_note_types"))
+        self.update_sync_status()
+        puzzle_sync.add_listener(self.after_sync)
 
-        # --- Your puzzle activity (with the token of the window's bottom bar) ---
-        activity = QHBoxLayout()
+    # --- Sections ---
+
+    def option_check(self, key: str, tip: str, config_key: str, default: bool) -> QCheckBox:
+        """A checkbox saved in the config as soon as it changes."""
+        check = QCheckBox(tr(key))
+        check.setToolTip(tr(tip))
+        check.setChecked(bool(self.config.get(config_key, default)))
+        check.toggled.connect(lambda _: self.save_options())
+        return check
+
+    def sync_section(self) -> QGroupBox:
+        box = QGroupBox(tr("puzzle.section_sync"))
+        rows = QVBoxLayout(box)
+        options = QHBoxLayout()
+        self.sync_mode = QComboBox()
+        self.sync_mode.addItem(tr("puzzle.sync_all"), False)
+        self.sync_mode.addItem(tr("puzzle.failed_only"), True)
+        self.sync_mode.setCurrentIndex(1 if self.config.get("puzzle_sync_failed_only", False) else 0)
+        self.sync_mode.setToolTip(tr("puzzle.sync_mode_tip"))
+        self.sync_mode.currentIndexChanged.connect(lambda _: self.save_options())
+        self.sync_on_open = self.option_check(
+            "puzzle.sync_on_open", "puzzle.sync_on_open_tip", "puzzle_sync_on_open", True
+        )
+        self.sync_hourly = self.option_check("puzzle.sync_hourly", "puzzle.sync_hourly_tip", "puzzle_sync_hourly", True)
+        self.sync_button = self.option_check(
+            "puzzle.sync_button_check", "puzzle.sync_button_tip", "puzzle_sync_button", True
+        )
+        btn_sync = QPushButton(tr("puzzle.sync_now"))
+        btn_sync.setToolTip(tr("puzzle.sync_now_tip"))
+        btn_sync.clicked.connect(self.on_sync)
+        for widget in (QLabel(tr("puzzle.sync_import")), self.sync_mode, self.sync_on_open, self.sync_hourly):
+            options.addWidget(widget)
+        options.addWidget(self.sync_button)
+        options.addStretch(1)
+        options.addWidget(btn_sync)
+        rows.addLayout(options)
+
+        status = QHBoxLayout()
+        self.sync_status = QLabel()
+        btn_themes = QPushButton(tr("puzzle.themes_button"))
+        btn_themes.setToolTip(tr("puzzle.themes_button_tip"))
+        btn_themes.clicked.connect(self.on_themes)
+        status.addWidget(self.sync_status, 1)
+        status.addWidget(btn_themes)
+        rows.addLayout(status)
+        return box
+
+    def cards_section(self) -> QGroupBox:
+        box = QGroupBox(tr("puzzle.section_cards"))
+        row = QHBoxLayout(box)
+        self.deck_edit = QLineEdit(self.config.get("puzzle_deck") or self.default_deck)
+        self.deck_edit.setToolTip(tr("puzzle.deck_tip"))
+        self.deck_edit.editingFinished.connect(self.save_options)
+        self.fetch_games = QCheckBox(tr("puzzle.fetch_games"))
+        self.fetch_games.setToolTip(tr("puzzle.fetch_games_tip"))
+        self.fetch_games.setChecked(bool(self.config.get("puzzle_fetch_games", True)))
+        self.fetch_games.toggled.connect(lambda _: (self.update_plan(), self.save_options()))
+        row.addWidget(QLabel(tr("puzzle.deck_label")))
+        row.addWidget(self.deck_edit, 1)
+        row.addWidget(self.fetch_games)
+        return box
+
+    def history_section(self) -> QGroupBox:
+        box = QGroupBox(tr("puzzle.section_history"))
+        rows = QVBoxLayout(box)
+
+        # Your activity (with the token of the window's bottom bar), or puzzle links
+        source = QHBoxLayout()
         self.max_spin = QSpinBox()
         self.max_spin.setRange(1, MAX_LATEST)
         self.max_spin.setValue(int(self.config.get("puzzle_max", 50)))
@@ -113,56 +195,29 @@ class PuzzleImportPage(QWidget):
         btn_activity = QPushButton(tr("puzzle.load_activity"))
         btn_activity.setToolTip(tr("puzzle.token_tip"))
         btn_activity.clicked.connect(self.on_load_activity)
-        for widget in (QLabel(tr("puzzle.last")), self.max_spin, self.all_check, btn_activity):
-            activity.addWidget(widget)
-        activity.addStretch(1)
-        layout.addLayout(activity)
-
-        # --- Sync: the puzzles you played since the last sync, imported at once ---
-        sync = QHBoxLayout()
-        self.sync_mode = QComboBox()
-        self.sync_mode.addItem(tr("puzzle.sync_all"), False)
-        self.sync_mode.addItem(tr("puzzle.failed_only"), True)
-        self.sync_mode.setCurrentIndex(1 if self.config.get("puzzle_sync_failed_only", False) else 0)
-        self.sync_mode.setToolTip(tr("puzzle.sync_mode_tip"))
-        self.sync_mode.currentIndexChanged.connect(lambda _: self.save_options())
-        self.sync_on_open = QCheckBox(tr("puzzle.sync_on_open"))
-        self.sync_on_open.setToolTip(tr("puzzle.sync_on_open_tip"))
-        self.sync_on_open.setChecked(bool(self.config.get("puzzle_sync_on_open", True)))
-        self.sync_on_open.toggled.connect(lambda _: self.save_options())
-        self.sync_button = QCheckBox(tr("puzzle.sync_button_check"))
-        self.sync_button.setToolTip(tr("puzzle.sync_button_tip"))
-        self.sync_button.setChecked(bool(self.config.get("puzzle_sync_button", True)))
-        self.sync_button.toggled.connect(lambda _: self.save_options())
-        btn_sync = QPushButton(tr("puzzle.sync_now"))
-        btn_sync.setToolTip(tr("puzzle.sync_now_tip"))
-        btn_sync.clicked.connect(self.on_sync)
-        self.sync_status = QLabel()
-        sync_widgets = (QLabel(tr("puzzle.sync_label")), self.sync_mode, self.sync_on_open, self.sync_button, btn_sync)
-        for widget in sync_widgets:
-            sync.addWidget(widget)
-        sync.addWidget(self.sync_status, 1)
-        layout.addLayout(sync)
-        self.update_sync_status()
-
-        # --- Puzzle links ---
-        links = QHBoxLayout()
+        btn_reload = QToolButton()
+        btn_reload.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_BrowserReload))
+        btn_reload.setToolTip(tr("puzzle.reload_tip"))
+        btn_reload.clicked.connect(self.on_reload)
         self.links_edit = QLineEdit()
         self.links_edit.setPlaceholderText(tr("puzzle.links_placeholder"))
         self.links_edit.returnPressed.connect(self.on_load_links)
         btn_links = QPushButton(tr("source.load_url"))
         btn_links.clicked.connect(self.on_load_links)
-        links.addWidget(self.links_edit, 1)
-        links.addWidget(btn_links)
-        layout.addLayout(links)
+        for widget in (QLabel(tr("puzzle.last")), self.max_spin, self.all_check, btn_activity, btn_reload):
+            source.addWidget(widget)
+        source.addSpacing(16)
+        source.addWidget(self.links_edit, 1)
+        source.addWidget(btn_links)
+        rows.addLayout(source)
 
         self.summary = QLabel(tr("puzzle.none"))
         self.summary.setWordWrap(True)
         self.summary.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         self.summary.linkActivated.connect(lambda _: self.last_nids and browse(self.last_nids))
-        layout.addWidget(self.summary)
+        rows.addWidget(self.summary)
 
-        # --- Filter, and checking many puzzles at once ---
+        # Filter, and checking many puzzles at once
         selection = QHBoxLayout()
         self.filter_edit = QLineEdit()
         self.filter_edit.setPlaceholderText(tr("puzzle.filter_placeholder"))
@@ -180,7 +235,7 @@ class PuzzleImportPage(QWidget):
                 btn.setToolTip(tr(tip))
             btn.clicked.connect(slot)
             selection.addWidget(btn)
-        layout.addLayout(selection)
+        rows.addLayout(selection)
 
         self.table = QTableWidget(0, 7)
         self.table.setHorizontalHeaderLabels(
@@ -200,26 +255,13 @@ class PuzzleImportPage(QWidget):
         self.table.itemChanged.connect(lambda item: self.update_plan())
         self.table.currentCellChanged.connect(lambda row, *_: self.show_preview(row))
         restore_columns(self.table, COLUMNS_KEY)
-
         self.preview = BoardPreview()
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self.table)
         splitter.addWidget(self.preview)
         splitter.setStretchFactor(0, 1)
         splitter.setCollapsible(0, False)
-        layout.addWidget(splitter, 1)
-
-        options = QHBoxLayout()
-        options.addWidget(QLabel(tr("puzzle.deck_label")))
-        self.deck_edit = QLineEdit(self.config.get("puzzle_deck") or self.default_deck)
-        self.deck_edit.setToolTip(tr("puzzle.deck_tip"))
-        options.addWidget(self.deck_edit, 1)
-        self.fetch_games = QCheckBox(tr("puzzle.fetch_games"))
-        self.fetch_games.setToolTip(tr("puzzle.fetch_games_tip"))
-        self.fetch_games.setChecked(bool(self.config.get("puzzle_fetch_games", True)))
-        self.fetch_games.toggled.connect(lambda _: self.update_plan())
-        options.addWidget(self.fetch_games)
-        layout.addLayout(options)
+        rows.addWidget(splitter, 1)
 
         bottom = QHBoxLayout()
         self.update_existing = QCheckBox(tr("form.update_existing"))
@@ -232,9 +274,8 @@ class PuzzleImportPage(QWidget):
         bottom.addWidget(self.update_existing)
         bottom.addWidget(self.plan_label, 1)
         bottom.addWidget(self.import_btn)
-        layout.addLayout(bottom)
-        if not self.base:
-            self.summary.setText(tr("warn.no_note_types"))
+        rows.addLayout(bottom)
+        return box
 
     def save_layout(self):
         save_columns(self.table, COLUMNS_KEY)
@@ -252,6 +293,7 @@ class PuzzleImportPage(QWidget):
                 "puzzle_deck": "" if deck == self.default_deck else deck,
                 "puzzle_sync_failed_only": bool(self.sync_mode.currentData()),
                 "puzzle_sync_on_open": self.sync_on_open.isChecked(),
+                "puzzle_sync_hourly": self.sync_hourly.isChecked(),
                 "puzzle_sync_button": self.sync_button.isChecked(),
                 "update_existing": self.update_existing.isChecked(),
             }
@@ -260,19 +302,33 @@ class PuzzleImportPage(QWidget):
         self.config = config
         puzzle_sync.update_button(config)
 
-    # --- Sync ---
+    # --- Sync and themes ---
 
     def update_sync_status(self):
-        self.sync_status.setText(f"<small>{puzzle_sync.last_sync_text()}</small>")
+        total, failed, _themes = puzzle_stats(anki_ops.puzzle_tag_strings(mw.col)) if mw.col else (0, 0, {})
+        in_anki = tr("puzzle.in_anki", count=total, failed=failed)
+        self.sync_status.setText(f"<small>{puzzle_sync.last_sync_text()} · {in_anki}</small>")
 
     def on_sync(self):
         self.save_options()
-        puzzle_sync.sync_puzzles(self, True, self.after_sync)
+        puzzle_sync.sync_puzzles(self, True)
 
     def after_sync(self, message: str):
+        """A sync ended (from here, the menu bar button or on its own)."""
         self.update_sync_status()
         if self.cards:  # the statuses of the puzzles listed
             self.show_cards(self.cards, message)
+
+    def on_themes(self):
+        dialog = PuzzleThemesDialog(self)
+        if not dialog.exec() or not dialog.search:
+            return
+        search = dialog.search
+        # This window is modal: Anki's filtered deck window opens once it is closed
+        self.window().reject()
+        mw.progress.single_shot(
+            0, lambda: aqt.dialogs.open("FilteredDeckConfigDialog", mw, search=search), False
+        )
 
     # --- Loading ---
 
@@ -282,62 +338,59 @@ class PuzzleImportPage(QWidget):
             token = lichess_token()
         if not token:
             return
-        max_entries = None if self.all_check.isChecked() else self.max_spin.value()
+        all_history, latest = self.all_check.isChecked(), self.max_spin.value()
         self.save_options()
-        shown = {"count": 0}
-
-        def show(waiting: str = ""):
-            lines = (tr("puzzle.loading_activity", count=shown["count"]), waiting, tr("lichess.esc_cancels"))
-            mw.progress.update(label="\n".join(line for line in lines if line))
-
-        def progress(count: int):
-            shown["count"] = count
-            mw.taskman.run_on_main(show)
+        user = puzzle_sync.cache_user(self.config)
+        progress = LichessProgress()
 
         def load(col):
-            # A 429 is waited out in the progress window; Esc stops and keeps what came
-            activity = fetch_puzzle_activity(
-                token, max_entries, progress, mw.progress.want_cancel, lichess_waiter(show, mw.progress.want_cancel)
+            # From the activity cache: only the puzzles it lacks come from Lichess. A 429 is
+            # waited out in the progress window; Esc stops and keeps what came
+            cache, stopped = puzzle_cache.refresh_cached(
+                puzzle_cache.FOLDER,
+                user,
+                token,
+                back_to=0 if all_history else None,
+                need=None if all_history else latest,
+                progress=lambda count: progress.set(tr("puzzle.loading_activity", count=count)),
+                cancelled=progress.cancelled,
+                wait=progress.wait(),
             )
-            cards, unreadable = [], 0
-            for entry in activity.entries:
-                try:
-                    cards.append(activity_card(entry))
-                except (KeyError, TypeError, ValueError, AssertionError):  # a position python-chess can't read
-                    unreadable += 1
-            return activity, cards, unreadable
+            entries = cache.entries if all_history else cache.entries[:latest]
+            return stopped, entries, *activity_cards(entries)
 
         QueryOp(parent=self, op=load, success=self.show_activity).failure(
             lambda e: showWarning(error_text(e), parent=self)
         ).with_progress(tr("puzzle.loading_activity", count=0)).without_collection().run_in_background()
 
+    def on_reload(self):
+        """Forget the activity cache and load again: results changed on Lichess come with it."""
+        if not askUser(tr("puzzle.reload_ask"), parent=self):
+            return
+        puzzle_cache.clear_cache(puzzle_cache.FOLDER, puzzle_sync.cache_user(get_config()))
+        self.on_load_activity()
+
     def show_activity(self, loaded):
-        activity, cards, unreadable = loaded
-        self.entries = {e["puzzle"]["id"]: e for e in activity.entries}
+        stopped, entries, cards, unreadable = loaded
+        self.entries = {e["puzzle"]["id"]: e for e in entries}
         notes = []
-        if activity.stopped:
-            notes.append(tr(f"puzzle.activity_{activity.stopped}", count=len(activity.entries)))
+        if stopped:
+            notes.append(tr(f"puzzle.activity_{stopped}", count=len(entries)))
         if unreadable:
             notes.append(tr("puzzle.unreadable", count=unreadable))
         self.show_cards(cards, "<br>".join(notes))
 
     def fetch_puzzles(self, entries: list[tuple[str, bool | None, dict | None]], done: Callable):
         """Fetch each puzzle with its game in the background, then done((cards, error))."""
-        shown = {"done": 0, "total": len(entries)}
+        progress = LichessProgress()
 
-        def show(waiting: str = ""):
-            lines = (tr("puzzle.loading", done=shown["done"], total=shown["total"]), waiting, tr("lichess.esc_cancels"))
-            mw.progress.update(label="\n".join(line for line in lines if line), value=shown["done"], max=shown["total"])
-
-        def progress(count: int, total: int):
-            shown.update(done=count, total=total)
-            mw.taskman.run_on_main(show)
+        def fetching(count: int, total: int):
+            progress.set(tr("puzzle.loading", done=count, total=total), count, total)
 
         # A 429 is waited out in the progress window; Esc stops and keeps the ones fetched
-        wait = lichess_waiter(show, mw.progress.want_cancel)
         QueryOp(
             parent=self,
-            op=lambda col: load_puzzles(entries, progress, wait, mw.progress.want_cancel),
+            op=lambda col: load_puzzles(entries, fetching, progress.wait(), progress.cancelled),
             success=done,
         ).failure(lambda e: showWarning(error_text(e), parent=self)).with_progress(
             tr("puzzle.loading", done=0, total=len(entries))
@@ -396,9 +449,10 @@ class PuzzleImportPage(QWidget):
             self.table.setItem(row, COL_CHECK, check)
             self.table.setItem(row, COL_DATE, SortKeyItem(date_text(card.date), card.date or 0))
             self.table.setItem(row, COL_RATING, SortKeyItem(str(card.rating), card.rating))
+            names = theme_names(card.themes)
             for col, value, tip in (
                 (COL_PUZZLE, card.puzzle_id, card.chapter_url),
-                (COL_THEMES, ", ".join(card.themes), ", ".join(card.themes)),
+                (COL_THEMES, names, names),
                 (COL_RESULT, result_text(card), ""),
                 (COL_STATUS, tr(f"status.{status}"), tr(f"status.{status}_tip")),
             ):
@@ -420,11 +474,14 @@ class PuzzleImportPage(QWidget):
         return item.data(Qt.ItemDataRole.UserRole) if item else None
 
     def apply_filter(self):
+        """Puzzles shown: every word of the filter in their id, themes (keys or names) or result."""
         words = self.filter_edit.text().lower().split()
         for i in range(self.table.rowCount()):
             index = self.card_index(i)
             card = self.cards[index] if index is not None else None
-            text = " ".join([card.puzzle_id, *card.themes, result_text(card)]).lower() if card else ""
+            text = ""
+            if card:
+                text = " ".join([card.puzzle_id, *card.themes, theme_names(card.themes), result_text(card)]).lower()
             self.table.setRowHidden(i, not all(w in text for w in words))
 
     def show_preview(self, table_row: int):
@@ -436,7 +493,7 @@ class PuzzleImportPage(QWidget):
         game = chess.pgn.read_game(io.StringIO(card.pgn()))
         white = game.headers.get("Orientation", "white") == "white"
         start = 1 if card.opponent_move_first else 0  # after the opponent's last move
-        caption = f"<b>{card.name}</b><br>" + (", ".join(card.themes) or "")
+        caption = f"<b>{card.name}</b><br>{theme_names(card.themes)}"
         self.preview.show_game(game, start, white, caption)
 
     # --- Checking many at once ---
@@ -557,6 +614,7 @@ class PuzzleImportPage(QWidget):
             browse_link = tr("result.browse") if self.last_nids else ""
             summary = f"<b>{result}</b> {browse_link}" + (f"<br>{note}" if note else "")
             self.show_cards(self.cards, summary, keep_checked=set(left))
+            self.update_sync_status()
 
         CollectionOp(
             parent=self,

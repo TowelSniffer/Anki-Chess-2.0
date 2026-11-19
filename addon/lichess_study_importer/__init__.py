@@ -35,8 +35,8 @@ def setup_menu():
 
 # Runs after all add-ons are loaded, so the Companion menu already exists
 gui_hooks.main_window_did_init.append(setup_menu)
-# The puzzle sync button at the end of the menu bar, like Anki Restart's
-gui_hooks.main_window_did_init.append(puzzle_sync.setup_button)
+# The puzzle sync button at the end of the menu bar (like Anki Restart's), and the hourly sync
+gui_hooks.main_window_did_init.append(puzzle_sync.setup)
 
 
 def on_profile_open():
