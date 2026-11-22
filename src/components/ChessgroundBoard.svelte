@@ -12,14 +12,17 @@
   import { updateBoard } from '$features/board/boardAnimation';
   import { pieceSprites } from '$utils/toolkit/pieceSprites';
 
-  // The clock on the border, for a board without the status line
+  // The time left on the border: always for timerOnBorder (the help's demo board), else unless
+  // Puzzle > Digital Clock shows it as a clock (PuzzleClock)
   let { timerOnBorder = false }: { timerOnBorder?: boolean } = $props();
 
   // Global Stores
   const gameStore = getContext<GameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
   const timerStore = getContext<TimerStore>('TIMER_STORE');
-  const showTimer = $derived(timerOnBorder && timerStore.visible);
+  const showTimer = $derived(
+    (timerOnBorder || !gameStore.config.timerClock) && timerStore.visible,
+  );
   const MIN_BAND = 0.06;
 
   onDestroy(() => {

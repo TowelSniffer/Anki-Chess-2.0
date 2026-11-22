@@ -70,6 +70,16 @@ $border-radius-global: 4px;
   /* Text */
   --text-primary: #d7dee9;
   --text-muted: #797979;
+  /* Labels and secondary text that must still read well on the surfaces */
+  --text-soft: #a5adb9;
+  --link: #8ab4f8;
+
+  /* The note's text panel: theme chips, its dividers, and your result in words */
+  --chip-bg: rgba(255, 255, 255, 0.07);
+  --chip-line: rgba(255, 255, 255, 0.12);
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --fail-text: #ff9b9b;
+  --pass-text: #7fe09b;
 
   /* Interaction  Game State */
   --interactive-button-active: #{$palette-green-500};
@@ -96,6 +106,14 @@ $border-radius-global: 4px;
 
   --text-primary: #{$palette-light-text};
   --text-muted: #{$palette-light-muted};
+  --text-soft: #555555;
+  --link: #1a73e8;
+
+  --chip-bg: rgba(0, 0, 0, 0.05);
+  --chip-line: rgba(0, 0, 0, 0.12);
+  --line-soft: rgba(0, 0, 0, 0.08);
+  --fail-text: #b3261e;
+  --pass-text: #1e7b34;
   --focus-ring: #1a73e8;
 
   /* Soften the shadows and borders for light mode */
@@ -156,6 +174,52 @@ $border-radius-global: 4px;
 @mixin x-margin($val) {
   margin-left: $val;
   margin-right: $val;
+}
+
+/*
+ * A rounded button with an icon and a word, for the tools under the note's text on the front.
+ * The icon keeps the button's 1rem (icons are 1.2em); the word ($label) is smaller.
+ */
+@mixin pill-btn($label: '.label') {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: 34px;
+  margin: 0;
+  padding: 0 12px 0 9px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 1px solid var(--chip-line);
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  #{$label} {
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  @include can-hover {
+    &:hover:not(:disabled, .active-toggle) {
+      background-color: var(--chip-bg);
+      box-shadow: none;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 @mixin icon-btn($size: $button-size-calc) {

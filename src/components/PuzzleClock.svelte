@@ -14,8 +14,10 @@
   const LOW_TIME = 5; // seconds
 
   // The timer stops at 0:00, and the clock stays to show it, until the puzzle is done
+  // Puzzle > Digital Clock; without it the time is on the board's border (ChessgroundBoard)
   const showClock = $derived(
-    /^(Puzzle|Study)$/.test(gameStore.boardMode) &&
+    gameStore.config.timerClock &&
+      /^(Puzzle|Study)$/.test(gameStore.boardMode) &&
       (timerStore.visible || timerStore.isOutOfTime) &&
       !gameStore.isPuzzleComplete,
   );

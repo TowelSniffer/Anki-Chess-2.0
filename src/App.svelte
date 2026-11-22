@@ -15,6 +15,7 @@
   import PuzzleClock from '$components/PuzzleClock.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import BoardLayout from '$components/BoardLayout.svelte';
+  import NoteText from '$components/NoteText.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
   import { hasPgnComments } from '$features/pgn/pgnParsing';
 
@@ -111,9 +112,7 @@
   >
     {#snippet comments()}
       {#if userText}
-        <div id="userTextContainer">
-          <div id="textField">{@html userText}</div>
-        </div>
+        <NoteText text={userText} joined={boardMode !== 'Viewer'} />
       {/if}
       {#if boardMode !== 'Viewer'}
         <!-- The front has no move buttons (they'd give the solution away): the hint and the menu -->
@@ -122,9 +121,9 @@
             {#if !userConfig.opts.playerBars}
               <PuzzleClock standalone />
             {/if}
-            <EvalButton />
-            <HintButton />
-            <SettingsMenu bind:isHelpOpen inToolbar />
+            <EvalButton labelled />
+            <HintButton labelled />
+            <SettingsMenu bind:isHelpOpen inToolbar labelled />
           </div>
         </div>
       {/if}
@@ -173,23 +172,6 @@
 </GameProvider>
 
 <style lang="scss">
-  #userTextContainer {
-    width: 100%;
-    background: var(--surface-secondary);
-    color: var(--text-primary);
-    border-bottom: var(--border-thin);
-
-    #textField {
-      padding: 0.5em 0.75em;
-
-      :global(h1),
-      :global(h2),
-      :global(h3) {
-        margin: 0.1em 0 0.3em;
-      }
-    }
-  }
-
   #sticky-container {
     position: sticky;
     top: 0; /* Sticks to the top of the container when you scroll */
@@ -200,9 +182,11 @@
       background: var(--surface-secondary);
       padding: 4px;
 
-      // The front's few tools go to the end, as menus do in toolbars
+      // The front's few tools go to the end, as menus do in toolbars, under the note's text
       &.menu-only {
         justify-content: flex-end;
+        gap: 6px;
+        padding: 4px 10px 8px;
       }
     }
   }

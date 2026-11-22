@@ -171,7 +171,7 @@ def test_first_sync_imports_everything_missing_oldest_first(env):
     assert env.fetched == ["b", "c", "d", "e"]  # the games of the new ones, oldest first
     assert env.notes["b"]["deck"] == f"{DECK}::Failed" and env.notes["c"]["deck"] == f"{DECK}::Solved"
     assert env.notes["a"]["deck"] == f"{DECK}::Solved" and "lichess::puzzle::theme::fork" in env.notes["a"]["tags"]
-    assert "You solved it on Lichess" in env.notes["a"]["text"]  # the text under the board, from the activity
+    assert 'class="ac-result ac-solved"' in env.notes["a"]["text"]  # the text above the board, from the activity
     assert host.saved == [(50, env.sync_flow.PUZZLE_LAYOUT)]
     message = "Lichess puzzles: 4 new imported. 1 already imported were moved to Failed/Solved or retagged."
     assert host.finished == [(message, None, True)]

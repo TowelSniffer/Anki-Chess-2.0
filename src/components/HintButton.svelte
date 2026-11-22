@@ -4,6 +4,9 @@
   import type { GameStore } from '$stores/gameStore.svelte';
   import { showHint } from '$features/chessJs/puzzleLogic';
 
+  // labelled: a rounded button with the word, in the row under the note's text
+  let { labelled = false }: { labelled?: boolean } = $props();
+
   const gameStore = getContext<GameStore>('GAME_STORE');
 
   // On the front while the puzzle is being solved
@@ -27,12 +30,14 @@
   <button
     id="hint-button"
     class="tappable"
+    class:pill={labelled}
     title="Hint (H)"
     aria-label="Hint"
     {disabled}
     onclick={() => showHint(gameStore)}
   >
     <IconHint />
+    {#if labelled}<span class="label">Hint</span>{/if}
     {#if gameStore.hintLevel}
       <span class="level">{gameStore.hintLevel}</span>
     {/if}
@@ -52,6 +57,17 @@
       font-size: 0.6rem;
       font-weight: bold;
       line-height: 1;
+    }
+
+    &.pill {
+      @include pill-btn;
+
+      .level {
+        position: static;
+        margin-left: -2px;
+        font-size: 0.7rem;
+        opacity: 0.75;
+      }
     }
   }
 </style>

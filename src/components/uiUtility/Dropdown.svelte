@@ -41,7 +41,8 @@
     items: MenuItem[];
     // Where the menu opens from the trigger: below or above it, aligned to its left or right edge
     position?: 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
-    variant?: 'standard' | 'ghost';
+    // pill: rounded, with the label beside the icon (the front's row under the note's text)
+    variant?: 'standard' | 'ghost' | 'pill';
     // What the button does, for an icon without a label
     ariaLabel?: string;
   };
@@ -228,6 +229,7 @@
   <button
     class="trigger"
     class:ghost={variant === 'ghost'}
+    class:pill={variant === 'pill'}
     class:isActive={isOpen}
     class:has-label={!!label}
     onclick={toggle}
@@ -459,6 +461,27 @@
       font-size: 0.95rem;
       font-weight: 500;
       white-space: nowrap;
+    }
+
+    &.pill {
+      @include pill-btn('.trigger-label');
+
+      .trigger-icon {
+        font-size: 1rem;
+      }
+
+      @include can-hover {
+        &:hover:not(:disabled, :active, .isActive) {
+          background-color: var(--chip-bg);
+          color: var(--text-primary);
+          box-shadow: none;
+        }
+      }
+
+      &.isActive,
+      &:active {
+        border-color: transparent;
+      }
     }
 
     &.ghost {

@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import re
 import sys
 import types
 
@@ -561,13 +562,31 @@ def test_puzzle_placement():
     assert decks.puzzle_placement("Chess::Lichess puzzles", True).deck == "Chess::Lichess puzzles::Solved"
 
 
-def test_back_shows_theme_names_and_your_result():
-    i18n.set_language("pt-BR")
+def test_the_text_above_the_board(anki_ops):
     entry = json.loads(activity_line("DG7B9", False, 1789845997743))
     entry["puzzle"]["themes"] = ["mateIn2", "backRankMate"]
     card = puzzles.activity_card(entry)
-    date = puzzles.played_date(1789845997743)
-    assert card.details == ["Temas: Mate em 2, Mate do corredor", f"Você errou no Lichess (jogado em {date})"]
+    day = puzzles.short_date(1789845997743)
+    assert re.fullmatch(r"\d\d/09/2026", day)
+    text = anki_ops.build_note_fields(card, True)[1]
+    assert text == card.note_text()
+    failed = 'title="Você errou no Lichess"'
+    assert text.startswith(
+        f'<div class="ac-info" data-details="Detalhes"><h3 class="ac-title"><span class="ac-dot ac-failed" {failed}></span>'
+        'Puzzle DG7B9 <span class="ac-rating" title="Rating">1500</span></h3><dl class="ac-grid">'
+    )
+    assert f'<dt>Resultado</dt><dd><span class="ac-result ac-failed" {failed}>✗ Errou · {day}</span></dd>' in text
+    chips = '<span class="ac-chip">Mate em 2</span><span class="ac-sep">, </span><span class="ac-chip">Mate do corredor</span>'
+    assert f"<dt>Temas</dt><dd>{chips}</dd>" in text
+    assert '<dt>Fonte</dt><dd><a href="https://lichess.org/training/DG7B9">Lichess</a> · Puzzles do Lichess</dd>' in text
+
     i18n.set_language("en")
-    assert puzzles.puzzle_details(["fork"], True, 1789845997743)[-1] == f"You solved it on Lichess (played {date})"
-    assert puzzles.puzzle_details(["fork"], None, None) == ["Themes: Fork"]  # a puzzle link: no result
+    assert re.fullmatch(r"Sep \d\d?, 2026", puzzles.short_date(1789845997743))
+    solved = puzzles.activity_card(json.loads(activity_line("DG7B9", True, 1789845997743))).note_text()
+    assert 'class="ac-dot ac-solved" title="You solved it on Lichess"' in solved and "✓ Solved · Sep " in solved
+    # A puzzle link: no result; a theme Lichess added later reads as words, escaped
+    link = puzzles.puzzle_card(json.loads(activity_line("DG7B9", True, 1789845997743)))
+    link.themes = ["fork", "a<b"]
+    text = link.note_text()
+    assert "ac-dot" not in text and "<dt>Result</dt>" not in text
+    assert '<span class="ac-chip">Fork</span><span class="ac-sep">, </span><span class="ac-chip">A&lt;b</span>' in text

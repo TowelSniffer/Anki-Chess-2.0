@@ -206,6 +206,8 @@ def build_note_fields(ch: Chapter, strip_anno: bool) -> tuple[str, str]:
     # Same format as the Companion example note: escaped text with <br> line breaks.
     # A structure's card shows the plans of its comment line by line.
     pgn_field = pgn_to_field(ch.pgn(strip_anno=strip_anno), keep_lines=getattr(ch, "is_structure", False))
+    if hasattr(ch, "note_text"):  # a card that lays its text out itself (Lichess puzzles)
+        return pgn_field, ch.note_text()
 
     parts = [f"<h3>{html.escape(ch.name)}</h3>"]
     if ch.study_name:

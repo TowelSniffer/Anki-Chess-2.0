@@ -8,7 +8,8 @@
 
   // inToolbar: in the comment box's button row; otherwise it floats beside the board (App
   // places it, with the hint button)
-  let { isHelpOpen = $bindable(false), inToolbar = false } = $props();
+  // labelled: a rounded button with the word, in the row under the note's text (the front)
+  let { isHelpOpen = $bindable(false), inToolbar = false, labelled = false } = $props();
 
   const gameStore = getContext<GameStore>('GAME_STORE');
   const isDevMenu = import.meta.env.DEV;
@@ -26,6 +27,8 @@
 <div id="global-settings" class:floating={!inToolbar}>
   <Dropdown
     icon={IconMenu}
+    label={labelled ? 'Menu' : ''}
+    variant={labelled ? 'pill' : 'standard'}
     items={menuData}
     position={inToolbar ? 'bottom-right' : 'top-right'}
     ariaLabel={unsaved ? 'Settings (unsaved changes)' : 'Settings'}

@@ -8,7 +8,15 @@ const puzzlePgn = `[FEN "3brrk1/p3q2p/b1p1p1N1/2P1Pp1Q/3Pp3/4P1PR/P6P/R1B3K1 b -
 
 23... hxg6 24. Qh8+ Kf7 25. Qh7# *`;
 
-const base = { flipBoard: true, timer: 0, handicap: 1, mirror: false, randomOrientation: false, refutation: false };
+const base = {
+  flipBoard: true,
+  timer: 0,
+  handicap: 1,
+  mirror: false,
+  randomOrientation: false,
+  refutation: false,
+  frontEvalButton: true,
+};
 
 async function load(page: Page, config: object, pgn = puzzlePgn, boardMode = 'Puzzle') {
   await page.addInitScript(
@@ -115,6 +123,23 @@ test('the Stockfish button turns the bar on and off while solving', async ({ pag
   await expect(button).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.board-wrapper.analysisMode')).toHaveCount(0);
   await expect.poll(async () => (await engine(page)).enabled).toBe(false);
+});
+
+test('the Stockfish button is an option, off by default', async ({ page }) => {
+  await load(page, { frontEvalButton: false });
+  await expect.poll(() => san(page)).toBe('hxg6');
+  await expect(page.locator('#hint-button')).toBeVisible();
+  await expect(page.locator('#eval-button')).toHaveCount(0);
+  await page.close();
+
+  const defaults = await page.context().newPage();
+  await defaults.addInitScript(() => {
+    (window as any).USER_CONFIG = {};
+    (window as any).DEV_OVERRIDES = { boardMode: 'Puzzle' };
+  });
+  await defaults.goto('/', { waitUntil: 'commit' });
+  await expect(defaults.locator('#board piece').first()).toBeVisible({ timeout: 10000 });
+  await expect(defaults.locator('#eval-button')).toHaveCount(0);
 });
 
 test('the Stockfish button goes with the hint, floating or in the comment box', async ({ page }) => {

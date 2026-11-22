@@ -149,6 +149,14 @@ export function getMenuData(
           onToggle: () => setConfigBoolean('frontEval'),
         },
         {
+          type: 'toggle',
+          label: 'Stockfish Button on Front',
+          tooltip:
+            "While solving, a Stockfish button next to the hint turns the eval bar (Show Eval on Front) on or off, without opening this menu.",
+          checked: userConfig.opts.frontEvalButton,
+          onToggle: () => setConfigBoolean('frontEvalButton'),
+        },
+        {
           type: 'separator',
         },
         {
@@ -188,6 +196,15 @@ export function getMenuData(
           max: 60,
           value: userConfig.opts.increment / 1000,
           onChange: (val: number) => (userConfig.opts.increment = val * 1000),
+          indent: true,
+        },
+        userConfig.opts.timer && {
+          type: 'toggle',
+          label: 'Digital Clock',
+          tooltip:
+            "Shows the time left as minutes and seconds with a chess clock, in the bottom player bar (or next to the card's tools without the bars), instead of on the board's border.",
+          checked: userConfig.opts.timerClock,
+          onToggle: () => setConfigBoolean('timerClock'),
           indent: true,
         },
       ],

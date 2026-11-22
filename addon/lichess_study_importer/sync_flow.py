@@ -30,7 +30,8 @@ from .puzzles import PuzzleCard, activity_card, load_puzzles, next_sync_point, p
 # The deck and tag layout of synced puzzles; a newer one makes the next sync read the
 # whole history once, so every imported puzzle gets it. 1: Failed / Solved subdecks and
 # lichess::puzzle::theme:: tags. 2: theme names and your result in the text under the board.
-PUZZLE_LAYOUT = 2
+# 3: that text as a grid of label and value (result, themes, source) the card styles.
+PUZZLE_LAYOUT = 3
 
 
 @dataclass

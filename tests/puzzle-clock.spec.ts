@@ -16,6 +16,7 @@ const base = {
   randomOrientation: false,
   refutation: false,
   strictScoring: false,
+  timerClock: true,
 };
 
 async function load(page: Page, config: object = {}, boardMode = 'Puzzle', pgn = puzzlePgn) {
@@ -86,6 +87,22 @@ test('the clock is in numbers, and off the border', async ({ page }) => {
 
   await solve(page);
   await expect(page.locator('.clock')).toHaveCount(0);
+});
+
+test("by default the time is on the board's border, as before the clock", async ({ page }) => {
+  await load(page, { timerClock: false });
+  await firstMovePlayed(page);
+  await expect(page.locator('.board-wrapper.timerMode')).toHaveCount(1);
+  await expect(page.locator('.eval-track')).toHaveCount(1);
+  await expect(page.locator('.clock')).toHaveCount(0);
+  await page.close();
+
+  // Without the player bars, the time doesn't go next to the card's tools either
+  const noBars = await page.context().newPage();
+  await load(noBars, { timerClock: false, playerBars: false });
+  await firstMovePlayed(noBars);
+  await expect(noBars.locator('.board-wrapper.timerMode')).toHaveCount(1);
+  await expect(noBars.locator('.clock')).toHaveCount(0);
 });
 
 test('no clock without a timer, or on the back', async ({ page }) => {

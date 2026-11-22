@@ -7,12 +7,16 @@
   import type { EngineStore } from '$stores/engineStore.svelte';
 
   // The back's Stockfish button on the front, where it turns on only the eval bar
+  // labelled: a rounded button with the word, in the row under the note's text
+  let { labelled = false }: { labelled?: boolean } = $props();
+
   const gameStore = getContext<GameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
 
   // While the puzzle is being solved, unless a random orientation rules the bar out
   const visible = $derived(
-    /^(Puzzle|Study)$/.test(gameStore.boardMode) &&
+    gameStore.config.frontEvalButton &&
+      /^(Puzzle|Study)$/.test(gameStore.boardMode) &&
       !gameStore.isPuzzleComplete &&
       !gameStore.config.randomOrientation,
   );
@@ -24,6 +28,7 @@
   <button
     id="eval-button"
     class:active-toggle={on}
+    class:pill={labelled}
     title={label}
     aria-label={label}
     aria-pressed={on}
@@ -36,6 +41,7 @@
     {:else}
       <span class="icon"><IconDevBoardOff /></span>
     {/if}
+    {#if labelled}<span class="label">Stockfish</span>{/if}
   </button>
 {/if}
 
@@ -56,6 +62,21 @@
     &.active-toggle {
       background-color: var(--interactive-button-active);
       @include subtle-shadow(0.7, inset);
+    }
+
+    &.pill {
+      @include pill-btn;
+
+      .icon,
+      .spin {
+        font-size: 1rem;
+      }
+
+      &.active-toggle {
+        background-color: var(--interactive-button-active);
+        border-color: transparent;
+        color: #fff;
+      }
     }
   }
 

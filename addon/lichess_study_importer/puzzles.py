@@ -8,9 +8,10 @@ Pure Python (no aqt imports) so it can be unit tested outside Anki.
 
 from __future__ import annotations
 
+import html
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable
 
 from .chess_lib import chess
@@ -19,7 +20,7 @@ from .game_analysis import export_pgn, mate_alternatives
 from .i18n import tr
 from .lichess_api import LichessError, Wait, fetch_puzzle
 from .pgn_split import ID_TAG, MODE_FLIPPED, MODE_PUZZLE
-from .puzzle_themes import theme_names
+from .puzzle_themes import theme_name
 
 KIND_PUZZLE = "puzzle"
 KEY_PREFIX = "puzzle/"
@@ -56,7 +57,6 @@ class PuzzleCard:
     date: int | None = None  # ms, when you first played it (puzzles from your activity)
     kind: str = KIND_PUZZLE
     link_label: str = "Lichess"
-    details: list[str] = field(default_factory=list)
 
     @property
     def name(self) -> str:
@@ -85,6 +85,37 @@ class PuzzleCard:
 
     def pgn(self, strip_anno: bool = True) -> str:
         return self.body
+
+    def note_text(self) -> str:
+        """
+        The text above the board: the name, with a dot for your result and the rating, then
+        a grid of label and value (your result and its day, the themes, the source) that the
+        card can fold under Details. The ac-* classes are the card template's; without it,
+        the text still reads line by line.
+        """
+        esc = html.escape
+        rows = []
+        dot = ""
+        if self.win is not None:
+            result = "solved" if self.win else "failed"
+            said = esc(tr(f"puzzle.played_{result}"))
+            dot = f'<span class="ac-dot ac-{result}" title="{said}"></span>'
+            day = f" · {short_date(self.date)}" if self.date else ""
+            mark = "✓" if self.win else "✗"
+            value = f"{mark} {esc(tr(f'puzzle.{result}'))}{day}"
+            rows.append((tr("panel.result"), f'<span class="ac-result ac-{result}" title="{said}">{value}</span>'))
+        if self.themes:
+            chips = (f'<span class="ac-chip">{esc(theme_name(t))}</span>' for t in self.themes)
+            rows.append((tr("panel.themes"), '<span class="ac-sep">, </span>'.join(chips)))
+        link = f'<a href="{esc(self.chapter_url)}">{esc(self.link_label)}</a>'
+        rows.append((tr("panel.source"), f"{link} · {esc(self.study_name)}"))
+        title = (
+            f'<h3 class="ac-title">{dot}{esc(tr("panel.puzzle", id=self.puzzle_id))} '
+            f'<span class="ac-rating" title="{esc(tr("panel.rating"))}">{self.rating}</span></h3>'
+        )
+        grid = "".join(f"<dt>{esc(label)}</dt><dd>{value}</dd>" for label, value in rows)
+        details = esc(tr("panel.details"))  # the word for the card's button that folds the grid
+        return f'<div class="ac-info" data-details="{details}">{title}<dl class="ac-grid">{grid}</dl></div>'
 
 
 def _start(data: dict) -> tuple[chess.Board, chess.Move | None]:
@@ -130,7 +161,6 @@ def puzzle_card(data: dict, win: bool | None = None, date: int | None = None) ->
         win=win,
         date=date,
     )
-    card.details = puzzle_details(themes, win, date)
     card.body = export_pgn(
         game,
         {
@@ -147,16 +177,12 @@ def puzzle_card(data: dict, win: bool | None = None, date: int | None = None) ->
     return card
 
 
-def played_date(ms: int) -> str:
-    return time.strftime("%Y-%m-%d", time.localtime(ms / 1000))
-
-
-def puzzle_details(themes: list[str], win: bool | None, date: int | None) -> list[str]:
-    """The lines under the card's name: its themes, and your result on Lichess with its date."""
-    lines = [tr("puzzle.themes", themes=theme_names(themes))] if themes else []
-    if win is not None and date:
-        lines.append(tr("puzzle.played_solved" if win else "puzzle.played_failed", date=played_date(date)))
-    return lines
+def short_date(ms: int) -> str:
+    """The day a puzzle was played, as the card says it: Sep 26, 2026 / 26/09/2026."""
+    t = time.localtime(ms / 1000)
+    month = tr("panel.months").split()[t.tm_mon - 1]
+    day = f"{t.tm_mday:02d}" if month.isdigit() else str(t.tm_mday)  # an all-number date: 05/09
+    return tr("panel.date", month=month, day=day, year=t.tm_year)
 
 
 def activity_card(entry: dict) -> PuzzleCard:
