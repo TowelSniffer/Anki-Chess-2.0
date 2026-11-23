@@ -79,6 +79,9 @@
 
   $effect(() => {
     document.body.classList.toggle('light-theme', userConfig.opts.lightMode);
+    document.documentElement.style.setProperty('--board-max', `${userConfig.opts.boardSize}px`);
+    // No player bars on a structure
+    document.documentElement.classList.remove('player-bars');
   });
 
   // --- Board ---

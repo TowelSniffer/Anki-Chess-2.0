@@ -31,17 +31,17 @@ async function load(page: Page, pgn: string) {
 const move = (page: Page, orig: string, dest: string) =>
   page.evaluate(([o, d]) => (window as any).gameStore.cg.move(o, d), [orig, dest]);
 
-test('a variation is a wrong move in a gamebook', async ({ page }) => {
+test('a variation is a wrong move in a gamebook, with its comment', async ({ page }) => {
   await load(page, gamebook);
   await move(page, 'f8', 'e7');
   await expect
     .poll(() =>
       page.evaluate(() => {
         const store = (window as any).gameStore;
-        return { errors: store.errorCount, san: store.currentMove.san };
+        return { errors: store.errorCount, comment: store.wrongMoveComment, san: store.currentMove.san };
       }),
     )
-    .toEqual({ errors: 1, san: 'Bg5' });
+    .toEqual({ errors: 1, comment: 'Errado: troca o bispo bom', san: 'Bg5' });
 });
 
 test('the same variation is accepted outside gamebooks', async ({ page }) => {

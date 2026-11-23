@@ -1,5 +1,6 @@
 import type { Key, Piece, Role, Color } from '@lichess-org/chessground/types';
 import type { DrawShape } from '@lichess-org/chessground/draw';
+import { cleanComment } from '$features/pgn/pgnParsing';
 
 /*
  * Pawn structures (a [FEN] with no moves, often without kings) rebuilt on the board:
@@ -31,8 +32,6 @@ const ROLE_OF: Record<string, Role> = {
   k: 'king',
 };
 const BRUSHES: Record<string, string> = { G: 'green', R: 'red', B: 'blue', Y: 'yellow' };
-// A comment without its commands ([%csl], [%cal], [%eval]...): the readable text
-const cleanComment = (comment: string) => comment.replace(/\[%[^\]]*\]/g, '').trim();
 const FILES = 'abcdefgh';
 const TAG_RE = /\[(\w+)\s+"((?:[^"\\]|\\.)*)"\]/g;
 const COMMENT_RE = /\{([^}]*)\}/g;

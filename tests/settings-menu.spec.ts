@@ -68,7 +68,7 @@ for (const vp of viewports) {
     test(`front without the comment box: the menu floats off the board (${vp.name}, ${barsLabel})`, async ({
       page,
     }) => {
-      await load(page, vp, { playerBars: bars, frontText: false }, 'Puzzle');
+      await load(page, vp, { playerBars: bars, frontText: false, frontComments: false }, 'Puzzle');
       await expect(page.locator('#global-settings.floating')).toHaveCount(1);
       await expectUsableMenu(page, vp);
     });
@@ -87,10 +87,36 @@ for (const vp of viewports) {
     });
   }
 
-  test(`front with the comment box: the menu is at its top (${vp.name})`, async ({ page }) => {
-    await load(page, vp, { frontText: true }, 'Puzzle');
-    await expect(page.locator('#commentBox #buttons-container.menu-only #global-settings button')).toBeVisible();
-    await expect(page.locator('#global-settings.floating')).toHaveCount(0);
-    await expectUsableMenu(page, vp);
-  });
+  for (const [name, config] of [
+    ['user text', { frontText: true, frontComments: false }],
+    ['move comments', { frontText: false, frontComments: true }],
+  ] as const) {
+    test(`front with the comment box (${name}): the menu is at its top (${vp.name})`, async ({ page }) => {
+      await load(page, vp, config, 'Puzzle');
+      await expect(page.locator('#commentBox #buttons-container.menu-only #global-settings button')).toBeVisible();
+      await expect(page.locator('#global-settings.floating')).toHaveCount(0);
+      await expectUsableMenu(page, vp);
+    });
+  }
+}
+
+// The hint button goes with the menu: at the top of the comment box, or floating with it
+for (const vp of viewports) {
+  for (const [where, config, holder] of [
+    ['in the comment box', { frontText: true, frontComments: false }, '#commentBox #buttons-container.menu-only'],
+    ['floating', { frontText: false, frontComments: false }, '#floating-tools'],
+  ] as const) {
+    test(`front: the hint button sits next to the menu, ${where} (${vp.name})`, async ({ page }) => {
+      await load(page, vp, config, 'Puzzle');
+      const hint = page.locator(`${holder} #hint-button`);
+      await expect(hint).toBeVisible();
+      await expect(page.locator(`${holder} #global-settings`)).toBeVisible();
+
+      const hintBox = (await hint.boundingBox())!;
+      const menuBox = (await page.locator('#global-settings button').boundingBox())!;
+      expect(overlaps(hintBox, menuBox)).toBe(false);
+      expect(overlaps(hintBox, (await page.locator('.board-wrapper').boundingBox())!)).toBe(false);
+      expect(inside(hintBox, vp)).toBe(true);
+    });
+  }
 }

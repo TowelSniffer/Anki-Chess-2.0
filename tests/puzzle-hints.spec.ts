@@ -100,3 +100,18 @@ test('the hint button stays off the board', async ({ page }) => {
     expect(overlaps, `${width}x${height}`).toBe(false);
   }
 });
+
+test('no hint while a wrong move is refuted', async ({ page }) => {
+  await load(page);
+  // A slow engine keeps the refutation going
+  await page.evaluate(() => {
+    (window as any).gameStore.engineStore.requestBestMove = () =>
+      new Promise((resolve) => setTimeout(() => resolve('e7e5'), 1500));
+  });
+  await page.evaluate(() => (window as any).gameStore.cg.move('d2', 'd4'));
+  await expect.poll(() => store(page, (s) => s.isRefuting)).toBe(true);
+
+  await expect(page.locator('#hint-button')).toBeDisabled();
+  await page.keyboard.press('h');
+  expect(await store(page, (s) => s.hintLevel)).toBe(0);
+});
