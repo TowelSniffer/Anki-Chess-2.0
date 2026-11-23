@@ -13,6 +13,7 @@ export interface UserConfigOpts {
   storePgnPath: boolean;
   strictScoring: boolean;
   hints: boolean;
+  refutation: boolean;
   acceptVariations: boolean;
   playBothSides: boolean;
   timer: number;

@@ -14,6 +14,7 @@
   "strictScoring": false,
   "acceptVariations": true,
   "hints": true,
+  "refutation": true,
   "playBothSides": false,
   "timer": 10000,
   "increment": 1000,

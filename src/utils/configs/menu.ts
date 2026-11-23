@@ -133,6 +133,14 @@ export function getMenuData(
           onToggle: () => setConfigBoolean('hints'),
         },
         {
+          type: 'toggle',
+          label: 'Show Refutation',
+          tooltip:
+            "After a wrong move, briefly shows the reply that punishes it (the PGN's variation when there is one, else Stockfish's), then takes the move back.",
+          checked: userConfig.opts.refutation,
+          onToggle: () => setConfigBoolean('refutation'),
+        },
+        {
           type: 'separator',
         },
         {
