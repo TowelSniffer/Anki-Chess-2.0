@@ -84,6 +84,25 @@ export function getMenuData(
           value: userConfig.opts.animationTime,
           onChange: (val: number) => (userConfig.opts.animationTime = val),
         },
+        {
+          type: 'number',
+          label: 'Board size (px)',
+          tooltip:
+            'Maximum board size. The board always stays square and never grows past the screen, so phones in portrait are not affected',
+          min: 400,
+          max: 1200,
+          step: 50,
+          value: userConfig.opts.boardSize,
+          onChange: (val: number) => (userConfig.opts.boardSize = val),
+        },
+        {
+          type: 'toggle',
+          label: 'Player Bars',
+          tooltip:
+            'Show the players above and below the board, as on Lichess: title, name (NN when the PGN has none), rating, the result (on the back, so puzzles are not given away), and the pieces each side has more of with its points ahead. The material is counted from the pieces on the board, so it also works for puzzles.',
+          checked: userConfig.opts.playerBars,
+          onToggle: () => setConfigBoolean('playerBars'),
+        },
       ],
     },
     {

@@ -5,6 +5,8 @@
   "disableArrows": false,
   "singleClickMove": true,
   "animationTime": 200,
+  "boardSize": 600,
+  "playerBars": true,
   "handicap": 1,
   "autoAdvance": false,
   "timerAdvance": false,

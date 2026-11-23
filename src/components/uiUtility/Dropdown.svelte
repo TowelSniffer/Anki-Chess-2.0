@@ -39,7 +39,8 @@
     label?: string;
     icon?: Component | string;
     items: MenuItem[];
-    position?: 'bottom-left' | 'bottom-right';
+    // Where the menu opens from the trigger: below or above it, aligned to its left or right edge
+    position?: 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
     variant?: 'standard' | 'ghost';
   };
 
@@ -169,11 +170,15 @@
       menuRef.style.maxWidth = '';
 
       const rect = triggerRef.getBoundingClientRect();
-      let top = rect.bottom + 5;
+      // Above the trigger, but never past the top of the screen
+      let top = position.startsWith('top')
+        ? Math.max(10, rect.top - 5 - menuRef.offsetHeight)
+        : rect.bottom + 5;
       let left = rect.left;
 
-      if (position === 'bottom-right') {
-        left = rect.right - menuRef.offsetWidth;
+      if (position.endsWith('right')) {
+        // Never past the left of the screen
+        left = Math.max(10, rect.right - menuRef.offsetWidth);
       }
 
       menuRef.style.top = `${top}px`;
