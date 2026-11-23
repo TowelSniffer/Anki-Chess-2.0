@@ -12,6 +12,7 @@ export interface UserConfigOpts {
   timerAdvance: boolean;
   storePgnPath: boolean;
   strictScoring: boolean;
+  hints: boolean;
   acceptVariations: boolean;
   playBothSides: boolean;
   timer: number;

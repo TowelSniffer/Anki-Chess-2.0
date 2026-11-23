@@ -125,6 +125,14 @@ export function getMenuData(
           onToggle: () => setConfigBoolean('disableArrows'),
         },
         {
+          type: 'toggle',
+          label: 'Hints',
+          tooltip:
+            'Shows a hint button (or press H) while solving: the first hint marks the piece to move, the second shows the move, the third plays it. Any hint rules out a perfect score, and the third counts as a mistake.',
+          checked: userConfig.opts.hints,
+          onToggle: () => setConfigBoolean('hints'),
+        },
+        {
           type: 'separator',
         },
         {
