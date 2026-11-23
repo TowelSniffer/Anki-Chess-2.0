@@ -173,8 +173,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "error.no_access": "Study not found or no access (HTTP {code}). {hint}",
         "error.no_access.token_hint": "Check that the token has the 'study:read' scope and access to the study.",
         "error.no_access.public_hint": (
-            "If the study is private, add your Lichess token ('Lichess token…' at the bottom "
-            "of the window, 'study:read' scope) or export the PGN and use 'Open .pgn file'."
+            "If the study is private, add your Lichess token (Lichess tab › Puzzles, 'study:read' "
+            "scope) or export the PGN and use 'Open .pgn file'."
         ),
         "error.rate_limited": (
             "Lichess is still limiting the downloads, even after waiting about a minute. "
@@ -296,7 +296,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "cc.server_analysis": "Lichess analysis found: {count} errors marked, no Stockfish needed.",
         "menu.import_puzzles": "Import Lichess puzzles...",
         "puzzle.title": "Import Lichess puzzles",
-        "puzzle.token_tip": "Your puzzle activity needs your Lichess token ('Lichess token…' at the bottom of the window) with the puzzle:read scope. Puzzle links don't need it.",
+        "puzzle.token_tip": "Your puzzle activity needs your Lichess token (above) with the puzzle:read scope. Puzzle links don't need it.",
         "puzzle.token_needed": "Your puzzle activity needs your Lichess token, with the puzzle:read scope.",
         "puzzle.last": "Last",
         "puzzle.failed_only": "Only the failed ones",
@@ -432,23 +432,29 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.sync_organized": "{count} already imported were moved to Failed/Solved or retagged.",
         # --- Interface refinements ---
         "window.title": "AnkiChess: import",
-        "window.tab_studies": "Lichess studies",
+        "window.tab_lichess": "Lichess",
         "window.tab_games": "Games",
-        "window.tab_puzzles": "Lichess puzzles",
+        "lichess.section_studies": "Studies",
+        "lichess.section_studies_tip": "Lichess studies (links, .pgn files, a user's studies): no token needed.",
+        "lichess.section_puzzles": "Puzzles",
+        "lichess.section_puzzles_tip": "The puzzles you played on Lichess (needs your Lichess token) and puzzle links.",
+        "token.section": "Lichess token (needed for your puzzles)",
+        "token.change": "Change…",
+        "token.reason_private": "Private studies and the download limit by account use your token. Once it's saved, the studies load again.",
         "window.update_tip": "Download again every Lichess study already in your collection and update the notes whose chapter changed.",
         "source.more": "More sources",
-        "source.token": "Private study (token)…",
         "token.create": "Create a token on Lichess",
         "token.create_tip": "Opens Lichess' token page with the study:read and puzzle:read scopes checked.",
-        "token.dialog_title": "Lichess token",
         "token.intro": (
-            "The token is a personal API access token of your Lichess account (Preferences › "
-            "<a href=\"https://lichess.org/account/oauth/token\">API access tokens</a>). With it the "
-            "add-on downloads your private studies and your puzzle activity, and Lichess counts "
-            "the study downloads by account (3 at a time) instead of by IP (1 at a time), so "
-            "updating many studies isn't cut short.<br><br>Create one with the button below "
-            "(the study:read and puzzle:read scopes come checked), click Create on Lichess and "
-            "paste the token (lip_…) here. It is stored as plain text in the add-on config."
+            "Studies don't need it. Stored as plain text in the add-on config "
+            "(<a href=\"https://lichess.org/account/oauth/token\">your tokens on Lichess</a>)."
+        ),
+        "token.intro_tip": (
+            "A personal API access token of your Lichess account. Your puzzle activity (the sync "
+            "and Load my puzzles) needs it, with the puzzle:read scope. Studies don't: with it, "
+            "private studies open too (study:read) and Lichess counts the study downloads by "
+            "account (3 at a time) instead of by IP (1). Create a token on Lichess opens Lichess "
+            "with both scopes checked."
         ),
         "token.paste": "Paste the token (lip_…)",
         "token.show_text": "Show",
@@ -466,16 +472,13 @@ STRINGS: dict[str, dict[str, str]] = {
         "token.save": "Save",
         "token.save_anyway": "Save anyway",
         "token.remove": "Remove token",
-        "token.status_none": "Lichess: no token",
-        "token.status_user": "Lichess: {user} ✓",
-        "token.status_saved": "Lichess: token saved",
-        "token.status_tip": "Your Lichess token: private studies, your puzzle activity, and the download limit by account instead of by IP.",
-        "token.button": "Lichess token…",
+        "token.status_user": "Lichess token: ✓ {user}",
+        "token.status_saved": "Lichess token: ✓ saved",
         "token.rate_hint": (
-            "Tip: with your Lichess token the download limit is 3 at a time by account, "
-            "instead of 1 at a time by IP."
+            "Tip: with your Lichess token (Lichess tab › Puzzles) the download limit is 3 at a "
+            "time by account, instead of 1 at a time by IP."
         ),
-        "token.offer": "Add your Lichess token now? It opens private studies and raises the download limit.",
+        "token.offer": "Add your Lichess token? It opens private studies and raises the download limit (Lichess tab › Puzzles).",
         "token.reason_rate": "Lichess limited the downloads by IP. With your token the limit is by account.",
         "start.intro": "Paste a Lichess study link above (several separated by spaces), open a .pgn file from More sources, or drop files or links here. Studies you already imported:",
         "start.study": "{name} ({count} notes)",
@@ -700,8 +703,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "error.no_access": "Estudo não encontrado ou sem acesso (HTTP {code}). {hint}",
         "error.no_access.token_hint": "Confira se o token tem o escopo 'study:read' e acesso ao estudo.",
         "error.no_access.public_hint": (
-            "Se o estudo é privado, adicione o seu token do Lichess ('Token do Lichess…' no pé "
-            "da janela, escopo 'study:read') ou exporte o PGN e use 'Abrir arquivo .pgn'."
+            "Se o estudo é privado, adicione o seu token do Lichess (aba Lichess › Puzzles, escopo "
+            "'study:read') ou exporte o PGN e use 'Abrir arquivo .pgn'."
         ),
         "error.rate_limited": (
             "O Lichess continua limitando os downloads, mesmo depois de esperar cerca de um "
@@ -823,7 +826,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "cc.server_analysis": "Análise do Lichess encontrada: {count} erros marcados, sem precisar do Stockfish.",
         "menu.import_puzzles": "Importar puzzles do Lichess...",
         "puzzle.title": "Importar puzzles do Lichess",
-        "puzzle.token_tip": "A sua atividade de puzzles precisa do seu token do Lichess ('Token do Lichess…' no pé da janela) com o escopo puzzle:read. Links de puzzles não precisam.",
+        "puzzle.token_tip": "A sua atividade de puzzles precisa do seu token do Lichess (acima) com o escopo puzzle:read. Links de puzzles não precisam.",
         "puzzle.token_needed": "A sua atividade de puzzles precisa do seu token do Lichess, com o escopo puzzle:read.",
         "puzzle.last": "Últimos",
         "puzzle.failed_only": "Só os que errei",
@@ -960,24 +963,29 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.sync_organized": "{count} já importados foram movidos para Errados/Acertados ou receberam as tags novas.",
         # --- Interface refinements ---
         "window.title": "AnkiChess: importar",
-        "window.tab_studies": "Estudos do Lichess",
+        "window.tab_lichess": "Lichess",
         "window.tab_games": "Partidas",
-        "window.tab_puzzles": "Puzzles do Lichess",
+        "lichess.section_studies": "Estudos",
+        "lichess.section_studies_tip": "Estudos do Lichess (links, arquivos .pgn, os estudos de um usuário): sem token.",
+        "lichess.section_puzzles": "Puzzles",
+        "lichess.section_puzzles_tip": "Os puzzles que você fez no Lichess (precisa do seu token do Lichess) e links de puzzles.",
+        "token.section": "Token do Lichess (necessário para os seus puzzles)",
+        "token.change": "Trocar…",
+        "token.reason_private": "Estudos privados e o limite de downloads por conta usam o seu token. Depois de salvo, os estudos são carregados de novo.",
         "window.update_tip": "Baixa de novo todos os estudos do Lichess que já estão na sua coleção e atualiza as notas cujo capítulo mudou.",
         "source.more": "Mais fontes",
-        "source.token": "Estudo privado (token)…",
         "token.create": "Criar um token no Lichess",
         "token.create_tip": "Abre a página de tokens do Lichess com os escopos study:read e puzzle:read marcados.",
-        "token.dialog_title": "Token do Lichess",
         "token.intro": (
-            "O token é uma chave de acesso pessoal à API da sua conta do Lichess (Preferências › "
-            "<a href=\"https://lichess.org/account/oauth/token\">Chaves de acesso à API</a>). Com ele "
-            "o add-on baixa os seus estudos privados e a sua atividade de puzzles, e o Lichess "
-            "conta os downloads de estudos por conta (3 de cada vez) em vez de por IP (1 de cada "
-            "vez), então atualizar muitos estudos não é interrompido.<br><br>Crie um pelo botão "
-            "abaixo (os escopos study:read e puzzle:read já vêm marcados), clique em Criar no "
-            "Lichess e cole o token (lip_…) aqui. Ele fica salvo em texto puro na configuração "
-            "do add-on."
+            "Os estudos não precisam dele. Fica salvo em texto puro na configuração do add-on "
+            "(<a href=\"https://lichess.org/account/oauth/token\">os seus tokens no Lichess</a>)."
+        ),
+        "token.intro_tip": (
+            "Uma chave de acesso pessoal à API da sua conta do Lichess. A sua atividade de "
+            "puzzles (a sincronização e Carregar meus puzzles) precisa dela, com o escopo "
+            "puzzle:read. Os estudos não: com ela, estudos privados também abrem (study:read) e "
+            "o Lichess conta os downloads de estudos por conta (3 de cada vez) em vez de por IP "
+            "(1). Criar um token no Lichess abre o Lichess com os dois escopos marcados."
         ),
         "token.paste": "Cole o token (lip_…)",
         "token.show_text": "Mostrar",
@@ -995,16 +1003,13 @@ STRINGS: dict[str, dict[str, str]] = {
         "token.save": "Salvar",
         "token.save_anyway": "Salvar assim mesmo",
         "token.remove": "Remover token",
-        "token.status_none": "Lichess: sem token",
-        "token.status_user": "Lichess: {user} ✓",
-        "token.status_saved": "Lichess: token salvo",
-        "token.status_tip": "O seu token do Lichess: estudos privados, a sua atividade de puzzles e o limite de downloads por conta em vez de por IP.",
-        "token.button": "Token do Lichess…",
+        "token.status_user": "Token do Lichess: ✓ {user}",
+        "token.status_saved": "Token do Lichess: ✓ salvo",
         "token.rate_hint": (
-            "Dica: com o seu token do Lichess o limite de downloads é de 3 de cada vez por "
-            "conta, em vez de 1 de cada vez por IP."
+            "Dica: com o seu token do Lichess (aba Lichess › Puzzles) o limite de downloads é de "
+            "3 de cada vez por conta, em vez de 1 de cada vez por IP."
         ),
-        "token.offer": "Adicionar o seu token do Lichess agora? Ele abre estudos privados e aumenta o limite de downloads.",
+        "token.offer": "Adicionar o seu token do Lichess? Ele abre estudos privados e aumenta o limite de downloads (aba Lichess › Puzzles).",
         "token.reason_rate": "O Lichess limitou os downloads por IP. Com o seu token o limite é por conta.",
         "start.intro": "Cole um link de estudo do Lichess acima (vários separados por espaço), abra um arquivo .pgn em Mais fontes, ou arraste arquivos ou links para cá. Estudos que você já importou:",
         "start.study": "{name} ({count} notas)",

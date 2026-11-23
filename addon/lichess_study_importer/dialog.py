@@ -15,6 +15,7 @@ import html
 import io
 import os
 import textwrap
+from typing import Callable
 from dataclasses import dataclass, field
 
 import aqt
@@ -75,7 +76,6 @@ from .pgn_split import (
     split_games,
 )
 from .structures import StructureCard
-from .token_dialog import edit_token
 from .ui_common import (
     BoardPreview,
     ask_pgn,
@@ -291,8 +291,11 @@ class UserStudiesDialog(QDialog):
 
 
 class StudyImportPage(QWidget):
-    def __init__(self, parent=None, urls: str = ""):
+    def __init__(self, parent=None, urls: str = "", ask_token: Callable[[str, Callable[[], None]], None] | None = None):
         super().__init__(parent)
+        # ask_token(reason, then): the Lichess token's field (Lichess tab › Puzzles), and then()
+        # once it is saved. Studies don't need it: only a private one or the download limit
+        self.ask_token = ask_token
         self.config = get_config()
         self.studies: list[Study] = []
         self.rows: list[Row] = []
@@ -330,8 +333,6 @@ class StudyImportPage(QWidget):
             ("source.user_studies", self.on_user_studies),
             ("source.open_file", self.on_open_file),
             ("source.paste", self.on_paste),
-            # The token, for private studies (also in the window's bottom bar)
-            ("source.token", lambda: edit_token(self)),
         ):
             more_menu.addAction(tr(key), slot)
         more.setMenu(more_menu)
@@ -649,9 +650,10 @@ class StudyImportPage(QWidget):
                     sources.append((value, source, complete))
             if errors:
                 message = tr("study.load_errors", errors="\n".join(errors))
-                if needs_token and not lichess_token():
-                    if askUser(f"{message}\n\n{tr('token.offer')}", parent=self) and edit_token(self):
-                        self.on_load_url()  # again, with the token
+                if needs_token and not lichess_token() and self.ask_token:
+                    if askUser(f"{message}\n\n{tr('token.offer')}", parent=self):
+                        # Loaded again, with the token, once it is saved
+                        self.ask_token(tr("token.reason_private"), self.on_load_url)
                         return
                 else:
                     showWarning(message, parent=self)

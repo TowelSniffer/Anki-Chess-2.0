@@ -1,5 +1,6 @@
 """
-Puzzles page of the import window, in three sections:
+Puzzles section of the import window's Lichess tab: the Lichess token on top (your puzzle
+activity needs it; puzzle links don't), then three sections:
 
 - Sync: the puzzles you played on Lichess, imported at once (see puzzle_sync.py), when
   Anki opens, every hour and from "Sync now"; how many puzzles are in Anki, and "Themes
@@ -65,7 +66,7 @@ from .ui_common import (
     save_columns,
     write_config,
 )
-from .token_dialog import edit_token
+from .token_panel import TokenPanel
 
 COL_CHECK, COL_PUZZLE, COL_DATE, COL_RATING, COL_THEMES, COL_RESULT, COL_STATUS = range(7)
 COLUMN_WIDTHS = {COL_CHECK: 28, COL_PUZZLE: 90, COL_DATE: 90, COL_RATING: 70, COL_THEMES: 300, COL_RESULT: 80}
@@ -108,12 +109,15 @@ class PuzzleImportPage(QWidget):
         self.default_deck = f"{root}::{tr('deck.puzzles')}"
 
         layout = QVBoxLayout(self)
+        self.token_panel = TokenPanel(self)
+        layout.addWidget(self.token_panel)
         layout.addWidget(self.sync_section())
         layout.addWidget(self.cards_section())
         layout.addWidget(self.history_section(), 1)
         if not self.base:
             self.summary.setText(tr("warn.no_note_types"))
         self.update_sync_status()
+        self.token_panel.refresh()  # its account line is in the sync section now
         puzzle_sync.add_listener(self.after_sync)
 
     # --- Sections ---
@@ -159,6 +163,9 @@ class PuzzleImportPage(QWidget):
         btn_themes.setToolTip(tr("puzzle.themes_button_tip"))
         btn_themes.clicked.connect(self.on_themes)
         status.addWidget(self.sync_status, 1)
+        # The saved token's account, Change and Remove (without one, its panel is above)
+        status.addWidget(self.token_panel.saved_row)
+        status.addSpacing(12)
         status.addWidget(btn_themes)
         rows.addLayout(status)
         return box
@@ -182,7 +189,7 @@ class PuzzleImportPage(QWidget):
         box = QGroupBox(tr("puzzle.section_history"))
         rows = QVBoxLayout(box)
 
-        # Your activity (with the token of the window's bottom bar), or puzzle links
+        # Your activity (with the token above), or puzzle links
         source = QHBoxLayout()
         self.max_spin = QSpinBox()
         self.max_spin.setRange(1, MAX_LATEST)
@@ -309,9 +316,17 @@ class PuzzleImportPage(QWidget):
         in_anki = tr("puzzle.in_anki", count=total, failed=failed)
         self.sync_status.setText(f"<small>{puzzle_sync.last_sync_text()} · {in_anki}</small>")
 
+    def has_token(self) -> bool:
+        """Your puzzle activity needs the token: without one, its field says so."""
+        if lichess_token():
+            return True
+        self.token_panel.ask(tr("puzzle.token_needed"))
+        return False
+
     def on_sync(self):
         self.save_options()
-        puzzle_sync.sync_puzzles(self, True)
+        if self.has_token():
+            puzzle_sync.sync_puzzles(self, True)
 
     def after_sync(self, message: str):
         """A sync ended (from here, the menu bar button or on its own)."""
@@ -333,11 +348,9 @@ class PuzzleImportPage(QWidget):
     # --- Loading ---
 
     def on_load_activity(self):
-        token = lichess_token()
-        if not token and edit_token(self, tr("puzzle.token_needed")):
-            token = lichess_token()
-        if not token:
+        if not self.has_token():
             return
+        token = lichess_token()
         all_history, latest = self.all_check.isChecked(), self.max_spin.value()
         self.save_options()
         user = puzzle_sync.cache_user(self.config)

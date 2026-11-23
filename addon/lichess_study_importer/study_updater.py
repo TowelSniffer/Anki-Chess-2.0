@@ -23,7 +23,6 @@ from .i18n import tr
 from .lichess_api import LichessError, fetch_study_pgn
 from .pgn_split import KIND_EMPTY, KIND_STRUCTURE, KIND_UNSUPPORTED, split_games
 from .structures import StructureCard
-from .token_dialog import edit_token
 from .ui_common import apply_language, error_text, get_config, lichess_token, lichess_waiter
 
 # Lichess still refusing after the waits, or the user stopped: the studies left wait
@@ -74,13 +73,15 @@ def update_rows(col, results, strip_anno: bool, report: dict) -> list:
 def update_imported_studies(
     parent=None,
     open_studies: Callable[[str], None] | None = None,
+    ask_token: Callable[[str, Callable[[], None]], None] | None = None,
     only: list[str] | None = None,
     new_chapters: dict | None = None,
 ):
     """
     open_studies(links) loads the studies that have new chapters in the import window,
-    when the user wants to. only: the ids of the studies to download (those left for
-    later), with the new chapters found before them.
+    when the user wants to. ask_token(reason, then) shows the Lichess token's field, then()
+    once it is saved. only: the ids of the studies to download (those left for later),
+    with the new chapters found before them.
     """
     if not mw.col:
         return
@@ -123,14 +124,14 @@ def update_imported_studies(
         parent=parent,
         op=fetch,
         success=lambda fetched: apply_updates(
-            *fetched, names, total, strip_anno, parent, open_studies, new_chapters or {}
+            *fetched, names, total, strip_anno, parent, open_studies, ask_token, new_chapters or {}
         ),
     ).failure(lambda e: showWarning(error_text(e), parent=parent)).with_progress(
         tr("update.progress", done=0, total=total)
     ).without_collection().run_in_background()
 
 
-def apply_updates(results, left, names, total, strip_anno, parent, open_studies, new_chapters):
+def apply_updates(results, left, names, total, strip_anno, parent, open_studies, ask_token, new_chapters):
     report = {"studies": 0, "errors": [], "new": dict(new_chapters), "removed": 0}
     stats = {}
 
@@ -164,12 +165,12 @@ def apply_updates(results, left, names, total, strip_anno, parent, open_studies,
         if new:
             listed = "\n".join(f"• {name}: {len(chapters)}" for name, chapters in new.values())
             lines.append(tr("update.new_chapters", studies=listed))
-        show_report("\n\n".join(lines), left, new, not token, parent, open_studies)
+        show_report("\n\n".join(lines), left, new, not token, parent, open_studies, ask_token)
 
     CollectionOp(parent=parent, op=op).success(on_success).run_in_background()
 
 
-def show_report(text: str, left: list[str], new: dict, offer_token: bool, parent, open_studies):
+def show_report(text: str, left: list[str], new: dict, offer_token: bool, parent, open_studies, ask_token=None):
     """The summary, with buttons to try again the studies left, add a token or open the new chapters."""
     box = QMessageBox(parent)
     box.setWindowTitle(tr("menu.update_studies"))
@@ -177,7 +178,9 @@ def show_report(text: str, left: list[str], new: dict, offer_token: bool, parent
     box.setText(text)
     retry = box.addButton(tr("update.retry", count=len(left)), QMessageBox.ButtonRole.AcceptRole) if left else None
     add_token = (
-        box.addButton(tr("update.add_token"), QMessageBox.ButtonRole.ActionRole) if left and offer_token else None
+        box.addButton(tr("update.add_token"), QMessageBox.ButtonRole.ActionRole)
+        if left and offer_token and ask_token
+        else None
     )
     open_new = (
         box.addButton(tr("update.open_new_button"), QMessageBox.ButtonRole.ActionRole)
@@ -190,10 +193,11 @@ def show_report(text: str, left: list[str], new: dict, offer_token: bool, parent
     clicked = box.clickedButton()
     if clicked is None or clicked == close:
         return
-    if clicked == add_token and not edit_token(parent, tr("token.reason_rate")):
-        return
-    if clicked in (retry, add_token):
-        # The new chapters found now are listed again with the studies tried again
-        update_imported_studies(parent, open_studies, only=left, new_chapters=new)
+    # The new chapters found now are listed again with the studies tried again
+    again = lambda: update_imported_studies(parent, open_studies, ask_token, only=left, new_chapters=new)  # noqa: E731
+    if clicked == add_token:
+        ask_token(tr("token.reason_rate"), again)  # the update goes on once the token is saved
+    elif clicked == retry:
+        again()
     elif clicked == open_new:
         open_studies(" ".join(f"https://lichess.org/study/{i}" for i in new))

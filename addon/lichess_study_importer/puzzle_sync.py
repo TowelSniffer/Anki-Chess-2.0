@@ -30,7 +30,7 @@ from . import anki_ops, decks
 from .i18n import tr
 from .puzzle_cache import FOLDER
 from .sync_flow import PUZZLE_LAYOUT, SyncFlow, SyncSettings
-from .token_dialog import edit_token
+from .token_panel import token_events
 from .ui_common import (
     LichessProgress,
     apply_language,
@@ -111,16 +111,21 @@ def setup():
     menubar._ankichess_tips = _MenuBarTips(menubar)  # kept alive with the menu bar
     menubar.installEventFilter(menubar._ankichess_tips)
     update_button()
+    token_events.changed.connect(lambda: update_button())
     mw.progress.timer(HOURLY_MS, sync_hourly, True, requiresCollection=True, parent=mw)
     gui_hooks.state_did_change.append(_after_review)
 
 
 def update_button(config: dict | None = None):
-    """Shown or hidden (puzzle_sync_button), with the last sync in its tooltip."""
+    """
+    Shown (puzzle_sync_button) once a Lichess token is saved, the only way it can sync,
+    with the last sync in its tooltip. Without a token it would only ask for one.
+    """
     if _button is None:
         return
     config = get_config() if config is None else config
-    _button.setVisible(bool(config.get("puzzle_sync_button", True)))
+    has_token = bool(str(config.get("lichess_token", "")).strip())
+    _button.setVisible(bool(config.get("puzzle_sync_button", True)) and has_token)
     _button.setToolTip(f"{tr('puzzle.sync_button')}\n{last_sync_text(config)}")
 
 
@@ -219,8 +224,11 @@ def sync_puzzles(parent, interactive: bool = True, done: Callable[[str], None] |
         return
     apply_language()
     token = lichess_token()
-    if not token and interactive and edit_token(parent, tr("puzzle.token_needed")):
-        token = lichess_token()
+    if not token and interactive and mw.col:
+        # The import window, at the token's field (it imports this module)
+        from .import_window import show_import_window
+
+        show_import_window(token_reason=tr("puzzle.token_needed"))
     if not token or not mw.col:
         return
     config = get_config()

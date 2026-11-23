@@ -1,16 +1,16 @@
 """
-The Lichess token (a personal API access token), in one place for every page: created on
+The Lichess token (a personal API access token), in the Puzzles section of the Lichess
+tab: the only part of the add-on that needs it, for your puzzle activity. Created on
 Lichess with the scopes the add-on uses, pasted, checked and saved in the add-on config.
-With it, private studies and your puzzle activity can be downloaded, and Lichess counts
-the study downloads by account (three at a time) instead of by IP (one).
+Studies don't need it; when one is saved, private studies open too and Lichess counts the
+study downloads by account (three at a time) instead of by IP (one).
 """
 
 from __future__ import annotations
 
 from aqt.operations import QueryOp
 from aqt.qt import (
-    QDialog,
-    QDialogButtonBox,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -32,7 +32,7 @@ class TokenEvents(QObject):
     changed = pyqtSignal()
 
 
-# Saving or removing the token: the status in the import window follows it
+# Saving or removing the token: the puzzle sync button and the pages follow it
 token_events = TokenEvents()
 
 
@@ -49,35 +49,53 @@ def token_text(info: dict | None) -> str:
     return "\n".join(lines)
 
 
-class LichessTokenDialog(QDialog):
-    def __init__(self, parent=None, reason: str = ""):
-        super().__init__(parent)
-        self.setWindowTitle(tr("token.dialog_title"))
-        self.setMinimumWidth(560)
+class TokenPanel(QGroupBox):
+    """
+    Without a token (or while changing it): how to get it, the field, Check and Save.
+    With one, the panel hides and `saved_row` (its account, Change and Remove), which the
+    page places in a row of its own, shows instead: the window doesn't grow for it.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(tr("token.section"), parent)
         self.checked: tuple[str, dict | None] | None = None  # (token, what Lichess said)
         layout = QVBoxLayout(self)
-        if reason:
-            why = QLabel(f"<b>{reason}</b>")
-            why.setWordWrap(True)
-            layout.addWidget(why)
-        intro = QLabel(tr("token.intro"))
+
+        # Why it was asked for (a private study, the download limit, your puzzles)
+        self.reason = QLabel()
+        self.reason.setWordWrap(True)
+        self.reason.hide()
+        layout.addWidget(self.reason)
+
+        # --- Saved: the account, Change and Remove (placed by the page) ---
+        self.saved_row = QWidget(self)  # moved into the page's row (a parent from the start: never a window)
+        saved = QHBoxLayout(self.saved_row)
+        saved.setContentsMargins(0, 0, 0, 0)
+        self.saved_label = QLabel()
+        change = QPushButton(tr("token.change"))
+        change.clicked.connect(lambda: self.show_editor(True))
+        remove = QPushButton(tr("token.remove"))
+        remove.clicked.connect(self.on_remove)
+        saved.addWidget(self.saved_label)
+        saved.addWidget(change)
+        saved.addWidget(remove)
+
+        # --- Editing: what it is for, Create on Lichess, the field, Check, Save ---
+        self.editor = QWidget()
+        editor = QVBoxLayout(self.editor)
+        editor.setContentsMargins(0, 0, 0, 0)
+        intro = QLabel(f"<small>{tr('token.intro')}</small>")
+        intro.setToolTip(tr("token.intro_tip"))
         intro.setWordWrap(True)
         intro.setOpenExternalLinks(True)
-        layout.addWidget(intro)
-
-        create = QPushButton(tr("token.create"))
-        create.setToolTip(tr("token.create_tip"))
-        create.clicked.connect(lambda: openLink(TOKEN_URL))
-        create_row = QHBoxLayout()
-        create_row.addWidget(create)
-        create_row.addStretch(1)
-        layout.addLayout(create_row)
+        editor.addWidget(intro)
 
         row = QHBoxLayout()
-        self.edit = QLineEdit(lichess_token())
+        self.edit = QLineEdit()
         self.edit.setEchoMode(QLineEdit.EchoMode.Password)
         self.edit.setPlaceholderText(tr("token.paste"))
         self.edit.textChanged.connect(self.on_edited)
+        self.edit.returnPressed.connect(self.on_save)
         show = QToolButton()
         show.setText(tr("token.show_text"))
         show.setCheckable(True)
@@ -86,34 +104,62 @@ class LichessTokenDialog(QDialog):
         )
         verify = QPushButton(tr("token.verify"))
         verify.clicked.connect(lambda: self.check())
+        self.save_btn = QPushButton(tr("token.save"))
+        self.save_btn.clicked.connect(self.on_save)
+        self.cancel_btn = QPushButton(tr("button.cancel"))
+        self.cancel_btn.clicked.connect(lambda: self.show_editor(False))
+        create = QPushButton(tr("token.create"))
+        create.setToolTip(tr("token.create_tip"))
+        create.clicked.connect(lambda: openLink(TOKEN_URL))
+        row.addWidget(create)
         row.addWidget(QLabel(tr("token.label")))
         row.addWidget(self.edit, 1)
-        row.addWidget(show)
-        row.addWidget(verify)
-        layout.addLayout(row)
+        for widget in (show, verify, self.save_btn, self.cancel_btn):
+            row.addWidget(widget)
+        editor.addLayout(row)
 
         self.status = QLabel()
         self.status.setWordWrap(True)
-        layout.addWidget(self.status)
-        user = get_config().get("lichess_token_user", "")
-        if self.edit.text() and user:
-            self.status.setText(tr("token.saved_user", user=user))
+        self.status.hide()
+        editor.addWidget(self.status)
+        layout.addWidget(self.editor)
 
-        buttons = QDialogButtonBox()
-        self.save_btn = buttons.addButton(tr("token.save"), QDialogButtonBox.ButtonRole.AcceptRole)
-        self.save_btn.setDefault(True)
-        remove = buttons.addButton(tr("token.remove"), QDialogButtonBox.ButtonRole.DestructiveRole)
-        remove.setEnabled(bool(self.edit.text()))
-        cancel = buttons.addButton(tr("button.cancel"), QDialogButtonBox.ButtonRole.RejectRole)
-        self.save_btn.clicked.connect(self.on_save)
-        remove.clicked.connect(self.on_remove)
-        cancel.clicked.connect(self.reject)
-        layout.addWidget(buttons)
-        self.adjustSize()
+        token_events.changed.connect(self.refresh)
+        self.refresh()
+
+    # --- State ---
+
+    def refresh(self):
+        """After a save or a removal (here or elsewhere): the account line, or the editor."""
+        token = lichess_token()
+        if token:
+            user = get_config().get("lichess_token_user", "")
+            self.saved_label.setText(tr("token.status_user", user=user) if user else tr("token.status_saved"))
+            self.reason.hide()
+        self.show_editor(not token)
+
+    def show_editor(self, on: bool):
+        has_token = bool(lichess_token())
+        self.saved_row.setVisible(has_token and not on)
+        self.setVisible(on)
+        self.cancel_btn.setVisible(has_token)  # back to the saved one
+        if on:
+            self.edit.clear()
+            self.set_status("")
+            self.save_btn.setText(tr("token.save"))
+
+    def ask(self, reason: str):
+        """Asked for by a part that needs it: why, and the field ready to paste into."""
+        self.reason.setText(f"<b>{reason}</b>")
+        self.reason.show()
+        self.show_editor(True)
+        self.edit.setFocus()
 
     def set_status(self, text: str):
         self.status.setText(text)
-        self.adjustSize()  # wrapped lines don't make a dialog taller by themselves
+        self.status.setVisible(bool(text))
+
+    # --- Check and save ---
 
     def on_edited(self, _text: str):
         self.set_status("")
@@ -148,7 +194,6 @@ class LichessTokenDialog(QDialog):
     def on_save(self):
         token = self.edit.text().strip()
         if not token:
-            self.on_remove()
             return
         if self.checked and self.checked[0] == token:
             # Checked, and its status seen: saved as it is (only an unknown token isn't)
@@ -171,40 +216,9 @@ class LichessTokenDialog(QDialog):
     def save(self, token: str, info: dict | bool):
         # Without Lichess' answer (no connection) it's saved unchecked, without the account
         save_token(token, info.get("userId", "") if info else "")
+        self.checked = None
         token_events.changed.emit()
-        self.accept()
 
     def on_remove(self):
         save_token("", "")
         token_events.changed.emit()
-        self.accept()
-
-
-def edit_token(parent=None, reason: str = "") -> bool:
-    """Open the token dialog; True when the token was saved or removed."""
-    return bool(LichessTokenDialog(parent, reason).exec())
-
-
-class TokenStatus(QWidget):
-    """The account of the saved token (or none), and the button to change it."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.label = QLabel()
-        self.label.setToolTip(tr("token.status_tip"))
-        button = QPushButton(tr("token.button"))
-        button.setToolTip(tr("token.status_tip"))
-        button.clicked.connect(lambda: edit_token(self.window()))
-        layout.addWidget(self.label)
-        layout.addWidget(button)
-        token_events.changed.connect(self.refresh)
-        self.refresh()
-
-    def refresh(self):
-        if not lichess_token():
-            self.label.setText(tr("token.status_none"))
-        else:
-            user = get_config().get("lichess_token_user", "")
-            self.label.setText(tr("token.status_user", user=user) if user else tr("token.status_saved"))
