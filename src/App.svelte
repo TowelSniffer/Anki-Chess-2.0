@@ -3,14 +3,18 @@
   import ButtonsContainer from '$components/ButtonsContainer.svelte';
   import PromotePopup from '$components/PromotePopup.svelte';
   import PgnViewer from '$components/PgnViewer.svelte';
+  import PlayerBar from '$components/PlayerBar.svelte';
+  import PuzzleComments from '$components/PuzzleComments.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components/EngineAnalysis.svelte';
   import HelpWrapper from '$components/HelpWrapper.svelte';
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
+  import HintButton from '$components/HintButton.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
   import BoardLayout from '$components/BoardLayout.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
+  import { hasPgnComments } from '$features/pgn/pgnParsing';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
@@ -26,6 +30,12 @@
 
   let themeColors = $derived(BOARD_THEMES[userConfig.opts.boardTheme] || BOARD_THEMES['wood']);
   let showDevConfig = $state(false);
+  let showFrontComments = $derived(
+    boardMode !== 'Viewer' && userConfig.opts.frontComments && hasPgnComments(rawPgn),
+  );
+  let showComments = $derived(
+    boardMode === 'Viewer' || (userConfig.opts.frontText && !!userText) || showFrontComments,
+  );
 
   if (import.meta.env.DEV) {
     window.addEventListener('dev:toggleTemplateConfig', () => {
@@ -61,6 +71,16 @@
       document.body.classList.remove('light-theme');
     }
   });
+
+  $effect(() => {
+    // Maximum board size; the viewport still limits it on small screens
+    document.documentElement.style.setProperty('--board-max', `${userConfig.opts.boardSize}px`);
+  });
+
+  $effect(() => {
+    // Room above and below the board for the player bars
+    document.documentElement.classList.toggle('player-bars', userConfig.opts.playerBars);
+  });
 </script>
 
 {#if import.meta.env.DEV}
@@ -82,17 +102,34 @@
 <HelpWrapper bind:isHelpOpen />
 <GameProvider {rawPgn} {boardMode}>
   <ErrorPopup bind:isHelpOpen />
-  <BoardLayout {themeColors} showComments={boardMode === 'Viewer' || (userConfig.opts.frontText && !!userText)}>
+  <BoardLayout
+    {themeColors}
+    playerBars={userConfig.opts.playerBars}
+    {showComments}
+  >
     {#snippet comments()}
       {#if userText}
         <div id="userTextContainer">
           <div id="textField">{@html userText}</div>
         </div>
       {/if}
+      {#if boardMode !== 'Viewer'}
+        <!-- The front has no move buttons (they'd give the solution away): the hint and the menu -->
+        <div id="sticky-container">
+          <div id="buttons-container" class="menu-only">
+            <HintButton />
+            <SettingsMenu bind:isHelpOpen inToolbar />
+          </div>
+        </div>
+      {/if}
+      {#if showFrontComments}
+        <PuzzleComments />
+      {/if}
       {#if boardMode === 'Viewer'}
         <div id="sticky-container">
           <div id="buttons-container">
             <ButtonsContainer />
+            <SettingsMenu bind:isHelpOpen inToolbar />
           </div>
           <div id="analysis-container">
             <EngineAnalysis />
@@ -104,9 +141,23 @@
       {/if}
     {/snippet}
     {#snippet board()}
-      <SettingsMenu bind:isHelpOpen />
+      {#if userConfig.opts.playerBars}
+        <PlayerBar position="top" />
+      {/if}
       <ChessgroundBoard />
+      {#if userConfig.opts.playerBars}
+        <PlayerBar position="bottom" />
+      {/if}
       <PromotePopup />
+    {/snippet}
+    {#snippet outside()}
+      {#if !showComments}
+        <!-- No comment box for the hint and the menu: they float beside the board, never over a square -->
+        <div id="floating-tools">
+          <HintButton />
+          <SettingsMenu bind:isHelpOpen />
+        </div>
+      {/if}
     {/snippet}
   </BoardLayout>
 </GameProvider>
@@ -133,6 +184,32 @@
       border-bottom: var(--border-thin);
       background: var(--surface-secondary);
       padding: 4px;
+
+      // The front's few tools go to the end, as menus do in toolbars
+      &.menu-only {
+        justify-content: flex-end;
+      }
+    }
+  }
+
+  /*
+   * Without the comment box, outside the board in a bottom corner. Landscape: in the comment
+   * box's grid area (#container in BoardLayout), just left of the board. Portrait: the screen's
+   * corner, under the board, within thumb reach.
+   */
+  #floating-tools {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    grid-area: one;
+    right: 0;
+    bottom: 0;
+    margin: 8px;
+    z-index: 50; /* Under the popups */
+
+    @media (orientation: portrait) {
+      position: fixed;
+      bottom: env(safe-area-inset-bottom, 0px);
     }
   }
 
@@ -144,3 +221,4 @@
     border-bottom: var(--border-thin);
   }
 </style>
+

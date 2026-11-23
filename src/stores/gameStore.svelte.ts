@@ -59,6 +59,8 @@ export class GameStore {
   parseError = $state<string | null>(null);
   hasMadeMistake: boolean = $state(false);
   wrongMove = $state<{ from: Square; to: Square } | null>(null);
+  // Comment of the PGN variation matching the last wrong move (gamebook feedback)
+  wrongMoveComment = $state<string | null>(null);
 
   // --- Private State ---
   #flipBoolean: boolean; // Board orientation
@@ -281,6 +283,19 @@ export class GameStore {
   // caches the Map lookup
   get currentMove() {
     return this.#moveMap.get(this.currentPathKey) || null;
+  }
+
+  // Moves from the root to the current position (main line and variations)
+  get pathMoves(): CustomPgnMove[] {
+    const moves: CustomPgnMove[] = [];
+    let path = this.pgnPath;
+    while (path.length) {
+      const move = this.#moveMap.get(path.join(','));
+      if (!move) break;
+      moves.unshift(move);
+      path = navigatePrevMove(path);
+    }
+    return moves;
   }
 
   get trackedMove() {
@@ -569,6 +584,7 @@ export class GameStore {
     this.pendingPromotion = null;
     this.#storedScore = null;
     this.wrongMove = null;
+    this.wrongMoveComment = null;
     this.hasMadeMistake = false;
     this.#destroyTimeouts();
   }

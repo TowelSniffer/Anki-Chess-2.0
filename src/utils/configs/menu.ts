@@ -198,6 +198,14 @@ export function getMenuData(
           onToggle: () => setConfigBoolean('frontText'),
         },
         {
+          type: 'toggle',
+          label: 'Comments on Front',
+          tooltip:
+            'Show PGN comments while solving: the intro comment, comments of played moves, and the comment of a wrong move when it matches a commented variation. Useful for Lichess gamebook studies.',
+          checked: userConfig.opts.frontComments,
+          onToggle: () => setConfigBoolean('frontComments'),
+        },
+        {
           type: 'separator',
         },
         {

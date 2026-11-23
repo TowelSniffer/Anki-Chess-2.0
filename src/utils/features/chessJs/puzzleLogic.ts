@@ -3,6 +3,7 @@ import type { CustomPgnMove, PgnPath } from '$Types/ChessStructs';
 import type { GameStore } from '$stores/gameStore.svelte';
 import { playSound } from '$features/audio/audio';
 import { navigateNextMove } from '$features/pgn/pgnNavigate';
+import { cleanComment } from '$features/pgn/pgnParsing';
 import { getLegalMove, type MoveInput } from './chessFunctions';
 
 // --- Helper Functions ---
@@ -40,6 +41,17 @@ function findMatchingPath(store: GameStore, playedMove: Move): PgnPath | null {
   return null;
 }
 
+// Comment of a PGN variation matching the played move, even if the move is rejected
+function findVariationComment(store: GameStore, playedMove: Move): string | null {
+  const nextMainMove = store.getMoveByPath(navigateNextMove(store.pgnPath));
+  for (const variationLine of nextMainMove?.variations ?? []) {
+    if (isSameMove(variationLine[0], playedMove)) {
+      return cleanComment(variationLine[0].commentAfter) || null;
+    }
+  }
+  return null;
+}
+
 // --- Main Handler ---
 
 export async function handleUserMove(
@@ -51,6 +63,7 @@ export async function handleUserMove(
 ) {
   // Clear any existing wrong move highlight on new attempt
   store.wrongMove = null;
+  store.wrongMoveComment = null;
 
   let moveObject: string | MoveInput;
   moveObject = promotionRole
@@ -107,6 +120,7 @@ export function playAiMove(store: GameStore, delay: number): void {
   store.setTrackedTimeout(() => {
     // Clear any existing wrong move highlight
     store.wrongMove = null;
+    store.wrongMoveComment = null;
     store.errorCount = 0;
     const nextMovePathCheck = navigateNextMove(store.pgnPath);
 
@@ -152,6 +166,7 @@ function handleWrongMove(store: GameStore, move: Move): void {
   store.hasMadeMistake = true;
   // Track the wrong move
   store.wrongMove = { from: move.from, to: move.to };
+  store.wrongMoveComment = findVariationComment(store, move);
   store.customAnimation({ preFen: move.after, animate: true, postFen: move.before });
   playSound('error');
   const isFailed = store.errorCount > store.config.handicap;
