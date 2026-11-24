@@ -38,6 +38,9 @@
   once you leave the reviewer), once a first sync was made.
 - **puzzle_sync_button**: the button at the end of Anki's menu bar (after Help) that syncs the puzzles in
   one click; shown once a Lichess token is saved.
+- **study_buttons**: the two buttons beside it: **Import Lichess studies** (blue: the import window, at
+  Studies) and **Update imported Lichess studies** (purple: downloads them again: the chapters changed on Lichess
+  are updated, the new ones offered for import). `false` hides them.
 - **puzzle_sync_since** / **puzzle_sync_at**: where the next sync starts reading your puzzle activity and
   when the last one ran (ms; written by the sync). `0` = never synced: the next sync goes through your
   whole history.

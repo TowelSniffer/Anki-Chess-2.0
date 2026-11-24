@@ -164,12 +164,17 @@ class ImportWindow(QDialog):
         super().done(result)
 
 
-def show_import_window(tab: int = TAB_STUDIES, urls: str = "", token_reason: str = ""):
-    """token_reason: opened for the token (Puzzles, its field ready), saying why."""
+def show_import_window(
+    tab: int = TAB_STUDIES, urls: str = "", token_reason: str = "", then: Callable[[], None] | None = None
+):
+    """
+    token_reason: opened for the token (Puzzles, its field ready), saying why; then() back
+    in Studies once one is saved.
+    """
     if not mw.col:
         return
     apply_language()
     window = ImportWindow(mw, TAB_PUZZLES if token_reason else tab, urls)
     if token_reason:
-        window.ask_token(token_reason)
+        window.ask_token(token_reason, then)
     window.exec()

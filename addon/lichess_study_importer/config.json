@@ -20,6 +20,7 @@
   "puzzle_sync_on_open": true,
   "puzzle_sync_hourly": true,
   "puzzle_sync_button": true,
+  "study_buttons": true,
   "puzzle_sync_since": 0,
   "puzzle_sync_at": 0,
   "puzzle_sync_layout": 0,

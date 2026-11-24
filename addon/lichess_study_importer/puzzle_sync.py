@@ -5,7 +5,7 @@ Solved subdecks of the puzzle deck. The steps are in sync_flow.py; this module r
 them with Anki's operations, progress window and messages.
 
 - "Sync now" on the Puzzles page, and the button at the end of Anki's menu bar
-  (puzzle_sync_button, like Anki Restart's), run it with a progress window: Esc stops,
+  (puzzle_sync_button, menu_bar.py), run it with a progress window: Esc stops,
   the puzzles fetched are imported and the rest waits for the next sync.
 - After a first sync it also runs on its own, quietly (a tooltip when something
   changed): when the profile opens (puzzle_sync_on_open) and every hour
@@ -16,18 +16,18 @@ them with Anki's operations, progress window and messages.
 
 from __future__ import annotations
 
-import os
 import time
 import weakref
 from typing import Callable
 
 from aqt import gui_hooks, mw
 from aqt.operations import CollectionOp, QueryOp
-from aqt.qt import QAction, QEvent, QIcon, QObject, QToolTip
+from aqt.qt import QAction
 from aqt.utils import showWarning, tooltip
 
 from . import anki_ops, decks
 from .i18n import tr
+from .menu_bar import add_button
 from .puzzle_cache import FOLDER
 from .sync_flow import PUZZLE_LAYOUT, SyncFlow, SyncSettings
 from .token_panel import token_events
@@ -42,7 +42,6 @@ from .ui_common import (
 
 OPEN_DELAY_MS = 5000  # after the profile opens, so Anki is ready first
 HOURLY_MS = 60 * 60 * 1000
-ICON = os.path.join(os.path.dirname(__file__), "icons", "puzzle_sync.png")  # from puzzle_sync.svg
 # Errors not worth a word when the sync runs on its own (offline, Lichess busy)
 QUIET_ERRORS = ("error.connection", "error.rate_limited", "error.cancelled")
 TOOLTIP_MS = 6000
@@ -90,26 +89,11 @@ def _tell_listeners(message: str):
 # --- Setup: the button, and the syncs on their own ---
 
 
-class _MenuBarTips(QObject):
-    """The menu bar shows no tooltips of its own: the button's, with the last sync."""
-
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.Type.ToolTip and _button is not None and obj.actionAt(event.pos()) is _button:
-            QToolTip.showText(event.globalPos(), _button.toolTip(), obj)
-            return True
-        return False
-
-
 def setup():
     """main_window_did_init: the button at the end of the menu bar, and the hourly sync."""
     global _button
     apply_language()
-    _button = QAction(QIcon(ICON), tr("puzzle.sync_button"), mw)
-    _button.triggered.connect(lambda: sync_puzzles(mw))
-    menubar = mw.form.menubar
-    menubar.addAction(_button)
-    menubar._ankichess_tips = _MenuBarTips(menubar)  # kept alive with the menu bar
-    menubar.installEventFilter(menubar._ankichess_tips)
+    _button = add_button("puzzle_sync", tr("puzzle.sync_button"), lambda: sync_puzzles(mw))
     update_button()
     token_events.changed.connect(lambda: update_button())
     mw.progress.timer(HOURLY_MS, sync_hourly, True, requiresCollection=True, parent=mw)

@@ -283,6 +283,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "user_studies.none": "No studies found.",
         "user_studies.private_hint": "Private studies are listed with your token (study:read scope).",
         "menu.update_studies": "Update imported Lichess studies",
+        "menu.update_studies_tip": (
+            "Downloads them again: the chapters changed on Lichess are updated, the new ones "
+            "offered for import."
+        ),
+        "menu.import_studies": "Import Lichess studies",
+        "menu.import_studies_tip": "The import window, at Studies: a link, your studies, a .pgn file.",
         "update.none": "No imported Lichess study in the collection.",
         "update.progress": "Downloading the imported studies… {done} of {total}",
         "update.summary": "{studies} of {total} studies checked: {updated} notes updated, {unchanged} already up to date.",
@@ -823,6 +829,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "user_studies.none": "Nenhum estudo encontrado.",
         "user_studies.private_hint": "Estudos privados aparecem com o seu token (escopo study:read).",
         "menu.update_studies": "Atualizar estudos importados do Lichess",
+        "menu.update_studies_tip": (
+            "Baixa-os de novo: os capítulos alterados no Lichess são atualizados, os novos "
+            "oferecidos para importar."
+        ),
+        "menu.import_studies": "Importar estudos do Lichess",
+        "menu.import_studies_tip": "A janela de importação, em Estudos: um link, seus estudos, um arquivo .pgn.",
         "update.none": "Nenhum estudo do Lichess importado na coleção.",
         "update.progress": "Baixando os estudos importados… {done} de {total}",
         "update.summary": "{studies} de {total} estudos verificados: {updated} notas atualizadas, {unchanged} já em dia.",
