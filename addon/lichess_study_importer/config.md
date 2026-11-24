@@ -20,7 +20,7 @@
 - **lichess_token**: personal token for your puzzle activity (`puzzle:read` scope), the only part that
   needs it; with it, private studies download too (`study:read`) and Lichess limits study downloads by
   account (3 at a time) instead of by IP (1 at a time). Stored as plain text; set it at the top of
-  **Lichess › Puzzles** in the import window, which checks it with Lichess.
+  the import window's **Puzzles** tab, which checks it with Lichess.
 - **lichess_token_user**: the Lichess account of the token, found when it was checked (shown in the
   import window).
 - **lichess_username**: last user whose studies were listed (`User's studies…`).

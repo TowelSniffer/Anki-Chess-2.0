@@ -465,17 +465,26 @@ def deck_names(col) -> list[str]:
 
 
 def imported_studies(col) -> list[tuple[str, str, int]]:
-    """(study id, name, note count) of the Lichess studies in the collection, by name."""
-    ids = {t[len(STUDY_TAG):] for t in col.tags.all() if t.lower().startswith(STUDY_TAG)}
-    studies = []
-    for study_id in ids:
-        if not re.fullmatch(r"[A-Za-z0-9]{8}", study_id):
-            continue
-        nids = col.find_notes(f'"tag:{STUDY_TAG}{_search_text(study_id)}"')
-        if not nids:
-            continue
-        names = (STUDY_NAME_RE.search(col.get_note(nid).fields[0]) for nid in nids)
-        m = next((m for m in names if m), None)
-        name = html.unescape(m.group(1)) if m else study_id
-        studies.append((study_id, name, len(nids)))
+    """
+    (study id, name, note count) of the Lichess studies in the collection, by name. One
+    query over the notes' tags (a tag lichess::study::<id>, or one under it), instead of
+    a search per study; the name is the StudyName of the study's first note that has one.
+    """
+    counts: dict[str, int] = {}
+    names: dict[str, str] = {}
+    rows = col.db.all("select tags, flds from notes where tags like ? order by id", f"%{STUDY_TAG}%")
+    for tags, flds in rows:
+        ids = set()
+        for tag in tags.split():
+            if tag.lower().startswith(STUDY_TAG):
+                study_id = tag[len(STUDY_TAG):].split("::")[0]
+                if re.fullmatch(r"[A-Za-z0-9]{8}", study_id):
+                    ids.add(study_id)
+        for study_id in ids:
+            counts[study_id] = counts.get(study_id, 0) + 1
+            if study_id not in names:
+                m = STUDY_NAME_RE.search(flds.split("\x1f", 1)[0])
+                if m:
+                    names[study_id] = html.unescape(m.group(1))
+    studies = [(i, names.get(i, i), n) for i, n in counts.items()]
     return sorted(studies, key=lambda s: s[1].lower())

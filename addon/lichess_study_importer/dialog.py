@@ -76,6 +76,7 @@ from .pgn_split import (
     split_games,
 )
 from .structures import StructureCard
+from .study_updater import update_imported_studies
 from .ui_common import (
     BoardPreview,
     ask_pgn,
@@ -83,7 +84,9 @@ from .ui_common import (
     error_text,
     get_config,
     lichess_token,
+    StatusLabel,
     lichess_waiter,
+    muted_label,
     readonly_item,
     restore_columns,
     save_columns,
@@ -293,7 +296,7 @@ class UserStudiesDialog(QDialog):
 class StudyImportPage(QWidget):
     def __init__(self, parent=None, urls: str = "", ask_token: Callable[[str, Callable[[], None]], None] | None = None):
         super().__init__(parent)
-        # ask_token(reason, then): the Lichess token's field (Lichess tab › Puzzles), and then()
+        # ask_token(reason, then): the Lichess token's field (the Puzzles tab), and then()
         # once it is saved. Studies don't need it: only a private one or the download limit
         self.ask_token = ask_token
         self.config = get_config()
@@ -333,6 +336,7 @@ class StudyImportPage(QWidget):
             ("source.user_studies", self.on_user_studies),
             ("source.open_file", self.on_open_file),
             ("source.paste", self.on_paste),
+            ("menu.update_studies", self.on_update_studies),
         ):
             more_menu.addAction(tr(key), slot)
         more.setMenu(more_menu)
@@ -341,7 +345,8 @@ class StudyImportPage(QWidget):
         src.addWidget(more)
         layout.addLayout(src)
 
-        self.study_label = QLabel(tr("study.none"))
+        # Only while there is something to say: downloading, what was loaded, an error
+        self.study_label = StatusLabel("")
         self.study_label.setWordWrap(True)
         self.study_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         self.study_label.linkActivated.connect(self.on_summary_link)
@@ -493,7 +498,12 @@ class StudyImportPage(QWidget):
         bottom.addWidget(self.update_existing)
         bottom.addWidget(self.plan_label, 1)
         bottom.addWidget(self.import_btn)
-        layout.addLayout(bottom)
+        # Only with a study loaded: the start page has nothing to import yet
+        self.import_row = QWidget()
+        self.import_row.setLayout(bottom)
+        bottom.setContentsMargins(0, 0, 0, 0)
+        self.import_row.hide()
+        layout.addWidget(self.import_row)
 
         for keys, slot in (
             ("Ctrl+F", lambda: (self.filter_edit.setFocus(), self.filter_edit.selectAll())),
@@ -506,9 +516,8 @@ class StudyImportPage(QWidget):
         space.setContext(Qt.ShortcutContext.WidgetShortcut)
         space.activated.connect(self.toggle_selected)
 
-        if not self.base:
-            self.study_label.setText(tr("warn.no_note_types"))
-        elif urls:
+        # Without a note type, the window's banner says so above the tabs
+        if self.base and urls:
             self.on_load_url()
 
     def save_layout(self):
@@ -517,22 +526,58 @@ class StudyImportPage(QWidget):
     # --- Start page ---
 
     def build_start_page(self) -> QWidget:
+        """
+        Before a study is loaded: the studies already imported, to load or update them, or,
+        in a collection without any, what to do to start.
+        """
         page = QWidget()
         layout = QVBoxLayout(page)
-        intro = QLabel(tr("start.intro"))
-        intro.setWordWrap(True)
-        layout.addWidget(intro)
+        layout.setContentsMargins(0, 6, 0, 0)
+
+        self.imported_box = QWidget()
+        box = QVBoxLayout(self.imported_box)
+        box.setContentsMargins(0, 0, 0, 0)
+        heading = QLabel(f"<b>{tr('start.imported')}</b>")
+        hint = muted_label(tr("start.hint"))
+        hint.setWordWrap(True)
         self.imported_list = QListWidget()
         self.imported_list.itemDoubleClicked.connect(lambda _: self.load_imported())
-        layout.addWidget(self.imported_list, 1)
+        update = QPushButton(tr("menu.update_studies"))
+        update.setToolTip(tr("window.update_tip"))
+        update.clicked.connect(self.on_update_studies)
         load = QPushButton(tr("start.load"))
+        load.setToolTip(tr("start.load_tip"))
         load.clicked.connect(self.load_imported)
         row = QHBoxLayout()
+        row.addWidget(update)
         row.addStretch(1)
         row.addWidget(load)
-        layout.addLayout(row)
+        box.addWidget(heading)
+        box.addWidget(hint)
+        box.addWidget(self.imported_list, 1)
+        box.addLayout(row)
+        layout.addWidget(self.imported_box, 1)
+
+        # A collection without imported studies: where to start, in the middle of the page
+        self.empty_state = QWidget()
+        empty = QVBoxLayout(self.empty_state)
+        title = QLabel(f"<h3>{tr('start.empty_title')}</h3>")
+        text = muted_label(tr("start.hint"))
+        text.setWordWrap(True)
+        for label in (title, text):
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty.addStretch(2)
+        empty.addWidget(title)
+        empty.addWidget(text)
+        empty.addStretch(3)
+        layout.addWidget(self.empty_state, 1)
+
         self.refresh_imported_list()
         return page
+
+    def on_update_studies(self):
+        """Download again the imported studies; their new chapters open here, the token in Puzzles."""
+        update_imported_studies(self.window(), self.load_urls, self.ask_token)
 
     def refresh_imported_list(self):
         """The studies already in the collection, to load them again in one click."""
@@ -544,7 +589,8 @@ class StudyImportPage(QWidget):
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Unchecked)
             self.imported_list.addItem(item)
-        self.imported_list.setVisible(bool(studies))
+        self.imported_box.setVisible(bool(studies))
+        self.empty_state.setVisible(not studies)
 
     def load_imported(self):
         items = [self.imported_list.item(i) for i in range(self.imported_list.count())]
@@ -727,6 +773,7 @@ class StudyImportPage(QWidget):
         self.refresh_deck_names()
         self.on_study_selected(0)
         self.stack.setCurrentIndex(1)
+        self.import_row.show()
         self.populate_table()
 
     @staticmethod

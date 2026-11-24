@@ -311,8 +311,7 @@ class GameImportPage(QWidget):
         bottom.addWidget(self.import_btn)
         layout.addLayout(bottom)
 
-        if not self.base:
-            self.summary.setText(tr("warn.no_note_types"))
+        # Without a note type, the window's banner says so above the tabs
         self.refresh_engine_label()
 
     def save_layout(self):

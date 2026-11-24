@@ -73,7 +73,9 @@ def activity_cards(entries: list[dict]) -> list[PuzzleCard]:
     cards = []
     for entry in entries:
         try:
-            cards.append(activity_card(entry))
+            card = activity_card(entry)
+            card.pgn()  # to be imported: built now
+            cards.append(card)
         except (KeyError, TypeError, ValueError, AssertionError):  # a position python-chess can't read
             pass
     return cards

@@ -1,5 +1,5 @@
 """
-Puzzles section of the import window's Lichess tab: the Lichess token on top (your puzzle
+Puzzles tab of the import window: the Lichess token on top (your puzzle
 activity needs it; puzzle links don't), then three sections:
 
 - Sync: the puzzles you played on Lichess, imported at once (see puzzle_sync.py), when
@@ -49,7 +49,7 @@ from .i18n import tr
 from .lichess_api import parse_puzzle_ids
 from .puzzle_themes import puzzle_stats, theme_names
 from .puzzle_themes_dialog import PuzzleThemesDialog
-from .puzzles import REQUEST_PAUSE, PuzzleCard, activity_card, load_puzzles
+from .puzzles import REQUEST_PAUSE, PuzzleCard, activity_card, load_puzzles, readable
 from .sync_flow import stop_text
 from .ui_common import (
     BoardPreview,
@@ -114,8 +114,7 @@ class PuzzleImportPage(QWidget):
         layout.addWidget(self.sync_section())
         layout.addWidget(self.cards_section())
         layout.addWidget(self.history_section(), 1)
-        if not self.base:
-            self.summary.setText(tr("warn.no_note_types"))
+        # Without a note type, the window's banner says so above the tabs
         self.update_sync_status()
         self.token_panel.refresh()  # its account line is in the sync section now
         puzzle_sync.add_listener(self.after_sync)
@@ -262,7 +261,7 @@ class PuzzleImportPage(QWidget):
         self.table.itemChanged.connect(lambda item: self.update_plan())
         self.table.currentCellChanged.connect(lambda row, *_: self.show_preview(row))
         restore_columns(self.table, COLUMNS_KEY)
-        self.preview = BoardPreview()
+        self.preview = BoardPreview(none_text=tr("puzzle.preview_none"))
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self.table)
         splitter.addWidget(self.preview)
@@ -503,7 +502,11 @@ class PuzzleImportPage(QWidget):
             self.preview.show_game(None)
             return
         card = self.cards[index]
-        game = chess.pgn.read_game(io.StringIO(card.pgn()))
+        try:
+            game = chess.pgn.read_game(io.StringIO(card.pgn()))  # built now, the first time
+        except (KeyError, TypeError, ValueError, AssertionError):
+            self.preview.show_game(None)
+            return
         white = game.headers.get("Orientation", "white") == "white"
         start = 1 if card.opponent_move_first else 0  # after the opponent's last move
         caption = f"<b>{card.name}</b><br>{theme_names(card.themes)}"
@@ -617,19 +620,24 @@ class PuzzleImportPage(QWidget):
             showWarning(str(e), parent=self)
             return
         deck = self.deck_edit.text()
-        rows = [(card, models[card.mode], decks.puzzle_placement(deck, card.win)) for card in selected]
         stats = {}
+
+        def op(col):
+            # Their PGN is built here, in the background: about 3 ms a puzzle
+            ok, stats["unreadable"] = readable(selected)
+            rows = [(card, models[card.mode], decks.puzzle_placement(deck, card.win)) for card in ok]
+            return anki_ops.import_chapters(col, rows, update, True, stats, tr("puzzle.undo"))
 
         def on_success(_changes):
             result = tr("puzzle.result", **stats)
             self.last_nids = stats.get("nids", [])
             tooltip(result, parent=mw)
             browse_link = tr("result.browse") if self.last_nids else ""
-            summary = f"<b>{result}</b> {browse_link}" + (f"<br>{note}" if note else "")
+            notes = [note] if note else []
+            if stats["unreadable"]:
+                notes.append(tr("puzzle.unreadable", count=stats["unreadable"]))
+            summary = f"<b>{result}</b> {browse_link}" + "".join(f"<br>{n}" for n in notes)
             self.show_cards(self.cards, summary, keep_checked=set(left))
             self.update_sync_status()
 
-        CollectionOp(
-            parent=self,
-            op=lambda col: anki_ops.import_chapters(col, rows, update, True, stats, tr("puzzle.undo")),
-        ).success(on_success).run_in_background()
+        CollectionOp(parent=self, op=op).success(on_success).run_in_background()

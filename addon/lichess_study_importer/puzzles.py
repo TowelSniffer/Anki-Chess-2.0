@@ -51,12 +51,15 @@ class PuzzleCard:
     rating: int
     themes: list[str]
     mode: str
-    body: str
+    body: str = ""
     win: bool | None = None  # your result, for puzzles from your activity
     date: int | None = None  # ms, when you first played it (puzzles from your activity)
     kind: str = KIND_PUZZLE
     link_label: str = "Lichess"
     details: list[str] = field(default_factory=list)
+    # Builds the body on the first pgn(): a table of your history lists thousands of puzzles
+    # and needs none of them (the PGN is about 3 ms each, the rest a few µs)
+    build: Callable[[], str] | None = field(default=None, repr=False, compare=False)
 
     @property
     def name(self) -> str:
@@ -84,7 +87,16 @@ class PuzzleCard:
         return puzzle_tags(self.themes, self.win)
 
     def pgn(self, strip_anno: bool = True) -> str:
+        if self.build is not None:
+            self.body, self.build = self.build(), None
         return self.body
+
+
+def _has_game(data: dict) -> bool:
+    """The puzzle's game reaches the opponent's last move (initialPly + 1 moves)."""
+    sans = ((data.get("game") or {}).get("pgn") or "").split()
+    ply = data["puzzle"].get("initialPly")
+    return bool(sans) and ply is not None and ply < len(sans)
 
 
 def _start(data: dict) -> tuple[chess.Board, chess.Move | None]:
@@ -95,7 +107,7 @@ def _start(data: dict) -> tuple[chess.Board, chess.Move | None]:
     puzzle, game = data["puzzle"], data.get("game") or {}
     sans = (game.get("pgn") or "").split()
     ply = puzzle.get("initialPly")
-    if sans and ply is not None and ply < len(sans):
+    if _has_game(data):
         board = chess.Board()
         for san in sans[:ply]:
             board.push_san(san)
@@ -106,32 +118,42 @@ def _start(data: dict) -> tuple[chess.Board, chess.Move | None]:
 def puzzle_card(data: dict, win: bool | None = None, date: int | None = None) -> PuzzleCard:
     """
     Card from the API's {"puzzle": {...}, "game": {...}}. The game is optional: without
-    it (an entry of your activity) the card starts at the puzzle position.
+    it (an entry of your activity) the card starts at the puzzle position. Its PGN is
+    built on the first pgn(); the position is read now, so a puzzle python-chess can't
+    read fails here (ValueError), as before.
     """
     puzzle = data["puzzle"]
+    has_game = _has_game(data)
+    if not has_game:
+        chess.Board(puzzle["fen"])
+    for uci in puzzle["solution"]:
+        chess.Move.from_uci(uci)
+    card = PuzzleCard(
+        puzzle_id=puzzle["id"],
+        rating=int(puzzle.get("rating", 0)),
+        themes=list(puzzle.get("themes", [])),
+        mode=MODE_FLIPPED if has_game else MODE_PUZZLE,
+        win=win,
+        date=date,
+    )
+    card.details = puzzle_details(card.themes, win, date)
+    card.build = lambda: _puzzle_pgn(data, card)
+    return card
+
+
+def _puzzle_pgn(data: dict, card: PuzzleCard) -> str:
+    """The card's PGN: the opponent's last move when the game is there, then the solution."""
     board, last = _start(data)
     game = chess.pgn.Game()
     game.setup(board)
     node = game.add_main_variation(last) if last else game
     solver = node.board().turn
-    for uci in puzzle["solution"]:
+    for uci in data["puzzle"]["solution"]:
         node = node.add_main_variation(chess.Move.from_uci(uci))
     if node.board().is_checkmate() and node.parent is not None:
         for alt in mate_alternatives(node.parent.board(), node.move):
             node.parent.add_variation(alt)
-
-    themes = list(puzzle.get("themes", []))
-    card = PuzzleCard(
-        puzzle_id=puzzle["id"],
-        rating=int(puzzle.get("rating", 0)),
-        themes=themes,
-        mode=MODE_FLIPPED if last else MODE_PUZZLE,
-        body="",
-        win=win,
-        date=date,
-    )
-    card.details = puzzle_details(themes, win, date)
-    card.body = export_pgn(
+    return export_pgn(
         game,
         {
             "Event": "Lichess puzzle",
@@ -144,7 +166,18 @@ def puzzle_card(data: dict, win: bool | None = None, date: int | None = None) ->
             "AnkiChessId": card.dedupe_key,
         },
     )
-    return card
+
+
+def readable(cards: list[PuzzleCard]) -> tuple[list[PuzzleCard], int]:
+    """The cards whose PGN builds (built now), and how many python-chess couldn't read."""
+    ok = []
+    for card in cards:
+        try:
+            card.pgn()
+            ok.append(card)
+        except (KeyError, TypeError, ValueError, AssertionError):
+            pass
+    return ok, len(cards) - len(ok)
 
 
 def played_date(ms: int) -> str:
@@ -192,7 +225,9 @@ def load_puzzles(
             if entry is None:
                 raise
             data = entry
-        cards.append(puzzle_card(data, win, entry.get("date") if entry else None))
+        card = puzzle_card(data, win, entry.get("date") if entry else None)
+        card.pgn()  # fetched to be imported: built now, failing here as before
+        cards.append(card)
     progress(len(entries), len(entries))
     return cards, None
 

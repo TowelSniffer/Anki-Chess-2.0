@@ -20,11 +20,16 @@ from aqt.qt import (
     QDialogButtonBox,
     QHBoxLayout,
     QHeaderView,
+    QIcon,
     QLabel,
     QMenu,
+    QPainter,
     QPalette,
+    QPixmap,
     QPlainTextEdit,
-    QStyle,
+    QPointF,
+    QPolygonF,
+    QRectF,
     Qt,
     QTableWidget,
     QTableWidgetItem,
@@ -230,6 +235,45 @@ def _column_menu(table: QTableWidget, pos):
     menu.exec(header.mapToGlobal(pos))
 
 
+def nav_icon(kind: str, color: QColor, size: int = 16) -> QIcon:
+    """
+    A step button's icon (first, back, forward), drawn in the given colour: the style's
+    media icons vanish on Anki's dark theme, and not every font has the glyphs.
+    """
+    ratio = 2  # sharp on high-DPI screens
+    pixmap = QPixmap(size * ratio, size * ratio)
+    pixmap.setDevicePixelRatio(ratio)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(Qt.PenStyle.NoPen)
+    painter.setBrush(color)
+    top, bottom, middle = size * 0.22, size * 0.78, size / 2
+    if kind == "forward":
+        painter.drawPolygon(QPolygonF([QPointF(size * 0.3, top), QPointF(size * 0.76, middle), QPointF(size * 0.3, bottom)]))
+    else:
+        painter.drawPolygon(QPolygonF([QPointF(size * 0.7, top), QPointF(size * 0.24, middle), QPointF(size * 0.7, bottom)]))
+        if kind == "first":
+            painter.drawRect(QRectF(size * 0.14, top, size * 0.1, bottom - top))
+    painter.end()
+    return QIcon(pixmap)
+
+
+class StatusLabel(QLabel):
+    """A status line that takes no room while it has nothing to say."""
+
+    def setText(self, text: str) -> None:
+        super().setText(text)
+        self.setVisible(bool(text))
+
+
+def muted_label(text: str) -> QLabel:
+    """A secondary line (hints, an empty state), in the theme's placeholder colour."""
+    label = QLabel(text)
+    label.setForegroundRole(QPalette.ColorRole.PlaceholderText)
+    return label
+
+
 def readonly_item(text: str, tip: str = "") -> QTableWidgetItem:
     item = QTableWidgetItem(text)
     item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
@@ -285,8 +329,9 @@ class BoardPreview(QWidget):
 
     SIZE = 260
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, none_text: str = ""):
         super().__init__(parent)
+        self.none_text = none_text or tr("preview.none")  # the caption with nothing selected
         self.nodes: list = []  # the game and its main line moves
         self.index = 0
         self.white_below = True
@@ -299,14 +344,14 @@ class BoardPreview(QWidget):
 
         nav = QHBoxLayout()
         self.buttons = []
-        icons = QStyle.StandardPixmap
-        for icon, tip, step in (
-            (icons.SP_MediaSkipBackward, "preview.first", None),
-            (icons.SP_MediaSeekBackward, "preview.back", -1),
-            (icons.SP_MediaSeekForward, "preview.forward", 1),
+        color = self.palette().color(QPalette.ColorRole.ButtonText)
+        for kind, tip, step in (
+            ("first", "preview.first", None),
+            ("back", "preview.back", -1),
+            ("forward", "preview.forward", 1),
         ):
             button = QToolButton()
-            button.setIcon(self.style().standardIcon(icon))  # not glyphs: every font draws them
+            button.setIcon(nav_icon(kind, color))
             button.setToolTip(tr(tip))
             button.clicked.connect(lambda _, s=step: self.step(s))
             nav.addWidget(button)
@@ -315,7 +360,7 @@ class BoardPreview(QWidget):
         nav.addWidget(self.move_label, 1)
         layout.addLayout(nav)
 
-        self.caption = QLabel(tr("preview.none"))
+        self.caption = QLabel(self.none_text)
         self.caption.setWordWrap(True)
         self.caption.setMaximumWidth(self.SIZE + 20)
         self.caption.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -327,7 +372,7 @@ class BoardPreview(QWidget):
         self.nodes = [game, *game.mainline()] if game is not None else []
         self.index = min(start, max(0, len(self.nodes) - 1))
         self.white_below = white_below
-        self.caption.setText(caption or tr("preview.none"))
+        self.caption.setText(caption or self.none_text)
         self.start = self.index
         self.render()
 

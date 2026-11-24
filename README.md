@@ -73,7 +73,7 @@ files generated in 'dist-anki'
 
 Install it from [AnkiWeb](https://ankiweb.net/shared/info/615602402): in Anki, `Tools > Add-ons > Get Add-ons…` and the code `615602402` (Anki 26.09 or later).
 
-- One window, `Tools > Import into AnkiChess…` (also in the Companion's `AnkiChess` menu when installed), with two tabs: **Lichess**, whose **Studies** and **Puzzles** buttons switch between its two sections, and **Games**; and the **Update imported Lichess studies** button. Only the Puzzles section needs your **Lichess token**, and it lives there. It keeps its size, and each table its columns; the pages stay open after importing.
+- One window, `Tools > Import into AnkiChess…` (also in the Companion's `AnkiChess` menu when installed), with the **Studies**, **Puzzles** and **Games** tabs. Only the Puzzles tab needs your **Lichess token**, and it lives there. **Update imported Lichess studies** is in Studies, under the studies you already imported and in **More sources**. It keeps its size, and each table its columns; the pages stay open after importing.
 - Interface in English (default) or Brazilian Portuguese: set `"language"` to `"en"`, `"pt-BR"` or `"auto"` (follow Anki's language) in `Tools > Add-ons > Config`.
 
 ### AnkiChess template
@@ -82,17 +82,17 @@ The add-on works on its own: when the collection has no AnkiChess note type, the
 
 ### Lichess token
 
-A personal API access token of your Lichess account (Preferences › API access tokens), set once at the top of **Lichess › Puzzles**. Only your puzzle activity needs it (the sync and **Load my puzzles**); studies, games and puzzle links don't.
+A personal API access token of your Lichess account (Preferences › API access tokens), set once at the top of the **Puzzles** tab. Only your puzzle activity needs it (the sync and **Load my puzzles**); studies, games and puzzle links don't.
 
-- Without one, the Puzzles section opens with its field: **Create a token on Lichess** opens Lichess' form with the `study:read` and `puzzle:read` scopes checked; click Create there and paste the token (`lip_…`). **Check** asks Lichess whose token it is and which scopes it has: it warns when one of the two is missing, or when the token allows more than the add-on needs (it is stored as plain text in the add-on config).
+- Without one, the Puzzles tab shows its field: **Create a token on Lichess** opens Lichess' form with the `study:read` and `puzzle:read` scopes checked; click Create there and paste the token (`lip_…`). **Check** asks Lichess whose token it is and which scopes it has: it warns when one of the two is missing, or when the token allows more than the add-on needs (it is stored as plain text in the add-on config).
 - Once saved, its account shows on the sync line, with **Change…** and **Remove token**, and the sync button appears in Anki's menu bar.
-- Studies can use it too: it opens your private studies, and Lichess sends study downloads three at a time per account instead of one at a time per IP. When a private study or that limit stops a download, the add-on offers to add it: the Puzzles section opens with its field and why, and once it is saved the studies load again (or the update goes on).
+- Studies can use it too: it opens your private studies, and Lichess sends study downloads three at a time per account instead of one at a time per IP. When a private study or that limit stops a download, the add-on offers to add it: the Puzzles tab opens with its field and why, and once it is saved the studies load again (or the update goes on).
 
 Without a token, when Lichess answers "too many requests" (HTTP 429), the add-on waits and tries again by itself, counting down in the progress window (Esc stops and keeps what was downloaded). Study downloads go one at a time, a second apart.
 
 ## Studies
 
-The **Studies** section of the **Lichess** tab creates **one note per chapter**.
+The **Studies** tab creates **one note per chapter**.
 
 - Sources: study or chapter links (several at once, separated by spaces); in **More sources**, **User's studies…** (lists the studies of a Lichess user to pick from), `.pgn` files (several at once), and **Paste PGN…**. A private study needs the [Lichess token](#lichess-token): the add-on offers to add it when one can't be downloaded. Files and links can also be dropped on the page. Before anything is loaded, the page lists the studies already in your collection, to load them again in one click.
 - Every chapter shows its **Status** in your collection (new, imported, changed on Lichess), the side you play (**You play**) and its **Note type**, all at a glance before importing:
@@ -169,7 +169,7 @@ The **Games** tab turns one of your games into cards:
 
 ## Lichess puzzles
 
-The **Puzzles** section of the **Lichess** tab imports puzzles as cards: the opponent's last move is played first, then you play the solution (any mate is accepted on the last move). The text under the board gives the puzzle's themes by name ("Themes: Mate in 2, Back rank mate") and your result on Lichess ("You failed it on Lichess (played 2026-10-02)"). Your puzzle activity needs your [Lichess token](#lichess-token) with the `puzzle:read` scope, set at the top of the section (without one, the buttons point to its field); puzzle links don't. Then come three parts.
+The **Puzzles** tab imports puzzles as cards: the opponent's last move is played first, then you play the solution (any mate is accepted on the last move). The text under the board gives the puzzle's themes by name ("Themes: Mate in 2, Back rank mate") and your result on Lichess ("You failed it on Lichess (played 2026-10-02)"). Your puzzle activity needs your [Lichess token](#lichess-token) with the `puzzle:read` scope, set at the top of the tab (without one, the buttons point to its field); puzzle links don't. Then come three parts.
 
 **Sync with Lichess**
 - **Sync now** imports the puzzles you played on Lichess that aren't in Anki yet, all of them or only the failed ones (**Import:**): your whole history the first time, then only the ones played since the last sync (seconds). Esc stops: the puzzles fetched are imported, the rest at the next sync.
