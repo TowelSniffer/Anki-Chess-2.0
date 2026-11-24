@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 TAG_RE = re.compile(r'^\s*\[(\w+)\s+"((?:[^"\\]|\\.)*)"\]\s*$')
 COMMENT_RE = re.compile(r"\{[^}]*\}")
@@ -89,6 +90,20 @@ class Chapter:
     def chapter_id(self) -> str | None:
         m = CHAPTER_URL_RE.search(self.chapter_url)
         return m.group(2) if m else None
+
+    @property
+    def created_ms(self) -> int | None:
+        """
+        When the chapter was created on Lichess (ms), from the UTCDate and UTCTime Lichess
+        writes in it. None without them: a game imported from a PGN keeps its own Date,
+        and a game from Lichess the date it was played.
+        """
+        when = f"{self.tags.get('UTCDate', '')} {self.tags.get('UTCTime', '')}"
+        try:
+            created = datetime.strptime(when, "%Y.%m.%d %H:%M:%S").replace(tzinfo=timezone.utc)
+        except ValueError:
+            return None
+        return int(created.timestamp() * 1000)
 
     # --- Card interface used by anki_ops (shared with game_analysis.GameCard) ---
 

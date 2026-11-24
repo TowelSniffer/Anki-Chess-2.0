@@ -1,9 +1,13 @@
 """
 Update imported Lichess studies: download again every study already in the collection
 (tag lichess::study::<id>) and update the notes whose chapter changed on Lichess, with
-their variation and key move cards. Notes keep their note type and deck. New chapters
-and chapters removed from Lichess are only reported: some may have been left out on
-purpose, so the import window is offered for the new ones.
+their variation and key move cards. Notes keep their note type and deck.
+
+The chapters added to a study on Lichess since you imported it (created after its newest
+note) are imported as the import window would check and import them. The other chapters
+without notes were left out when importing, or Lichess doesn't date them (games imported
+from a PGN): they are only reported, with the import window to open them. Chapters
+removed from Lichess are reported too.
 
 When Lichess limits the downloads (429), each one is waited out and tried again; if it
 still refuses, the studies left are kept for later, with a button to try them again.
@@ -11,6 +15,7 @@ still refuses, the studies left are kept for later, with a button to try them ag
 
 from __future__ import annotations
 
+import textwrap
 from typing import Callable
 
 from aqt import mw
@@ -18,7 +23,7 @@ from aqt.operations import CollectionOp, QueryOp
 from aqt.qt import QMessageBox
 from aqt.utils import showWarning, tooltip
 
-from . import anki_ops, decks, expand
+from . import anki_ops, chapter_plan, decks, expand
 from .i18n import tr
 from .lichess_api import LichessError, fetch_study_pgn
 from .pgn_split import KIND_EMPTY, KIND_STRUCTURE, KIND_UNSUPPORTED, split_games
@@ -42,8 +47,76 @@ def chapter_cards(ch, strip_anno: bool, col=None) -> list:
     return list(cards.values())
 
 
-def update_rows(col, results, strip_anno: bool, report: dict) -> list:
-    """Rows for import_chapters: the cards of each study that already have notes."""
+class NewChapters:
+    """
+    Rows for the chapters added to a study on Lichess since it was imported: imported as
+    the import window checks and imports them when it loads the study (chapter_plan), with
+    the options of the last import (include_games, split_lines, key_moves), into the
+    study's deck.
+    """
+
+    def __init__(self, col, config: dict, strip_anno: bool):
+        self.col = col
+        self.strip_anno = strip_anno
+        self.root = decks.root_name(config.get("deck_root"))
+        self.study_decks = config.get("study_decks", {})
+        self.chapter_decks = config.get("chapter_decks", {})
+        self.include_games = bool(config.get("include_games", False))
+        self.split_lines = bool(config.get("split_lines", False))
+        self.key_moves = bool(config.get("key_moves", False))
+        self.base = anki_ops.default_base(config.get("base_note_type", ""))
+        self.choices = anki_ops.note_type_choices(self.base) if self.base else []
+        self.structures = anki_ops.builds_structures(col, self.base)
+        self.models: dict = {}
+        self.study_decks_found: dict[str, str] = {}  # study id -> its deck
+
+    def rows(self, study_id: str, ch) -> list | None:
+        """
+        The chapter's rows; None when the import window wouldn't check it (a full game
+        without include_games) or can't import it (a structure the template can't rebuild).
+        """
+        kind = decks.suggest_kind(ch)
+        if not self.base or not chapter_plan.checked_by_default(kind, self.include_games):
+            return None
+        if kind == KIND_STRUCTURE and not self.structures:
+            return None
+        if study_id not in self.study_decks_found:
+            linked = anki_ops.linked_study_deck(self.col, study_id, self.study_decks)
+            self.study_decks_found[study_id] = linked or decks.study_deck(ch, self.root)
+        rows = []
+        for card, mode, placement in chapter_plan.default_cards(
+            ch,
+            self.root,
+            self.study_decks_found[study_id],
+            self.chapter_decks.get(ch.dedupe_key),
+            self.split_lines,
+            self.key_moves,
+            self.strip_anno,
+        ):
+            model = self.model(mode)
+            if model is None:
+                return None
+            rows.append((card, model, placement))
+        return rows
+
+    def model(self, mode: str | None) -> dict | None:
+        """The note type of a mode, the one the import window picks: created when missing."""
+        if mode is None:
+            return self.base
+        if mode not in self.models:
+            name = next((n for n, m, _ in self.choices if m == mode), "")
+            try:
+                self.models[mode] = self.col.models.by_name(name) or anki_ops.ensure_mode_note_type(self.base, mode)
+            except anki_ops.ChessImportError:  # a template without USER_CONFIG to set up
+                self.models[mode] = None
+        return self.models[mode]
+
+
+def update_rows(col, results, strip_anno: bool, report: dict, new: NewChapters | None = None) -> list:
+    """
+    Rows for import_chapters: the cards of each study that already have notes and, with
+    new, the chapters added to it on Lichess since it was imported.
+    """
     rows = []
     for study_id, value in results:
         if isinstance(value, LichessError):
@@ -52,23 +125,27 @@ def update_rows(col, results, strip_anno: bool, report: dict) -> list:
         chapters = split_games(value)
         name = next((c.study_name for c in chapters if c.study_name), study_id)
         report["studies"] += 1
+        imported_at = anki_ops.study_imported_at(col, study_id)
         for ch in chapters:
             if ch.kind in (KIND_EMPTY, KIND_UNSUPPORTED):
                 continue
             try:
                 tags = decks.chapter_tags(ch, decks.suggest_kind(ch))
-                cards = chapter_cards(ch, strip_anno, col)
+                found = [(card, anki_ops.find_existing(col, card)) for card in chapter_cards(ch, strip_anno, col)]
+                found = [(card, nids) for card, nids in found if nids]
+                added = None
+                if not found and new is not None and imported_at and (ch.created_ms or 0) > imported_at:
+                    added = new.rows(study_id, ch)
             except Exception as e:  # one broken chapter doesn't stop the update of the others
                 report["errors"].append((study_id, f"{ch.name}: {e}"))
                 continue
-            imported = False
-            for card in cards:
-                nids = anki_ops.find_existing(col, card)
-                if nids:
-                    imported = True
-                    # Its own note type, so it isn't reported as another one
-                    rows.append((card, col.get_note(nids[0]).note_type(), decks.Placement("", tags)))
-            if not imported:
+            for card, nids in found:
+                # Its own note type, so it isn't reported as another one
+                rows.append((card, col.get_note(nids[0]).note_type(), decks.Placement("", tags)))
+            if added:
+                rows += added
+                report["added"].setdefault(study_id, (name, []))[1].append(ch.name)
+            elif not found:
                 report["new"].setdefault(study_id, (name, []))[1].append(ch.name)
         ids = {c.chapter_id for c in chapters}
         report["removed"] += len(anki_ops.removed_chapter_notes(col, study_id, ids))
@@ -137,11 +214,13 @@ def update_imported_studies(
 
 
 def apply_updates(results, left, names, total, strip_anno, parent, open_studies, ask_token, new_chapters):
-    report = {"studies": 0, "errors": [], "new": dict(new_chapters), "removed": 0}
+    report = {"studies": 0, "errors": [], "added": {}, "new": dict(new_chapters), "removed": 0}
     stats = {}
+    config = get_config()
 
     def op(col):
-        rows = update_rows(col, results, strip_anno, report)
+        # Note types missing for the new chapters are created here, outside the undoable update
+        rows = update_rows(col, results, strip_anno, report, NewChapters(col, config, strip_anno))
         return anki_ops.import_chapters(
             col, rows, True, strip_anno, stats, tr("update.undo"), move_cards=False
         )
@@ -156,6 +235,12 @@ def apply_updates(results, left, names, total, strip_anno, parent, open_studies,
                 unchanged=stats.get("unchanged", 0),
             )
         ]
+        if report["added"]:
+            listed = "\n".join(
+                f"• {name}: {textwrap.shorten(', '.join(chapters), 300, placeholder=' …')}"
+                for name, chapters in report["added"].values()
+            )
+            lines.append(tr("update.added", studies=listed))
         if report["removed"]:
             lines.append(tr("update.removed", count=report["removed"]))
         if report["errors"]:

@@ -459,6 +459,29 @@ def study_deck_in_collection(col, study_id: str) -> str | None:
     return decks.study_deck_of([col.decks.name(did) for did in dids])
 
 
+def linked_study_deck(col, study_id: str | None, study_decks: dict) -> str | None:
+    """
+    A study's deck: the one chosen for it (study_decks, from the config) while it still
+    exists, else the deck its notes are in now (decks renamed or moved in Anki are
+    followed), else the one chosen (to be created).
+    """
+    if not study_id:
+        return None
+    chosen = study_decks.get(study_id)
+    if chosen and col.decks.by_name(chosen):
+        return chosen
+    return study_deck_in_collection(col, study_id) or chosen
+
+
+def study_imported_at(col, study_id: str) -> int:
+    """
+    When the study's newest note was created (ms, its id; 0 without notes): the last time
+    chapters of it were imported. Chapters created on Lichess after it are new to you;
+    the ones before it were left out.
+    """
+    return max(col.find_notes(f'"tag:{STUDY_TAG}{_search_text(study_id)}"'), default=0)
+
+
 def deck_names(col) -> list[str]:
     """The collection's decks, for the study deck list (filtered decks left out)."""
     return [d.name for d in col.decks.all_names_and_ids(include_filtered=False, skip_empty_default=True)]
