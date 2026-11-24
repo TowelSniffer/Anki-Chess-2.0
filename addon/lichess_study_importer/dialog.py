@@ -12,7 +12,6 @@ combo each.
 from __future__ import annotations
 
 import html
-import io
 import os
 import textwrap
 from typing import Callable
@@ -58,7 +57,7 @@ from aqt.studydeck import StudyDeck
 from aqt.utils import askUser, openLink, showWarning, tooltip
 
 from . import anki_ops, decks, expand
-from .chess_lib import chess
+from .chess_lib import read_pgn
 from .i18n import tr
 from .lichess_api import LichessError, fetch_study_pgn, fetch_user_studies, parse_study_urls
 from .pgn_split import (
@@ -1174,7 +1173,7 @@ class StudyImportPage(QWidget):
         row = self.rows[i]
         if "game" not in row.cache:
             try:
-                row.cache["game"] = chess.pgn.read_game(io.StringIO(row.chapter.pgn(self.strip_anno)))
+                row.cache["game"] = read_pgn(row.chapter.pgn(self.strip_anno))
             except (ValueError, KeyError):
                 row.cache["game"] = None
         game = row.cache["game"]

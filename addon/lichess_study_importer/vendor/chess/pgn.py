@@ -1193,6 +1193,9 @@ class GameBuilder(BaseVisitor[GameT]):
         self.variation_stack: List[GameNode] = [self.game]
         self.starting_comment = ""
         self.in_variation = False
+        # AnkiChess patch: nodes given reply variations (see branch_as_reply), by their
+        # place in variation_stack, until their own line goes on
+        self.reply_parents: Dict[int, int] = {}
 
     def begin_headers(self) -> Headers:
         return self.game.headers
@@ -1229,10 +1232,27 @@ class GameBuilder(BaseVisitor[GameT]):
             self.starting_comment = " ".join(filter(None, new_comment))
 
     def visit_move(self, board: chess.Board, move: chess.Move) -> None:
-        self.variation_stack[-1] = self.variation_stack[-1].add_variation(move)
+        parent = self.variation_stack[-1]
+        self.variation_stack[-1] = parent.add_variation(move)
         self.variation_stack[-1].starting_comment = self.starting_comment
         self.starting_comment = ""
         self.in_variation = True
+        # AnkiChess patch: the line that got reply variations goes on with its own move
+        # as the main one, before those replies
+        if self.reply_parents.get(id(parent)) == len(self.variation_stack) - 1:
+            del self.reply_parents[id(parent)]
+            parent.variations.insert(0, parent.variations.pop())
+
+    def branch_as_reply(self, board: chess.Board, move: chess.Move) -> None:
+        """
+        AnkiChess patch (read_game): the variation just begun, whose first move is illegal
+        where it branches but legal after the move it follows, goes on after that move.
+        Noted in the game's errors, without a log: the PGN was read loosely.
+        """
+        node = self.variation_stack[-2]
+        self.variation_stack[-1] = node
+        self.reply_parents[id(node)] = len(self.variation_stack) - 2
+        self.game.errors.append(ValueError(f"variation read as a reply: {board.san(move)} in {board.fen()}"))
 
     def handle_error(self, error: Exception) -> None:
         """
@@ -1663,6 +1683,14 @@ def read_game(handle: TextIO, *, Visitor: Any = GameBuilder) -> Any:
 
     # Parse movetext.
     skip_variation_depth = 0
+    # AnkiChess patch: the variation skipped after an illegal move has its board on the
+    # stack, popped at its ")" (else the moves after it are read in the variation's position)
+    skip_pushed_board = False
+    # AnkiChess patch: no move read yet in the variation just opened. Some PGNs (Lichess
+    # studies among them, from annotated books) write the replies to a move as its
+    # variations: "20. Qh6!! (20. gxh6 Rg3#)", meaning 20... gxh6 21. Rg3#. Read as
+    # Lichess shows them, with a visitor that can (GameBuilder.branch_as_reply).
+    variation_start = False
     fresh_line = True
     while line:
         if fresh_line:
@@ -1707,14 +1735,19 @@ def read_game(handle: TextIO, *, Visitor: Any = GameBuilder) -> Any:
                 elif board_stack[-1].move_stack:
                     if visitor.begin_variation() is SKIP:
                         skip_variation_depth = 1
+                        skip_pushed_board = False
                     else:
                         board = board_stack[-1].copy()
                         board.pop()
                         board_stack.append(board)
+                        variation_start = True
             elif token == ")":
                 if skip_variation_depth == 1:
                     skip_variation_depth = 0
                     visitor.end_variation()
+                    if skip_pushed_board:
+                        board_stack.pop()
+                        skip_pushed_board = False
                 elif skip_variation_depth:
                     skip_variation_depth -= 1
                 elif len(board_stack) > 1:
@@ -1744,14 +1777,36 @@ def read_game(handle: TextIO, *, Visitor: Any = GameBuilder) -> Any:
             else:
                 # Parse SAN tokens.
                 if visitor.begin_parse_san(board_stack[-1], token) is not SKIP:
+                    move = failure = reply = None
                     try:
                         move = visitor.parse_san(board_stack[-1], token)
                     except ValueError as error:
-                        visitor.handle_error(error)
+                        failure = error
+                    # AnkiChess patch: the variation's first move tried as a reply when it is
+                    # illegal where the variation branches, or written as a capture that isn't
+                    # one there (SAN is read loosely: "46. Rb6+ (46. Rxb6 a8=Q)")
+                    if variation_start and len(board_stack) > 1 and hasattr(visitor, "branch_as_reply") and (
+                        move is None or ("x" in token and not board_stack[-1].is_capture(move))
+                    ):
+                        try:
+                            reply = visitor.parse_san(board_stack[-2], token)
+                        except ValueError:
+                            pass
+                        if reply is not None and move is not None and not board_stack[-2].is_capture(reply):
+                            reply = None
+                    if reply is not None:
+                        board_stack[-1] = board_stack[-2].copy()
+                        visitor.branch_as_reply(board_stack[-1], reply)
+                        visitor.visit_move(board_stack[-1], reply)
+                        board_stack[-1].push(reply)
+                    elif move is None:
+                        visitor.handle_error(failure)
                         skip_variation_depth = 1
+                        skip_pushed_board = len(board_stack) > 1
                     else:
                         visitor.visit_move(board_stack[-1], move)
                         board_stack[-1].push(move)
+                    variation_start = False
                 visitor.visit_board(board_stack[-1])
 
         if fresh_line:

@@ -65,6 +65,8 @@ MODE_STUDY = "study"
 class Chapter:
     tags: dict[str, str] = field(default_factory=dict)
     movetext: str = ""
+    # pgn()'s text by (strip_anno, its text before the repair): python-chess reads it once
+    _repaired: dict = field(default_factory=dict, init=False, repr=False, compare=False)
 
     @property
     def name(self) -> str:
@@ -200,7 +202,21 @@ class Chapter:
         header = "\n".join(f'[{k} "{escape_tag_value(v)}"]' for k, v in tags.items())
         body = drop_malformed_commands(self.movetext)
         body = sanitize(body) if strip_anno else body.strip()
-        return f"{header}\n\n{body}\n"
+        text = f"{header}\n\n{body}\n"
+        # Variations written as replies (as Lichess shows them) or illegal ones: the
+        # moves as python-chess reads them, which the template can play
+        if "(" not in body:
+            return text
+        key = (strip_anno, text)
+        if key not in self._repaired:
+            try:  # python-chess loads only when needed
+                from .chess_lib import repaired_movetext
+            except ImportError:  # loaded as a top-level module (the tests)
+                from chess_lib import repaired_movetext
+
+            fixed = repaired_movetext(text)
+            self._repaired[key] = f"{header}\n\n{fixed}\n" if fixed is not None else text
+        return self._repaired[key]
 
 
 # PGN tag values escape quotes and backslashes: [ChapterName "\"Intro\" - Foreword"]
