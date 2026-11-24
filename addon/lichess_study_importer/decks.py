@@ -15,12 +15,11 @@ Pure Python (no aqt imports) so it can be unit tested outside Anki.
 
 from __future__ import annotations
 
-import io
 import re
 import unicodedata
 from dataclasses import dataclass, field
 
-from .chess_lib import chess
+from .chess_lib import chess, read_pgn
 from .i18n import STRINGS, tr
 from .openings import follow_book, load_book
 from .pgn_split import KIND_EXERCISE, KIND_GAME, KIND_LINE, KIND_STRUCTURE, Chapter
@@ -104,7 +103,7 @@ def chapter_opening_name(ch: Chapter, kind: str) -> str | None:
 def chapter_opening(ch: Chapter) -> str | None:
     """Catalog name of the deepest book position reached by a chapter's main line."""
     try:
-        game = chess.pgn.read_game(io.StringIO(ch.pgn()))
+        game = read_pgn(ch.pgn())
     except (ValueError, KeyError):
         return None
     if game is None:

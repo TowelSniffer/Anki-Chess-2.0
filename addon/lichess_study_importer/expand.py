@@ -14,9 +14,8 @@ Pure Python (no aqt imports) so it can be unit tested outside Anki.
 from __future__ import annotations
 
 import hashlib
-import io
 
-from .chess_lib import chess
+from .chess_lib import chess, read_pgn
 from .i18n import tr
 from .pgn_split import ID_TAG, Chapter
 
@@ -26,7 +25,7 @@ LABEL_PLIES = 6  # moves shown in the name of a branch
 
 def _read(ch: Chapter, strip_anno: bool):
     try:
-        return chess.pgn.read_game(io.StringIO(ch.pgn(strip_anno)))
+        return read_pgn(ch.pgn(strip_anno))
     except (ValueError, KeyError):
         return None
 
@@ -68,7 +67,13 @@ def split_variations(ch: Chapter, strip_anno: bool = True) -> list[Chapter]:
     game = _read(ch, strip_anno)
     if game is None or not ch.dedupe_key:
         return [ch]
-    branches = _branches(game, [])
+    # A line written twice (a reply variation repeating the main line) makes one card
+    branches, seen = [], set()
+    for path in _branches(game, []):
+        ucis = " ".join(n.move.uci() for n in path)
+        if ucis not in seen:
+            seen.add(ucis)
+            branches.append(path)
     if len(branches) < 2:
         return [ch]
     cards = []

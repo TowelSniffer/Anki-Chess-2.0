@@ -55,9 +55,14 @@ def update_rows(col, results, strip_anno: bool, report: dict) -> list:
         for ch in chapters:
             if ch.kind in (KIND_EMPTY, KIND_UNSUPPORTED):
                 continue
-            tags = decks.chapter_tags(ch, decks.suggest_kind(ch))
+            try:
+                tags = decks.chapter_tags(ch, decks.suggest_kind(ch))
+                cards = chapter_cards(ch, strip_anno, col)
+            except Exception as e:  # one broken chapter doesn't stop the update of the others
+                report["errors"].append((study_id, f"{ch.name}: {e}"))
+                continue
             imported = False
-            for card in chapter_cards(ch, strip_anno, col):
+            for card in cards:
                 nids = anki_ops.find_existing(col, card)
                 if nids:
                     imported = True
