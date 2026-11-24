@@ -1,6 +1,6 @@
 """
-The Lichess token (a personal API access token), in the Puzzles section of the Lichess
-tab: the only part of the add-on that needs it, for your puzzle activity. Created on
+The Lichess token (a personal API access token), in the import window's Puzzles tab: the
+only part of the add-on that needs it, for your puzzle activity. Created on
 Lichess with the scopes the add-on uses, pasted, checked and saved in the add-on config.
 Studies don't need it; when one is saved, private studies open too and Lichess counts the
 study downloads by account (three at a time) instead of by IP (one).

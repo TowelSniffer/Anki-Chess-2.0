@@ -18,7 +18,6 @@ STRINGS: dict[str, dict[str, str]] = {
         "source.file_dialog_title": "Open Lichess study",
         "source.file_filter": "PGN (*.pgn);;All files (*)",
         "token.label": "Token:",
-        "study.none": "No study loaded.",
         "study.downloading": "Downloading study…",
         "study.download_failed": "Failed to download the study.",
         "study.summary": (
@@ -143,9 +142,9 @@ STRINGS: dict[str, dict[str, str]] = {
         ),
         "template.missing": (
             "<b>This collection has no AnkiChess note type yet.</b> Install the official "
-            "AnkiChess template: it is downloaded from the AnkiChess project on GitHub "
-            "(a few MB, with the Stockfish the cards analyse with). The AnkiChess Companion "
-            "add-on is optional: it keeps the template up to date."
+            "AnkiChess template (a few MB from the AnkiChess project on GitHub, with the "
+            "Stockfish the cards analyse with). The AnkiChess Companion add-on is optional: "
+            "it keeps it up to date."
         ),
         "template.install": "Install the AnkiChess template",
         "template.downloading": "Downloading the AnkiChess template… {done} of {total} MB",
@@ -173,8 +172,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "error.no_access": "Study not found or no access (HTTP {code}). {hint}",
         "error.no_access.token_hint": "Check that the token has the 'study:read' scope and access to the study.",
         "error.no_access.public_hint": (
-            "If the study is private, add your Lichess token (Lichess tab › Puzzles, 'study:read' "
-            "scope) or export the PGN and use 'Open .pgn file'."
+            "If the study is private, add your Lichess token (Puzzles tab, 'study:read' scope) "
+            "or export the PGN and use 'Open .pgn file'."
         ),
         "error.rate_limited": (
             "Lichess is still limiting the downloads, even after waiting about a minute. "
@@ -274,6 +273,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "option.key_moves": "Exercises from the ! and !! moves (games)",
         "option.key_moves_tip": "Besides the game, each move marked ! or !! becomes a \"find the move\" note, in the study's Key moves subdeck. The other tries the author analysed there are wrong answers that show their comment.",
         "preview.none": "Select a chapter to see where you start playing.",
+        "puzzle.preview_none": "Select a puzzle to see where you start playing.",
         "user_studies.title": "Studies of a Lichess user",
         "user_studies.username": "Username:",
         "user_studies.list": "List",
@@ -439,12 +439,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.sync_organized": "{count} already imported were moved to Failed/Solved or retagged.",
         # --- Interface refinements ---
         "window.title": "AnkiChess: import",
-        "window.tab_lichess": "Lichess",
+        "window.tab_studies": "Studies",
+        "window.tab_studies_tip": "Lichess studies (links, .pgn files, a user's studies): no token needed.",
+        "window.tab_puzzles": "Puzzles",
+        "window.tab_puzzles_tip": "The puzzles you played on Lichess (needs your Lichess token) and puzzle links.",
         "window.tab_games": "Games",
-        "lichess.section_studies": "Studies",
-        "lichess.section_studies_tip": "Lichess studies (links, .pgn files, a user's studies): no token needed.",
-        "lichess.section_puzzles": "Puzzles",
-        "lichess.section_puzzles_tip": "The puzzles you played on Lichess (needs your Lichess token) and puzzle links.",
+        "window.tab_games_tip": "Analysed Chess.com and Lichess games: cards for your mistakes and the opening line.",
         "token.section": "Lichess token (needed for your puzzles)",
         "token.change": "Change…",
         "token.reason_private": "Private studies and the download limit by account use your token. Once it's saved, the studies load again.",
@@ -482,12 +482,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "token.status_user": "Lichess token: ✓ {user}",
         "token.status_saved": "Lichess token: ✓ saved",
         "token.rate_hint": (
-            "Tip: with your Lichess token (Lichess tab › Puzzles) the download limit is 3 at a "
+            "Tip: with your Lichess token (Puzzles tab) the download limit is 3 at a "
             "time by account, instead of 1 at a time by IP."
         ),
-        "token.offer": "Add your Lichess token? It opens private studies and raises the download limit (Lichess tab › Puzzles).",
+        "token.offer": "Add your Lichess token? It opens private studies and raises the download limit (Puzzles tab).",
         "token.reason_rate": "Lichess limited the downloads by IP. With your token the limit is by account.",
-        "start.intro": "Paste a Lichess study link above (several separated by spaces), open a .pgn file from More sources, or drop files or links here. Studies you already imported:",
+        "start.imported": "Studies you already imported",
+        "start.hint": "Paste Lichess study links above (several separated by spaces), open .pgn files from More sources, or drop files or links on this page.",
+        "start.empty_title": "No Lichess study imported yet",
+        "start.load_tip": "Load the checked studies again (or the one selected), to see what changed on Lichess and import it.",
         "start.study": "{name} ({count} notes)",
         "start.load": "Load the selected",
         "filter.all": "All",
@@ -553,7 +556,6 @@ STRINGS: dict[str, dict[str, str]] = {
         "source.file_dialog_title": "Abrir estudo do Lichess",
         "source.file_filter": "PGN (*.pgn);;Todos (*)",
         "token.label": "Token:",
-        "study.none": "Nenhum estudo carregado.",
         "study.downloading": "Baixando estudo…",
         "study.download_failed": "Falha ao baixar o estudo.",
         "study.summary": (
@@ -679,9 +681,9 @@ STRINGS: dict[str, dict[str, str]] = {
         ),
         "template.missing": (
             "<b>Esta coleção ainda não tem um tipo de nota AnkiChess.</b> Instale o template "
-            "oficial do AnkiChess: ele é baixado do projeto AnkiChess no GitHub (alguns MB, "
-            "com o Stockfish que analisa nos cartões). O add-on AnkiChess Companion é "
-            "opcional: ele mantém o template atualizado."
+            "oficial do AnkiChess (alguns MB do projeto AnkiChess no GitHub, com o Stockfish que "
+            "analisa nos cartões). O add-on AnkiChess Companion é opcional: ele o mantém "
+            "atualizado."
         ),
         "template.install": "Instalar o template AnkiChess",
         "template.downloading": "Baixando o template AnkiChess… {done} de {total} MB",
@@ -710,7 +712,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "error.no_access": "Estudo não encontrado ou sem acesso (HTTP {code}). {hint}",
         "error.no_access.token_hint": "Confira se o token tem o escopo 'study:read' e acesso ao estudo.",
         "error.no_access.public_hint": (
-            "Se o estudo é privado, adicione o seu token do Lichess (aba Lichess › Puzzles, escopo "
+            "Se o estudo é privado, adicione o seu token do Lichess (aba Puzzles, escopo "
             "'study:read') ou exporte o PGN e use 'Abrir arquivo .pgn'."
         ),
         "error.rate_limited": (
@@ -811,6 +813,7 @@ STRINGS: dict[str, dict[str, str]] = {
         "option.key_moves": "Exercícios dos lances ! e !! (partidas)",
         "option.key_moves_tip": "Além da partida, cada lance marcado com ! ou !! vira uma nota \"encontre o lance\", no subdeck Lances das partidas do estudo. As outras tentativas que o autor analisou ali são respostas erradas que mostram o comentário dele.",
         "preview.none": "Selecione um capítulo para ver onde você começa a jogar.",
+        "puzzle.preview_none": "Selecione um puzzle para ver onde você começa a jogar.",
         "user_studies.title": "Estudos de um usuário do Lichess",
         "user_studies.username": "Usuário:",
         "user_studies.list": "Listar",
@@ -977,12 +980,12 @@ STRINGS: dict[str, dict[str, str]] = {
         "puzzle.sync_organized": "{count} já importados foram movidos para Errados/Acertados ou receberam as tags novas.",
         # --- Interface refinements ---
         "window.title": "AnkiChess: importar",
-        "window.tab_lichess": "Lichess",
+        "window.tab_studies": "Estudos",
+        "window.tab_studies_tip": "Estudos do Lichess (links, arquivos .pgn, os estudos de um usuário): sem token.",
+        "window.tab_puzzles": "Puzzles",
+        "window.tab_puzzles_tip": "Os puzzles que você fez no Lichess (precisa do seu token do Lichess) e links de puzzles.",
         "window.tab_games": "Partidas",
-        "lichess.section_studies": "Estudos",
-        "lichess.section_studies_tip": "Estudos do Lichess (links, arquivos .pgn, os estudos de um usuário): sem token.",
-        "lichess.section_puzzles": "Puzzles",
-        "lichess.section_puzzles_tip": "Os puzzles que você fez no Lichess (precisa do seu token do Lichess) e links de puzzles.",
+        "window.tab_games_tip": "Partidas analisadas do Chess.com e do Lichess: cartões dos seus erros e da linha de abertura.",
         "token.section": "Token do Lichess (necessário para os seus puzzles)",
         "token.change": "Trocar…",
         "token.reason_private": "Estudos privados e o limite de downloads por conta usam o seu token. Depois de salvo, os estudos são carregados de novo.",
@@ -1020,12 +1023,15 @@ STRINGS: dict[str, dict[str, str]] = {
         "token.status_user": "Token do Lichess: ✓ {user}",
         "token.status_saved": "Token do Lichess: ✓ salvo",
         "token.rate_hint": (
-            "Dica: com o seu token do Lichess (aba Lichess › Puzzles) o limite de downloads é de "
+            "Dica: com o seu token do Lichess (aba Puzzles) o limite de downloads é de "
             "3 de cada vez por conta, em vez de 1 de cada vez por IP."
         ),
-        "token.offer": "Adicionar o seu token do Lichess? Ele abre estudos privados e aumenta o limite de downloads (aba Lichess › Puzzles).",
+        "token.offer": "Adicionar o seu token do Lichess? Ele abre estudos privados e aumenta o limite de downloads (aba Puzzles).",
         "token.reason_rate": "O Lichess limitou os downloads por IP. Com o seu token o limite é por conta.",
-        "start.intro": "Cole um link de estudo do Lichess acima (vários separados por espaço), abra um arquivo .pgn em Mais fontes, ou arraste arquivos ou links para cá. Estudos que você já importou:",
+        "start.imported": "Estudos que você já importou",
+        "start.hint": "Cole links de estudos do Lichess acima (vários separados por espaço), abra arquivos .pgn em Mais fontes, ou arraste arquivos ou links para esta página.",
+        "start.empty_title": "Nenhum estudo do Lichess importado ainda",
+        "start.load_tip": "Carrega de novo os estudos marcados (ou o selecionado), para ver o que mudou no Lichess e importar.",
         "start.study": "{name} ({count} notas)",
         "start.load": "Carregar os marcados",
         "filter.all": "Todos",

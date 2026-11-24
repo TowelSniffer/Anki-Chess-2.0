@@ -74,7 +74,9 @@ def activity_cards(entries: list[dict]) -> list[PuzzleCard]:
     cards = []
     for entry in entries:
         try:
-            cards.append(activity_card(entry))
+            card = activity_card(entry)
+            card.pgn()  # to be imported: built now
+            cards.append(card)
         except (KeyError, TypeError, ValueError, AssertionError):  # a position python-chess can't read
             pass
     return cards
@@ -93,7 +95,7 @@ def organize_rows(entries: list[dict], imported: dict[str, list[int]], deck: str
             continue
         win = entry.get("win")
         try:
-            text = anki_ops.build_note_fields(activity_card(entry), True)[1]
+            text = activity_card(entry).note_text()  # the text field, without building the PGN
         except (KeyError, TypeError, ValueError, AssertionError):
             text = None
         tags = puzzle_tags(entry["puzzle"].get("themes", []), win)
