@@ -13,6 +13,8 @@
 - **split_lines**: one note per variation of the opening lines (each branch from the start to its end).
 - **key_moves**: besides each full game, a "find the move" note for every move marked ! or !!,
   in the study's Key moves subdeck.
+- These three are the window's last choices, and **Update imported Lichess studies** imports the chapters
+  added to a study since you imported it with them.
 - **update_existing**: on re-import, update notes already imported instead of skipping them.
 - **strip_anno**: remove the `[%anno ...]` markers Lichess leaves in comments.
 - **base_note_type**: note type the Flipped/Study ones are cloned from, when a chapter or card needs
@@ -40,7 +42,7 @@
   one click; shown once a Lichess token is saved.
 - **study_buttons**: the two buttons beside it: **Import Lichess studies** (blue: the import window, at
   Studies) and **Update imported Lichess studies** (purple: downloads them again: the chapters changed on Lichess
-  are updated, the new ones offered for import). `false` hides them.
+  are updated, and the ones added since you imported the study are imported). `false` hides them.
 - **puzzle_sync_since** / **puzzle_sync_at**: where the next sync starts reading your puzzle activity and
   when the last one ran (ms; written by the sync). `0` = never synced: the next sync goes through your
   whole history.

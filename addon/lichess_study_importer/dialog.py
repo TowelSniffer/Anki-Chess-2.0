@@ -56,7 +56,7 @@ from aqt.qt import (
 from aqt.studydeck import StudyDeck
 from aqt.utils import askUser, openLink, showWarning, tooltip
 
-from . import anki_ops, decks, expand
+from . import anki_ops, chapter_plan, decks
 from .chess_lib import read_pgn
 from .i18n import tr
 from .lichess_api import LichessError, fetch_study_pgn, fetch_user_studies, parse_study_urls
@@ -754,9 +754,7 @@ class StudyImportPage(QWidget):
         self.refresh_statuses()
         include_games = self.include_games.isChecked()
         for row in self.rows:
-            wanted = row.kind in (KIND_EXERCISE, KIND_LINE, KIND_STRUCTURE) or (
-                row.kind == KIND_GAME and include_games
-            )
+            wanted = chapter_plan.checked_by_default(row.kind, include_games)
             row.checked = row.importable and wanted and row.status != "same"
         self.find_removed_chapters()
         self.last_result, self.last_nids = "", []
@@ -777,17 +775,7 @@ class StudyImportPage(QWidget):
 
     @staticmethod
     def linked_deck(key: str | None, study_decks: dict) -> str | None:
-        """
-        A study's deck: the one chosen for it while it still exists, else the deck its
-        notes are in now (decks renamed or moved in Anki are followed), else the one
-        chosen (to be created).
-        """
-        if not key:
-            return None
-        chosen = study_decks.get(key)
-        if chosen and mw.col.decks.by_name(chosen):
-            return chosen
-        return anki_ops.study_deck_in_collection(mw.col, key) or chosen
+        return anki_ops.linked_study_deck(mw.col, key, study_decks)
 
     def find_removed_chapters(self):
         """Notes of the loaded studies whose chapter was deleted on Lichess."""
@@ -842,19 +830,15 @@ class StudyImportPage(QWidget):
 
     def row_cards(self, row: Row) -> list[tuple[Chapter, bool]]:
         """(card, is a key move card) imported from a row, depending on the options."""
-        ch = row.chapter
-        if row.structure:
-            return [(StructureCard(ch, row.side or ch.side_to_move), False)]
-        if row.kind == KIND_LINE and self.split_lines.isChecked():
-            if "split" not in row.cache:
-                row.cache["split"] = expand.split_variations(ch, self.strip_anno)
-            return [(card, False) for card in row.cache["split"]]
-        cards = [(ch, False)]
-        if row.kind == KIND_GAME and self.key_moves.isChecked():
-            if "key_moves" not in row.cache:
-                row.cache["key_moves"] = expand.key_move_cards(ch, self.strip_anno)
-            cards += [(card, True) for card in row.cache["key_moves"]]
-        return cards
+        return chapter_plan.chapter_cards(
+            row.chapter,
+            row.kind,
+            row.side,
+            self.split_lines.isChecked(),
+            self.key_moves.isChecked(),
+            self.strip_anno,
+            row.cache,
+        )
 
     @property
     def strip_anno(self) -> bool:
@@ -1371,9 +1355,8 @@ class StudyImportPage(QWidget):
             for card, key_move in self.row_cards(row):
                 if key_move:
                     # Played from your side of the game: its note type follows the card
-                    deck = decks.clean_deck_name(f"{row.study.deck}::{decks.section_name(decks.KIND_KEY_MOVE)}")
                     name = self.note_type_for_mode(card.suggested_mode)
-                    cards.append((card, name, decks.Placement(deck, placement.tags)))
+                    cards.append((card, name, decks.Placement(decks.key_move_deck(row.study.deck), placement.tags)))
                 else:
                     cards.append((card, row.note_type, placement))
         return cards

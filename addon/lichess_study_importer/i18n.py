@@ -284,8 +284,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "user_studies.private_hint": "Private studies are listed with your token (study:read scope).",
         "menu.update_studies": "Update imported Lichess studies",
         "menu.update_studies_tip": (
-            "Downloads them again: the chapters changed on Lichess are updated, the new ones "
-            "offered for import."
+            "Downloads them again: the chapters changed on Lichess are updated, and the ones "
+            "added since you imported the study are imported (full games only with Include "
+            "full games)."
         ),
         "menu.import_studies": "Import Lichess studies",
         "menu.import_studies_tip": "The import window, at Studies: a link, your studies, a .pgn file.",
@@ -293,7 +294,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "update.progress": "Downloading the imported studies… {done} of {total}",
         "update.summary": "{studies} of {total} studies checked: {updated} notes updated, {unchanged} already up to date.",
         "update.removed": "{count} notes come from chapters no longer in their study (see the tag lichess::study::<id>).",
-        "update.new_chapters": "New chapters, not imported:\n{studies}",
+        "update.added": "Chapters added on Lichess since the import, now imported:\n{studies}",
+        "update.new_chapters": "Chapters left out of your collection:\n{studies}",
         "update.pending": "Left for later (Lichess limited the downloads, or you stopped):\n{studies}",
         "update.retry": "Try again ({count})",
         "update.add_token": "Add a token…",
@@ -830,8 +832,9 @@ STRINGS: dict[str, dict[str, str]] = {
         "user_studies.private_hint": "Estudos privados aparecem com o seu token (escopo study:read).",
         "menu.update_studies": "Atualizar estudos importados do Lichess",
         "menu.update_studies_tip": (
-            "Baixa-os de novo: os capítulos alterados no Lichess são atualizados, os novos "
-            "oferecidos para importar."
+            "Baixa-os de novo: os capítulos alterados no Lichess são atualizados, e os criados "
+            "depois da importação do estudo são importados (partidas completas só com Incluir "
+            "partidas completas)."
         ),
         "menu.import_studies": "Importar estudos do Lichess",
         "menu.import_studies_tip": "A janela de importação, em Estudos: um link, seus estudos, um arquivo .pgn.",
@@ -839,7 +842,8 @@ STRINGS: dict[str, dict[str, str]] = {
         "update.progress": "Baixando os estudos importados… {done} de {total}",
         "update.summary": "{studies} de {total} estudos verificados: {updated} notas atualizadas, {unchanged} já em dia.",
         "update.removed": "{count} notas são de capítulos que não estão mais no estudo (veja a tag lichess::study::<id>).",
-        "update.new_chapters": "Capítulos novos, não importados:\n{studies}",
+        "update.added": "Capítulos criados no Lichess depois da importação, importados agora:\n{studies}",
+        "update.new_chapters": "Capítulos que ficaram fora da sua coleção:\n{studies}",
         "update.pending": "Ficaram para depois (o Lichess limitou os downloads, ou você parou):\n{studies}",
         "update.retry": "Tentar de novo ({count})",
         "update.add_token": "Adicionar token…",

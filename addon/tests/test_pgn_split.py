@@ -125,6 +125,15 @@ def test_game_vs_line():
     assert line.suggested_mode == p.MODE_STUDY
 
 
+def test_created_ms_from_lichess_utc_date():
+    # Written by Lichess when the chapter is created (an exercise added to PL09 on 2026-11-24)
+    ch = p.split_games('[UTCDate "2026.11.24"]\n[UTCTime "07:55:22"]\n[FEN "8/8/8/8/8/8/k7/R6K w - - 0 1"]\n\n1. Ra1+ *\n')[0]
+    assert ch.created_ms == 1795506922000  # 2026-11-24 07:55:22 UTC
+    # A game imported from a PGN keeps its own Date: no time
+    assert p.split_games('[Date "1925.??.??"]\n[Result "1-0"]\n\n1. e4 e5 1-0\n')[0].created_ms is None
+    assert p.split_games('[UTCDate "2026.11.24"]\n[UTCTime "??:??:??"]\n\n1. e4 *\n')[0].created_ms is None
+
+
 def test_quotes_in_tag_values_are_kept_escaped():
     # Lichess escapes quotes in chapter names; the rebuilt PGN must keep them escaped
     text = '[ChapterName "\\"Let Me Introduce You\\" - Foreword"]\n[Annotator "a\\\\b"]\n\n1. e4 *\n'

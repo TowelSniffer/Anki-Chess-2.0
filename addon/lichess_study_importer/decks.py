@@ -190,6 +190,11 @@ def place_chapter(
     )
 
 
+def key_move_deck(study_deck: str) -> str:
+    """Subdeck of the "find the move" cards made from a study's games (expand.key_move_cards)."""
+    return clean_deck_name(f"{study_deck}::{section_name(KIND_KEY_MOVE)}")
+
+
 def chapter_tags(ch: Chapter, kind: str, opening: str | None = None, fallback_study: str = "") -> list[str]:
     """
     Tags of a chapter's notes besides its source: the study and chapter names, the
