@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+.env
 .vscode
 .venv
 node_modules
@@ -35,3 +35,10 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Python
+__pycache__/
+.pytest_cache/
+
+# Stockfish downloaded by the importer add-on
+addon/lichess_study_importer/user_files/

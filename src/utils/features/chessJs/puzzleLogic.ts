@@ -28,8 +28,8 @@ function findMatchingPath(store: GameStore, playedMove: Move): PgnPath | null {
   // B) Check Variation Lines
   const isVariations = nextMainMove.variations?.length;
   const isPuzzle = /^(Puzzle|Study)$/.test(store.boardMode);
-  const rejectVariations = isPuzzle && !store.config.acceptVariations;
-  // acceptVariations?
+  // Gamebooks only accept the main line, like on Lichess
+  const rejectVariations = isPuzzle && (!store.config.acceptVariations || store.isGamebook);
   if (rejectVariations || !isVariations) return null;
 
   // Loop through Variations
@@ -115,8 +115,8 @@ export function playAiMove(store: GameStore, delay: number): void {
     if (nextMove && nextMove.turn === store.opponentColor[0]) {
       const candidates: PgnPath[] = [nextMovePathCheck];
 
-      // If variations exist, add them to candidates
-      if (store.config.acceptVariations && nextMove.variations) {
+      // If variations exist, add them to candidates (gamebooks keep to the main line)
+      if (store.config.acceptVariations && !store.isGamebook && nextMove.variations) {
         nextMove.variations.forEach((variation: CustomPgnMove[]) => {
           candidates.push(variation[0].pgnPath);
         });

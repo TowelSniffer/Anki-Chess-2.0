@@ -26,6 +26,7 @@ import { playAiMove } from '$features/chessJs/puzzleLogic';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { getTurnFromFen, toDests } from '$features/chessJs/chessFunctions';
 import { getSystemShapes, blunderNags, parseCal, parseCsl } from '$features/board/arrows';
+import { effectShapes, moveEffects } from '$features/pgn/chesscomEffects';
 import { playSound } from '$features/audio/audio';
 import { parsePGN, mirrorPGN } from '$features/pgn/pgnParsing';
 
@@ -220,6 +221,13 @@ export class GameStore {
     return /^(Puzzle|Study)$/.test(this.boardMode) && !this.hasNext;
   }
 
+  // Lichess gamebook chapter ([ChapterMode "gamebook"]): only the main line is the answer,
+  // variations are wrong moves with their explanation, and the opponent sticks to the main line
+  get isGamebook() {
+    const tags = this.rootGame?.tags as Record<string, unknown> | undefined;
+    return String(tags?.ChapterMode ?? '').toLowerCase() === 'gamebook';
+  }
+
   get puzzleScore() {
     /*
      * We track mistakes and blunders in puzzle and Study mode and Scores Puzzle.
@@ -342,10 +350,13 @@ export class GameStore {
     const redrawCachedShapes = this.boardMode === 'Puzzle' && this.turn === this.playerColor[0];
     const pgnPath = redrawCachedShapes ? prevMovePath : this.pgnPath;
     const engineStore = this.engineStore;
+    // Chess.com marks of the move whose shapes are drawn; its square is tinted while it is the last move
+    const effectsMove = this.#moveMap.get(pgnPath.join(','));
     return [
       // Only spread engine shapes if the engine's eval matches our visual FEN
       ...(engineStore.enabled && engineStore.evalFen === this.fen ? engineStore.shapes : []),
       ...getSystemShapes(pgnPath, this.#moveMap, this.boardMode),
+      ...effectShapes(moveEffects(effectsMove), effectsMove === this.currentMove),
       ...parseCal(puzzleMode ? [] : this.currentMove?.commentDiag?.colorArrows),
       ...parseCsl(puzzleMode ? [] : this.currentMove?.commentDiag?.colorFields),
     ];

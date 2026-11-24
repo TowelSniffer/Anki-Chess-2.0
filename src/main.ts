@@ -1,6 +1,8 @@
 import type { BoardModes } from '$Types/ChessStructs';
 import { mount } from 'svelte';
 import App from './App.svelte';
+import StructureApp from '$components/structure/StructureApp.svelte';
+import { isStructurePgn } from '$features/structure/structure';
 import TemplateConfig from '$components/TemplateConfig.svelte';
 import HelpWrapper from '$components/HelpWrapper.svelte';
 import '$scss/app.scss';
@@ -49,7 +51,8 @@ const mountApp = () => {
 
   const userTextFromAnki = import.meta.env.DEV ? devText : (textDiv?.innerHTML ?? '');
 
-  mount(App, {
+  // A pawn structure (a FEN with no moves) is rebuilt on its own board, without chess.js
+  mount(isStructurePgn(pgnContent) ? StructureApp : App, {
     target,
     props: {
       rawPgn: pgnContent,
