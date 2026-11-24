@@ -18,7 +18,7 @@ export const devPgn = overrides.pgn || `
 
 export const devBoardMode: BoardModes = overrides.boardMode || 'Viewer';
 
-export const devText = `
+export const devText: string = overrides.text ?? `
       <h2>The Opera Game</h2>
       White: Paul Morphy<br />Black: Duke of Brunswick &amp; Count Isouart
     `;

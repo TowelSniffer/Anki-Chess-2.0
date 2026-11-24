@@ -65,7 +65,7 @@ export class EngineStore {
   #idlePromise: Promise<void> = Promise.resolve();
   #idleResolver: (() => void) | null = null;
   // Tracks if requestMove has been called but hasn't finished
-  #aiRequestPending = false;
+  #aiRequestPending = $state(false);
   #aiMoveResolver: ((san: string) => void) | null = null;
 
   constructor(getConfig: () => UserConfigOpts, getBoardMode: () => BoardModes) {
@@ -103,11 +103,21 @@ export class EngineStore {
   get #boardMode() { return this.#getBoardMode(); }
 
   get analysisThinkingTime() {
-    return this.#config.analysisTime;
+    // While solving only the eval bar reads it, and a few seconds settle the bar
+    return this.#isSolving ? Math.min(this.#config.analysisTime, 3) : this.#config.analysisTime;
   }
 
   get multipv() {
-    return this.#boardMode === 'AI' ? 1 : this.#config.analysisLines;
+    return this.#boardMode === 'AI' || this.#isSolving ? 1 : this.#config.analysisLines;
+  }
+
+  get #isSolving() {
+    return this.#boardMode === 'Puzzle' || this.#boardMode === 'Study';
+  }
+
+  // A move is being searched for (the AI's, or a refutation): analysis waits for it
+  get isSearchingMove() {
+    return this.#aiRequestPending;
   }
 
   get #aiElo() {
@@ -206,6 +216,15 @@ export class EngineStore {
 
       this.#performAiSearch(fen, elo, moveTime, wrappedResolve);
     });
+  }
+
+  // The best reply in a position, to show why a move is wrong: the strongest setting, with a time
+  // limit so a slow engine start can't hold the board (null when there's no answer in time). The
+  // first call also starts the engine: ~2 s on a desktop, later ones ~0.5 s.
+  async requestBestMove(fen: string, moveTime = 400, timeout = 3000): Promise<string | null> {
+    const late = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeout));
+    const uci = await Promise.race([this.requestMove(fen, 3190, moveTime), late]);
+    return uci && uci !== '(none)' ? uci : null;
   }
 
   toggle(fen: string) {

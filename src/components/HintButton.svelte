@@ -1,0 +1,73 @@
+<script lang="ts">
+  import IconHint from '~icons/material-symbols/lightbulb-outline';
+  import { getContext } from 'svelte';
+  import type { GameStore } from '$stores/gameStore.svelte';
+  import { showHint } from '$features/chessJs/puzzleLogic';
+
+  // labelled: a rounded button with the word, in the row under the note's text
+  let { labelled = false }: { labelled?: boolean } = $props();
+
+  const gameStore = getContext<GameStore>('GAME_STORE');
+
+  // On the front while the puzzle is being solved
+  const visible = $derived(
+    gameStore.config.hints &&
+      /^(Puzzle|Study)$/.test(gameStore.boardMode) &&
+      !gameStore.isPuzzleComplete,
+  );
+  const disabled = $derived(!gameStore.hintMove || gameStore.hintLevel > 2 || gameStore.isRefuting);
+
+  function handleKeydown(e: KeyboardEvent) {
+    const typing = (e.target as HTMLElement | null)?.closest('input, textarea, [contenteditable]');
+    if (e.key.toLowerCase() !== 'h' || e.ctrlKey || e.metaKey || e.altKey || typing) return;
+    showHint(gameStore);
+  }
+</script>
+
+<svelte:window onkeydown={visible ? handleKeydown : null} />
+
+{#if visible}
+  <button
+    id="hint-button"
+    class="tappable"
+    class:pill={labelled}
+    title="Hint (H)"
+    aria-label="Hint"
+    {disabled}
+    onclick={() => showHint(gameStore)}
+  >
+    <IconHint />
+    {#if labelled}<span class="label">Hint</span>{/if}
+    {#if gameStore.hintLevel}
+      <span class="level">{gameStore.hintLevel}</span>
+    {/if}
+  </button>
+{/if}
+
+<style lang="scss">
+  /* Placed by App, next to the settings menu: in the comment box's top row or floating with it */
+  #hint-button {
+    @include icon-btn;
+    position: relative; /* For the level */
+
+    .level {
+      position: absolute;
+      top: 1px;
+      right: 3px;
+      font-size: 0.6rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    &.pill {
+      @include pill-btn;
+
+      .level {
+        position: static;
+        margin-left: -2px;
+        font-size: 0.7rem;
+        opacity: 0.75;
+      }
+    }
+  }
+</style>

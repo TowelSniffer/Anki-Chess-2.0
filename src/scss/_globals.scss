@@ -24,10 +24,14 @@ $palette-perfect: #df4096;
 /* sizing */
 $board-border-width: 8px;
 $board-border: $board-border-width solid grey;
+/* --board-max comes from the boardSize option; the viewport still caps it (phones) */
+$board-max: var(--board-max, 600px);
+/* --player-bar: height of the player bars above and below the board, 0px when off */
+$player-bar: var(--player-bar, 0px);
 $board-size-calc: min(
-  max(calc(100dvh - calc($board-border-width * 2)), 300px),
+  max(calc(100dvh - calc($board-border-width * 2) - calc($player-bar * 2)), 300px),
   max(calc(100dvw - calc($board-border-width * 2)), 200px),
-  600px
+  $board-max
 );
 $board-square-calc: calc($board-size-calc * 0.125);
 
@@ -66,6 +70,16 @@ $border-radius-global: 4px;
   /* Text */
   --text-primary: #d7dee9;
   --text-muted: #797979;
+  /* Labels and secondary text that must still read well on the surfaces */
+  --text-soft: #a5adb9;
+  --link: #8ab4f8;
+
+  /* The note's text panel: theme chips, its dividers, and your result in words */
+  --chip-bg: rgba(255, 255, 255, 0.07);
+  --chip-line: rgba(255, 255, 255, 0.12);
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --fail-text: #ff9b9b;
+  --pass-text: #7fe09b;
 
   /* Interaction  Game State */
   --interactive-button-active: #{$palette-green-500};
@@ -73,6 +87,10 @@ $border-radius-global: 4px;
   --status-fail: #{$palette-fail};
   --status-pass: #{$palette-pass};
   --status-perfect: #{$palette-perfect};
+
+  /* The card's one font; the numbers line up in the clock and the move list */
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+  --focus-ring: #8ab4f8;
 
   /* Board Specifics */
   --board-border: #{$board-border};
@@ -88,11 +106,32 @@ $border-radius-global: 4px;
 
   --text-primary: #{$palette-light-text};
   --text-muted: #{$palette-light-muted};
+  --text-soft: #555555;
+  --link: #1a73e8;
+
+  --chip-bg: rgba(0, 0, 0, 0.05);
+  --chip-line: rgba(0, 0, 0, 0.12);
+  --line-soft: rgba(0, 0, 0, 0.08);
+  --fail-text: #b3261e;
+  --pass-text: #1e7b34;
+  --focus-ring: #1a73e8;
 
   /* Soften the shadows and borders for light mode */
   --shadow-main: 0px 0px 3px 0px rgba(0, 0, 0, 0.2);
   --shadow-strong: 0px 0px 3px 1px rgba(0, 0, 0, 0.3);
   --border-thin: 1px solid #ccc;
+}
+
+/* Hover only where there is a pointer: on touch screens :hover sticks after a tap */
+@mixin can-hover {
+  @media (hover: hover) {
+    @content;
+  }
+}
+
+@mixin focus-ring {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
 }
 
 @mixin unselectable {
@@ -137,6 +176,52 @@ $border-radius-global: 4px;
   margin-right: $val;
 }
 
+/*
+ * A rounded button with an icon and a word, for the tools under the note's text on the front.
+ * The icon keeps the button's 1rem (icons are 1.2em); the word ($label) is smaller.
+ */
+@mixin pill-btn($label: '.label') {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: 34px;
+  margin: 0;
+  padding: 0 12px 0 9px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 1px solid var(--chip-line);
+  background-color: var(--surface-primary);
+  color: var(--text-primary);
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  #{$label} {
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  @include can-hover {
+    &:hover:not(:disabled, .active-toggle) {
+      background-color: var(--chip-bg);
+      box-shadow: none;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 @mixin icon-btn($size: $button-size-calc) {
   /* remove default button styling */
   background: none;
@@ -162,12 +247,14 @@ $border-radius-global: 4px;
   font-size: 1.65rem;
 
   &:focus-visible {
-    outline: 1px solid blue;
+    @include focus-ring;
   }
 
-  &:hover:not(:disabled, .active-toggle) {
-    background-color: var(--interactive-button-hover);
-    @include subtle-shadow(0.7);
+  @include can-hover {
+    &:hover:not(:disabled, .active-toggle) {
+      background-color: var(--interactive-button-hover);
+      @include subtle-shadow(0.7);
+    }
   }
 
   &:active:not(:disabled) {

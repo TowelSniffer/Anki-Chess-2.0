@@ -1,0 +1,290 @@
+"""
+Lichess puzzles as AnkiChess cards: the opponent's last move is played first
+(Flipped), then you play the solution; any mate is accepted on the last move, as on
+Lichess.
+
+Pure Python (no aqt imports) so it can be unit tested outside Anki.
+"""
+
+from __future__ import annotations
+
+import html
+import re
+import time
+from dataclasses import dataclass, field
+from typing import Callable
+
+from .chess_lib import chess
+from .decks import tag_part
+from .game_analysis import export_pgn, mate_alternatives
+from .i18n import tr
+from .lichess_api import LichessError, Wait, fetch_puzzle
+from .pgn_split import ID_TAG, MODE_FLIPPED, MODE_PUZZLE
+from .puzzle_themes import theme_name
+
+KIND_PUZZLE = "puzzle"
+KEY_PREFIX = "puzzle/"
+# The puzzle id in the [AnkiChessId "puzzle/<id>"] tag of an imported note's PGN
+IMPORTED_ID_RE = re.compile(rf'\[{ID_TAG} "{KEY_PREFIX}([A-Za-z0-9]+)"\]')
+REQUEST_PAUSE = 0.3  # seconds between puzzle requests, to stay under Lichess' rate limit
+# Errors that would hit every next puzzle too: fetching stops and keeps what came
+STOPPING_ERRORS = ("error.cancelled", "error.rate_limited", "error.connection")
+_pause = time.sleep
+TAG_ROOT = "lichess::puzzle"
+
+
+def puzzle_tags(themes: list[str], win: bool | None) -> list[str]:
+    """
+    The importer's tags of a puzzle note: lichess::puzzle::theme::<theme> for each of its
+    themes, and lichess::puzzle::failed or ::solved for your result (none for a link's).
+    """
+    tags = ["lichess", TAG_ROOT, *(f"{TAG_ROOT}::theme::{tag_part(t)}" for t in themes)]
+    if win is not None:
+        tags.append(f"{TAG_ROOT}::{'solved' if win else 'failed'}")
+    return tags
+
+
+@dataclass
+class PuzzleCard:
+    """Card from a Lichess puzzle; same interface as pgn_split.Chapter for anki_ops."""
+
+    puzzle_id: str
+    rating: int
+    themes: list[str]
+    mode: str
+    body: str = ""
+    win: bool | None = None  # your result, for puzzles from your activity
+    date: int | None = None  # ms, when you first played it (puzzles from your activity)
+    kind: str = KIND_PUZZLE
+    link_label: str = "Lichess"
+    # Builds the body on the first pgn(): a table of your history lists thousands of puzzles
+    # and needs none of them (the PGN is about 3 ms each, the rest a few µs)
+    build: Callable[[], str] | None = field(default=None, repr=False, compare=False)
+
+    @property
+    def name(self) -> str:
+        return tr("puzzle.name", id=self.puzzle_id, rating=self.rating)
+
+    @property
+    def study_name(self) -> str:
+        return tr("deck.puzzles")
+
+    @property
+    def chapter_url(self) -> str:
+        return f"https://lichess.org/training/{self.puzzle_id}"
+
+    @property
+    def dedupe_key(self) -> str:
+        return f"{KEY_PREFIX}{self.puzzle_id}"
+
+    @property
+    def opponent_move_first(self) -> bool:
+        """Built from the puzzle's game: the card plays the opponent's last move first."""
+        return self.mode == MODE_FLIPPED
+
+    @property
+    def note_tags(self) -> list[str]:
+        return puzzle_tags(self.themes, self.win)
+
+    def pgn(self, strip_anno: bool = True) -> str:
+        if self.build is not None:
+            self.body, self.build = self.build(), None
+        return self.body
+
+    def note_text(self) -> str:
+        """
+        The text above the board: the name, with a dot for your result and the rating, then
+        a grid of label and value (your result and its day, the themes, the source) that the
+        card can fold under Details. The ac-* classes are the card template's; without it,
+        the text still reads line by line.
+        """
+        esc = html.escape
+        rows = []
+        dot = ""
+        if self.win is not None:
+            result = "solved" if self.win else "failed"
+            said = esc(tr(f"puzzle.played_{result}"))
+            dot = f'<span class="ac-dot ac-{result}" title="{said}"></span>'
+            day = f" · {short_date(self.date)}" if self.date else ""
+            mark = "✓" if self.win else "✗"
+            value = f"{mark} {esc(tr(f'puzzle.{result}'))}{day}"
+            rows.append((tr("panel.result"), f'<span class="ac-result ac-{result}" title="{said}">{value}</span>'))
+        if self.themes:
+            chips = (f'<span class="ac-chip">{esc(theme_name(t))}</span>' for t in self.themes)
+            rows.append((tr("panel.themes"), '<span class="ac-sep">, </span>'.join(chips)))
+        link = f'<a href="{esc(self.chapter_url)}">{esc(self.link_label)}</a>'
+        rows.append((tr("panel.source"), f"{link} · {esc(self.study_name)}"))
+        title = (
+            f'<h3 class="ac-title">{dot}{esc(tr("panel.puzzle", id=self.puzzle_id))} '
+            f'<span class="ac-rating" title="{esc(tr("panel.rating"))}">{self.rating}</span></h3>'
+        )
+        grid = "".join(f"<dt>{esc(label)}</dt><dd>{value}</dd>" for label, value in rows)
+        details = esc(tr("panel.details"))  # the word for the card's button that folds the grid
+        return f'<div class="ac-info" data-details="{details}">{title}<dl class="ac-grid">{grid}</dl></div>'
+
+
+def _has_game(data: dict) -> bool:
+    """The puzzle's game reaches the opponent's last move (initialPly + 1 moves)."""
+    sans = ((data.get("game") or {}).get("pgn") or "").split()
+    ply = data["puzzle"].get("initialPly")
+    return bool(sans) and ply is not None and ply < len(sans)
+
+
+def _start(data: dict) -> tuple[chess.Board, chess.Move | None]:
+    """
+    Position before the opponent's last move, and that move. The puzzle's game ends
+    with it (initialPly + 1 moves); without the game, the puzzle starts after it.
+    """
+    puzzle, game = data["puzzle"], data.get("game") or {}
+    sans = (game.get("pgn") or "").split()
+    ply = puzzle.get("initialPly")
+    if _has_game(data):
+        board = chess.Board()
+        for san in sans[:ply]:
+            board.push_san(san)
+        return board, board.parse_san(sans[ply])
+    return chess.Board(puzzle["fen"]), None
+
+
+def puzzle_card(data: dict, win: bool | None = None, date: int | None = None) -> PuzzleCard:
+    """
+    Card from the API's {"puzzle": {...}, "game": {...}}. The game is optional: without
+    it (an entry of your activity) the card starts at the puzzle position. Its PGN is
+    built on the first pgn(); the position is read now, so a puzzle python-chess can't
+    read fails here (ValueError), as before.
+    """
+    puzzle = data["puzzle"]
+    has_game = _has_game(data)
+    if not has_game:
+        chess.Board(puzzle["fen"])
+    for uci in puzzle["solution"]:
+        chess.Move.from_uci(uci)
+    card = PuzzleCard(
+        puzzle_id=puzzle["id"],
+        rating=int(puzzle.get("rating", 0)),
+        themes=list(puzzle.get("themes", [])),
+        mode=MODE_FLIPPED if has_game else MODE_PUZZLE,
+        win=win,
+        date=date,
+    )
+    card.build = lambda: _puzzle_pgn(data, card)
+    return card
+
+
+def _puzzle_pgn(data: dict, card: PuzzleCard) -> str:
+    """The card's PGN: the opponent's last move when the game is there, then the solution."""
+    board, last = _start(data)
+    game = chess.pgn.Game()
+    game.setup(board)
+    node = game.add_main_variation(last) if last else game
+    solver = node.board().turn
+    for uci in data["puzzle"]["solution"]:
+        node = node.add_main_variation(chess.Move.from_uci(uci))
+    if node.board().is_checkmate() and node.parent is not None:
+        for alt in mate_alternatives(node.parent.board(), node.move):
+            node.parent.add_variation(alt)
+    return export_pgn(
+        game,
+        {
+            "Event": "Lichess puzzle",
+            "Site": card.chapter_url,
+            "Result": "*",
+            "ChapterName": card.name,
+            "StudyName": card.study_name,
+            "ChapterURL": card.chapter_url,
+            "Orientation": "white" if solver == chess.WHITE else "black",
+            "AnkiChessId": card.dedupe_key,
+        },
+    )
+
+
+def readable(cards: list[PuzzleCard]) -> tuple[list[PuzzleCard], int]:
+    """The cards whose PGN builds (built now), and how many python-chess couldn't read."""
+    ok = []
+    for card in cards:
+        try:
+            card.pgn()
+            ok.append(card)
+        except (KeyError, TypeError, ValueError, AssertionError):
+            pass
+    return ok, len(cards) - len(ok)
+
+
+def short_date(ms: int) -> str:
+    """The day a puzzle was played, as the card says it: Sep 26, 2026 / 26/09/2026."""
+    t = time.localtime(ms / 1000)
+    month = tr("panel.months").split()[t.tm_mon - 1]
+    day = f"{t.tm_mday:02d}" if month.isdigit() else str(t.tm_mday)  # an all-number date: 05/09
+    return tr("panel.date", month=month, day=day, year=t.tm_year)
+
+
+def activity_card(entry: dict) -> PuzzleCard:
+    """Card from an entry of your puzzle activity, without requests (no game)."""
+    return puzzle_card(entry, entry.get("win"), entry.get("date"))
+
+
+def load_puzzles(
+    entries: list[tuple[str, bool | None, dict | None]],
+    progress: Callable[[int, int], None],
+    wait: Wait | None = None,
+    cancelled: Callable[[], bool] = lambda: False,
+) -> tuple[list[PuzzleCard], LichessError | None]:
+    """
+    Cards for (puzzle id, your result, activity entry) items, each puzzle fetched with
+    its game so the card starts before the opponent's last move. An activity entry the
+    puzzle can't be fetched for still gives a card from the puzzle position. Esc
+    (cancelled()), or an error that would stop the next ones too, ends it early: returns
+    the cards so far and that error (None when every puzzle came). wait: see lichess_api.
+    """
+    cards: list[PuzzleCard] = []
+    for done, (puzzle_id, win, entry) in enumerate(entries):
+        progress(done, len(entries))
+        if cancelled():
+            return cards, LichessError("error.cancelled")
+        if done:
+            _pause(REQUEST_PAUSE)
+        try:
+            data = fetch_puzzle(puzzle_id, wait=wait)
+        except LichessError as e:
+            if e.key in STOPPING_ERRORS:
+                return cards, e
+            if entry is None:
+                raise
+            data = entry
+        card = puzzle_card(data, win, entry.get("date") if entry else None)
+        card.pgn()  # fetched to be imported: built now, failing here as before
+        cards.append(card)
+    progress(len(entries), len(entries))
+    return cards, None
+
+
+def sync_plan(entries: list[dict], imported: set[str], failed_only: bool) -> list[dict]:
+    """
+    The activity entries a sync imports, oldest first: the puzzles not in Anki yet, only
+    the failed ones with failed_only.
+    """
+    wanted = [
+        e
+        for e in entries
+        if e["puzzle"]["id"] not in imported and not (failed_only and e.get("win") is not False)
+    ]
+    return sorted(wanted, key=lambda e: e.get("date") or 0)
+
+
+def next_sync_point(entries: list[dict], complete: bool, plan: list[dict], handled: int, previous: int) -> int:
+    """
+    Where the next sync starts reading the activity (ms; Lichess sends from that time
+    on, and the puzzles already in Anki are left out again): unchanged when Lichess
+    didn't send all of it (complete=False); at the first puzzle of the plan left when
+    importing stopped after `handled` of them; else at the most recent puzzle read.
+    """
+    if not complete:
+        return previous
+    if handled < len(plan):
+        return max(previous, int(plan[handled].get("date") or previous))
+    return max([previous, *(int(e["date"]) for e in entries if e.get("date"))])
+
+
+def imported_ids(pgn_field: str) -> list[str]:
+    """The puzzle ids in the PGN field of an imported note."""
+    return IMPORTED_ID_RE.findall(pgn_field)

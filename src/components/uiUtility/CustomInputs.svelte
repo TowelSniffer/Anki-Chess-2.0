@@ -369,10 +369,12 @@
       border-bottom-left-radius: 0;
     }
 
-    &:hover {
-      background: var(--surface-hover);
-      border-top-right-radius: 4px;
-      border-bottom-right-radius: 4px;
+    @include can-hover {
+      &:hover {
+        background: var(--surface-hover);
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+      }
     }
 
     .curr-val {
@@ -417,7 +419,9 @@
     width: 100%;
     box-sizing: border-box;
 
-    &:hover:not(.disabled) { background: var(--surface-hover); }
+    @include can-hover {
+      &:hover:not(.disabled) { background: var(--surface-hover); }
+    }
     &.selected { background: rgba(33, 150, 243, 0.15); color: #2196f3; font-weight: bold; }
     &.action-opt {
       font-weight: 500;

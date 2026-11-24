@@ -232,8 +232,10 @@
       cursor: pointer;
       font-size: 1.5rem;
       padding: 0.2rem;
-      &:hover {
-        color: var(--status-fail);
+      @include can-hover {
+        &:hover {
+          color: var(--status-fail);
+        }
       }
     }
   }
@@ -280,7 +282,9 @@
       font-size: 1.5rem; /* Slightly larger for the arrow */
       color: var(--text-primary);
 
-      &:hover { background: var(--surface-hover); }
+      @include can-hover {
+        &:hover { background: var(--surface-hover); }
+      }
 
       /* Arrow rotation logic */
       /* Arrow horizontal flip logic */
@@ -305,8 +309,10 @@
       cursor: pointer;
       font-size: 0.9rem;
 
-      &:hover {
-        background: var(--surface-hover);
+      @include can-hover {
+        &:hover {
+          background: var(--surface-hover);
+        }
       }
       &.active {
         background: var(--surface-primary);
@@ -369,8 +375,10 @@
     padding: 0.4rem 0.8rem;
     border-radius: 4px;
     cursor: pointer;
-    &:hover {
-      background: var(--interactive-button-hover);
+    @include can-hover {
+      &:hover {
+        background: var(--interactive-button-hover);
+      }
     }
   }
 

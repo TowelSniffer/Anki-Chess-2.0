@@ -30,7 +30,12 @@ export class UserConfig {
    */
 
   get saveDue(): boolean {
-    return JSON.stringify($state.snapshot(this.opts)) !== JSON.stringify(this.lastSavedState);
+    // A template saved before an option existed has no value for it: that means the default
+    const saved: Partial<UserConfigOpts> = this.lastSavedState;
+    const defaults = defaultConfig as unknown as UserConfigOpts;
+    return (Object.keys(this.opts) as (keyof UserConfigOpts)[]).some(
+      (key) => this.opts[key] !== (saved[key] ?? defaults[key]),
+    );
   }
 
   // --- METHODS ---

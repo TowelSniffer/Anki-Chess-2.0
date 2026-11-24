@@ -3,13 +3,21 @@
   import ButtonsContainer from '$components/ButtonsContainer.svelte';
   import PromotePopup from '$components/PromotePopup.svelte';
   import PgnViewer from '$components/PgnViewer.svelte';
+  import PlayerBar from '$components/PlayerBar.svelte';
+  import PuzzleComments from '$components/PuzzleComments.svelte';
   import GameProvider from '$components/Providers/GameProvider.svelte';
   import EngineAnalysis from '$components/EngineAnalysis.svelte';
   import HelpWrapper from '$components/HelpWrapper.svelte';
   import ErrorPopup from '$components/ErrorPopup.svelte';
   import SettingsMenu from '$components/SettingsMenu.svelte';
+  import HintButton from '$components/HintButton.svelte';
+  import EvalButton from '$components/EvalButton.svelte';
+  import PuzzleClock from '$components/PuzzleClock.svelte';
   import TemplateConfig from '$components/TemplateConfig.svelte';
+  import BoardLayout from '$components/BoardLayout.svelte';
+  import NoteText from '$components/NoteText.svelte';
   import { BOARD_THEMES } from '$utils/themeData';
+  import { hasPgnComments } from '$features/pgn/pgnParsing';
 
   import { RenderScan } from 'svelte-render-scan';
   import { userConfig } from '$stores/userConfig.svelte';
@@ -25,6 +33,12 @@
 
   let themeColors = $derived(BOARD_THEMES[userConfig.opts.boardTheme] || BOARD_THEMES['wood']);
   let showDevConfig = $state(false);
+  let showFrontComments = $derived(
+    boardMode !== 'Viewer' && userConfig.opts.frontComments && hasPgnComments(rawPgn),
+  );
+  let showComments = $derived(
+    boardMode === 'Viewer' || (userConfig.opts.frontText && !!userText) || showFrontComments,
+  );
 
   if (import.meta.env.DEV) {
     window.addEventListener('dev:toggleTemplateConfig', () => {
@@ -60,6 +74,16 @@
       document.body.classList.remove('light-theme');
     }
   });
+
+  $effect(() => {
+    // Maximum board size; the viewport still limits it on small screens
+    document.documentElement.style.setProperty('--board-max', `${userConfig.opts.boardSize}px`);
+  });
+
+  $effect(() => {
+    // Room above and below the board for the player bars
+    document.documentElement.classList.toggle('player-bars', userConfig.opts.playerBars);
+  });
 </script>
 
 {#if import.meta.env.DEV}
@@ -81,123 +105,121 @@
 <HelpWrapper bind:isHelpOpen />
 <GameProvider {rawPgn} {boardMode}>
   <ErrorPopup bind:isHelpOpen />
-  <div id="container" style="--board-light: {themeColors.light}; --board-dark: {themeColors.dark};">
-    {#if boardMode === 'Viewer' || (userConfig.opts.frontText && userText)}
-      <div id="commentBox">
-        {#if userText}
-          <div id="userTextContainer">
-            <div id="textField">{@html userText}</div>
+  <BoardLayout
+    {themeColors}
+    playerBars={userConfig.opts.playerBars}
+    {showComments}
+  >
+    {#snippet comments()}
+      {#if userText}
+        <NoteText text={userText} joined={boardMode !== 'Viewer'} />
+      {/if}
+      {#if boardMode !== 'Viewer'}
+        <!-- The front has no move buttons (they'd give the solution away): the hint and the menu -->
+        <div id="sticky-container">
+          <div id="buttons-container" class="menu-only">
+            {#if !userConfig.opts.playerBars}
+              <PuzzleClock standalone />
+            {/if}
+            <EvalButton labelled />
+            <HintButton labelled />
+            <SettingsMenu bind:isHelpOpen inToolbar labelled />
           </div>
-        {/if}
-        {#if boardMode === 'Viewer'}
-          <div id="sticky-container">
-            <div id="buttons-container">
-              <ButtonsContainer />
-            </div>
-            <div id="analysis-container">
-              <EngineAnalysis />
-            </div>
+        </div>
+      {/if}
+      {#if showFrontComments}
+        <PuzzleComments />
+      {/if}
+      {#if boardMode === 'Viewer'}
+        <div id="sticky-container">
+          <div id="buttons-container">
+            <ButtonsContainer />
+            <SettingsMenu bind:isHelpOpen inToolbar />
           </div>
-          <div id="pgnViewer">
-            <PgnViewer />
+          <div id="analysis-container">
+            <EngineAnalysis />
           </div>
-        {/if}
-      </div>
-    {/if}
-    <div id="board-container">
-      <SettingsMenu bind:isHelpOpen />
+        </div>
+        <div id="pgnViewer">
+          <PgnViewer />
+        </div>
+      {/if}
+    {/snippet}
+    {#snippet board()}
+      {#if userConfig.opts.playerBars}
+        <PlayerBar position="top" />
+      {/if}
       <ChessgroundBoard />
+      {#if userConfig.opts.playerBars}
+        <PlayerBar position="bottom" />
+      {/if}
       <PromotePopup />
-    </div>
-  </div>
+    {/snippet}
+    {#snippet outside()}
+      {#if !showComments}
+        <!-- No comment box for the hint and the menu: they float beside the board, never over a square -->
+        <div id="floating-tools">
+          {#if !userConfig.opts.playerBars}
+            <PuzzleClock standalone />
+          {/if}
+          <EvalButton />
+          <HintButton />
+          <SettingsMenu bind:isHelpOpen />
+        </div>
+      {/if}
+    {/snippet}
+  </BoardLayout>
 </GameProvider>
 
 <style lang="scss">
-  $max-width: min(100vw, 1000px);
-  $comment-box-width-calc: calc($max-width - var(--board-size) - calc($max-width * 0.03));
+  #sticky-container {
+    position: sticky;
+    top: 0; /* Sticks to the top of the container when you scroll */
+    z-index: 25;
+    #buttons-container {
+      @include flex-center;
+      border-bottom: var(--border-thin);
+      background: var(--surface-secondary);
+      padding: 4px;
 
-  #container {
-    margin: 0;
-    margin-right: 15px;
-    gap: 4px;
-    width: $max-width;
-    grid-template-areas: 'one two';
-    display: grid;
-    grid-template-columns: auto auto;
-    grid-template-rows: auto auto;
-    justify-content: center;
-
-    #commentBox {
-      grid-area: one;
-      padding: 0px;
-      width: $comment-box-width-calc;
-      box-shadow: var(--shadow-main);
-      background: var(--surface-primary);
-      color: var(--text-primary);
-      border: var(--border-thin);
-      border-radius: var(--border-radius-global);
-      max-height: var(--board-size);
-      margin-top: 1px;
-      overflow: scroll;
-      box-sizing: border-box;
-
-      #userTextContainer {
-        @include flex-center;
-        width: 100%;
-        background: var(--surface-secondary);
-        color: var(--text-primary);
-        border-bottom: var(--border-thin);
-
-        #textField {
-          padding: 0.5em;
-        }
+      // The front's few tools go to the end, as menus do in toolbars, under the note's text
+      &.menu-only {
+        justify-content: flex-end;
+        gap: 6px;
+        padding: 4px 10px 8px;
       }
-
-      #sticky-container {
-        position: sticky;
-        top: 0; /* Sticks to the top of the container when you scroll */
-        z-index: 25;
-        #buttons-container {
-          @include flex-center;
-          border-bottom: var(--border-thin);
-          background: var(--surface-secondary);
-          padding: 4px;
-        }
-      }
-
-      #pgnViewer {
-        font-size: 1.2em;
-        background: var(--surface-primary);
-        display: grid;
-        grid-template-columns: auto 1fr 1fr; /* 3-column layout */
-        border-bottom: var(--border-thin);
-      }
-    }
-    @media (orientation: portrait) {
-      #commentBox {
-        width: calc(var(--board-size) + 12px);
-        height: calc(100dvh - var(--board-size) - 14px);
-        margin-left: 1px;
-      }
-    }
-    #board-container {
-      aspect-ratio: 1 / 1;
-      contain: layout; /* Helps WebKit keep layout calculations isolated */
-      position: relative;
-      margin: 0 auto;
-      grid-area: two;
-      max-width: 600px;
     }
   }
 
-  @media (orientation: portrait) {
-    #container {
-      margin-right: 0px;
-      grid-template-areas:
-        'two'
-        'one';
-      grid-template-columns: auto;
+  /*
+   * Without the comment box, outside the board in a bottom corner. Landscape: in the comment
+   * box's grid area (#container in BoardLayout), just left of the board. Portrait: the screen's
+   * corner, under the board, within thumb reach.
+   */
+  #floating-tools {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    grid-area: one;
+    right: 0;
+    bottom: 0;
+    margin: 8px;
+    max-width: calc(100% - 16px);
+    z-index: 50; /* Under the popups */
+
+    @media (orientation: portrait) {
+      position: fixed;
+      bottom: env(safe-area-inset-bottom, 0px);
     }
+  }
+
+  #pgnViewer {
+    font-size: 1.2em;
+    background: var(--surface-primary);
+    display: grid;
+    grid-template-columns: auto 1fr 1fr; /* 3-column layout */
+    border-bottom: var(--border-thin);
   }
 </style>
 

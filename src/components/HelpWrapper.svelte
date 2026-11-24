@@ -131,7 +131,7 @@ of 164k]}) *
         <div
           style="--board-size: min(300px, 100%); width: var(--board-size); height: var(--board-size); position: relative; margin: 0 auto;"
         >
-          <ChessgroundBoard />
+          <ChessgroundBoard timerOnBorder />
         </div>
       </GameProvider>
     {/key}

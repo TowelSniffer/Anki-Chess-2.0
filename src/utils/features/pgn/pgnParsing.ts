@@ -8,6 +8,7 @@ import {
   mirrorPgnTree,
   type MirrorState,
 } from '$features/pgn/mirror';
+import { swapPlayers } from '$features/pgn/players';
 
 interface ParsedObject {
   parsedPgn: CustomPgnGame;
@@ -16,6 +17,24 @@ interface ParsedObject {
 
 export const isFen = (str: string | undefined | null) =>
   /^\s*([rnbqkbnrPNBRQK0-8]+\/){7}[rnbqkbnrPNBRQK0-8]+\s+[bw]/i.test(str || '');
+
+// Strip embedded commands ([%cal], [%eval], [%anno]...) leaving only readable text
+export const cleanComment = (comment: string | null | undefined) =>
+  (comment ?? '').replace(/\[%[^\]]*\]/g, '').trim();
+
+// Quick check on the raw PGN so the comment box is only shown when there is text to show
+export const hasPgnComments = (rawPgn: string | undefined | null) =>
+  (rawPgn?.match(/\{[^}]*\}/g) ?? []).some((c) => cleanComment(c.slice(1, -1)).length > 0);
+
+/*
+ * Some sources (ChessBase, Lichess copies...) write castling with zeros (0-0, 0-0-0),
+ * which the PGN parser rejects. Only tokens standing as a move are converted, so
+ * results like 1-0 / 0-1 are left untouched. (No lookbehind: unsupported on older iOS.)
+ */
+export const normalizeCastling = (pgn: string) =>
+  pgn.replace(/(^|[\s.(])0-0(-0)?(?=$|[\s)+#!?])/gm, (_, prefix, long) =>
+    `${prefix}O-O${long ? '-O' : ''}`,
+  );
 
 export function mirrorPGN(parsedPGN: CustomPgnGame, mirrorState: MirrorState): void {
   let pgnBaseFen = parsedPGN.tags?.FEN ?? DEFAULT_POSITION;
@@ -26,6 +45,10 @@ export function mirrorPGN(parsedPGN: CustomPgnGame, mirrorState: MirrorState): v
     parsedPGN.tags ??= {} as Tags;
     parsedPGN.tags.FEN = mirrorFen(pgnBaseFen, mirrorState);
     mirrorPgnTree(parsedPGN.moves, mirrorState);
+    // Inverted colours: the players change sides too
+    if (mirrorState === 'invert' || mirrorState === 'invert_mirror') {
+      swapPlayers(parsedPGN.tags as Record<string, unknown>);
+    }
   }
 }
 
@@ -47,6 +70,8 @@ export function parsePGN(rawPgn: string): ParsedObject {
     }
     const fen = ok ? pgnCheck : DEFAULT_POSITION;
     pgnCheck = `[Event "AI Mode"]\n[FEN "${fen}"]\n[SetUp "1"]\n\n*`;
+  } else {
+    pgnCheck = normalizeCastling(pgnCheck);
   }
 
   // Attempt parsing and log error

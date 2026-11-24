@@ -9,6 +9,7 @@ import type {
 import { isNagKey, nags} from '$features/pgn/nags';
 import { navigateNextMove, navigatePrevMove } from '$features/pgn/pgnNavigate';
 import { areMovesEqual } from '$features/chessJs/chessFunctions'
+import { badgeHtml, moveEffects } from '$features/pgn/chesscomEffects';
 export const blunderNags = ['$2', '$4', '$6', '$9'];
 const goodNags = ['$3', '$1'];
 
@@ -71,9 +72,13 @@ function createShape(
   brush: CustomShapeBrushes,
 ): CustomShape {
   let customSvg: { html: string; center: 'dest' } | undefined;
+  const effect = moveEffects(move).find((e) => e.square === move.to);
 
-  // logic for NAG icons (Blunders, etc)
-  if (move.nag) {
+  if (effect) {
+    // Chess.com mark in the NAG corner; on the move just played effectShapes draws it
+    if (brush !== 'nagOnly') customSvg = { html: badgeHtml(effect.badge, 20, 20), center: 'dest' };
+  } else if (move.nag) {
+    // logic for NAG icons (Blunders, etc)
     const foundNagKey = move.nag.find(isNagKey);
     // Assuming nags is a constant imported above
     if (foundNagKey && nags[foundNagKey][2]) {

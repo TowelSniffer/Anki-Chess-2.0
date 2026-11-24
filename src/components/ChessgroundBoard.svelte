@@ -12,10 +12,18 @@
   import { updateBoard } from '$features/board/boardAnimation';
   import { pieceSprites } from '$utils/toolkit/pieceSprites';
 
+  // The time left on the border: always for timerOnBorder (the help's demo board), else unless
+  // Puzzle > Digital Clock shows it as a clock (PuzzleClock)
+  let { timerOnBorder = false }: { timerOnBorder?: boolean } = $props();
+
   // Global Stores
   const gameStore = getContext<GameStore>('GAME_STORE');
   const engineStore = getContext<EngineStore>('ENGINE_STORE');
   const timerStore = getContext<TimerStore>('TIMER_STORE');
+  const showTimer = $derived(
+    (timerOnBorder || !gameStore.config.timerClock) && timerStore.visible,
+  );
+  const MIN_BAND = 0.06;
 
   onDestroy(() => {
     if (flashState) flashState = null;
@@ -92,14 +100,14 @@
   const barBottomColor = $derived.by(() => {
     let color: string = gameStore.orientation;
     if (isRandomPuzzle) color = 'draw';
-    else if (isStudyMode) color = gameStore.turn === 'w' ? 'white' : 'black';
+    else if (isStudyMode && !gameStore.showFrontEval) color = gameStore.turn === 'w' ? 'white' : 'black';
     return mapColor(color);
   });
 
   const barTopColor = $derived.by(() => {
     if (isRandomPuzzle) return mapColor('fail');
     let color = gameStore.orientation === 'white' ? 'black' : 'white';
-    if (isStudyMode) color = gameStore.turn === 'w' ? 'black' : 'white';
+    if (isStudyMode && !gameStore.showFrontEval) color = gameStore.turn === 'w' ? 'black' : 'white';
     return mapColor(color);
   });
 
@@ -125,7 +133,7 @@
   );
 
   const visualDivider: number = $derived.by(() => {
-    if (timerStore.visible) {
+    if (showTimer) {
       // A) Timer
       return timerStore.percent;
     } else if (!engineStore.enabled && commentDiag) {
@@ -181,7 +189,9 @@
 
   // analysisMode class for board
   const analysisMode = $derived(
-    visualDivider !== null && (engineStore.enabled || commentDiag) && (isViewerMode || isAiEval),
+    visualDivider !== null &&
+      (engineStore.enabled || commentDiag) &&
+      (isViewerMode || isAiEval || gameStore.showFrontEval),
   );
 
   // borderFlash class for board
@@ -199,7 +209,7 @@
     if (typeof visualDivider !== 'number') return;
 
     // Timer handles its own animation
-    if (timerStore.visible) return;
+    if (showTimer) return;
 
     const isAnalysis = engineStore.enabled || !!commentDiag || isAiEval;
     const isInitialActivation = isAnalysis && !shouldHardSpring;
@@ -212,7 +222,9 @@
   let evalFillNode: HTMLDivElement | undefined = $state();
   $effect(() => {
     if (!evalFillNode) return;
-    let scale = (timerStore.visible ? visualDivider : $dividerSpring) / 100;
+    let scale = (showTimer ? visualDivider : $dividerSpring) / 100;
+    // While solving a won position is the usual case: a band stays, or it would look like no bar
+    if (gameStore.showFrontEval) scale = Math.min(Math.max(scale, MIN_BAND), 1 - MIN_BAND);
 
     // Calculate percentage in JS, apply directly to the node
     evalFillNode.style.transform = `translate3d(0, ${-100 + scale * 100}%, 0)`;
@@ -315,12 +327,12 @@
     style:--theme-sprite="url('{currentSprite}')"
     class="board-wrapper"
     class:analysisMode
-    class:timerMode={timerStore.visible}
+    class:timerMode={showTimer}
     class:border-flash={borderFlash}
     onanimationend={() => (flashState = null)}
   >
     <!-- Eval bar for border -->
-    {#if timerStore.visible || analysisMode}
+    {#if showTimer || analysisMode}
       <div class="eval-bar top"></div>
       <div class="eval-track">
         <div class="eval-fill" bind:this={evalFillNode}></div>
